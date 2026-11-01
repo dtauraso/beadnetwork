@@ -24,8 +24,7 @@ Also:
 
 ### Purpose
 
-- **Who:** They are a visual thinker who codes by directing an AI, and reading the code it
-  generates is their bottleneck.
+- **Who:** They are a visual thinker who codes by directing an AI.
 - **What they found:** For what they wanted, basic visuals came quickly. They typed the
   change they wanted to see, the AI made it, and the code worked, though they had not read
   it and did not know the language.
@@ -37,8 +36,9 @@ Also:
 
 ### The priority
 
-Reading the code went from their first priority to their second: they check what the AI
-builds by pressing buttons and watching the screen first, and read its code second.
+The code the AI generated was a reading bottleneck, so they changed the priority: they check
+what the AI builds by pressing buttons and watching the screen first, and read its code
+second.
 
 ### What follows from the priority
 
