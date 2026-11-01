@@ -29,7 +29,8 @@ Also:
 - **What they made:** They directed an AI away from those defaults to make their own 3D
   simulation.
 - **What it is for:** It lets them make 3D simulations their way: in a local polar system,
-  where each link's whole-number Δ is the truth and x, y, z is only a view of it.
+  where each link changes by whole-number steps, Δ, and those counts stay exact; where the
+  nodes are is worked out from them through x, y, z.
 
 ### The priority
 
@@ -54,8 +55,11 @@ into the local polar system ([Design principles](#design-principles)); the steps
 
 An AI's defaults keep the truth in one global x, y, z frame. Their way, in the
 [Purpose](#purpose), keeps it in each link's local, whole-number Δ, because each link moves
-in its own polar frame; so a rotation is an exact count of steps that never drifts. From
-that:
+in its own polar frame; so a link's rotation is an exact count of steps that never drifts.
+Everything else is worked out from those counts through x, y, z, as floats: a node is
+placed at its source node's x, y, z plus its link's vector, turned back into φ, θ and r, and
+the start of every other link is measured from where its two nodes now are. Only Δ stays
+exact. From that:
 
 - **A link is a vector.** It has a direction, φ and θ, and a length, r, each a start plus a
   whole-number Δ.
@@ -67,11 +71,13 @@ that:
 
 It rules out:
 
-- **Selecting nodes with one central raycast through global x, y, z.** It skips the local
-  polar system; each node measures the mouse in its own local steps instead
+- **Selecting nodes with one central raycast through global x, y, z.** It starts and ends
+  in x, y, z and is never worked out from any node's own steps; each node measures the mouse
+  in its own local steps instead
   ([question 3](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)).
-- **A camera made of decimal rotations stacked on each other.** It sits outside the local
-  polar system; the camera becomes a node held in whole-number steps like everything else
+- **A camera made of decimal rotations stacked on each other.** Its numbers are not
+  whole-number steps and are not worked out from any; the camera becomes a node held in
+  whole-number steps like everything else
   ([question 5](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)).
 
 | Principle | Meaning |
@@ -79,12 +85,12 @@ It rules out:
 | Local data as truth | Each link's own Δ is the source of truth. |
 | Polar as the local coordinate system | Links are φ, θ, r — not x, y, z. |
 | Integers as the control numbers | Changes in the local system are whole-number counts of steps. |
-| Global as projection | The global picture is a view made from the local data. |
+| Global as the working step | Node places and link starts are worked out in x, y, z from the local data. |
 | Local → global adaptor | Turns local places and links into x, y, z. |
 | Global reconstructions → local | Starts and node places are rebuilt from global places, as floats; Δ is not. |
 
-The local-to-global adaptor serves [the priority](#the-priority): it puts the local system on
-the screen, where it is checked.
+The local-to-global adaptor serves [the priority](#the-priority): it places the nodes in
+space, so the local system can be seen on the screen, where it is checked.
 
 ---
 
