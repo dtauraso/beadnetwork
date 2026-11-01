@@ -27,8 +27,8 @@ Also:
 - **Who:** a visual thinker for whom reading code is the bottleneck.
 - **What it makes:** 3D rotations built from local, whole-number changes to angles, in a 3D
   simulation the person directs an AI to build.
-- **The problem:** the usual approaches did not move the nodes as needed, and neither did
-  what AI made with them, so they made a solution themselves, with AI assistance.
+- **The problem:** the visual thinker was not satisfied by what the AI made, so they made a
+  solution themselves, with AI assistance.
 - **What it gives them:** they check what the AI built by pressing buttons and watching,
   with reading the code it writes secondary.
 - **What that demands:** the screen has to be the simulation itself, and every behaviour has
