@@ -76,7 +76,7 @@ setting angles and many other settings for 3D rotations.
 
 ### The tools
 
-It is built only from tools in everyday use: polar coordinates, whole-number counting,
+It is built only from tools in everyday use: spherical coordinates, whole-number counting,
 addition, sin and cos and their inverses, subtracting one point from another, nodes
 passing messages, and a clock.
 
@@ -103,20 +103,17 @@ pointing the same way.
 
 ### Moving nodes
 
-A link rotates about the node it starts from, and the node at its end moves with it.
+A link rotates about the node it starts from and moves only the node at its other end.
+Nodes linked from that node are not carried along.
 
 ### The network
 
 Each link rotates about the node it starts from, so a rotation's centre is that link's
 start node. Selecting links picks the centres: select links that start from different
 nodes, and each of those nodes is a centre. One step rotates every selected link at once,
-each by its own step size, and every node those links move moves in that one step. A node
-refuses changes that cannot be: a length below zero, or a second selected link into the
-same node.
-
-### Time
-
-Changes play out at a speed a person can watch, set from the UI.
+each by its own step size, and every node those links move moves in that one step. In one
+step, each node is moved by at most one rotation, so a second selected link into the same
+node is refused, as is a length below zero.
 
 ### Sequences
 
