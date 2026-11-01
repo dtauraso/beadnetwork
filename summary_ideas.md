@@ -34,7 +34,14 @@ Also:
 - **What that demands:** the screen has to be the simulation itself, and every behaviour has
   to be something that can be checked by pressing buttons and watching.
 
-### How the design meets it
+### The bet
+
+The motion is local: each link turns in its own polar frame. The usual approach keeps the
+truth in one global x, y, z frame. The bet is the other way round: keep each link's local,
+whole-number Δ as the truth and make the global frame only a view of it, so a rotation is
+an exact count of steps that never drifts, and each step can be checked by watching it.
+
+### What follows from the bet
 
 - **A link is a vector.** It has a direction, φ and θ, and a length, r, each a start plus a
   whole-number Δ.
@@ -46,13 +53,21 @@ Also:
 - **The screen draws what the simulation wrote.** Where that is an angle (a node's pole, the
   camera), the screen turns it into x, y, z.
 
+### What it rules out
+
+- **Selecting nodes with one central raycast through global x, y, z.** It skips the local
+  polar system; each node measures the mouse in its own local steps instead
+  ([question 3](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)).
+- **A camera made of decimal rotations stacked on each other.** It sits outside the local
+  polar system; the camera becomes a node held in whole-number steps like everything else
+  ([question 5](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)).
+
 ### Where it is going
 
-Now: the settings UI redo, so every setting is reachable and visible. Next: the "bird"
-animation and testing the settings. Later: the existing parts (selection, camera, rings
-tab, gestures) are changed to fit the local polar system, and many rotations and many
-nodes are tested at once. See [Roadmap](#roadmap) and
-[Future directions](#future-directions).
+Every part, including selection, the camera and the gestures, runs in the local polar
+system, and many nodes rotate at once, enough to make a bird that flaps its wings and turns
+while it flaps. The steps there are in the [Roadmap](#roadmap);
+[Future directions](#future-directions) says why they follow.
 
 ---
 
