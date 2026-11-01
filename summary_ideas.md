@@ -63,13 +63,6 @@ An AI's defaults keep the truth in one global x, y, z frame. Their way keeps it 
 link's own integer counts of φ, θ and r, so a rotation is an exact count of steps that never
 drifts. x, y, z are only worked out from those counts, to place and draw the nodes.
 
-It rules out:
-
-- **Selecting nodes with one central raycast through global x, y, z**
-  ([question 3](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)).
-- **A camera made of decimal rotations stacked on each other**
-  ([question 5](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)).
-
 ---
 
 ## What it does
