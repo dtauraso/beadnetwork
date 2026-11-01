@@ -99,8 +99,9 @@ space, so the local system can be seen on the screen, where it is checked.
 
 ## In one paragraph
 
-There is a 3D simulation system. It moves links in 3D by adding local integer changes to
-their angles. It has a UI for setting those angles and many other settings for how they change.
+There is a 3D simulation system. It does 3D rotation by adding and subtracting integer
+angle values, held locally by each link. It has a UI for setting angles and many other
+settings for 3D rotations.
 
 ### The tools
 
@@ -126,8 +127,8 @@ holds a direction, φ and θ, and a length, r. Each node holds the links that co
 
 ### Steps
 
-It changes where links point in 3D by steps. Each link has a change added to each of its two angles
-and its length: Δφ is the change added to φ, Δθ the change added to θ, and Δr the change
+It does 3D rotation by adding and subtracting integer angle values. Each link has a change
+added to each of its two angles and its length: Δφ is the change added to φ, Δθ the change added to θ, and Δr the change
 added to r. Each one is a whole number of steps.
 
 Stepping one back the same number of times returns it to exactly where it was. However
@@ -141,8 +142,8 @@ were made.
 
 ### Two angles
 
-A change in where a link points is a number of steps in φ and a number of steps in θ. φ and θ are independent
-angles: stepping one never changes the other. Where a link points is decided by those two
+A rotation is a number of steps added to or subtracted from φ and a number added to or
+subtracted from θ. φ and θ are independent angles: stepping one never changes the other. Where a link points is decided by those two
 numbers alone. So steps in φ and θ can be made in any order, and the link ends up
 pointing the same way.
 
@@ -154,9 +155,9 @@ pointing the same way.
 
 ### Moving nodes
 
-A link stays attached to the node it starts from; only its angles and length change.
-Stepping a link moves the node at its end to where that link now points. The other links touching that node are rebuilt from the two
-nodes' new positions, so the picture stays in step with the links.
+A link rotates about the node it starts from: adding or subtracting steps on its φ and θ
+moves the node at its end to where that link now points, while its start stays put. The
+other links touching that node are rebuilt from the two nodes' new positions, so the picture stays in step with the links.
 
 - **To see it:** step a link, and its end node moves while the links touching it follow.
 - **To read it:** `peer_moves.go`, `Peer.take`: the end node goes to the other node's
@@ -165,9 +166,9 @@ nodes' new positions, so the picture stays in step with the links.
 
 ### The network
 
-A link can be selected: marked to be stepped together with the other selected links. One
-step changes the angles of every selected link at once. Each node moves on its own, once it has heard
-where its neighbours are. A node refuses changes that cannot be: a length below zero, or a
+A link can be selected: marked to be rotated together with the other selected links. One
+step rotates every selected link at once, by adding or subtracting steps on each one's
+angles. Each node moves on its own, once it has heard where its neighbours are. A node refuses changes that cannot be: a length below zero, or a
 second selected link into the same node.
 
 - **To see it:** in sequence 1 press the both ▲, the button that steps every selected
@@ -182,11 +183,12 @@ second selected link into the same node.
 ### Time
 
 Changes play out at a speed a person can watch, and that speed is set from the UI.
-Repeatedly stepping two links that start from different nodes makes the links move like
-an arm bending at its joints.
+Repeating two different rotations with different centres (two links that start from
+different nodes, each stepped forward and back) makes the links swing like an arm on its
+joints.
 
-- **To see it:** keep stepping two links that start from different nodes, and the links
-  move like an arm bending.
+- **To see it:** keep repeating two rotations with different centres, and the links swing
+  like an arm.
 - **To read it:** `Categories/Clock/human_tick.go`, `HumanTick`: every node counts ticks
   from one shared start.
 
