@@ -45,15 +45,19 @@ second. So the screen draws only what the simulation holds.
 
 There is a 3D simulation system made of nodes joined by links, each link going from one
 node to another. It does 3D rotation by adding and subtracting integers to each link's
-spherical-coordinate angles, φ and θ, centred on the node the link starts from.
+spherical-coordinate angles, φ and θ, centred on the node the link starts from. φ is how
+far the link tips down from straight up; θ is how far it turns around the up direction.
+What rotates is each link's direction, about its own centre.
 
 Take one link. The node it starts from is its centre, and it rotates about that node. Its
 angles are counts: a full turn is split into a fixed whole number of equal steps, and φ and
-θ each say how many of those steps. Rotating it adds to or subtracts from those counts.
-Rotating it needs only its own counts and the place of the node it starts from; no chain of
-other links is followed to reach it. It moves only the node at its other end; nodes linked
-from that node are not carried along. It also has a length, r, changed the same way, which sets how far it reaches and never where
-it points.
+θ each say how many of those steps. Every link's angles are measured against the same up
+and around directions; only the centre is the link's own. Rotating it adds to or subtracts
+from those counts. Rotating it needs only its own counts and the place of the node it
+starts from; no chain of other links is followed to reach it. It moves only the node at its
+other end; nodes linked from that node stay where they are, unless their link is selected
+too, and the links to them change to reach them. It also has a length, r, changed the same way, which sets how far it reaches and
+never where it points.
 
 Every link is that one link, at the same time. Each holds its own centre and its own
 counts, and needs no other link to say where it points. So any number of nodes are centres
@@ -65,8 +69,8 @@ It has a UI for setting angles, lengths and many other settings for 3D rotations
 ### The tools
 
 It is built only from tools in everyday use: spherical coordinates, whole-number counting,
-addition, sin and cos and their inverses, subtracting one point from another, nodes
-passing messages, and a clock.
+addition, sin and cos and their inverses, subtracting one point from another, and nodes
+passing messages.
 
 ---
 
@@ -85,9 +89,12 @@ from those counts, to place and draw the nodes.
 ### The parts
 
 It is a network of nodes joined by links. Each link goes from one node to another and
-holds a direction, φ and θ, and a length, r, all measured from the node it starts from.
-φ is how far the link tips down from straight up; θ is how far it turns around the up
-direction.
+holds a direction, φ and θ, and a length, r, all measured from the node it starts from,
+against the same up and around directions as every other link.
+
+Each link's counts are counted from where it started. The start is set when the link is
+made, and set again when the link is remeasured; a step never changes it, and the counts
+stay whole numbers.
 
 ### Steps
 
@@ -102,17 +109,24 @@ A rotation is steps added to φ and steps added to θ, and stepping one never ch
 other. Because the steps are added, they can be made in any order and the link ends up
 pointing the same way. Stepping r never changes where it points.
 
+A link pointing straight up or straight down lies on the line θ turns around, so stepping θ
+leaves it where it is; stepping φ tips it off that line.
+
 ### Moving nodes
 
 A link moves only the node at its other end. Rotating it swings that node about the node
-the link starts from; stepping r moves that node nearer or farther along the link. Nodes
-linked from that node are not carried along.
+the link starts from; stepping r moves that node nearer or farther along the link.
+
+Nodes linked from that node are not carried along: they stay where they are, and each link
+from the moved node to one of them changes to reach where that node still is. The one
+exception is a link that is selected too: its end node is placed from the moved node's new
+place, in the same step.
 
 ### The network
 
 A rotation's centre is the start node of the link being rotated. Selecting links picks the
-centres: select links that start from different nodes, and each of those nodes is a
-centre. One step changes every selected link at once, each by its own step size, and every
+centres: each selected link's start node is a centre, and links selected from the same
+node share it. One step changes every selected link at once, each by its own step size, and every
 node those links move moves in that one step. In one step, each node is moved by at most
 one link, so a second selected link into the same node is refused, as is a length below
 zero.
