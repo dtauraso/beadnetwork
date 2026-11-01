@@ -43,11 +43,15 @@ second. So the screen draws only what the simulation holds.
 
 ## In one paragraph
 
-There is a 3D simulation system. It does 3D rotation by adding and subtracting integers to
-each link's spherical-coordinate angles, φ and θ, centred on the node the link starts from.
-Any number of centres can rotate at the same time, each by its own rotation. Each link also
-has a length, r, changed the same way, which sets how far the link reaches and never where
-it points. It has a UI for setting angles, lengths and many other settings for 3D rotations.
+There is a 3D simulation system made of nodes joined by links, each link going from one
+node to another. It does 3D rotation by adding and subtracting integers to each link's
+spherical-coordinate angles, φ and θ, centred on the node the link starts from. That node
+is the centre the link rotates about. An angle here is a count: a full turn is split into
+a fixed whole number of equal steps, and φ and θ each say how many of those steps. Any
+number of nodes can be centres at the same time, and each link rotating about one turns by
+its own amount. Each link also has a length, r, changed the same way, which sets how far
+the link reaches and never where it points. It has a UI for setting angles, lengths and
+many other settings for 3D rotations.
 
 ### The tools
 
@@ -59,9 +63,11 @@ passing messages, and a clock.
 
 ## Design principles
 
-An AI's defaults keep the truth in one global x, y, z frame. Their way keeps it in each
-link's own integer counts of φ, θ and r, so a rotation is an exact count of steps that never
-drifts. x, y, z are only worked out from those counts, to place and draw the nodes.
+The truth is the set of numbers everything else is worked out from. An AI's defaults keep
+it in one global x, y, z frame, in decimals, so each rotation rounds a little and the
+rounding builds up. Their way keeps it in each link's own integer counts of φ, θ and r, so
+a rotation is an exact count of steps and nothing builds up. x, y, z are only worked out
+from those counts, to place and draw the nodes.
 
 ---
 
@@ -70,12 +76,15 @@ drifts. x, y, z are only worked out from those counts, to place and draw the nod
 ### The parts
 
 It is a network of nodes joined by links. Each link goes from one node to another and
-holds a direction, φ and θ, and a length, r.
+holds a direction, φ and θ, and a length, r, all measured from the node it starts from.
+φ is how far the link tips down from straight up; θ is how far it turns around the up
+direction.
 
 ### Steps
 
-A link is changed in steps: integers added to and subtracted from its φ, θ and r. Steps in
-φ and θ rotate it; steps in r change its length. Stepping back the same number of times
+A link is changed in steps: integers added to and subtracted from its φ, θ and r. Each
+link has its own step size, a whole number, so one step adds or subtracts that many. Steps
+in φ and θ rotate it; steps in r change its length. Stepping back the same number of times
 returns a link to exactly where it was, however many steps are made.
 
 ### Two angles
@@ -101,7 +110,8 @@ zero.
 
 ### Sequences
 
-A scene holds several sequences, each a separate saved setup of nodes and links.
+A scene is what the editor opens and saves. It holds several sequences, each a separate
+setup of nodes and links, kept on its own.
 
 ### The screen
 
@@ -116,5 +126,6 @@ was left.
 |---|---|
 | **Now** | Make the UI easier to use for all the settings (in progress). |
 
-After that, selection, the camera and the gestures are moved onto the same integer counts
+After that, selection, the camera and the gestures, which still work in x, y, z, are moved
+onto the same integer counts
 ([summary_open_questions.md](summary_open_questions.md)).
