@@ -49,8 +49,9 @@ spherical-coordinate angles, φ and θ, centred on the node the link starts from
 
 Take one link. The node it starts from is its centre, and it rotates about that node. Its
 angles are counts: a full turn is split into a fixed whole number of equal steps, and φ and
-θ each say how many of those steps. Rotating it adds to or subtracts from those counts. It
-also has a length, r, changed the same way, which sets how far it reaches and never where
+θ each say how many of those steps. Rotating it adds to or subtracts from those counts.
+Rotating it needs only its own counts and the place of the node it starts from; no chain of
+other links is followed to reach it. It also has a length, r, changed the same way, which sets how far it reaches and never where
 it points.
 
 Every link is that one link, at the same time. Each holds its own centre and its own
