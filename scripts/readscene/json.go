@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
@@ -52,6 +53,28 @@ type jsonSequence struct {
 	Links    []jsonLink `json:"links"`
 }
 
+func sequenceJSON(root string, k int, spec Topology.TopoSpec, seed Links.Seed) jsonSequence {
+	f := seed.Frame
+	js := jsonSequence{Sequence: k, Name: Scenes.SequenceName(root, k),
+		Frame: jsonFrame{Rho: f.Rho, ConstantR: f.Cr, MaxIndexPhi: f.Tphi, MaxIndexTheta: f.Ttheta},
+		Nodes: []jsonNode{}, Links: []jsonLink{}}
+	for _, n := range spec.Nodes {
+		jn := jsonNode{ID: n.ID, S: seed.Scales[n.ID]}
+		if p, ok := seed.Places[n.ID]; ok {
+			jn.Place = &jsonAngles{Phi: p.Phi, Theta: p.Theta, R: p.R}
+		}
+		js.Nodes = append(js.Nodes, jn)
+	}
+	for _, l := range seed.Links {
+		js.Links = append(js.Links, jsonLink{From: l.From, To: l.To,
+			Start:     jsonAngles{Phi: l.Start.Phi, Theta: l.Start.Theta, R: l.Start.R},
+			Delta:     jsonTicks{Phi: l.Delta.Phi, Theta: l.Delta.Theta, R: l.Delta.R},
+			Increment: jsonTicks{Phi: l.Increment.Phi, Theta: l.Increment.Theta, R: l.Increment.R},
+			Picked:    l.Picked})
+	}
+	return js
+}
+
 func dumpJSON(root string, seqs []int, constants polarindex.SceneConstants, sceneS int) int {
 	status := 0
 	all := []jsonSequence{}
@@ -62,26 +85,7 @@ func dumpJSON(root string, seqs []int, constants polarindex.SceneConstants, scen
 			status = 1
 			continue
 		}
-		seed := Topology.LinkSeed(spec, sceneS, 0)
-		f := seed.Frame
-		js := jsonSequence{Sequence: k, Name: Scenes.SequenceName(root, k),
-			Frame: jsonFrame{Rho: f.Rho, ConstantR: f.Cr, MaxIndexPhi: f.Tphi, MaxIndexTheta: f.Ttheta},
-			Nodes: []jsonNode{}, Links: []jsonLink{}}
-		for _, n := range spec.Nodes {
-			jn := jsonNode{ID: n.ID, S: seed.Scales[n.ID]}
-			if p, ok := seed.Places[n.ID]; ok {
-				jn.Place = &jsonAngles{Phi: p.Phi, Theta: p.Theta, R: p.R}
-			}
-			js.Nodes = append(js.Nodes, jn)
-		}
-		for _, l := range spec.Links {
-			js.Links = append(js.Links, jsonLink{From: l.From, To: l.To,
-				Start:     jsonAngles{Phi: l.Start.Phi, Theta: l.Start.Theta, R: l.Start.R},
-				Delta:     jsonTicks{Phi: l.Delta.Phi, Theta: l.Delta.Theta, R: l.Delta.R},
-				Increment: jsonTicks{Phi: l.Increment.Phi, Theta: l.Increment.Theta, R: l.Increment.R},
-				Picked:    l.Picked})
-		}
-		all = append(all, js)
+		all = append(all, sequenceJSON(root, k, spec, Topology.LinkSeed(spec, sceneS, 0)))
 	}
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")

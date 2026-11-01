@@ -72,15 +72,17 @@ the 3D rotations.
 These rules are enough to recompute every position from the saved values, with no code
 from this repo. `go run ./scripts/readscene -json <scene dir>` prints the saved values:
 the frame (ρ, constant-r, max-index-φ, max-index-θ), each node's s and place, and each
-link's start, Δ, increment and whether it is selected. Run it before and after pressing a
-button to get the two states to compare.
+link's start, Δ, increment and whether it is selected. `go run ./scripts/readscene -steps
+<scene dir>` presses each of the eight step buttons once on every sequence, in memory, with
+the same link code the editor runs, and prints each before and after in that form, so a
+step can be checked without the editor. Nothing on disk changes.
 
 For a link, s is the s of the node it goes to, and one turn is T = 12·s ticks.
 
 1. **Where a link points.** φ = start φ + Δφ and θ = start θ + Δθ, each wrapped into
    0 ≤ angle < T; r = start r + Δr.
-2. **A step.** It adds the increment, plus or minus, to one Δ, and changes nothing else in
-   that link. An angle's Δ is wrapped into 0 ≤ Δ < T; Δr is not wrapped. A step that would
+2. **A step.** It adds the increment, plus or minus, to one Δ (φ, θ or r), or with the
+   "both" button to all three, and changes nothing else in that link. An angle's Δ is wrapped into 0 ≤ Δ < T; Δr is not wrapped. A step that would
    take r below 0 is refused.
 3. **A link's vector.** With a(t) = t · 2π / T:
    x = r·ρ·sin a(φ)·cos a(θ), y = r·ρ·cos a(φ), z = r·ρ·sin a(φ)·sin a(θ).
@@ -91,8 +93,8 @@ For a link, s is the s of the node it goes to, and one turn is T = 12·s ticks.
    φ · 2π / max-index-φ and θ · 2π / max-index-θ for the angles, and no z flip.
 5. **Every link closes.** For every link a→b: position(a) + vector(a→b) = position(b), to
    floating-point rounding.
-6. **What a step of the selected links changes.** Each stepped link's Δ changes by exactly
-   its increment (wrapped, as in rule 2) and its start stays the same. No other link's Δ changes. A link that was
+6. **What a step of the selected links changes.** Each Δ of a stepped link that changes
+   changes by exactly its increment (wrapped, as in rule 2) and the link's start stays the same. No other link's Δ changes. A link that was
    not stepped but touches a node that moved gets a new start, the one that makes rule 5
    hold again for it.
 

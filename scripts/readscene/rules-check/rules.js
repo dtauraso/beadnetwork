@@ -79,14 +79,12 @@ function linkCloses(frame, link, from, to) {
   return { end, b, gap, closes: gap <= ROUNDING * Math.max(1, size(b)) };
 }
 
-function isOneStep(before, after, s) {
-  for (const axis of AXES) {
-    for (const sign of [1, -1]) {
-      const delta = stepDelta(before, axis, sign, s);
-      if (delta && AXES.every(k => delta[k] === after.delta[k])) return true;
-    }
-  }
-  return false;
+function steppedByIncrement(before, after, s) {
+  const changed = AXES.filter(k => before.delta[k] !== after.delta[k]);
+  return changed.every(axis => [1, -1].some(sign => {
+    const delta = stepDelta(before, axis, sign, s);
+    return delta !== null && delta[axis] === after.delta[axis];
+  }));
 }
 
 function stepVerdict(before, after, s, aNodeMoved) {
@@ -95,9 +93,9 @@ function stepVerdict(before, after, s, aNodeMoved) {
   const verdict = (ok, why) => ({ ok, why, startKept, aNodeMoved });
   if (stepped) {
     if (!before.picked) return verdict(false, "Δ changed on a link that was not selected");
-    if (!isOneStep(before, after, s)) return verdict(false, "Δ changed by something other than one increment");
+    if (!steppedByIncrement(before, after, s)) return verdict(false, "a Δ changed by something other than its increment");
     if (!startKept) return verdict(false, "Δ was stepped but the start changed too");
-    return verdict(true, "stepped: Δ by one increment, start kept");
+    return verdict(true, "stepped: each changed Δ by its increment, start kept");
   }
   if (startKept) return verdict(true, "unchanged");
   if (!aNodeMoved) return verdict(false, "start changed, but neither of its nodes moved");
@@ -140,5 +138,5 @@ function checkStep(before, after) {
 const RULES_SOURCE = [
   "const TAU = 2 * Math.PI;\nconst ROUNDING = 1e-6;\nconst SAME = 1e-9;\nconst AXES = [\"phi\", \"theta\", \"r\"];",
   turn, wrap, add, distance, size, wherePoints, stepDelta, zFlips, linkVector, nodePosition,
-  linkCloses, isOneStep, stepVerdict, checkSequence, checkStep,
+  linkCloses, steppedByIncrement, stepVerdict, checkSequence, checkStep,
 ].map(String).join("\n\n");

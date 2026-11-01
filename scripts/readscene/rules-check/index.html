@@ -22,7 +22,7 @@
     <ol class="rules">
       <li><b>Where a link points.</b> φ = start φ + Δφ and θ = start θ + Δθ, each wrapped into 0 ≤ angle &lt; T. r = start r + Δr.
         <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="wherePoints"></pre></details></li>
-      <li><b>A step.</b> It adds the increment, plus or minus, to one Δ and changes nothing else in that link. An angle's Δ is wrapped into 0 ≤ Δ &lt; T; Δr is not. A step that would take r below 0 is refused.
+      <li><b>A step.</b> It adds the increment, plus or minus, to one Δ (φ, θ or r), or with the "both" button to all three, and changes nothing else in that link. An angle's Δ is wrapped into 0 ≤ Δ &lt; T; Δr is not. A step that would take r below 0 is refused.
         <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="stepDelta"></pre></details></li>
       <li><b>A link's vector.</b> With a(t) = t · 2π / T:
         <span class="formula">x = r·ρ·sin a(φ)·cos a(θ)
@@ -34,10 +34,10 @@ z = r·ρ·sin a(φ)·sin a(θ)</span>
         <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="nodePosition"></pre></details></li>
       <li><b>Every link closes.</b> For every link a→b, position(a) + vector(a→b) = position(b), to floating-point rounding.
         <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="linkCloses"></pre></details></li>
-      <li><b>What a step of the selected links changes.</b> Each stepped link's Δ changes by exactly its increment (wrapped, as in rule 2), and its start stays the same. No other link's Δ changes. A link that was not stepped but touches a node that moved gets a new start, the one that makes rule 5 hold for it again.
-        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="isOneStep stepVerdict"></pre></details></li>
+      <li><b>What a step of the selected links changes.</b> Each Δ of a stepped link that changes changes by exactly its increment (wrapped, as in rule 2), and the link's start stays the same. No other link's Δ changes. A link that was not stepped but touches a node that moved gets a new start, the one that makes rule 5 hold for it again.
+        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="steppedByIncrement stepVerdict"></pre></details></li>
     </ol>
-    <p class="muted">Rules 1–5 are checked on one state. Rule 6 needs two: export, press a button in the editor, export again, and put the second export under After.</p>
+    <p class="muted">Rules 1–5 are checked on one state. Rule 6 needs a before and an after. <code>scene-steps.js</code> holds 48 of them: each of the eight step buttons pressed once on each sequence by the same link code the editor runs, run outside the editor with <code>go run ./scripts/readscene -steps topology-pair-phi-theta-3</code>. All 48 are checked when the page opens, and any one can be loaded below.</p>
   </section>
 
   <section class="panel" aria-labelledby="data-h">
@@ -57,6 +57,8 @@ z = r·ρ·sin a(φ)·sin a(θ)</span>
     <div class="row">
       <button id="check" type="button">Check</button>
       <button id="reset" type="button" class="ghost">Reload the 2026-10-31 export</button>
+      <label class="label" for="press">Load a recorded press</label>
+      <select id="press"></select>
       <span class="muted" id="status"></span>
     </div>
     <p class="muted">To see that the check can fail, change one Δ in Before and press Check. That link stops closing.</p>
@@ -71,6 +73,7 @@ z = r·ρ·sin a(φ)·sin a(θ)</span>
   </details>
 </div>
 <script src="scene-export.js"></script>
+<script src="scene-steps.js"></script>
 <script src="rules.js"></script>
 <script src="page.js"></script>
 </body>

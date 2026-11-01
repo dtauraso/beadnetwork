@@ -1,8 +1,20 @@
 const $ = id => document.getElementById(id);
 const fmt = x => (Math.abs(x) < 5e-7 ? 0 : x).toFixed(6);
 const xyz = v => v ? [v.x, v.y, v.z].map(fmt).join("  ") : "—";
-const axis = k => k === "phi" ? "φ" : k === "theta" ? "θ" : "r";
+const axis = k => ({ phi: "φ", theta: "θ", r: "r", both: "both" })[k];
+const presses = Array.isArray(window.SCENE_STEPS) ? window.SCENE_STEPS : [];
+const pressName = p => `sequence ${p.sequence}: ${axis(p.button.k)} ${p.button.sign > 0 ? "+" : "−"}`;
 let original = "";
+
+function recorded() {
+  const failed = [];
+  for (const p of presses) {
+    const stepOk = checkStep(p.before, p.after).every(r => r.ok);
+    const closes = checkSequence(p.after).links.every(r => r.gap === undefined || r.closes);
+    if (!stepOk || !closes) failed.push(pressName(p));
+  }
+  return failed;
+}
 
 function parse(text, label) {
   const data = JSON.parse(text);
@@ -118,6 +130,11 @@ function render() {
   const chips = el("div", { class: "summary" },
     el("span", { class: "chip " + (tally.open ? "fail" : "pass") }, `${tally.closed} links close · ${tally.open} do not`));
   if (after) chips.append(el("span", { class: "chip " + (tally.stepBad ? "fail" : "pass") }, `rule 6: ${tally.stepOk} links follow it · ${tally.stepBad} do not`));
+  if (presses.length) {
+    const failed = recorded();
+    chips.append(el("span", { class: "chip " + (failed.length ? "fail" : "pass") },
+      `recorded presses: ${presses.length - failed.length} of ${presses.length} follow rules 5 and 6` + (failed.length ? " · failing: " + failed.join(", ") : "")));
+  }
   out.append(el("div", { class: "panel" }, el("h2", {}, "Results"), chips), ...cards);
   $("status").textContent = "Checked " + before.length + " sequence" + (before.length === 1 ? "" : "s") + ".";
 }
@@ -136,6 +153,16 @@ $("check").addEventListener("click", render);
 $("reset").addEventListener("click", () => { $("before").value = original; $("after").value = ""; render(); });
 loadFile($("beforeFile"), "before");
 loadFile($("afterFile"), "after");
+$("press").append(el("option", { value: "" }, presses.length ? "choose one" : "scene-steps.js did not load"),
+  ...presses.map((p, i) => el("option", { value: String(i) }, pressName(p))));
+$("press").addEventListener("change", () => {
+  const p = presses[$("press").value];
+  if (!p) return;
+  $("before").value = JSON.stringify([p.before], null, 2);
+  $("after").value = JSON.stringify([p.after], null, 2);
+  render();
+  $("status").textContent = "Loaded " + pressName(p) + "." + (p.refused.length ? " Refused: " + p.refused.join("; ") : "");
+});
 $("source").textContent = RULES_SOURCE;
 for (const pre of document.querySelectorAll("pre[data-fn]")) {
   pre.textContent = pre.dataset.fn.split(" ").map(n => String(window[n])).join("\n\n");
