@@ -93,9 +93,15 @@ For a link, s is the s of the node it goes to, and one turn is T = 12·s ticks.
    φ · 2π / max-index-φ and θ · 2π / max-index-θ for the angles, and no z flip.
 5. **Every link closes.** For every link a→b: position(a) + vector(a→b) = position(b), to
    floating-point rounding.
-6. **What a step of the selected links changes.** Each Δ of a stepped link that changes
-   changes by exactly its increment (wrapped, as in rule 2) and the link's start stays the same. No other link's Δ changes. A link that was
-   not stepped but touches a node that moved gets a new start, the one that makes rule 5
-   hold again for it.
+6. **What a press changes.** A press steps one link into each node: the first selected
+   one, in saved order. That link's Δ changes as rule 2 says and its start stays. No other
+   link's Δ changes. A node reached by a stepped link moves to position(from) +
+   vector(link) with the new Δ; every other node stays where it was.
+7. **The order of presses does not change Δ.** Steps add whole-number increments to Δ, and
+   addition does not depend on order, so φ+, θ+ and r+ in any of their six orders leave
+   every link with the same Δ. A link that was not stepped can get a new start, worked out
+   again from where the nodes moved to; that never changes its Δ.
 
-Rules 1–5 are checked on one state; rule 6 is checked between a before and an after.
+Rules 1–5 are checked on one state; rule 6 is checked between a before and an after;
+rule 7 across the six orders, which `go run ./scripts/readscene -orders <scene dir>` presses
+in memory the same way `-steps` does.

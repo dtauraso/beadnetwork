@@ -12,8 +12,8 @@
   <header class="prose">
     <span class="label">Bead network · phi-theta-3 scene</span>
     <h1>Link Rules Check</h1>
-    <p>The editor draws nodes moving as links are stepped. A drawing can be faked, so this page sets the drawing aside. It takes the numbers the editor saved and recomputes every position from six written rules. The code here is its own, written from the rules, and none of it comes from the editor. All of it is shown at the bottom of the page.</p>
-    <p class="muted">The loaded data is the editor's own export of all six sequences, taken on 2026-10-31 with <code>go run ./scripts/readscene -json topology-pair-phi-theta-3</code> and kept in <code>scene-export.js</code> beside this page. Edit any number, or paste your own export, and press Check.</p>
+    <p>The editor draws nodes moving as links are stepped. A drawing can be faked, so this page sets the drawing aside. It takes the numbers the editor saved and recomputes every position from seven written rules. The checking code in <code>rules/</code> is its own, written from the rules, and none of it comes from the editor. All of it is shown at the bottom of the page.</p>
+    <p class="muted">Everything in <code>data/</code> comes from the editor's Go code, run outside the editor by <code>scripts/readscene</code>. The loaded data is the export of all six sequences, taken on 2026-10-31 with <code>go run ./scripts/readscene -json topology-pair-phi-theta-3</code> and kept in <code>data/scene-export.js</code>. Edit any number, or paste your own export, and press Check.</p>
   </header>
 
   <section class="prose">
@@ -34,10 +34,12 @@ z = r·ρ·sin a(φ)·sin a(θ)</span>
         <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="nodePosition"></pre></details></li>
       <li><b>Every link closes.</b> For every link a→b, position(a) + vector(a→b) = position(b), to floating-point rounding.
         <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="linkCloses"></pre></details></li>
-      <li><b>What a step of the selected links changes.</b> Each Δ of a stepped link that changes changes by exactly its increment (wrapped, as in rule 2), and the link's start stays the same. No other link's Δ changes. A link that was not stepped but touches a node that moved gets a new start, the one that makes rule 5 hold for it again.
-        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="steppedByIncrement stepVerdict"></pre></details></li>
+      <li><b>What a press changes.</b> A press steps one link into each node: the first selected one, in saved order. That link's Δ changes as rule 2 says and its start stays. No other link's Δ changes. A node reached by a stepped link moves to position(from) + vector(link) with the new Δ; every other node stays where it was. The page predicts After from Before this way and compares the prediction with what the editor's code recorded.
+        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="pressLink predict compare"></pre></details></li>
+      <li><b>The order of presses does not change Δ.</b> Steps add whole-number increments to Δ, and addition does not depend on order, so φ+, θ+ and r+ in any of their six orders leave every link with the same Δ. A link that was not stepped can get a new start, worked out again from where the nodes moved to; that never changes its Δ.
+        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="startRewritten sameButtons orderCheck"></pre></details></li>
     </ol>
-    <p class="muted">Rules 1–5 are checked on one state. Rule 6 needs a before and an after. <code>scene-steps.js</code> holds 48 of them: each of the eight step buttons pressed once on each sequence by the same link code the editor runs, run outside the editor with <code>go run ./scripts/readscene -steps topology-pair-phi-theta-3</code>. All 48 are checked when the page opens, and any one can be loaded below.</p>
+    <p class="muted">Rules 1–5 are checked on one state. Rule 6 needs a before and an after. <code>data/scene-steps.js</code> holds 48 of them: each of the eight step buttons pressed once on each sequence, made with <code>go run ./scripts/readscene -steps topology-pair-phi-theta-3</code>. Rule 7 uses <code>data/scene-orders.js</code>, made with <code>-orders</code>: the six orders of φ+, θ+ and r+ on every sequence. Both files start in the Runs box below, where every run is checked against rule 6 and every group of runs pressing the same buttons in different orders against rule 7. Any run can be edited there, or replaced with your own <code>-steps</code> or <code>-orders</code> output, and any one can be loaded into Before and After.</p>
   </section>
 
   <section class="panel" aria-labelledby="data-h">
@@ -50,31 +52,45 @@ z = r·ρ·sin a(φ)·sin a(θ)</span>
       </div>
       <div class="field">
         <label class="label" for="after">After (optional, for rule 6)</label>
-        <textarea id="after" spellcheck="false" placeholder="Paste a second export, taken after pressing a button in the editor."></textarea>
+        <textarea id="after" spellcheck="false" placeholder="Filled when a run is loaded below."></textarea>
         <input class="filepick" type="file" id="afterFile" accept=".json,application/json" aria-label="Load an after file">
+      </div>
+      <div class="field">
+        <label class="label" for="runs">Runs (for rules 6 and 7)</label>
+        <textarea id="runs" spellcheck="false" placeholder="Paste what readscene -steps or -orders prints."></textarea>
+        <input class="filepick" type="file" id="runsFile" accept=".json,application/json" aria-label="Load a runs file">
       </div>
     </div>
     <div class="row">
       <button id="check" type="button">Check</button>
-      <button id="reset" type="button" class="ghost">Reload the 2026-10-31 export</button>
-      <label class="label" for="press">Load a recorded press</label>
+      <button id="reset" type="button" class="ghost">Reload the 2026-10-31 data</button>
+      <label class="label" for="press">Load a run</label>
       <select id="press"></select>
       <span class="muted" id="status"></span>
     </div>
-    <p class="muted">To see that the check can fail, change one Δ in Before and press Check. That link stops closing.</p>
+    <p class="muted">To see that the checks can fail, change one Δ in Before and press Check: that link stops closing. Or change one recorded Δ in an after inside Runs: that run stops matching its prediction, and if it is one of the order runs, rule 7 fails for its sequence.</p>
   </section>
 
   <section id="results" class="seq" aria-live="polite"></section>
 
   <details>
     <summary>The checker's whole code</summary>
-    <p class="muted" style="margin-top:10px">This is all of <code>rules.js</code>: the six rules above, the small helpers they use, and the two functions that apply them to every link. It is printed from the running page, so it is the code that produced the results above.</p>
-    <pre class="code" id="source"></pre>
+    <p class="muted" style="margin-top:10px">This is every file in <code>rules/</code>, the code that does the checking. It is printed from the running page, so it is the code that produced the results above. <code>page/</code> only draws the tables.</p>
+    <div id="source"></div>
   </details>
 </div>
-<script src="scene-export.js"></script>
-<script src="scene-steps.js"></script>
-<script src="rules.js"></script>
-<script src="page.js"></script>
+<script src="data/scene-export.js"></script>
+<script src="data/scene-steps.js"></script>
+<script src="data/scene-orders.js"></script>
+<script src="rules/numbers.js"></script>
+<script src="rules/one-state.js"></script>
+<script src="rules/press.js"></script>
+<script src="rules/order.js"></script>
+<script src="page/dom.js"></script>
+<script src="page/sequence-view.js"></script>
+<script src="page/press-view.js"></script>
+<script src="page/order-view.js"></script>
+<script src="page/code-view.js"></script>
+<script src="page/page.js"></script>
 </body>
 </html>
