@@ -106,7 +106,7 @@ func LinksPill(m Model) Pill {
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
 	} else {
-		labels := []Cell{Text("both").Outline(true).Stepping(Act{Op: OpAllBoth}, 0)}
+		labels := []Cell{Text("φ+θ+r").Outline(true).Stepping(Act{Op: OpAllBoth}, 0)}
 		labels[0].Lit = m.Step.Locks() != (Links.Lock{})
 		for _, c := range cols {
 			labels = append(labels, c.head(m))
