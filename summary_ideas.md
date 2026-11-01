@@ -25,22 +25,26 @@ Also:
 ### Purpose
 
 - **Who:** a visual thinker for whom reading code is the bottleneck.
-- **What for:** making visual simulations by directing an AI, checked primarily by watching,
+- **What it makes:** 3D rotations built from local, whole-number changes to angles, in a 3D
+  simulation the person directs an AI to build.
+- **The problem:** the usual approaches did not move the nodes as needed, and neither did
+  what AI made with them, so they made a solution themselves, with AI assistance.
+- **What it gives them:** they check what the AI built by pressing buttons and watching,
   with reading the code it writes secondary.
-- **Why it is built new:** they were not satisfied with what AI made, so they made a
-  solution themselves, with AI assistance.
-- **What it needs:** since checking is primarily by watching, the screen has to be the
-  simulation itself, and every behaviour has to be something that can be checked by
-  pressing buttons and watching. The design does that this way:
-  - **A link is a vector.** It has a direction, φ and θ, and a length, r, each a start plus
-    a whole-number Δ.
-  - **Stepping a link moves the node at its end.** The links that move with it keep their
-    vectors; every other link touching a moved node has its vector recalculated from where
-    its two nodes now are.
-  - **Each node moves on its own.** A node places itself from what its neighbours tell it,
-    or from a place set on it directly in the UI.
-  - **The screen draws what the simulation wrote.** Where that is an angle (a node's pole,
-    the camera), the screen turns it into x, y, z.
+- **What that demands:** the screen has to be the simulation itself, and every behaviour has
+  to be something that can be checked by pressing buttons and watching.
+
+### How the design meets it
+
+- **A link is a vector.** It has a direction, φ and θ, and a length, r, each a start plus a
+  whole-number Δ.
+- **Stepping a link moves the node at its end.** The links that move with it keep their
+  vectors; every other link touching a moved node has its vector recalculated from where its
+  two nodes now are.
+- **Each node moves on its own.** A node places itself from what its neighbours tell it, or
+  from a place set on it directly in the UI.
+- **The screen draws what the simulation wrote.** Where that is an angle (a node's pole, the
+  camera), the screen turns it into x, y, z.
 
 ### Where it is going
 
