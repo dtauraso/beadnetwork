@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 const fmt = x => (Math.abs(x) < 5e-7 ? 0 : x).toFixed(6);
-const xyz = v => v ? v.map(fmt).join("  ") : "—";
+const xyz = v => v ? [v.x, v.y, v.z].map(fmt).join("  ") : "—";
 const axis = k => k === "phi" ? "φ" : k === "theta" ? "θ" : "r";
 let original = "";
 
@@ -44,7 +44,7 @@ function nodeRows(seq, st) {
     el("td", { class: "num" }, n.place ? fmt(n.place.phi) : "—"),
     el("td", { class: "num" }, n.place ? fmt(n.place.theta) : "—"),
     el("td", { class: "num" }, n.place ? fmt(n.place.r) : "—"),
-    el("td", { class: "num" }, xyz(st.pos[n.id]))));
+    el("td", { class: "num" }, xyz(st.positions[n.id]))));
 }
 
 function linkRows(st) {
@@ -55,10 +55,10 @@ function linkRows(st) {
       el("td", {}, l.picked ? "yes" : "no"),
       el("td", { class: "num" }, [l.start.phi, l.start.theta, l.start.r].map(fmt).join("  ")),
       el("td", { class: "num" }, `${l.delta.phi}  ${l.delta.theta}  ${l.delta.r}`),
-      el("td", { class: "num" }, [r.phi, r.theta, r.r].map(fmt).join("  ") + (r.flipped ? "  (z flipped)" : "")),
-      el("td", { class: "num" }, xyz(r.v)),
+      el("td", { class: "num" }, [r.points.phi, r.points.theta, r.points.r].map(fmt).join("  ") + (r.flipped ? "  (z flipped)" : "")),
+      el("td", { class: "num" }, xyz(r.vector)),
       el("td", { class: "num" }, xyz(r.end)),
-      el("td", { class: "num" }, xyz(st.pos[l.to])),
+      el("td", { class: "num" }, xyz(st.positions[l.to])),
       el("td", { class: "num" }, has ? r.gap.toExponential(1) : "—"),
       el("td", { class: has ? (r.closes ? "ok" : "bad") : "" }, has ? (r.closes ? "yes" : "no") : "a node has no place"));
   });
@@ -69,18 +69,19 @@ function stepRows(seq, next, ns) {
     r.ok ? tally.stepOk++ : tally.stepBad++;
     const after = ns.links.find(x => x.link.from === r.link.from && x.link.to === r.link.to);
     const closes = after && after.gap !== undefined ? (after.closes ? "yes" : "no") : "—";
+    const changed = AXES.filter(k => r.old.delta[k] !== r.link.delta[k]);
     return el("tr", { class: r.ok ? "" : "badrow" },
       el("td", { class: "num" }, r.link.from + "→" + r.link.to),
-      el("td", { class: "num" }, r.changed.length ? r.changed.map(c => `Δ${axis(c.k)} ${c.from}→${c.to}`).join(", ") : "none"),
-      el("td", {}, r.startSame ? "yes" : "no"),
-      el("td", {}, r.touchesMoved ? "yes" : "no"),
+      el("td", { class: "num" }, changed.length ? changed.map(k => `Δ${axis(k)} ${r.old.delta[k]}→${r.link.delta[k]}`).join(", ") : "none"),
+      el("td", {}, r.startKept ? "yes" : "no"),
+      el("td", {}, r.aNodeMoved ? "yes" : "no"),
       el("td", { class: closes === "yes" ? "ok" : "bad" }, closes),
       el("td", { class: r.ok ? "ok" : "bad" }, r.why));
   });
 }
 
 function sequenceCard(seq, after) {
-  const st = checkState(seq);
+  const st = checkSequence(seq);
   count(st.links);
   const f = seq.frame;
   const card = el("article", { class: "panel" },
@@ -92,7 +93,7 @@ function sequenceCard(seq, after) {
     table(["link", "selected", "start φ θ r", "Δ φ θ r", "points φ θ r", "vector x y z", "a + vector", "b is at", "gap", "closes"], linkRows(st)));
   const next = after && after.find(s => s.sequence === seq.sequence);
   if (next) {
-    const ns = checkState(next);
+    const ns = checkSequence(next);
     count(ns.links);
     card.append(el("h3", {}, "Before → after (rule 6, and rule 5 on the after state)"),
       table(["link", "Δ changes", "start kept", "touches a moved node", "after closes", "verdict"], stepRows(seq, next, ns)));
@@ -136,6 +137,9 @@ $("reset").addEventListener("click", () => { $("before").value = original; $("af
 loadFile($("beforeFile"), "before");
 loadFile($("afterFile"), "after");
 $("source").textContent = RULES_SOURCE;
+for (const pre of document.querySelectorAll("pre[data-fn]")) {
+  pre.textContent = pre.dataset.fn.split(" ").map(n => String(window[n])).join("\n\n");
+}
 
 if (Array.isArray(window.SCENE_EXPORT)) {
   original = JSON.stringify(window.SCENE_EXPORT, null, 2);

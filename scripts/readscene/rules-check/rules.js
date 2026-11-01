@@ -1,94 +1,144 @@
 const TAU = 2 * Math.PI;
-const CLOSE = 1e-6;
+const ROUNDING = 1e-6;
+const SAME = 1e-9;
+const AXES = ["phi", "theta", "r"];
+
+function turn(s) {
+  return 12 * s;
+}
 
 function wrap(t, T) {
   return ((t % T) + T) % T;
 }
 
-function linkVector(frame, s, link) {
-  const T = 12 * s;
-  const phi = wrap(link.start.phi + link.delta.phi, T);
-  const theta = wrap(link.start.theta + link.delta.theta, T);
-  const r = link.start.r + link.delta.r;
-  const a = t => t * TAU / T;
-  const v = [
-    r * frame.rho * Math.sin(a(phi)) * Math.cos(a(theta)),
-    r * frame.rho * Math.cos(a(phi)),
-    r * frame.rho * Math.sin(a(phi)) * Math.sin(a(theta)),
-  ];
-  const flipped = phi > T / 2 && Math.abs(phi - theta) < 1e-9;
-  if (flipped) v[2] = -v[2];
-  return { phi, theta, r, v, flipped };
+function add(p, q) {
+  return { x: p.x + q.x, y: p.y + q.y, z: p.z + q.z };
+}
+
+function distance(p, q) {
+  return Math.hypot(p.x - q.x, p.y - q.y, p.z - q.z);
+}
+
+function size(p) {
+  return Math.hypot(p.x, p.y, p.z);
+}
+
+function wherePoints(link, s) {
+  const T = turn(s);
+  return {
+    phi: wrap(link.start.phi + link.delta.phi, T),
+    theta: wrap(link.start.theta + link.delta.theta, T),
+    r: link.start.r + link.delta.r,
+  };
+}
+
+function stepDelta(link, axis, sign, s) {
+  const delta = { ...link.delta };
+  delta[axis] = delta[axis] + sign * link.increment[axis];
+  if (axis === "r") {
+    if (link.start.r + delta.r < 0) return null;
+  } else {
+    delta[axis] = wrap(delta[axis], turn(s));
+  }
+  return delta;
+}
+
+function zFlips(points, s) {
+  return points.phi > turn(s) / 2 && Math.abs(points.phi - points.theta) < SAME;
+}
+
+function linkVector(frame, link, s) {
+  const points = wherePoints(link, s);
+  const angle = t => t * TAU / turn(s);
+  const length = points.r * frame.rho;
+  const v = {
+    x: length * Math.sin(angle(points.phi)) * Math.cos(angle(points.theta)),
+    y: length * Math.cos(angle(points.phi)),
+    z: length * Math.sin(angle(points.phi)) * Math.sin(angle(points.theta)),
+  };
+  if (zFlips(points, s)) v.z = -v.z;
+  return v;
 }
 
 function nodePosition(frame, place) {
-  const R = place.r * frame.constantR;
+  const length = place.r * frame.constantR;
   const phi = place.phi * TAU / frame.maxIndexPhi;
   const theta = place.theta * TAU / frame.maxIndexTheta;
-  return [R * Math.sin(phi) * Math.cos(theta), R * Math.cos(phi), R * Math.sin(phi) * Math.sin(theta)];
+  return {
+    x: length * Math.sin(phi) * Math.cos(theta),
+    y: length * Math.cos(phi),
+    z: length * Math.sin(phi) * Math.sin(theta),
+  };
 }
 
-function gap(p, q) {
-  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+function linkCloses(frame, link, from, to) {
+  const a = nodePosition(frame, from.place);
+  const b = nodePosition(frame, to.place);
+  const end = add(a, linkVector(frame, link, to.s));
+  const gap = distance(end, b);
+  return { end, b, gap, closes: gap <= ROUNDING * Math.max(1, size(b)) };
 }
 
-function checkState(seq) {
-  const pos = {}, scale = {};
-  for (const n of seq.nodes) {
-    scale[n.id] = n.s;
-    if (n.place) pos[n.id] = nodePosition(seq.frame, n.place);
-  }
-  const links = seq.links.map(l => {
-    const lv = linkVector(seq.frame, scale[l.to], l);
-    const row = { link: l, ...lv };
-    if (pos[l.from] && pos[l.to]) {
-      row.end = pos[l.from].map((c, i) => c + lv.v[i]);
-      row.gap = gap(row.end, pos[l.to]);
-      row.closes = row.gap <= CLOSE * Math.max(1, Math.hypot(...pos[l.to]));
+function isOneStep(before, after, s) {
+  for (const axis of AXES) {
+    for (const sign of [1, -1]) {
+      const delta = stepDelta(before, axis, sign, s);
+      if (delta && AXES.every(k => delta[k] === after.delta[k])) return true;
     }
+  }
+  return false;
+}
+
+function stepVerdict(before, after, s, aNodeMoved) {
+  const stepped = AXES.some(k => before.delta[k] !== after.delta[k]);
+  const startKept = AXES.every(k => Math.abs(before.start[k] - after.start[k]) < SAME);
+  const verdict = (ok, why) => ({ ok, why, startKept, aNodeMoved });
+  if (stepped) {
+    if (!before.picked) return verdict(false, "Δ changed on a link that was not selected");
+    if (!isOneStep(before, after, s)) return verdict(false, "Δ changed by something other than one increment");
+    if (!startKept) return verdict(false, "Δ was stepped but the start changed too");
+    return verdict(true, "stepped: Δ by one increment, start kept");
+  }
+  if (startKept) return verdict(true, "unchanged");
+  if (!aNodeMoved) return verdict(false, "start changed, but neither of its nodes moved");
+  return verdict(true, "not stepped: new start, because a node it touches moved");
+}
+
+function checkSequence(seq) {
+  const nodes = {};
+  const positions = {};
+  for (const n of seq.nodes) {
+    nodes[n.id] = n;
+    if (n.place) positions[n.id] = nodePosition(seq.frame, n.place);
+  }
+  const links = seq.links.map(link => {
+    const from = nodes[link.from];
+    const to = nodes[link.to];
+    const points = wherePoints(link, to.s);
+    const row = { link, points, flipped: zFlips(points, to.s), vector: linkVector(seq.frame, link, to.s) };
+    if (from && from.place && to.place) Object.assign(row, linkCloses(seq.frame, link, from, to));
     return row;
   });
-  return { pos, scale, links };
+  return { positions, links };
 }
 
 function checkStep(before, after) {
-  const key = l => l.from + "→" + l.to;
-  const was = Object.fromEntries(before.links.map(l => [key(l), l]));
-  const placeOf = seq => Object.fromEntries(seq.nodes.filter(n => n.place).map(n => [n.id, nodePosition(seq.frame, n.place)]));
-  const p0 = placeOf(before), p1 = placeOf(after);
-  const moved = id => p0[id] && p1[id] ? gap(p0[id], p1[id]) > CLOSE * Math.max(1, Math.hypot(...p1[id])) : false;
-  const scale = Object.fromEntries(after.nodes.map(n => [n.id, n.s]));
-  const same = (a, b) => Math.abs(a - b) < 1e-9;
-  return after.links.filter(l => was[key(l)]).map(l => {
-    const b = was[key(l)], T = 12 * scale[l.to];
-    const changed = [];
-    for (const k of ["phi", "theta", "r"]) {
-      if (b.delta[k] === l.delta[k]) continue;
-      const up = k === "r" ? b.delta[k] + b.increment[k] : wrap(b.delta[k] + b.increment[k], T);
-      const down = k === "r" ? b.delta[k] - b.increment[k] : wrap(b.delta[k] - b.increment[k], T);
-      changed.push({ k, from: b.delta[k], to: l.delta[k], byIncrement: l.delta[k] === up || l.delta[k] === down });
-    }
-    const startSame = same(b.start.phi, l.start.phi) && same(b.start.theta, l.start.theta) && same(b.start.r, l.start.r);
-    const touchesMoved = moved(l.from) || moved(l.to);
-    let ok, why;
-    if (changed.length) {
-      ok = b.picked && startSame && changed.every(c => c.byIncrement);
-      why = !b.picked ? "Δ changed on a link that was not selected"
-        : !startSame ? "Δ changed and the start changed too"
-        : !changed.every(c => c.byIncrement) ? "Δ changed by something other than its increment"
-        : "stepped: Δ by its increment, start kept";
-    } else if (!startSame) {
-      ok = touchesMoved;
-      why = touchesMoved ? "not stepped: start recalculated, a node it touches moved" : "start changed, but neither of its nodes moved";
-    } else {
-      ok = true;
-      why = "unchanged";
-    }
-    return { link: l, changed, startSame, touchesMoved, ok, why };
+  const name = link => link.from + "→" + link.to;
+  const was = {};
+  for (const link of before.links) was[name(link)] = link;
+  const p0 = checkSequence(before).positions;
+  const p1 = checkSequence(after).positions;
+  const moved = id => Boolean(p0[id] && p1[id] && distance(p0[id], p1[id]) > ROUNDING * Math.max(1, size(p1[id])));
+  const s = {};
+  for (const n of after.nodes) s[n.id] = n.s;
+  return after.links.filter(link => was[name(link)]).map(link => {
+    const old = was[name(link)];
+    return { link, old, ...stepVerdict(old, link, s[link.to], moved(link.from) || moved(link.to)) };
   });
 }
 
 const RULES_SOURCE = [
-  "const TAU = 2 * Math.PI;", "const CLOSE = 1e-6;",
-  wrap, linkVector, nodePosition, gap, checkState, checkStep,
+  "const TAU = 2 * Math.PI;\nconst ROUNDING = 1e-6;\nconst SAME = 1e-9;\nconst AXES = [\"phi\", \"theta\", \"r\"];",
+  turn, wrap, add, distance, size, wherePoints, stepDelta, zFlips, linkVector, nodePosition,
+  linkCloses, isOneStep, stepVerdict, checkSequence, checkStep,
 ].map(String).join("\n\n");

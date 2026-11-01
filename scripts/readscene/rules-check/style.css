@@ -73,4 +73,6 @@ tr.badrow td { background: var(--fail-bg); }
 .error { color: var(--fail); font-family: var(--mono); font-size: 0.85rem; white-space: pre-wrap; }
 details { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 18px; }
 summary { cursor: pointer; font-weight: 600; }
+details.rulecode { padding: 6px 10px; margin-top: 8px; }
+details.rulecode summary { font-weight: 500; font-size: 0.85rem; color: var(--accent); }
 pre.code { font-family: var(--mono); font-size: 0.8rem; background: var(--code-bg); padding: 12px; border-radius: 4px; overflow-x: auto; margin: 12px 0 0; }
