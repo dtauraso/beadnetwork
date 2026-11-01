@@ -69,9 +69,9 @@ It rules out:
 
 ## In one paragraph
 
-There is a 3D simulation system. It does 3D rotation by adding and subtracting integer
-angle values, held locally by each link. It has a UI for setting angles and many other
-settings for 3D rotations.
+There is a 3D simulation system. It does 3D rotation by adding and subtracting integers to
+each link's own polar angles, φ and θ, measured from the node the link starts from. It has a
+UI for setting angles and many other settings for 3D rotations.
 
 ### The tools
 
