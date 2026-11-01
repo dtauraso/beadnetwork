@@ -56,11 +56,13 @@ and around directions; only the centre is the link's own. Rotating it adds to or
 from those counts. Rotating it needs only its own counts and the place of the node it
 starts from; no chain of other links is followed to reach it. It moves only the node at its
 other end; nodes linked from that node stay where they are, unless their link is selected
-too, and the links to them change to reach them. It also has a length, r, changed the same way, which sets how far it reaches and
-never where it points.
+too, and the links to them change to reach them. It also has a length, r, changed the same
+way, which sets how far it reaches and never where it points.
 
 Every link is that one link, at the same time. Each holds its own centre and its own
-counts, and needs no other link to say where it points. So any number of nodes are centres
+counts, and no other link's rotation is ever applied to it: when a node it joins is moved,
+it is only remeasured to reach the nodes where they now are, and its counts stay as they
+were. So any number of nodes are centres
 at once, each link turning by its own amount, and none of them has to be pictured together:
 one link is the whole of it.
 
@@ -77,10 +79,13 @@ passing messages.
 ## Design principles
 
 The truth is the set of numbers everything else is worked out from. An AI's defaults keep
-it in one global x, y, z frame, in decimals, so each rotation rounds a little and the
-rounding builds up. Their way keeps it in each link's own integer counts of φ, θ and r, so
-a rotation is an exact count of steps and nothing builds up. x, y, z are only worked out
-from those counts, to place and draw the nodes.
+it in one global x, y, z frame, in decimals, and rotates by applying one rotation on top of
+another, so each rotation rounds a little and the rounding builds up. Their way keeps it in
+each link's own integer counts of φ, θ and r, so a rotation is an exact count of steps, the
+counts never drift, and no rotation is ever applied on top of another. Each node's place is
+worked out from the place of the node its link starts from plus that link's counts. Places
+are decimals, so rounding enters only in measuring places, never in combining rotations, and
+a step and its reverse land on exactly the same numbers.
 
 ---
 
@@ -126,10 +131,11 @@ place, in the same step.
 
 A rotation's centre is the start node of the link being rotated. Selecting links picks the
 centres: each selected link's start node is a centre, and links selected from the same
-node share it. One step changes every selected link at once, each by its own step size, and every
-node those links move moves in that one step. In one step, each node is moved by at most
-one link, so a second selected link into the same node is refused, as is a length below
-zero.
+node share it. One step changes every selected link at once, each by its own step size, and
+every node those links move moves in that one step. Each node moves itself: its start node
+sends it its place, and it places itself from that place plus its link. In one step, each
+node is moved by at most one link, so a second selected link into the same node is refused,
+as is a length below zero.
 
 ### Sequences
 
