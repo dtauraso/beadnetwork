@@ -26,16 +26,14 @@ Also:
 
 - **Who:** They are a visual thinker who codes by directing an AI, and reading the code it
   generates is their bottleneck.
-- **What they found:** Basic visuals came quickly. They typed the change they wanted to see,
-  the AI made it, and the code worked, though they had not read it and did not know the
-  language.
+- **What they found:** For what they wanted, basic visuals came quickly. They typed the
+  change they wanted to see, the AI made it, and the code worked, though they had not read
+  it and did not know the language.
 - **The problem:** Beyond basic visuals, they were not satisfied by what the AI made with its
   defaults.
 - **What they made:** They directed the AI away from those defaults to make their own 3D
   simulation.
-- **What it is for:** It lets them make 3D simulations their way: in a local polar system,
-  where each link changes by whole-number steps, Δ, and those counts stay exact; where the
-  nodes are is worked out from them through x, y, z.
+- **What it is for:** It lets them make 3D simulations their way.
 
 ### The priority
 
