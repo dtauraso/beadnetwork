@@ -24,9 +24,14 @@ Also:
 
 ### Purpose
 
-- **Who:** They are a visual thinker, and reading code is their bottleneck.
-- **The problem:** They were not satisfied by what an AI made with its defaults.
-- **What they made:** They directed an AI away from those defaults to make their own 3D
+- **Who:** They are a visual thinker who codes by directing an AI, and reading the code it
+  generates is their bottleneck.
+- **What they found:** Basic visuals came quickly. They typed the change they wanted to see,
+  the AI made it, and the code worked, though they had not read it and did not know the
+  language.
+- **The problem:** Beyond basic visuals, they were not satisfied by what the AI made with its
+  defaults.
+- **What they made:** They directed the AI away from those defaults to make their own 3D
   simulation.
 - **What it is for:** It lets them make 3D simulations their way: in a local polar system,
   where each link changes by whole-number steps, Δ, and those counts stay exact; where the
@@ -34,8 +39,8 @@ Also:
 
 ### The priority
 
-They check what the AI builds by pressing buttons and watching the screen first, and read
-its code second.
+Reading the code went from their first priority to their second: they check what the AI
+builds by pressing buttons and watching the screen first, and read its code second.
 
 ### What follows from the priority
 
