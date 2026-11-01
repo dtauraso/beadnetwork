@@ -15,17 +15,28 @@ type jsonButton struct {
 	Sign int    `json:"sign"`
 }
 
-type jsonStep struct {
+type jsonRun struct {
 	Sequence int          `json:"sequence"`
-	Button   jsonButton   `json:"button"`
+	Presses  []jsonButton `json:"presses"`
 	Refused  []string     `json:"refused"`
 	Before   jsonSequence `json:"before"`
 	After    jsonSequence `json:"after"`
 }
 
-var buttons = []jsonButton{
+var (
+	phiUp   = jsonButton{Links.KPhi, 1}
+	thetaUp = jsonButton{Links.KTheta, 1}
+	rUp     = jsonButton{Links.KR, 1}
+)
+
+var singles = []jsonButton{
 	{Links.KPhi, 1}, {Links.KPhi, -1}, {Links.KTheta, 1}, {Links.KTheta, -1},
 	{Links.KR, 1}, {Links.KR, -1}, {Links.KBoth, 1}, {Links.KBoth, -1},
+}
+
+var orders = [][]jsonButton{
+	{phiUp, thetaUp, rUp}, {phiUp, rUp, thetaUp}, {thetaUp, phiUp, rUp},
+	{thetaUp, rUp, phiUp}, {rUp, phiUp, thetaUp}, {rUp, thetaUp, phiUp},
 }
 
 type queued struct {
@@ -33,34 +44,42 @@ type queued struct {
 	msg any
 }
 
-func press(seed Links.Seed, ids []string, b jsonButton) (Links.Seed, []string) {
+func run(seed Links.Seed, ids []string, presses []jsonButton) (Links.Seed, []string) {
 	peers := map[string]*Links.Peer{}
-	var queue []queued
 	for _, id := range ids {
 		peers[id] = Links.NewPeer(id, seed)
-		queue = append(queue, queued{id, Links.StepAll{Round: 1, K: b.K, Sign: b.Sign}})
 	}
-	for len(queue) > 0 {
-		q := queue[0]
-		queue = queue[1:]
-		p, ok := peers[q.to]
-		if !ok {
-			continue
+	for round, b := range presses {
+		var queue []queued
+		for _, id := range ids {
+			queue = append(queue, queued{id, Links.StepAll{Round: round + 1, K: b.K, Sign: b.Sign}})
 		}
-		for _, e := range p.Handle(q.msg) {
-			if e.To != Links.All {
-				queue = append(queue, queued{e.To, e.Msg})
+		for len(queue) > 0 {
+			q := queue[0]
+			queue = queue[1:]
+			p, ok := peers[q.to]
+			if !ok {
 				continue
 			}
-			for _, id := range ids {
-				if id != q.to {
-					queue = append(queue, queued{id, e.Msg})
+			for _, e := range p.Handle(q.msg) {
+				if e.To != Links.All {
+					queue = append(queue, queued{e.To, e.Msg})
+					continue
+				}
+				for _, id := range ids {
+					if id != q.to {
+						queue = append(queue, queued{id, e.Msg})
+					}
 				}
 			}
 		}
 	}
+	return collect(seed, ids, peers)
+}
+
+func collect(seed Links.Seed, ids []string, peers map[string]*Links.Peer) (Links.Seed, []string) {
 	after := Links.Seed{Frame: seed.Frame, Places: map[string]Links.Place{}, Scales: map[string]int{}}
-	var refused []string
+	refused := []string{}
 	for _, id := range ids {
 		p := peers[id]
 		c := p.TakeChanges()
@@ -85,9 +104,9 @@ func press(seed Links.Seed, ids []string, b jsonButton) (Links.Seed, []string) {
 	return after, refused
 }
 
-func dumpSteps(root string, seqs []int, constants polarindex.SceneConstants, sceneS int) int {
+func dumpRuns(root string, seqs []int, constants polarindex.SceneConstants, sceneS int, lists [][]jsonButton) int {
 	status := 0
-	all := []jsonStep{}
+	all := []jsonRun{}
 	for _, k := range seqs {
 		spec, err := loadSequence(root, k, constants)
 		if err != nil {
@@ -101,18 +120,22 @@ func dumpSteps(root string, seqs []int, constants polarindex.SceneConstants, sce
 			ids = append(ids, n.ID)
 		}
 		before := sequenceJSON(root, k, spec, seed)
-		for _, b := range buttons {
-			after, refused := press(seed, ids, b)
-			if refused == nil {
-				refused = []string{}
-			}
-			all = append(all, jsonStep{Sequence: k, Button: b, Refused: refused, Before: before, After: sequenceJSON(root, k, spec, after)})
+		for _, presses := range lists {
+			after, refused := run(seed, ids, presses)
+			all = append(all, jsonRun{Sequence: k, Presses: presses, Refused: refused, Before: before, After: sequenceJSON(root, k, spec, after)})
 		}
 	}
-	enc := json.NewEncoder(os.Stdout)
-	if err := enc.Encode(all); err != nil {
+	if err := json.NewEncoder(os.Stdout).Encode(all); err != nil {
 		fmt.Fprintf(os.Stderr, "readscene: %v\n", err)
 		return 1
 	}
 	return status
+}
+
+func singlePresses() [][]jsonButton {
+	var out [][]jsonButton
+	for _, b := range singles {
+		out = append(out, []jsonButton{b})
+	}
+	return out
 }

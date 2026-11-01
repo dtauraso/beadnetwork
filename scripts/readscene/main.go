@@ -21,11 +21,12 @@ func main() {
 	args := os.Args[1:]
 	asJSON := len(args) > 0 && args[0] == "-json"
 	asSteps := len(args) > 0 && args[0] == "-steps"
-	if asJSON || asSteps {
+	asOrders := len(args) > 0 && args[0] == "-orders"
+	if asJSON || asSteps || asOrders {
 		args = args[1:]
 	}
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "usage: readscene [-json | -steps] <scene dir> [sequence ...]")
+		fmt.Fprintln(os.Stderr, "usage: readscene [-json | -steps | -orders] <scene dir> [sequence ...]")
 		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, "Prints the values a scene's sequences are saved as — the frame,")
 		fmt.Fprintln(os.Stderr, "each node's place and s, each link's start, Δ, increment and lock —")
@@ -38,6 +39,9 @@ func main() {
 		fmt.Fprintln(os.Stderr, "-steps presses every step button once on each sequence, in memory,")
 		fmt.Fprintln(os.Stderr, "with the editor's own link code, and prints each before and after")
 		fmt.Fprintln(os.Stderr, "as -json would. Nothing on disk changes.")
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, "-orders does the same for φ+, θ+ and r+ pressed in each of their six")
+		fmt.Fprintln(os.Stderr, "orders.")
 		os.Exit(2)
 	}
 	root := args[0]
@@ -65,7 +69,10 @@ func main() {
 		os.Exit(dumpJSON(root, seqs, constants, sceneS))
 	}
 	if asSteps {
-		os.Exit(dumpSteps(root, seqs, constants, sceneS))
+		os.Exit(dumpRuns(root, seqs, constants, sceneS, singlePresses()))
+	}
+	if asOrders {
+		os.Exit(dumpRuns(root, seqs, constants, sceneS, orders))
 	}
 
 	out := bufio.NewWriter(os.Stdout)
