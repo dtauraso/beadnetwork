@@ -3,7 +3,7 @@
 What the current design does that is correct — not how it does it, but what it does.
 
 - [Vision](#vision)
-- [In one paragraph](#in-one-paragraph)
+- [In short](#in-short)
 - [Design principles](#design-principles)
 - [What it does](#what-it-does)
 - [Roadmap](#roadmap)
@@ -41,17 +41,25 @@ second. So the screen draws only what the simulation holds.
 
 ---
 
-## In one paragraph
+## In short
 
 There is a 3D simulation system made of nodes joined by links, each link going from one
 node to another. It does 3D rotation by adding and subtracting integers to each link's
-spherical-coordinate angles, φ and θ, centred on the node the link starts from. That node
-is the centre the link rotates about. An angle here is a count: a full turn is split into
-a fixed whole number of equal steps, and φ and θ each say how many of those steps. Any
-number of nodes can be centres at the same time, and each link rotating about one turns by
-its own amount. Each link also has a length, r, changed the same way, which sets how far
-the link reaches and never where it points. It has a UI for setting angles, lengths and
-many other settings for 3D rotations.
+spherical-coordinate angles, φ and θ, centred on the node the link starts from.
+
+Take one link. The node it starts from is its centre, and it rotates about that node. Its
+angles are counts: a full turn is split into a fixed whole number of equal steps, and φ and
+θ each say how many of those steps. Rotating it adds to or subtracts from those counts.
+Rotating it needs only its own counts and the place of the node it starts from; no chain of
+other links is followed to reach it. It also has a length, r, changed the same way, which sets how far it reaches and never where
+it points.
+
+Every link is that one link, at the same time. Each holds its own centre and its own
+counts, and needs no other link to say where it points. So any number of nodes are centres
+at once, each link turning by its own amount, and none of them has to be pictured together:
+one link is the whole of it.
+
+It has a UI for setting angles, lengths and many other settings for 3D rotations.
 
 ### The tools
 
