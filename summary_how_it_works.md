@@ -127,8 +127,9 @@ For a link, s is the s of the node it goes to, and one turn is T = 12·s ticks.
    φ · 2π / max-index-φ and θ · 2π / max-index-θ for the angles, and no z flip.
 5. **Every link closes.** For every link a→b: position(a) + vector(a→b) = position(b), to
    floating-point rounding.
-6. **What a press changes.** A press steps one link into each node: the first selected
-   one, in saved order. That link's Δ changes as rule 2 says and its start stays. No other
+6. **What a press changes.** A press steps one link into each node. Selecting a second link
+   into a node is refused (`peer_edits.go`, `Peer.pickReq`), so there is normally only one;
+   if saved values hold more, the first selected one in saved order is stepped. That link's Δ changes as rule 2 says and its start stays. No other
    link's Δ changes. A node reached by a stepped link moves to position(from) +
    vector(link) with the new Δ; every other node stays where it was.
 7. **The order of presses does not change Δ.** Steps add whole-number increments to Δ, and
