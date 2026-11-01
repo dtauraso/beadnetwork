@@ -24,10 +24,11 @@ Also:
 
 ### Purpose
 
-- **Who:** a visual thinker, for whom reading code is the bottleneck.
-- **The problem:** they were not satisfied by what the AI made with its defaults.
-- **What they made:** their own solution, by directing an AI: a 3D simulation.
-- **What it is for:** making visual simulations with an AI.
+- **Who:** They are a visual thinker, and reading code is their bottleneck.
+- **The problem:** They were not satisfied by what an AI made with its defaults.
+- **What they made:** They directed an AI away from those defaults to make their own 3D
+  simulation.
+- **What it is for:** It lets them make 3D simulations their way.
 
 ### The priority
 
