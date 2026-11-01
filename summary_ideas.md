@@ -51,16 +51,14 @@ Take one link. The node it starts from is its centre, and it rotates about that 
 angles are counts: a full turn is split into a fixed whole number of equal steps, and φ and
 θ each say how many of those steps. Rotating it adds to or subtracts from those counts.
 Rotating it needs only its own counts and the place of the node it starts from; no chain of
-other links is followed to reach it. It also has a length, r, changed the same way, which sets how far it reaches and never where
+other links is followed to reach it. It moves only the node at its other end; nodes linked
+from that node are not carried along. It also has a length, r, changed the same way, which sets how far it reaches and never where
 it points.
 
 Every link is that one link, at the same time. Each holds its own centre and its own
 counts, and needs no other link to say where it points. So any number of nodes are centres
 at once, each link turning by its own amount, and none of them has to be pictured together:
 one link is the whole of it.
-
-In body terms, each link is a muscle between two nodes: it moves the node it pulls on and
-does not drag the nodes beyond it along.
 
 It has a UI for setting angles, lengths and many other settings for 3D rotations.
 
@@ -122,8 +120,8 @@ zero.
 ### Sequences
 
 Motion over time is the series of angle changes made step after step: which links are
-selected, so which nodes are centres, and how far each link turns. No single link holds a
-motion; it comes from that series played over links that only ever do local things.
+selected, so which nodes are centres, and how far each link turns. No link holds a motion;
+a motion is only that series of steps.
 
 A scene is what the editor opens and saves. It holds several sequences, each a separate
 setup of nodes and links, kept on its own.
