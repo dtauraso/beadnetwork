@@ -122,9 +122,8 @@ A link rotates about the node it starts from, and the node at its end moves with
 
 Selected links rotate together in one step. Each rotates about the node it starts from,
 so any number of centres can be picked, and they rotate at the same time, each by its own
-rotation. Each node moves on its own, and
-refuses changes that cannot be: a length below zero, or a second selected link into the
-same node.
+rotation. Each node moves on its own, and refuses changes that cannot be: a length below
+zero, or a second selected link into the same node.
 
 - **To see it:** in sequence 1 press the both ▲, the button that steps every selected
   link, and nodes 2 and 3 both move in one step.
