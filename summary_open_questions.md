@@ -47,8 +47,8 @@ replacement serves that part. Name the part of the vision, not a dislike of the 
 that a secret never touches disk; the replacement keeps them only in memory."
 
 **Answer:** The current selection uses a raycast through global x, y, z, decided by one
-central loop, so it skips the local polar system. The replacement selects with local polar
-whole-number angles, measured by each node itself.
+central loop, so it skips each link's integer counts. The replacement selects with
+integer counts of spherical-coordinate angles, measured by each node itself.
 
 ## 4. What does the node selection replacement have to do?
 
@@ -91,8 +91,8 @@ column that is already gone; the replacement reads the live schema only."
 
 **Answer:** Same reason as the mouse. The current camera keeps decimal rotations stacked on
 top of each other (`Categories/Scene/Camera/viewpoint.go`, `Rotate` and `Orbit`), outside
-the local polar system. The replacement is a node, held in local polar whole-number steps
-like everything else.
+the integer counts. The replacement is a node, held in integer counts of its own
+spherical-coordinate angles like everything else.
 
 ## 6. What does the camera replacement have to do?
 
@@ -142,7 +142,7 @@ Notes:
 
 ## 7. What should it be able to do that it cannot do now?
 
-From: [Roadmap](summary_ideas.md#roadmap).
+From: [Vision → Purpose](summary_ideas.md#purpose).
 
 **Shape:** It cannot yet *X*. It should, because *X* follows from *the bet* (or the
 purpose). A capability, as an outcome, not a task list.
@@ -152,9 +152,8 @@ changing a live database safely, and a change that cannot be undone is not safe.
 
 **Answer:** A "bird" flapping its wings. It may already be possible, but it has not been
 tried, because the settings are scattered across pill dropdowns; it is the first thing to
-make once the settings UI redo is done. It fits, because a bird is rotations combined and
-repeated, which is what the local polar system already does (repeating two rotations with
-different centres already swings links like an arm).
+make once the settings UI redo is done. It fits, because a bird is many centres rotating at
+the same time, each by its own rotation, repeated, which is what the system already does.
 
 ```
               F  front
@@ -172,7 +171,7 @@ different centres already swings links like an arm).
 
 ## 8. Which of those matters most?
 
-From: [Roadmap](summary_ideas.md#roadmap).
+From: [question 7](#7-what-should-it-be-able-to-do-that-it-cannot-do-now).
 
 **Shape:** *X* matters most, because without it *the purpose* cannot be shown at all;
 the others only make it better.
@@ -194,5 +193,5 @@ which node it changes. A gesture that changes no Δ is outside the local system.
 turns the map by whole 15° steps; pan moves the map by whole tiles."
 
 **Answer:** The gestures will be redone from pinch/unpinch, rotate and pan, each one
-changing whole-number steps in the local polar system. What each gesture changes, and
+changing the integer counts of a node's spherical-coordinate angles. What each gesture changes, and
 which current states get replaced, will be decided when it is built.
