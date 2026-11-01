@@ -12,7 +12,7 @@ replace the *Not answered yet* where the question comes from.
 
 ## 1. What is it for, beyond rotating links?
 
-From: [Vision → Purpose](summary_ideas.md#purpose), [Future directions](summary_ideas.md#future-directions).
+From: [Vision → Purpose](summary_ideas.md#purpose), [Roadmap](summary_ideas.md#roadmap).
 
 **Shape:** It lets *someone* do *something*, which *the usual way* cannot, because *reason*.
 Say what it lets them do, not how it does it.
@@ -142,7 +142,7 @@ Notes:
 
 ## 7. What should it be able to do that it cannot do now?
 
-From: [Future directions](summary_ideas.md#future-directions).
+From: [Roadmap](summary_ideas.md#roadmap).
 
 **Shape:** It cannot yet *X*. It should, because *X* follows from *the bet* (or the
 purpose). A capability, as an outcome, not a task list.
@@ -172,7 +172,7 @@ different centres already swings links like an arm).
 
 ## 8. Which of those matters most?
 
-From: [Future directions](summary_ideas.md#future-directions).
+From: [Roadmap](summary_ideas.md#roadmap).
 
 **Shape:** *X* matters most, because without it *the purpose* cannot be shown at all;
 the others only make it better.

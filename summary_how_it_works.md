@@ -8,17 +8,26 @@ The software is a 3D simulation system. It is a network of nodes joined by links
 link is held by the node it goes into, and holds its own polar start (φ, θ, r) and an
 integer Δ on top of it, one for each of φ, θ and r.
 
+- **To read it:** `Categories/Node/Links/link.go`, type `Link`: `From`, `To`,
+  `Start` (φ, θ, r), `Delta`, `Increment`.
+
 ## Steps
 
 Angles are counted in ticks: a whole turn is 12 × s ticks, where s is the node's own
 scale. Integers are the main control numbers, so a rotation is a count of steps rather
 than an arbitrary decimal value. Each press moves Δ by the link's whole-number increment.
 
+- **To read it:** `link.go`, `Link.Step`: a step adds sign × increment to one whole-number
+  Δ, and nothing else.
+
 ## Two angles
 
 A link's direction is worked out from its start plus its Δφ and Δθ, each added on its
 own, and turned into x, y, z once, from the totals. No step is applied on top of another
 step, so the order the steps were made in never reaches the result.
+
+- **To read it:** `link.go`, `Link.Dir`: start + Δ, one sum per angle; `frame.go`,
+  `Frame.Vec`: x, y, z made once, from those two sums.
 
 ## Moving nodes
 
@@ -37,6 +46,10 @@ Going the other way, global places are turned back into local links:
 - When one link is edited on its own, that link places its node, and every other link at
   the node is remeasured, selected or not.
 
+- **To read it:** `peer_moves.go`, `Peer.take`: the end node goes to the other node's
+  place plus the link; `Peer.sat` and `Peer.moved`: the other links are remeasured
+  (`link.go`, `Link.Remeasure`).
+
 ## The network
 
 Each node runs on its own goroutine, with its own inbox.
@@ -51,14 +64,27 @@ Each node runs on its own goroutine, with its own inbox.
 Each node checks its own links' changes, and refuses a length below zero or a second
 selected link into itself.
 
+- **To read it:**
+  - `peer_moves.go`, `Peer.stepAll`, `Peer.tell` and `Peer.recover`: step, send the
+    place, place from it.
+  - `peer.go`, `Peer.Ready`: shown once every neighbour is heard.
+  - `Peer.stepR` and `peer_edits.go`, `Peer.press`: a length below zero is refused.
+  - `peer_edits.go`, `Peer.pickReq`: a second selected link is refused.
+
 ## Time
 
 Every node counts ticks from one shared clock, each with its own copy. The tick length is
 set from the UI, and a step is shown a couple of ticks after it is sent.
 
+- **To read it:** `Categories/Clock/human_tick.go`, `HumanTick`: every node counts ticks
+  from one shared start.
+
 ## Sequences
 
 Each sequence is its own folder of nodes and links, one value per file.
+
+- **To read it:** `Categories/Scene/Scenes/sequences.go`, `SequenceDir`: one folder per
+  sequence.
 
 ## The screen
 
@@ -66,6 +92,9 @@ The simulation writes each place, each link and everything drawn to files, one w
 file. The screen reads those files and draws them; it works out no positions of its own.
 A UI sits on top of this for setting the angles and the many other settings that control
 the 3D rotations.
+
+- **To read it:** `Categories/Node/nodefile_place.go`, `WritePlace`, and
+  `link_files.go`, `WriteLinks`: one value per file, written by the node that owns it.
 
 ## The rules, to check without the screen
 
