@@ -28,12 +28,13 @@ Also:
 - **The problem:** They were not satisfied by what an AI made with its defaults.
 - **What they made:** They directed an AI away from those defaults to make their own 3D
   simulation.
-- **What it is for:** It lets them make 3D simulations their way.
+- **What it is for:** It lets them make 3D simulations their way: in a local polar system,
+  where each link's whole-number Δ is the truth and x, y, z is only a view of it.
 
 ### The priority
 
-The screen first, the code second: what the AI builds is checked by pressing buttons and
-watching the screen, and only what the screen cannot show is checked in the code.
+They check what the AI builds by pressing buttons and watching the screen first, and read
+its code second.
 
 ### What follows from the priority
 
@@ -51,10 +52,10 @@ into the local polar system ([Design principles](#design-principles)); the steps
 
 ## Design principles
 
-The motion is local: each link moves in its own polar frame. What an AI makes by default
-keeps the truth in one global x, y, z frame. The design is the other way round: each link's
-local, whole-number Δ is the truth and the global frame is only a view of it, so a rotation
-is an exact count of steps that never drifts. From that:
+An AI's defaults keep the truth in one global x, y, z frame. Their way, in the
+[Purpose](#purpose), keeps it in each link's local, whole-number Δ, because each link moves
+in its own polar frame; so a rotation is an exact count of steps that never drifts. From
+that:
 
 - **A link is a vector.** It has a direction, φ and θ, and a length, r, each a start plus a
   whole-number Δ.
@@ -82,8 +83,8 @@ It rules out:
 | Local → global adaptor | Turns local places and links into x, y, z. |
 | Global reconstructions → local | Starts and node places are rebuilt from global places, as floats; Δ is not. |
 
-The local-to-global adaptor was picked to get the local system visible on the screen, so
-it can be tested.
+The local-to-global adaptor serves [the priority](#the-priority): it puts the local system on
+the screen, where it is checked.
 
 ---
 
@@ -235,7 +236,7 @@ What is already there that points ahead:
 
 Answered:
 
-- what this is for: making visual simulations with AI, checked by watching
+- what this is for: making 3D simulations their way
   ([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)),
 - what it should do next: a flapping "bird", once the settings UI is done
   ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)),
