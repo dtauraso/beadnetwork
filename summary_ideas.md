@@ -24,30 +24,30 @@ Also:
 
 ### Purpose
 
-- **Who:** a visual thinker for whom reading code is the bottleneck.
-- **What it makes:** 3D rotations built from local, whole-number changes to angles, in a 3D
-  simulation the person directs an AI to build.
-- **The problem:** the visual thinker was not satisfied by what the AI made with its defaults, so they made a
-  solution themselves, with AI assistance.
-- **What it gives them:** they check what the AI built by pressing buttons and watching,
-  with reading the code it writes secondary.
-- **What that demands:** the screen has to be the simulation itself, and every behaviour has
-  to be something that can be checked by pressing buttons and watching.
+- **Who:** a visual thinker, for whom reading code is the bottleneck.
+- **The problem:** they were not satisfied by what the AI made with its defaults.
+- **What they made:** their own solution, by directing an AI: a 3D simulation whose
+  rotations are built from local, whole-number changes to angles.
+- **What it gives them:** they check what the AI builds by pressing buttons and watching the
+  screen, and read its code second.
+- **What it needs:** the screen has to be the simulation itself, so that as much as
+  possible is checked by pressing buttons and watching the screen, and the rest in the code.
 
 ### The bet
 
-The motion is local: each link turns in its own polar frame. The usual approach keeps the
-truth in one global x, y, z frame. The bet is the other way round: keep each link's local,
-whole-number Δ as the truth and make the global frame only a view of it, so a rotation is
-an exact count of steps that never drifts, and each step can be checked by watching it.
+The motion is local: each link turns in its own polar frame. What the AI makes by default
+keeps the truth in one global x, y, z frame. The bet is the other way round: keep each
+link's local, whole-number Δ as the truth and make the global frame only a view of it, so a
+rotation is an exact count of steps that never drifts, and each step can be checked by
+watching the screen.
 
 ### What follows from the bet
 
 - **A link is a vector.** It has a direction, φ and θ, and a length, r, each a start plus a
   whole-number Δ.
 - **Stepping a link moves the node at its end.** The links that move with it keep their
-  vectors; every other link touching a moved node has its vector recalculated from where its
-  two nodes now are.
+  vectors; every other link touching a moved node has its start recalculated from where its
+  two nodes now are, and its Δ stays.
 - **Each node moves on its own.** A node places itself from what its neighbours tell it, or
   from a place set on it directly in the UI.
 - **The screen draws what the simulation wrote.** Where that is an angle (a node's pole, the
@@ -64,8 +64,8 @@ an exact count of steps that never drifts, and each step can be checked by watch
 
 ### Where it is going
 
-Every part, including selection, the camera and the gestures, runs in the local polar
-system, and many nodes rotate at once, enough to make a bird that flaps its wings and turns
+Every part, including selection, the camera and the gestures, will run in the local polar
+system, and many nodes will rotate at once, enough to make a bird that flaps its wings and turns
 while it flaps. The steps there are in the [Roadmap](#roadmap);
 [Future directions](#future-directions) says why they follow.
 
