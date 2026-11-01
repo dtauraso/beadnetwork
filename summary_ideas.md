@@ -97,8 +97,9 @@ are made.
 
 ### Two angles
 
-A rotation is steps in φ and steps in θ, and stepping one never changes the other, so they
-can be made in any order and the link ends up pointing the same way.
+A rotation is steps added to φ and steps added to θ, and stepping one never changes the
+other. Because the steps are added, they can be made in any order and the link ends up
+pointing the same way.
 
 ### Moving nodes
 
@@ -109,8 +110,9 @@ A link rotates about the node it starts from, and the node at its end moves with
 Each link rotates about the node it starts from, so a rotation's centre is that link's
 start node. Selecting links picks the centres: select links that start from different
 nodes, and each of those nodes is a centre. One step rotates every selected link at once,
-each by its own step size. Each node moves on its own, and refuses changes that cannot be:
-a length below zero, or a second selected link into the same node.
+each by its own step size, and every node those links move moves in that one step. A node
+refuses changes that cannot be: a length below zero, or a second selected link into the
+same node.
 
 ### Time
 
@@ -122,8 +124,8 @@ A scene holds several sequences, each a separate saved setup of nodes and links.
 
 ### The screen
 
-What is on the screen is the simulation itself, not a second copy that could disagree, and
-a scene reopens where it was left.
+What is on the screen is always what the simulation holds, and a scene reopens where it
+was left.
 
 ---
 
