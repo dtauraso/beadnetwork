@@ -43,12 +43,12 @@ second.
 ### What follows from the priority
 
 - **The screen draws what the simulation wrote.** Where that is an angle (a node's pole, the
-  camera), the screen turns it into x, y, z.
+  camera), the screen works it out as x, y, z.
 
 ### Where it is going
 
-Many nodes will rotate at once, enough to make a bird that flaps its wings and turns while it
-flaps, checked by watching it. The way there is moving selection, the camera and the gestures
+Many links will change their angles at once, enough to make a bird that flaps its wings and
+changes the way it faces while it flaps, checked by watching it. The way there is moving selection, the camera and the gestures
 into the local polar system ([Design principles](#design-principles)); the steps are in the
 [Roadmap](#roadmap), and [Future directions](#future-directions) says why they follow.
 
@@ -58,9 +58,9 @@ into the local polar system ([Design principles](#design-principles)); the steps
 
 An AI's defaults keep the truth in one global x, y, z frame. Their way, in the
 [Purpose](#purpose), keeps it in each link's local, whole-number Δ, because each link moves
-in its own polar frame; so a link's rotation is an exact count of steps that never drifts.
+in its own polar frame; so where a link points is an exact count of steps that never drifts.
 Everything else is worked out from those counts through x, y, z, as floats: a node is
-placed at its source node's x, y, z plus its link's vector, turned back into φ, θ and r, and
+placed at its source node's x, y, z plus its link's vector, converted back into φ, θ and r, and
 the start of every other link is measured from where its two nodes now are. Only Δ stays
 exact. From that:
 
@@ -78,7 +78,7 @@ It rules out:
   in x, y, z and is never worked out from any node's own steps; each node measures the mouse
   in its own local steps instead
   ([question 3](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)).
-- **A camera made of decimal rotations stacked on each other.** Its numbers are not
+- **A camera made of decimal angle changes stacked on each other.** Its numbers are not
   whole-number steps and are not worked out from any; the camera becomes a node held in
   whole-number steps like everything else
   ([question 5](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)).
@@ -89,7 +89,7 @@ It rules out:
 | Polar as the local coordinate system | Links are φ, θ, r — not x, y, z. |
 | Integers as the control numbers | Changes in the local system are whole-number counts of steps. |
 | Global as the working step | Node places and link starts are worked out in x, y, z from the local data. |
-| Local → global adaptor | Turns local places and links into x, y, z. |
+| Local → global adaptor | Converts local places and links into x, y, z. |
 | Global reconstructions → local | Starts and node places are rebuilt from global places, as floats; Δ is not. |
 
 The local-to-global adaptor serves [the priority](#the-priority): it places the nodes in
@@ -99,8 +99,8 @@ space, so the local system can be seen on the screen, where it is checked.
 
 ## In one paragraph
 
-There is a 3D simulation system. It uses local integer changes to angles to do 3D
-rotations. It has a UI for setting angles and many other settings for 3D rotations.
+There is a 3D simulation system. It moves links in 3D by adding local integer changes to
+their angles. It has a UI for setting those angles and many other settings for how they change.
 
 ### The tools
 
@@ -126,7 +126,7 @@ holds a direction, φ and θ, and a length, r. Each node holds the links that co
 
 ### Steps
 
-It rotates links in 3D by steps. Each link has a change added to each of its two angles
+It changes where links point in 3D by steps. Each link has a change added to each of its two angles
 and its length: Δφ is the change added to φ, Δθ the change added to θ, and Δr the change
 added to r. Each one is a whole number of steps.
 
@@ -141,7 +141,7 @@ were made.
 
 ### Two angles
 
-A rotation is a number of steps in φ and a number of steps in θ. φ and θ are independent
+A change in where a link points is a number of steps in φ and a number of steps in θ. φ and θ are independent
 angles: stepping one never changes the other. Where a link points is decided by those two
 numbers alone. So steps in φ and θ can be made in any order, and the link ends up
 pointing the same way.
@@ -154,8 +154,8 @@ pointing the same way.
 
 ### Moving nodes
 
-A link turns about the node it starts from. Stepping a link moves the node at its end to
-where that link now points. The other links touching that node are rebuilt from the two
+A link stays attached to the node it starts from; only its angles and length change.
+Stepping a link moves the node at its end to where that link now points. The other links touching that node are rebuilt from the two
 nodes' new positions, so the picture stays in step with the links.
 
 - **To see it:** step a link, and its end node moves while the links touching it follow.
@@ -165,8 +165,8 @@ nodes' new positions, so the picture stays in step with the links.
 
 ### The network
 
-A link can be selected: marked to be turned together with the other selected links. One
-step rotates every selected link at once. Each node moves on its own, once it has heard
+A link can be selected: marked to be stepped together with the other selected links. One
+step changes the angles of every selected link at once. Each node moves on its own, once it has heard
 where its neighbours are. A node refuses changes that cannot be: a length below zero, or a
 second selected link into the same node.
 
@@ -182,11 +182,11 @@ second selected link into the same node.
 ### Time
 
 Changes play out at a speed a person can watch, and that speed is set from the UI.
-Repeating two different rotations with different centres makes the links swing like an
-arm on its joints.
+Repeatedly stepping two links that start from different nodes makes the links move like
+an arm bending at its joints.
 
-- **To see it:** keep repeating two rotations with different centres, and the links swing
-  like an arm.
+- **To see it:** keep stepping two links that start from different nodes, and the links
+  move like an arm bending.
 - **To read it:** `Categories/Clock/human_tick.go`, `HumanTick`: every node counts ticks
   from one shared start.
 
@@ -224,12 +224,12 @@ and the part of the design it serves.
 | **Now** | Make the UI easier to use for all the settings (in progress) | Every property is checked by pressing buttons, so each setting must be reachable. In the 3 phi theta tab the settings are scattered across pill dropdowns, so the settings UI is getting a full redo before the settings can be tested. |
 | **Next** | Make the "bird" animation | It should be easier once the settings UI is done; it is where the design is going ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)). |
 | **Next** | Test all the settings to make sure the screen shows the intent of the settings | The screen is how the local system is seen, so it must show what each setting means. |
-| **Later** | Test sequences of many concurrent rotation changes | Each node moves on its own, which is only shown when many move at once. |
+| **Later** | Test sequences of many concurrent angle changes | Each node moves on its own, which is only shown when many move at once. |
 | **Later** | Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
 | **Later** | Build a node selection replacement | The current one is a central raycast through global x, y, z; the replacement has each node measure the mouse's angle in its own local polar steps ([questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)). |
-| **Later** | Build a camera replacement | The current one stacks decimal rotations; the replacement is a node in the scene sphere whose angle ranges, in local polar steps, set the frame ([questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)). |
+| **Later** | Build a camera replacement | The current one stacks decimal angle changes; the replacement is a node in the scene sphere whose angle ranges, in local polar steps, set the frame ([questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)). |
 | **Later** | Put the rings tab animation programming into the animation settings (after the camera) | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
-| **Later** | Redesign the gestures as pinch/unpinch, rotate and pan | So each gesture changes whole-number steps in the local polar system ([question 9](summary_open_questions.md#9-what-are-the-redesigned-gestures)). |
+| **Later** | Redesign the gestures as pinch/unpinch, two-finger angle change and pan | So each gesture changes whole-number steps in the local polar system ([question 9](summary_open_questions.md#9-what-are-the-redesigned-gestures)). |
 
 ---
 
