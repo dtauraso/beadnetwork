@@ -50,8 +50,9 @@ far the link tips down from straight up; θ is how far it turns around the up di
 What rotates is each link's direction, about its own centre.
 
 Take one link. The node it starts from is its centre, and it rotates about that node. Its
-angles are counts: a full turn is split into a fixed whole number of equal steps, and φ and
-θ each say how many of those steps. Every link's angles are measured against the same up
+angles are counts: a full turn is split into a whole number of equal steps, and φ and θ each
+say how many of those steps. How many steps make a turn is a setting, so the steps can be
+made as fine as needed while the counts stay whole. Every link's angles are measured against the same up
 and around directions; only the centre is the link's own. Rotating it adds to or subtracts
 from those counts. Rotating it needs only its own counts and the place of the node it
 starts from; no chain of other links is followed to reach it. It moves only the node at its
@@ -107,6 +108,11 @@ A link is changed in steps: integers added to and subtracted from its φ, θ and
 link has its own step size, a whole number, so one step adds or subtracts that many. Steps
 in φ and θ rotate it; steps in r change its length. Stepping back the same number of times
 returns a link to exactly where it was, however many steps are made.
+
+Each node sets how many steps make a full turn for the links into it. Making that number
+larger makes every step finer, with no limit, so any direction can be reached as closely as
+needed. Changing it rescales the links' counts, and it is only set to a number that keeps
+them whole.
 
 ### Two angles
 
