@@ -26,22 +26,34 @@ Also:
 
 - **Who:** a visual thinker, for whom reading code is the bottleneck.
 - **The problem:** they were not satisfied by what the AI made with its defaults.
-- **What they made:** their own solution, by directing an AI: a 3D simulation whose
-  rotations are built from local, whole-number changes to angles.
-- **What it gives them:** they check what the AI builds by pressing buttons and watching the
-  screen, and read its code second.
-- **What it needs:** the screen has to be the simulation itself, so that as much as
-  possible is checked by pressing buttons and watching the screen, and the rest in the code.
+- **What they made:** their own solution, by directing an AI: a 3D simulation.
+- **What it is for:** making visual simulations with an AI.
 
-### The bet
+### The priority
 
-The motion is local: each link turns in its own polar frame. What the AI makes by default
-keeps the truth in one global x, y, z frame. The bet is the other way round: keep each
-link's local, whole-number Δ as the truth and make the global frame only a view of it, so a
-rotation is an exact count of steps that never drifts, and each step can be checked by
-watching the screen.
+The screen first, the code second: what the AI builds is checked by pressing buttons and
+watching the screen, and only what the screen cannot show is checked in the code.
 
-### What follows from the bet
+### What follows from the priority
+
+- **The screen draws what the simulation wrote.** Where that is an angle (a node's pole, the
+  camera), the screen turns it into x, y, z.
+
+### Where it is going
+
+Many nodes will rotate at once, enough to make a bird that flaps its wings and turns while it
+flaps, checked by watching it. The way there is moving selection, the camera and the gestures
+into the local polar system ([Design principles](#design-principles)); the steps are in the
+[Roadmap](#roadmap), and [Future directions](#future-directions) says why they follow.
+
+---
+
+## Design principles
+
+The motion is local: each link moves in its own polar frame. What an AI makes by default
+keeps the truth in one global x, y, z frame. The design is the other way round: each link's
+local, whole-number Δ is the truth and the global frame is only a view of it, so a rotation
+is an exact count of steps that never drifts. From that:
 
 - **A link is a vector.** It has a direction, φ and θ, and a length, r, each a start plus a
   whole-number Δ.
@@ -50,10 +62,8 @@ watching the screen.
   two nodes now are, and its Δ stays.
 - **Each node moves on its own.** A node places itself from what its neighbours tell it, or
   from a place set on it directly in the UI.
-- **The screen draws what the simulation wrote.** Where that is an angle (a node's pole, the
-  camera), the screen turns it into x, y, z.
 
-### What it rules out
+It rules out:
 
 - **Selecting nodes with one central raycast through global x, y, z.** It skips the local
   polar system; each node measures the mouse in its own local steps instead
@@ -61,21 +71,6 @@ watching the screen.
 - **A camera made of decimal rotations stacked on each other.** It sits outside the local
   polar system; the camera becomes a node held in whole-number steps like everything else
   ([question 5](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)).
-
-### Where it is going
-
-Every part, including selection, the camera and the gestures, will run in the local polar
-system, and many nodes will rotate at once, enough to make a bird that flaps its wings and turns
-while it flaps. The steps there are in the [Roadmap](#roadmap);
-[Future directions](#future-directions) says why they follow.
-
----
-
-## Design principles
-
-The motion is local: each link moves in its own polar frame. A computer works in one global
-frame, so the design keeps the local data as the truth and makes the global frame only a
-view of it.
 
 | Principle | Meaning |
 |---|---|
