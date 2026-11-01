@@ -110,9 +110,8 @@ in φ and θ rotate it; steps in r change its length. Stepping back the same num
 returns a link to exactly where it was, however many steps are made.
 
 Each node sets how many steps make a full turn for the links into it. Making that number
-larger makes every step finer, with no limit, so any direction can be reached as closely as
-needed. Changing it rescales the links' counts, and it is only set to a number that keeps
-them whole.
+larger makes every step finer, with no limit. Changing it rescales the links' counts, and it
+is only set to a number that keeps them whole.
 
 ### Two angles
 
