@@ -65,7 +65,7 @@ export function killOrphanedSims(
 
     if (pid === self || (exceptPid !== undefined && pid === exceptPid)) continue;
 
-    if (!command.includes("beadnetwork")) continue;
+    if (!command.split(" ")[0]!.includes("beadnetwork")) continue;
     if (!command.includes(binPath) && !command.includes("-topology")) continue;
     try {
       process.kill(pid, "SIGKILL");
