@@ -115,7 +115,6 @@ was left.
 | | Item |
 |---|---|
 | **Now** | Make the UI easier to use for all the settings (in progress). |
-| **Next** | Make the "bird" animation ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)). |
 
 After that, selection, the camera and the gestures are moved onto the same integer counts
 ([summary_open_questions.md](summary_open_questions.md)).
