@@ -19,6 +19,9 @@ import (
 
 func main() {
 	args := os.Args[1:]
+	if len(args) == 2 && args[0] == "-source" {
+		os.Exit(dumpSource(args[1]))
+	}
 	asJSON := len(args) > 0 && args[0] == "-json"
 	asSteps := len(args) > 0 && args[0] == "-steps"
 	asOrders := len(args) > 0 && args[0] == "-orders"
@@ -42,6 +45,9 @@ func main() {
 		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, "-orders does the same for φ+, θ+ and r+ pressed in each of their six")
 		fmt.Fprintln(os.Stderr, "orders.")
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, "readscene -source <package dir> prints every function in that Go package")
+		fmt.Fprintln(os.Stderr, "with its file and line, for the rules-check page's links into VS Code.")
 		os.Exit(2)
 	}
 	root := args[0]

@@ -103,6 +103,7 @@ loadFile($("afterFile"), "after");
 loadFile($("runsFile"), "runs");
 $("press").addEventListener("change", choosePress);
 codeView();
+goView();
 if (shipped.before) {
   reset();
 } else {

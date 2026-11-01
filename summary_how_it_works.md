@@ -77,6 +77,11 @@ link's start, Δ, increment and whether it is selected. `go run ./scripts/readsc
 the same link code the editor runs, and prints each before and after in that form, so a
 step can be checked without the editor. Nothing on disk changes.
 
+The rules are what the editor's Go does, in `Categories/Node/Links/`. They are not taken
+from any checker. `scripts/readscene/rules-check/index.html` checks them with JavaScript of
+its own, written from these words and not ported from the Go, and names under each rule
+the Go function that does it.
+
 For a link, s is the s of the node it goes to, and one turn is T = 12·s ticks.
 
 1. **Where a link points.** φ = start φ + Δφ and θ = start θ + Δθ, each wrapped into

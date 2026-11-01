@@ -12,32 +12,45 @@
   <header class="prose">
     <span class="label">Bead network · phi-theta-3 scene</span>
     <h1>Link Rules Check</h1>
-    <p>The editor draws nodes moving as links are stepped. A drawing can be faked, so this page sets the drawing aside. It takes the numbers the editor saved and recomputes every position from seven written rules. The checking code in <code>rules/</code> is its own, written from the rules, and none of it comes from the editor. All of it is shown at the bottom of the page.</p>
-    <p class="muted">Everything in <code>data/</code> comes from the editor's Go code, run outside the editor by <code>scripts/readscene</code>. The loaded data is the export of all six sequences, taken on 2026-10-31 with <code>go run ./scripts/readscene -json topology-pair-phi-theta-3</code> and kept in <code>data/scene-export.js</code>. Edit any number, or paste your own export, and press Check.</p>
+    <p>The editor draws nodes moving as links are stepped. A drawing can be faked, so this page sets the drawing aside and checks the numbers instead. Three separate things are involved:</p>
+    <ul class="parts">
+      <li><b>The rules</b> are seven statements in words, below and in <code>summary_how_it_works.md</code>. They are not code.</li>
+      <li><b>The editor</b> is Go. It applies the rules and made every number in <code>data/</code>, run outside the editor by <code>scripts/readscene</code>. Under each rule is the Go function that does it.</li>
+      <li><b>This page's checker</b> is JavaScript in <code>rules-check/rules/</code>, written from the words alone. It is not a port of the Go: it sends no messages between nodes and never works angles back out of positions, as the editor does. It only predicts what the words say should happen and compares that with the numbers the Go recorded.</li>
+    </ul>
+    <p class="muted">The loaded data is the export of all six sequences, taken on 2026-10-31 with <code>go run ./scripts/readscene -json topology-pair-phi-theta-3</code> and kept in <code>data/scene-export.js</code>. Edit any number, or paste your own export, and press Check.</p>
   </header>
 
   <section class="prose">
     <h2>The rules</h2>
+    <p class="muted">Each rule is followed by where the editor's Go does it, under <code>Categories/Node/Links/</code>, and then, folded away, the JavaScript this page uses to check it. Click a Go function to open its file as a tab in VS Code, at the function. Which file each function is in comes from <code>go run ./scripts/readscene -source Categories/Node/Links</code>, kept in <code>data/go-source.js</code>. The click works in Live Preview with the topology extension running: the extension listens on localhost and writes its address to <code>docs/pair-node/port.js</code>, as for the docs pages.</p>
     <p>For a link, <i>s</i> is the s of the node it goes to, and one turn is <i>T</i> = 12·<i>s</i> ticks.</p>
     <ol class="rules">
       <li><b>Where a link points.</b> φ = start φ + Δφ and θ = start θ + Δθ, each wrapped into 0 ≤ angle &lt; T. r = start r + Δr.
-        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="wherePoints"></pre></details></li>
+        <span class="go">In the editor (Go): <a class="gofn" data-go="Link.Dir"></a>.</span>
+        <details class="rulecode"><summary>How this page checks it (JavaScript written for this page, not the editor's code)</summary><pre class="code" data-fn="wherePoints"></pre></details></li>
       <li><b>A step.</b> It adds the increment, plus or minus, to one Δ (φ, θ or r), or with the "both" button to all three, and changes nothing else in that link. An angle's Δ is wrapped into 0 ≤ Δ &lt; T; Δr is not. A step that would take r below 0 is refused.
-        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="stepDelta"></pre></details></li>
+        <span class="go">In the editor (Go): <a class="gofn" data-go="Link.Step"></a>; the refusal is <a class="gofn" data-go="Peer.stepR"></a> and the both button's lock is <a class="gofn" data-go="way"></a>.</span>
+        <details class="rulecode"><summary>How this page checks it (JavaScript written for this page, not the editor's code)</summary><pre class="code" data-fn="stepDelta"></pre></details></li>
       <li><b>A link's vector.</b> With a(t) = t · 2π / T:
         <span class="formula">x = r·ρ·sin a(φ)·cos a(θ)
 y = r·ρ·cos a(φ)
 z = r·ρ·sin a(φ)·sin a(θ)</span>
         One case differs: when φ &gt; T/2 and φ = θ, z is negated. There both angles count as negative, and without the flip sin φ · sin θ would be a square that never lets the link reach the negative-z side.
-        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="zFlips linkVector"></pre></details></li>
+        <span class="go">In the editor (Go): <a class="gofn" data-go="Frame.Vec"></a>.</span>
+        <details class="rulecode"><summary>How this page checks it (JavaScript written for this page, not the editor's code)</summary><pre class="code" data-fn="zFlips linkVector"></pre></details></li>
       <li><b>A node's position.</b> The same formula, with r · constant-r for the length, φ · 2π / max-index-φ and θ · 2π / max-index-θ for the angles, and no z flip.
-        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="nodePosition"></pre></details></li>
+        <span class="go">In the editor (Go): <a class="gofn" data-go="Frame.At"></a>.</span>
+        <details class="rulecode"><summary>How this page checks it (JavaScript written for this page, not the editor's code)</summary><pre class="code" data-fn="nodePosition"></pre></details></li>
       <li><b>Every link closes.</b> For every link a→b, position(a) + vector(a→b) = position(b), to floating-point rounding.
-        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="linkCloses"></pre></details></li>
+        <span class="go">In the editor (Go): <a class="gofn" data-go="Peer.recover"></a> places a node at the end of its stepped link, and <a class="gofn" data-go="Link.Remeasure"></a> gives the node's other links a new start.</span>
+        <details class="rulecode"><summary>How this page checks it (JavaScript written for this page, not the editor's code)</summary><pre class="code" data-fn="linkCloses"></pre></details></li>
       <li><b>What a press changes.</b> A press steps one link into each node: the first selected one, in saved order. That link's Δ changes as rule 2 says and its start stays. No other link's Δ changes. A node reached by a stepped link moves to position(from) + vector(link) with the new Δ; every other node stays where it was. The page predicts After from Before this way and compares the prediction with what the editor's code recorded.
-        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="pressLink predict compare"></pre></details></li>
+        <span class="go">In the editor (Go): <a class="gofn" data-go="Peer.stepAll"></a>, stepping the link <a class="gofn" data-go="Peer.pickedIn"></a> returns.</span>
+        <details class="rulecode"><summary>How this page checks it (JavaScript written for this page, not the editor's code)</summary><pre class="code" data-fn="pressLink predict compare"></pre></details></li>
       <li><b>The order of presses does not change Δ.</b> Steps add whole-number increments to Δ, and addition does not depend on order, so φ+, θ+ and r+ in any of their six orders leave every link with the same Δ. A link that was not stepped can get a new start, worked out again from where the nodes moved to; that never changes its Δ.
-        <details class="rulecode"><summary>The code for this rule</summary><pre class="code" data-fn="startRewritten sameButtons orderCheck"></pre></details></li>
+        <span class="go">In the editor (Go): <a class="gofn" data-go="Link.Step"></a> adds to Δ, and <a class="gofn" data-go="Link.Remeasure"></a> writes a new start and leaves Δ as it was.</span>
+        <details class="rulecode"><summary>How this page checks it (JavaScript written for this page, not the editor's code)</summary><pre class="code" data-fn="startRewritten sameButtons orderCheck"></pre></details></li>
     </ol>
     <p class="muted">Rules 1–5 are checked on one state. Rule 6 needs a before and an after. <code>data/scene-steps.js</code> holds 48 of them: each of the eight step buttons pressed once on each sequence, made with <code>go run ./scripts/readscene -steps topology-pair-phi-theta-3</code>. Rule 7 uses <code>data/scene-orders.js</code>, made with <code>-orders</code>: the six orders of φ+, θ+ and r+ on every sequence. Both files start in the Runs box below, where every run is checked against rule 6 and every group of runs pressing the same buttons in different orders against rule 7. Any run can be edited there, or replaced with your own <code>-steps</code> or <code>-orders</code> output, and any one can be loaded into Before and After.</p>
   </section>
@@ -74,14 +87,16 @@ z = r·ρ·sin a(φ)·sin a(θ)</span>
   <section id="results" class="seq" aria-live="polite"></section>
 
   <details>
-    <summary>The checker's whole code</summary>
-    <p class="muted" style="margin-top:10px">This is every file in <code>rules/</code>, the code that does the checking. It is printed from the running page, so it is the code that produced the results above. <code>page/</code> only draws the tables.</p>
+    <summary>This page's whole checker (JavaScript, not the editor's code)</summary>
+    <p class="muted" style="margin-top:10px">This is every file in <code>rules-check/rules/</code>, the JavaScript that does the checking, written from the rules' words and not from the editor's Go. It is printed from the running page, so it is the code that produced the results above. <code>page/</code> only draws the tables. The editor's Go is in <code>Categories/Node/Links/</code>, at the functions named under each rule.</p>
     <div id="source"></div>
   </details>
 </div>
 <script src="data/scene-export.js"></script>
 <script src="data/scene-steps.js"></script>
 <script src="data/scene-orders.js"></script>
+<script src="data/go-source.js"></script>
+<script src="../../../docs/pair-node/port.js"></script>
 <script src="rules/numbers.js"></script>
 <script src="rules/one-state.js"></script>
 <script src="rules/press.js"></script>
@@ -91,6 +106,7 @@ z = r·ρ·sin a(φ)·sin a(θ)</span>
 <script src="page/press-view.js"></script>
 <script src="page/order-view.js"></script>
 <script src="page/code-view.js"></script>
+<script src="page/go-view.js"></script>
 <script src="page/page.js"></script>
 </body>
 </html>
