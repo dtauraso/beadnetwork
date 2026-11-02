@@ -23,21 +23,21 @@ Also:
 
 ### Purpose
 
-- **Who:** They are a visual thinker who codes by directing an AI.
-- **What they found:** For what they wanted, basic visuals came quickly. They described
-  what they wanted to see on the screen, the AI drew it, and what appeared was what they
-  had described.
-- **The problem:** Beyond basic visuals, they were not satisfied by what the AI made with its
-  defaults.
-- **What they made:** They directed the AI away from those defaults to make their own 3D
-  simulation.
-- **What it is for:** It lets them make 3D simulations their way.
+It lets a visual thinker who builds by directing an AI make 3D simulations they can check
+by watching them, not by reading the code.
 
-### The priority
+### The bet
 
-The code the AI generated was a reading bottleneck, so they changed the priority: they check
-what the AI builds by pressing buttons and watching the screen first, and read its code
-second. So the screen draws only what the simulation holds.
+For this person the screen is the source of truth, and the code is a reading bottleneck.
+They check what the AI builds by pressing buttons and watching the screen first, and read
+its code second. So the screen draws only what the simulation holds, and nothing the
+simulation does not hold can appear.
+
+### Why it is not the default
+
+Described in terms of what to see on the screen, basic visuals came quickly from the AI's
+defaults. Past the basics, what the AI made on its own did not match what they wanted, so
+they directed it away from those defaults.
 
 ---
 
