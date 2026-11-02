@@ -24,9 +24,9 @@ Also:
 ### Purpose
 
 - **Who:** They are a visual thinker who codes by directing an AI.
-- **What they found:** For what they wanted, basic visuals came quickly. They typed the
-  change they wanted to see, the AI made it, and the code worked, though they had not read
-  it and did not know the language.
+- **What they found:** For what they wanted, basic visuals came quickly. They described
+  what they wanted to see on the screen, the AI drew it, and what appeared was what they
+  had described.
 - **The problem:** Beyond basic visuals, they were not satisfied by what the AI made with its
   defaults.
 - **What they made:** They directed the AI away from those defaults to make their own 3D
