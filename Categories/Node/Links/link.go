@@ -34,7 +34,8 @@ func NewLink(from, to string) *Link {
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
 func (l *Link) Dir(s int) Start {
-	return Start{Phi: Wrap(s, l.Start.Phi+float64(l.Delta.Phi)), Theta: Wrap(s, l.Start.Theta+float64(l.Delta.Theta)), R: l.Start.R + float64(l.Delta.R)}
+	add := func(a float64, d int) float64 { return Signed(s, Turn(s, a)+Turn(s, float64(d))) }
+	return Start{Phi: add(l.Start.Phi, l.Delta.Phi), Theta: add(l.Start.Theta, l.Delta.Theta), R: l.Start.R + float64(l.Delta.R)}
 }
 
 func (a *Ticks) at(k string) *int {
@@ -62,18 +63,19 @@ func (l *Link) SetStart(s int, k string, v float64) {
 	case KR:
 		l.Start.R = v
 	case KTheta:
-		l.Start.Theta = Wrap(s, v)
+		l.Start.Theta = Norm(s, v)
 	default:
-		l.Start.Phi = Wrap(s, v)
+		l.Start.Phi = Norm(s, v)
 	}
 }
 
 func (l *Link) Step(s int, k string, sign int) {
 	d := l.Delta.at(k)
-	*d += sign * *l.Increment.at(k)
-	if k != KR {
-		*d = WrapTicks(s, *d)
+	if k == KR {
+		*d += sign * *l.Increment.at(k)
+		return
 	}
+	*d = int(StepSigned(s, float64(*d), float64(sign**l.Increment.at(k))))
 }
 
 func (l *Link) ScaleAngles(k float64) {
@@ -84,11 +86,12 @@ func (l *Link) ScaleAngles(k float64) {
 }
 
 func Measure(f Frame, s int, was Start, p, t Vec3) Start {
+	was = Start{Phi: Turn(s, was.Phi), Theta: Turn(s, was.Theta), R: was.R}
 	v := t.Sub(p)
 	n := v.Length()
 	tick := 2 * math.Pi / float64(TurnTicks*s)
 	if n < 1e-9 {
-		return Start{Phi: was.Phi, Theta: was.Theta}
+		return Start{Phi: Signed(s, was.Phi), Theta: Signed(s, was.Theta)}
 	}
 	side := math.Hypot(v.X, v.Z)
 	phi := math.Atan2(side, v.Y) / tick
@@ -104,15 +107,16 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 	half := float64(TurnTicks * s / 2)
 	best := Start{Phi: phi, Theta: theta}
 	for _, c := range []Start{{Phi: -phi, Theta: theta + half}, {Phi: theta, Theta: theta}, {Phi: theta + half, Theta: theta + half}} {
-		d := f.Vec(s, Start{Phi: Wrap(s, c.Phi), Theta: Wrap(s, c.Theta), R: n / f.Rho}).Sub(v)
+		d := f.Vec(s, Start{Phi: Signed(s, c.Phi), Theta: Signed(s, c.Theta), R: n / f.Rho}).Sub(v)
 		if d.Length() < 1e-6*n && off(c) < off(best) {
 			best = c
 		}
 	}
-	return Start{Phi: Wrap(s, best.Phi), Theta: Wrap(s, best.Theta), R: n / f.Rho}
+	return Start{Phi: Signed(s, best.Phi), Theta: Signed(s, best.Theta), R: n / f.Rho}
 }
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
 	v := Measure(f, s, l.Dir(s), p, t)
-	l.Start = Start{Phi: Wrap(s, v.Phi-float64(l.Delta.Phi)), Theta: Wrap(s, v.Theta-float64(l.Delta.Theta)), R: v.R - float64(l.Delta.R)}
+	sub := func(a float64, d int) float64 { return Signed(s, Turn(s, a)-Turn(s, float64(d))) }
+	l.Start = Start{Phi: sub(v.Phi, l.Delta.Phi), Theta: sub(v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
 }

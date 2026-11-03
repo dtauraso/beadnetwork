@@ -34,6 +34,37 @@ func WrapTicks(s, t int) int {
 	return (t%turn + turn) % turn
 }
 
+func half(s int) float64 { return float64(TurnTicks * s / 2) }
+
+func Signed(s int, turn float64) float64 {
+	if w := Wrap(s, turn); w > half(s) {
+		return -(w - half(s))
+	} else {
+		return w
+	}
+}
+
+func Turn(s int, signed float64) float64 {
+	if signed < 0 {
+		return Wrap(s, half(s)-signed)
+	}
+	return Wrap(s, signed)
+}
+
+func Norm(s int, signed float64) float64 {
+	if signed == -half(s) {
+		return signed
+	}
+	return Signed(s, Turn(s, signed))
+}
+
+func StepSigned(s int, signed float64, by float64) float64 {
+	if v := Signed(s, Turn(s, signed)+by); v != 0 || by <= 0 {
+		return v
+	}
+	return -half(s)
+}
+
 func whole(x float64) bool { return math.Abs(x-math.Round(x)) < 1e-6 }
 
 func (f Frame) cellPhi() float64   { return 2 * math.Pi / float64(f.Tphi) }
@@ -67,8 +98,9 @@ func (f Frame) GridAt(p Vec3) Place {
 
 func (f Frame) Vec(s int, t Start) Vec3 {
 	ang := func(x float64) float64 { return x * 2 * math.Pi / float64(TurnTicks*s) }
-	v := Cart(t.R*f.Rho, ang(t.Phi), ang(t.Theta))
-	if p := Wrap(s, t.Phi); p > float64(TurnTicks*s/2) && math.Abs(p-Wrap(s, t.Theta)) < 1e-9 {
+	phi, theta := Turn(s, t.Phi), Turn(s, t.Theta)
+	v := Cart(t.R*f.Rho, ang(phi), ang(theta))
+	if phi > half(s) && math.Abs(phi-theta) < 1e-9 {
 		v.Z = -v.Z
 	}
 	return v

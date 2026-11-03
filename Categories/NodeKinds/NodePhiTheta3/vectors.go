@@ -25,7 +25,7 @@ func (n *NodePhiTheta3) postArcs() {
 		d := l.Dir(s)
 		arcs = append(arcs, AngleArcs.Angle{
 			At:  n.peer.Offset(l.From),
-			Dir: polar.Polar{R: d.R * n.peer.Frame.Rho, Phi: d.Phi * tick, Theta: d.Theta * tick},
+			Dir: polar.Polar{R: d.R * n.peer.Frame.Rho, Phi: Links.Turn(s, d.Phi) * tick, Theta: Links.Turn(s, d.Theta) * tick},
 		})
 	}
 	n.geom.KindPosts().PostArcs(arcs)
