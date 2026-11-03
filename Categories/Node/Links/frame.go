@@ -70,9 +70,11 @@ func Norm(s int, signed float64) float64 {
 	return Signed(s, signed)
 }
 
-func Up(s int, v float64) float64 {
+func Up(s int, left bool, v float64) float64 {
 	six := half(s)
 	switch {
+	case left && v == six:
+		return six - 1
 	case v >= 0 && v+1 <= six:
 		return v + 1
 	case v >= 0:
@@ -84,9 +86,11 @@ func Up(s int, v float64) float64 {
 	}
 }
 
-func Down(s int, v float64) float64 {
+func Down(s int, left bool, v float64) float64 {
 	six := half(s)
 	switch {
+	case left && v == six:
+		return -1
 	case v >= 0 && v-1 >= 0:
 		return v - 1
 	case v >= 0:
@@ -98,9 +102,11 @@ func Down(s int, v float64) float64 {
 	}
 }
 
-func unUp(s int, v float64) float64 {
+func unUp(s int, left bool, v float64) float64 {
 	six := half(s)
 	switch {
+	case left && v == six-1:
+		return six
 	case v > 0:
 		return v - 1
 	case v < 0 && v-1 >= -six:
@@ -110,9 +116,11 @@ func unUp(s int, v float64) float64 {
 	}
 }
 
-func unDown(s int, v float64) float64 {
+func unDown(s int, left bool, v float64) float64 {
 	six := half(s)
 	switch {
+	case left && v == -1:
+		return six
 	case v >= 0 && v+1 <= six:
 		return v + 1
 	case v < 0 && v+1 <= -1:
@@ -122,22 +130,24 @@ func unDown(s int, v float64) float64 {
 	}
 }
 
-func Presses(s int, v float64, n int) float64 {
+func Presses(s int, v float64, n int) float64 { return PressesIn(s, v < 0, v, n) }
+
+func PressesIn(s int, left bool, v float64, n int) float64 {
 	for ; n > 0; n-- {
-		v = Up(s, v)
+		v = Up(s, left, v)
 	}
 	for ; n < 0; n++ {
-		v = Down(s, v)
+		v = Down(s, left, v)
 	}
 	return v
 }
 
-func Unpress(s int, v float64, n int) float64 {
+func Unpress(s int, left bool, v float64, n int) float64 {
 	for ; n > 0; n-- {
-		v = unUp(s, v)
+		v = unUp(s, left, v)
 	}
 	for ; n < 0; n++ {
-		v = unDown(s, v)
+		v = unDown(s, left, v)
 	}
 	return v
 }

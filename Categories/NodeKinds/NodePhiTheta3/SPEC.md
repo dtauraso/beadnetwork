@@ -47,7 +47,8 @@ Case by case:
 |---|---|---|
 | 0 | 1s | −6s (12s, the same point) |
 | 1s … 5s | one higher | one lower (1s − 1 is 0) |
-| 6s | −1s (7s, right next to 6s) | 5s |
+| 6s, start on the + side | −1s (7s, right next to 6s) | 5s |
+| 6s, start on the − side | 5s (on past 6s, the way −1s → 6s went) | −1s |
 | −1s | 6s | −2s |
 | −2s … −5s | one toward −1s | one toward −6s |
 | −6s | −5s | 0 |
@@ -57,7 +58,7 @@ cases above, up for Δ > 0 and down for Δ < 0. A Δ press moves the angle one c
 is. Start and Δ are shown in the view of the hemisphere the angle is in: when a press puts it in
 the other hemisphere they are rewritten as one press from that side (4 up 3 is start −2s, Δ +1
 = −1s; 1 down 2 is start −5s, Δ −1 = −6s). At 6s they keep what they had from before (−2s + 1,
-up, is −2s + 2 = 6s). A link loaded in the other hemisphere's view is rewritten the same way. A start ± press is
+up, is −2s + 2 = 6s; up again is 4s + 1 = 5s). A link loaded in the other hemisphere's view is rewritten the same way. A start ± press is
 one press. A recovered start runs the same presses back from the measured angle. Its
 local vector is
 `d = polar_to_cart((r+Δr)·ρ, turn(φ+Δφ)·2π/12s, turn(θ+Δθ)·2π/12s)` with its z

@@ -87,12 +87,12 @@ func (l *Link) Step(s int, k string, sign int) {
 }
 
 func PressOnce(s int, start *float64, d *int, sign int) {
-	next := Presses(s, Presses(s, *start, *d), sign)
+	next := PressesIn(s, *start < 0, Presses(s, *start, *d), sign)
 	if Presses(s, *start, *d+sign) == next {
 		*d += sign
 	} else {
 		*d = sign
-		*start = Unpress(s, next, sign)
+		*start = Unpress(s, next < 0, next, sign)
 	}
 	View(s, start, d)
 }
@@ -112,7 +112,7 @@ func View(s int, start *float64, d *int) {
 		way = -1
 	}
 	*d = way
-	*start = Unpress(s, at, way)
+	*start = Unpress(s, at < 0, at, way)
 }
 
 func (l *Link) ScaleAngles(k float64) {
@@ -154,6 +154,6 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
 	v := Measure(f, s, l.Dir(s), p, t)
-	sub := func(a float64, d int) float64 { return Unpress(s, a, d) }
-	l.Start = Start{Phi: sub(v.Phi, l.Delta.Phi), Theta: sub(v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
+	sub := func(was, a float64, d int) float64 { return Unpress(s, was < 0, a, d) }
+	l.Start = Start{Phi: sub(l.Start.Phi, v.Phi, l.Delta.Phi), Theta: sub(l.Start.Theta, v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
 }
