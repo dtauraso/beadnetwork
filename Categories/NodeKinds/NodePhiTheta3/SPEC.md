@@ -31,15 +31,17 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 held by b, the target. Angles are in ticks of b's `s`; r + Δr is never below 0, and Δr has no lock and
 is not stepped by StepAll.
 
-An angle (start, Δ, and start + Δ) is stored, shown and pressed on the **signed loop**
+A position (start, and start + Δ) is stored, shown and pressed on the **signed loop**
 `0, 1s … 6s, −1s … −6s`, never as `0..12s`: a + press moves one tick on, so 6s + 1 is −1s and
 −6s + 1 is 1s; a − press moves back, so 1s − 1 is 0 and 0 − 1 is −5s. −6s and 0 are the same
 tick (a full turn); + reaching it from −5s writes −6s, − reaching it from 1s writes 0. The
 `0..12s` turn exists only inside polar ↔ cartesian conversion: `turn(x) = x` for `x ≥ 0`,
 `6s − x` for `x < 0`, and back `x` for `x ≤ 6s`, `−(x − 6s)` past it. A file holding an older
-`0..12s` value is read onto the loop (11 → −5).
+`0..12s` start is read onto the loop (10 → −4). Δ is not a position: it is the count of ticks
+the presses have moved, never wrapped and never put on the loop, so its sign is the way it was
+pressed, not an arc.
 
-Its direction is `start + Δ`, summed as turns and put back on the loop, and its local vector is
+Its direction is `start + Δ`: Δ ticks on from `turn(start)`, put back on the loop, and its local vector is
 `d = polar_to_cart((r+Δr)·ρ, turn(φ+Δφ)·2π/12s, turn(θ+Δθ)·2π/12s)` with its z
 negated when φ = θ and both are on the negative side of the loop, where the angle counts as
 negative: with the two angles equal, sin φ · sin θ is a square and would otherwise never let d

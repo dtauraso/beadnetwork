@@ -34,7 +34,7 @@ func NewLink(from, to string) *Link {
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
 func (l *Link) Dir(s int) Start {
-	add := func(a float64, d int) float64 { return Signed(s, Turn(s, a)+Turn(s, float64(d))) }
+	add := func(a float64, d int) float64 { return Signed(s, Turn(s, a)+float64(d)) }
 	return Start{Phi: add(l.Start.Phi, l.Delta.Phi), Theta: add(l.Start.Theta, l.Delta.Theta), R: l.Start.R + float64(l.Delta.R)}
 }
 
@@ -71,11 +71,7 @@ func (l *Link) SetStart(s int, k string, v float64) {
 
 func (l *Link) Step(s int, k string, sign int) {
 	d := l.Delta.at(k)
-	if k == KR {
-		*d += sign * *l.Increment.at(k)
-		return
-	}
-	*d = int(StepSigned(s, float64(*d), float64(sign**l.Increment.at(k))))
+	*d += sign * *l.Increment.at(k)
 }
 
 func (l *Link) ScaleAngles(k float64) {
@@ -117,6 +113,6 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
 	v := Measure(f, s, l.Dir(s), p, t)
-	sub := func(a float64, d int) float64 { return Signed(s, Turn(s, a)-Turn(s, float64(d))) }
+	sub := func(a float64, d int) float64 { return Signed(s, Turn(s, a)-float64(d)) }
 	l.Start = Start{Phi: sub(v.Phi, l.Delta.Phi), Theta: sub(v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
 }
