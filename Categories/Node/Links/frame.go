@@ -79,7 +79,7 @@ func Up(s int, left bool, v float64) float64 {
 		return v + 1
 	case v >= 0:
 		return -(v + 1 - six)
-	case v+1 <= -1:
+	case v+1 < 0:
 		return v + 1
 	default:
 		return six - (v + 1)
@@ -123,7 +123,7 @@ func unDown(s int, left bool, v float64) float64 {
 		return six
 	case v >= 0 && v+1 <= six:
 		return v + 1
-	case v < 0 && v+1 <= -1:
+	case v < 0 && v+1 < 0:
 		return v + 1
 	default:
 		return v
