@@ -37,32 +37,75 @@ func WrapTicks(s, t int) int {
 func half(s int) float64 { return float64(TurnTicks * s / 2) }
 
 func Signed(s int, turn float64) float64 {
-	if w := Wrap(s, turn); w > half(s) {
-		return -(w - half(s))
-	} else {
+	six := half(s)
+	w := Wrap(s, turn)
+	switch {
+	case w == 0:
+		return 0
+	case w <= six:
 		return w
+	default:
+		return -(w - six)
 	}
 }
 
 func Turn(s int, signed float64) float64 {
-	if signed < 0 {
-		return Wrap(s, half(s)-signed)
+	six := half(s)
+	switch {
+	case signed == 0:
+		return 0
+	case signed > 0:
+		return signed
+	default:
+		return six - signed
 	}
-	return Wrap(s, signed)
 }
 
 func Norm(s int, signed float64) float64 {
-	if signed == -half(s) {
+	if signed >= -half(s) && signed <= half(s) {
 		return signed
 	}
-	return Signed(s, Turn(s, signed))
+	return Signed(s, signed)
 }
 
-func StepSigned(s int, signed float64, by float64) float64 {
-	if v := Signed(s, Turn(s, signed)+by); v != 0 || by <= 0 {
-		return v
+func Plus(s int, v float64) float64 {
+	six := half(s)
+	switch {
+	case v >= 0 && v+1 <= six:
+		return v + 1
+	case v >= 0:
+		return -(v + 1 - six)
+	case -v+1 <= six:
+		return v - 1
+	default:
+		return -v + 1 - six
 	}
-	return -half(s)
+}
+
+func Minus(s int, v float64) float64 {
+	six := half(s)
+	switch {
+	case v == 0:
+		return -(six - 1)
+	case v > 0 && v-1 >= 0:
+		return v - 1
+	case v > 0:
+		return -(six + v - 1)
+	case -v-1 > 0:
+		return v + 1
+	default:
+		return six - v - 1
+	}
+}
+
+func Presses(s int, v float64, n int) float64 {
+	for ; n > 0; n-- {
+		v = Plus(s, v)
+	}
+	for ; n < 0; n++ {
+		v = Minus(s, v)
+	}
+	return v
 }
 
 func whole(x float64) bool { return math.Abs(x-math.Round(x)) < 1e-6 }

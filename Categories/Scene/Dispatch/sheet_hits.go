@@ -58,7 +58,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		v := float64(sign) + map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K]
 		if s := m.ScaleOf(a.To); a.K != Links.KR {
 			was := map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta}[a.K]
-			v = Links.StepSigned(s, was, float64(sign))
+			v = Links.Presses(s, was, sign)
 		}
 		if typed != nil {
 			v = *typed

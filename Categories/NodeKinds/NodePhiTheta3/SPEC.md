@@ -33,14 +33,25 @@ is not stepped by StepAll.
 
 An angle (start, and start + Δ) is stored and shown in the **signed range**
 `[1s, 6s]`, `[−1s, −6s]` (and 0), never as `0..12s`. The `0..12s` range is used only for
-polar ↔ cartesian and for adding, through the mapping `(1s ↔ 1s) … (6s ↔ 6s)`,
-`(7s ↔ −1s) … (11s ↔ −5s), (12s ↔ −6s)`: `turn(x) = x` for `x ≥ 0`, `6s − x` for `x < 0`, and
-back `x` for `x ≤ 6s`, `−(x − 6s)` past it. So 6s + 1 is −1s, and 0 − 1 is 12s − 1 = 11s = −5s.
-A file holding an older `0..12s` start is read through the mapping (10 → −4). Δ is a term: the
-count of ticks pressed, with the sign it was pressed.
+polar ↔ cartesian, through the mapping `(0 ↔ 0)`, `(1s ↔ 1s) … (6s ↔ 6s)`,
+`(−1s ↔ 7s) … (−5s ↔ 11s), (−6s ↔ 12s)`. A file holding an older `0..12s` start is read
+through the mapping (10 → −4). Δ is a term: the count of ticks pressed, with the sign it was
+pressed.
 
-The displayed angle is the sum `start + Δ`: `turn(start) + Δ` in `0..12s`, mapped back
-(4 + −4 = 0, 4 + −5 = 11s = −5s). Its local vector is
+One press, case by case (0 and 6s are their own cases; 0 and −6s are the same point, 0 ↔ 12s):
+
+| at | + goes to | − goes to |
+|---|---|---|
+| 0 | 1s | −5s (12s − 1 = 11s) |
+| 1s … 5s | one up | one down (1s − 1 is 0) |
+| 6s | −1s (7s, one past 6s) | 5s |
+| −1s | −2s | 6s |
+| −2s … −5s | one further (−5s + 1 is −6s) | one back (−2s − 1 is −1s) |
+| −6s | 1s (13s = 1s) | −5s |
+
+The displayed angle is the sum `start + Δ`: `Δ` presses applied to start, one at a time by the
+cases above (4 + −4 = 0, 4 + −5 = −5s, 4 + 3 = −1s). A start ± press is one press. Its local
+vector is
 `d = polar_to_cart((r+Δr)·ρ, turn(φ+Δφ)·2π/12s, turn(θ+Δθ)·2π/12s)` with its z
 negated when φ = θ and both are negative, where the angle counts as
 negative: with the two angles equal, sin φ · sin θ is a square and would otherwise never let d
