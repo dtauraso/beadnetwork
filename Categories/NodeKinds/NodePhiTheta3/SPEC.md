@@ -43,27 +43,31 @@ At `s = 1` that is `−1 ↔ 7`, `−2 ↔ 8` … `−5 ↔ 11`, `−6 ↔ 12`. 
 start is read through the mapping (at `s = 1`, 10 → −4). Δ is a term: the count of ticks
 pressed, with the sign it was pressed.
 
-A press is a direction, not arithmetic: **up** (the + button) goes toward the 6s / −1 end on
-either side, **down** (the − button) toward the 0 / −6s end. Each end crosses to the other side.
-Case by case:
+A press is one tick around the circle, and it keeps going: an end is passed, never bounced
+off. Each link stores a **side** for φ and for θ (`left-phi.bin`, `left-theta.bin`; − is
+left), set from the sign of the measured start when the link is made, defaulting to the sign of
+start when a file has none, and never changed after: not by a press, a remeasure, a typed start
+or a change of s. On the + side **up** (the + button) is one tick up the `0..12s` circle, on the
+− side one tick down it, so up goes toward the 6s / −1 end from either side and carries on
+through it; **down** is the reverse. Case by case:
 
-| at | up (+) | down (−) |
-|---|---|---|
-| 0 | 1 | −6s (12s, the same point) |
-| 1 … 6s − 1 | one higher | one lower (1 − 1 is 0) |
-| 6s, start on the + side | −1 (6s + 1, right next to 6s) | 6s − 1 |
-| 6s, start on the − side | 6s − 1 (on past 6s, the way −1 → 6s went) | −1 |
-| −1 | 6s | −2 |
-| −2 … −(6s − 1) | one toward −1 | one toward −6s |
-| −6s | −(6s − 1) | 0 |
+| at | + side up | + side down | − side up | − side down |
+|---|---|---|---|---|
+| 0 | 1 | −(6s − 1) (12s − 1) | −(6s − 1) | 1 |
+| 1 … 6s − 1 | one higher | one lower | one lower | one higher |
+| 6s | −1 (6s + 1, right next to 6s) | 6s − 1 | 6s − 1 | −1 |
+| −1 | −2 | 6s | 6s | −2 |
+| −2 … −(6s − 1) | one toward −6s | one toward −1 | one toward −1 | one toward −6s |
+| −6s | 1 | −(6s − 1) | −(6s − 1) | 1 |
 
-The displayed angle is the sum `start + Δ`: `Δ` presses applied to start, one at a time by the
-cases above, up for Δ > 0 and down for Δ < 0. A Δ press moves the angle one case from where it
-is. Start and Δ are shown in the view of the hemisphere the angle is in: when a press puts it in
-the other hemisphere they are rewritten as one press from that side (at `s = 1`: 4 up 3 is start
-−2, Δ +1 = −1; 1 down 2 is start −5, Δ −1 = −6). At 6s they keep what they had from before (at
-`s = 1`: −2 + 1, up, is −2 + 2 = 6; up again is 4 + 1 = 5). A link loaded in the other hemisphere's view is rewritten the same way. A start ± press is
-one press. A recovered start runs the same presses back from the measured angle. Its
+The displayed angle is the sum `start + Δ`: `Δ` ticks applied to start by the side's way, up for
+Δ > 0 and down for Δ < 0, as one step of `Δ` ticks around the circle. A press of increment n
+adds n to Δ in one go (`+2` is one press of two ticks, not two presses). Start and Δ are never
+rewritten into the other hemisphere's view, so start does not move when a press crosses an end,
+and every press has an exact inverse (at `s = 1`, start −1.449 on the − side, Δ 1 is −0.449;
+`+2` gives Δ 3, 4.449; `−2` gives back Δ 1, −0.449). A start ± press is one tick by the same
+side's way. A recovered start runs the same Δ ticks back from the measured angle on the stored
+side, so it moves exactly as far as the node did and Δ is kept. Its
 local vector is
 `d = polar_to_cart((r+Δr)·ρ, turn(φ+Δφ)·2π/12s, turn(θ+Δθ)·2π/12s)` with its z
 negated when φ = θ and both are negative, where the angle counts as

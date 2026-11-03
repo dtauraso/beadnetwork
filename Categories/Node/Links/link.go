@@ -2,7 +2,10 @@ package Links
 
 import "math"
 
-type Start struct{ Phi, Theta, R float64 }
+type Start struct {
+	Phi, Theta, R      float64
+	PhiLeft, ThetaLeft bool
+}
 
 type Ticks struct{ Phi, Theta, R int }
 
@@ -34,8 +37,11 @@ func NewLink(from, to string) *Link {
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
 func (l *Link) Dir(s int) Start {
-	add := func(a float64, d int) float64 { return Presses(s, a, d) }
-	return Start{Phi: add(l.Start.Phi, l.Delta.Phi), Theta: add(l.Start.Theta, l.Delta.Theta), R: l.Start.R + float64(l.Delta.R)}
+	return Start{
+		Phi:   Presses(s, l.Start.PhiLeft, l.Start.Phi, l.Delta.Phi),
+		Theta: Presses(s, l.Start.ThetaLeft, l.Start.Theta, l.Delta.Theta),
+		R:     l.Start.R + float64(l.Delta.R),
+	}
 }
 
 func (a *Ticks) at(k string) *int {
@@ -69,50 +75,19 @@ func (l *Link) SetStart(s int, k string, v float64) {
 	}
 }
 
-func (l *Link) Step(s int, k string, sign int) {
-	d := l.Delta.at(k)
-	n := *l.Increment.at(k)
-	switch k {
-	case KPhi:
-		for range n {
-			PressOnce(s, &l.Start.Phi, d, sign)
-		}
-	case KTheta:
-		for range n {
-			PressOnce(s, &l.Start.Theta, d, sign)
-		}
-	default:
-		*d += sign * n
-	}
+func (l *Link) Step(k string, sign int) {
+	*l.Delta.at(k) += sign * *l.Increment.at(k)
 }
 
-func PressOnce(s int, start *float64, d *int, sign int) {
-	next := PressesIn(s, *start < 0, Presses(s, *start, *d), sign)
-	if Presses(s, *start, *d+sign) == next {
-		*d += sign
-	} else {
-		*d = sign
-		*start = Unpress(s, next < 0, next, sign)
-	}
-	View(s, start, d)
+func (st *Start) Sides() {
+	st.PhiLeft, st.ThetaLeft = st.Phi < 0, st.Theta < 0
 }
 
-func View(s int, start *float64, d *int) {
-	at := Presses(s, *start, *d)
-	switch {
-	case *d == 0:
-		return
-	case at == half(s):
-		return
-	case (at < 0) == (*start < 0):
-		return
+func (st Start) Left(k string) bool {
+	if k == KTheta {
+		return st.ThetaLeft
 	}
-	way := 1
-	if *d < 0 {
-		way = -1
-	}
-	*d = way
-	*start = Unpress(s, at < 0, at, way)
+	return st.PhiLeft
 }
 
 func (l *Link) ScaleAngles(k float64) {
@@ -154,6 +129,7 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
 	v := Measure(f, s, l.Dir(s), p, t)
-	sub := func(was, a float64, d int) float64 { return Unpress(s, was < 0, a, d) }
-	l.Start = Start{Phi: sub(l.Start.Phi, v.Phi, l.Delta.Phi), Theta: sub(l.Start.Theta, v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
+	l.Start.Phi = Unpress(s, l.Start.PhiLeft, v.Phi, l.Delta.Phi)
+	l.Start.Theta = Unpress(s, l.Start.ThetaLeft, v.Theta, l.Delta.Theta)
+	l.Start.R = v.R - float64(l.Delta.R)
 }

@@ -25,6 +25,8 @@ const (
 	FileLockTheta  = "lock-theta.bin"
 	FileLocking    = "locking.bin"
 	FilePicked     = "picked.bin"
+	FileLeftPhi    = "left-phi.bin"
+	FileLeftTheta  = "left-theta.bin"
 )
 
 func BaseLinksDir(nodeDir string) string { return filepath.Join(nodeDir, DirLinks) }
@@ -73,6 +75,12 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 		ReadIfExists(filepath.Join(dir, FileLockTheta), &l.Lock.Theta)
 		ReadIfExists(filepath.Join(dir, FileLocking), &l.Locking)
 		ReadIfExists(filepath.Join(dir, FilePicked), &l.Picked)
+		if !ReadIfExists(filepath.Join(dir, FileLeftPhi), &l.Start.PhiLeft) {
+			l.Start.PhiLeft = l.Start.Phi < 0
+		}
+		if !ReadIfExists(filepath.Join(dir, FileLeftTheta), &l.Start.ThetaLeft) {
+			l.Start.ThetaLeft = l.Start.Theta < 0
+		}
 		all = append(all, l)
 	}
 	SortLinks(all)
@@ -121,6 +129,7 @@ func writeLinksIn(linksDir string, links []Link) error {
 			FileIncPhi: l.Increment.Phi, FileIncTheta: l.Increment.Theta, FileIncR: l.Increment.R,
 			FileLockPhi: l.Lock.Phi, FileLockTheta: l.Lock.Theta,
 			FileLocking: l.Locking, FilePicked: l.Picked,
+			FileLeftPhi: l.Start.PhiLeft, FileLeftTheta: l.Start.ThetaLeft,
 		} {
 			if err := WriteAtomicIfChanged(filepath.Join(dir, file), v); err != nil {
 				return err
