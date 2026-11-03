@@ -38,20 +38,23 @@ polar ↔ cartesian, through the mapping `(0 ↔ 0)`, `(1s ↔ 1s) … (6s ↔ 6
 through the mapping (10 → −4). Δ is a term: the count of ticks pressed, with the sign it was
 pressed.
 
-One press, case by case (0 and 6s are their own cases; 0 and −6s are the same point, 0 ↔ 12s):
+A press is a direction, not arithmetic: **up** (the + button) goes toward the 6s / −1s end on
+either side, **down** (the − button) toward the 0 / −6s end. Each end crosses to the other side.
+Case by case:
 
-| at | + goes to | − goes to |
+| at | up (+) | down (−) |
 |---|---|---|
-| 0 | 1s | −5s (12s − 1 = 11s) |
-| 1s … 5s | one up | one down (1s − 1 is 0) |
+| 0 | 1s | −6s |
+| 1s … 5s | one higher | one lower (1s − 1 is 0) |
 | 6s | −1s (7s, one past 6s) | 5s |
-| −1s | −2s | 6s |
-| −2s … −5s | one further (−5s + 1 is −6s) | one back (−2s − 1 is −1s) |
-| −6s | 1s (13s = 1s) | −5s |
+| −1s | 6s | −2s |
+| −2s … −5s | one toward −1s | one toward −6s |
+| −6s | −5s | 0 |
 
 The displayed angle is the sum `start + Δ`: `Δ` presses applied to start, one at a time by the
-cases above (4 + −4 = 0, 4 + −5 = −5s, 4 + 3 = −1s). A start ± press is one press. Its local
-vector is
+cases above, up for Δ > 0 and down for Δ < 0 (4 + −4 = 0, 4 + −5 = −6s, 4 + 3 = −1s). A start
+± press is one press. A recovered start runs the same presses back from the measured angle. Its
+local vector is
 `d = polar_to_cart((r+Δr)·ρ, turn(φ+Δφ)·2π/12s, turn(θ+Δθ)·2π/12s)` with its z
 negated when φ = θ and both are negative, where the angle counts as
 negative: with the two angles equal, sin φ · sin θ is a square and would otherwise never let d
