@@ -34,9 +34,9 @@ is not stepped by StepAll.
 An angle (start, and start + Δ) is stored and shown in the **signed range**
 `[1s, 6s]`, `[−1s, −6s]` (and 0), never as `0..12s`. The `0..12s` range is used only for
 polar ↔ cartesian, through the mapping, case by case: `0 ↔ 0`; `1s ↔ 1s` … `6s ↔ 6s`;
-`−1s → 6s` (the − line is flipped, so −1s maps onto 6s on the other side); `−2s ↔ 7s`, `−3s ↔ 8s`,
-`−4s ↔ 9s`, `−5s ↔ 10s`, `−6s ↔ 11s` (one tick past 0). `6s` reads back as `6s`. A file holding
-an older `0..12s` start is read through the mapping (10 → −5). Δ is a term: the count of ticks
+`−1s ↔ 7s` (one unit past 6s, right next to it: the label breaks, the point does not flip);
+`−2s ↔ 8s`, `−3s ↔ 9s`, `−4s ↔ 10s`, `−5s ↔ 11s`; `−6s ↔ 12s`, the same point as 0. A file
+holding an older `0..12s` start is read through the mapping (10 → −4). Δ is a term: the count of ticks
 pressed, with the sign it was pressed.
 
 A press is a direction, not arithmetic: **up** (the + button) goes toward the 6s / −1s end on
@@ -45,9 +45,9 @@ Case by case:
 
 | at | up (+) | down (−) |
 |---|---|---|
-| 0 | 1s | −6s (drawn at 11s) |
+| 0 | 1s | −6s (12s, the same point) |
 | 1s … 5s | one higher | one lower (1s − 1 is 0) |
-| 6s | −1s (drawn at 6s) | 5s |
+| 6s | −1s (7s, right next to 6s) | 5s |
 | −1s | 6s | −2s |
 | −2s … −5s | one toward −1s | one toward −6s |
 | −6s | −5s | 0 |
