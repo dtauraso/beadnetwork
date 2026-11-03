@@ -144,6 +144,8 @@ func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
 	md.persistStep()
 }
 
+func (md *MoveDispatch) Settle(ctx context.Context) { md.stepAll(ctx, Links.KBoth, 0) }
+
 func (md *MoveDispatch) stepAll(ctx context.Context, k string, sign int) {
 	st := &md.UI.Builder.Step
 	st.Round++
