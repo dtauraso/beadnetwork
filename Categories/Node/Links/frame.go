@@ -39,25 +39,28 @@ func half(s int) float64 { return float64(TurnTicks * s / 2) }
 func Signed(s int, turn float64) float64 {
 	six := half(s)
 	w := Wrap(s, turn)
+	one := float64(s)
 	switch {
 	case w == 0:
 		return 0
 	case w <= six:
 		return w
 	default:
-		return -(w - six)
+		return -(w - six + one)
 	}
 }
 
 func Turn(s int, signed float64) float64 {
-	six := half(s)
+	six, one := half(s), float64(s)
 	switch {
 	case signed == 0:
 		return 0
 	case signed > 0:
 		return signed
+	case signed >= -one:
+		return six
 	default:
-		return six - signed
+		return six - one - signed
 	}
 }
 
