@@ -31,34 +31,38 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 held by b, the target. Angles are in ticks of b's `s`; r + Δr is never below 0, and Δr has no lock and
 is not stepped by StepAll.
 
+Everything below counts **ticks**: a turn is `12s` ticks, a half turn `6s`, and one press moves
+one tick. `1` and `−1` are one tick, not one `s`; at `s = 1` the two read the same.
+
 An angle (start, and start + Δ) is stored and shown in the **signed range**
-`[1s, 6s]`, `[−1s, −6s]` (and 0), never as `0..12s`. The `0..12s` range is used only for
-polar ↔ cartesian, through the mapping, case by case: `0 ↔ 0`; `1s ↔ 1s` … `6s ↔ 6s`;
-`−1s ↔ 7s` (one unit past 6s, right next to it: the label breaks, the point does not flip);
-`−2s ↔ 8s`, `−3s ↔ 9s`, `−4s ↔ 10s`, `−5s ↔ 11s`; `−6s ↔ 12s`, the same point as 0. A file
-holding an older `0..12s` start is read through the mapping (10 → −4). Δ is a term: the count of ticks
+`[1, 6s]`, `[−1, −6s]` (and 0), never as `0..12s`. The `0..12s` range is used only for
+polar ↔ cartesian, through the mapping, case by case: `0 ↔ 0`; `k ↔ k` for `1 ≤ k ≤ 6s`;
+`−k ↔ 6s + k` for `1 ≤ k < 6s`, so `−1 ↔ 6s + 1` (one tick past 6s, right next to it: the label
+breaks, the point does not flip) and `−(6s − 1) ↔ 12s − 1`; `−6s ↔ 12s`, the same point as 0.
+At `s = 1` that is `−1 ↔ 7`, `−2 ↔ 8` … `−5 ↔ 11`, `−6 ↔ 12`. A file holding an older `0..12s`
+start is read through the mapping (at `s = 1`, 10 → −4). Δ is a term: the count of ticks
 pressed, with the sign it was pressed.
 
-A press is a direction, not arithmetic: **up** (the + button) goes toward the 6s / −1s end on
+A press is a direction, not arithmetic: **up** (the + button) goes toward the 6s / −1 end on
 either side, **down** (the − button) toward the 0 / −6s end. Each end crosses to the other side.
 Case by case:
 
 | at | up (+) | down (−) |
 |---|---|---|
-| 0 | 1s | −6s (12s, the same point) |
-| 1s … 5s | one higher | one lower (1s − 1 is 0) |
-| 6s, start on the + side | −1s (7s, right next to 6s) | 5s |
-| 6s, start on the − side | 5s (on past 6s, the way −1s → 6s went) | −1s |
-| −1s | 6s | −2s |
-| −2s … −5s | one toward −1s | one toward −6s |
-| −6s | −5s | 0 |
+| 0 | 1 | −6s (12s, the same point) |
+| 1 … 6s − 1 | one higher | one lower (1 − 1 is 0) |
+| 6s, start on the + side | −1 (6s + 1, right next to 6s) | 6s − 1 |
+| 6s, start on the − side | 6s − 1 (on past 6s, the way −1 → 6s went) | −1 |
+| −1 | 6s | −2 |
+| −2 … −(6s − 1) | one toward −1 | one toward −6s |
+| −6s | −(6s − 1) | 0 |
 
 The displayed angle is the sum `start + Δ`: `Δ` presses applied to start, one at a time by the
 cases above, up for Δ > 0 and down for Δ < 0. A Δ press moves the angle one case from where it
 is. Start and Δ are shown in the view of the hemisphere the angle is in: when a press puts it in
-the other hemisphere they are rewritten as one press from that side (4 up 3 is start −2s, Δ +1
-= −1s; 1 down 2 is start −5s, Δ −1 = −6s). At 6s they keep what they had from before (−2s + 1,
-up, is −2s + 2 = 6s; up again is 4s + 1 = 5s). A link loaded in the other hemisphere's view is rewritten the same way. A start ± press is
+the other hemisphere they are rewritten as one press from that side (at `s = 1`: 4 up 3 is start
+−2, Δ +1 = −1; 1 down 2 is start −5, Δ −1 = −6). At 6s they keep what they had from before (at
+`s = 1`: −2 + 1, up, is −2 + 2 = 6; up again is 4 + 1 = 5). A link loaded in the other hemisphere's view is rewritten the same way. A start ± press is
 one press. A recovered start runs the same presses back from the measured angle. Its
 local vector is
 `d = polar_to_cart((r+Δr)·ρ, turn(φ+Δφ)·2π/12s, turn(θ+Δθ)·2π/12s)` with its z
