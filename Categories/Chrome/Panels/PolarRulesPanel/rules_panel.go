@@ -189,7 +189,11 @@ func Build(st *Panel.Stack, open bool, s State) Layout {
 	}
 
 	lay.Rows = b.rows
-	lay.Box = Rect{X: OriginX, Y: top, W: Width, H: headerH + rowsVisible}
+	boxW := float32(Width)
+	if !open {
+		boxW = Panel.TextWidth(LabelClosed, HeadFontPx) + 2*PadX
+	}
+	lay.Box = Rect{X: OriginX, Y: top, W: boxW, H: headerH + rowsVisible}
 	st.Took(lay.Box.H)
 	if edit.Active {
 		lay.Draft = edit.Draft
