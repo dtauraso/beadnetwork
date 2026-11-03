@@ -71,33 +71,48 @@ func (l *Link) SetStart(s int, k string, v float64) {
 
 func (l *Link) Step(s int, k string, sign int) {
 	d := l.Delta.at(k)
-	*d += sign * *l.Increment.at(k)
+	n := *l.Increment.at(k)
 	switch k {
 	case KPhi:
-		Rebase(s, &l.Start.Phi, d)
+		for range n {
+			PressOnce(s, &l.Start.Phi, d, sign)
+		}
 	case KTheta:
-		Rebase(s, &l.Start.Theta, d)
+		for range n {
+			PressOnce(s, &l.Start.Theta, d, sign)
+		}
+	default:
+		*d += sign * n
 	}
 }
 
-func Rebase(s int, start *float64, d *int) {
-	n, way := *d, 1
-	if n < 0 {
-		n, way = -n, -1
+func PressOnce(s int, start *float64, d *int, sign int) {
+	next := Presses(s, Presses(s, *start, *d), sign)
+	if Presses(s, *start, *d+sign) == next {
+		*d += sign
+	} else {
+		*d = sign
+		*start = Unpress(s, next, sign)
 	}
-	v, crossed := *start, 0
-	for i := 1; i <= n; i++ {
-		next := Presses(s, v, way)
-		if (next < 0) != (v < 0) {
-			crossed = i
-		}
-		v = next
-	}
-	if crossed == 0 {
+	View(s, start, d)
+}
+
+func View(s int, start *float64, d *int) {
+	at := Presses(s, *start, *d)
+	switch {
+	case *d == 0:
+		return
+	case at == half(s):
+		return
+	case (at < 0) == (*start < 0):
 		return
 	}
-	*d = way * (n - crossed + 1)
-	*start = Unpress(s, v, *d)
+	way := 1
+	if *d < 0 {
+		way = -1
+	}
+	*d = way
+	*start = Unpress(s, at, way)
 }
 
 func (l *Link) ScaleAngles(k float64) {
