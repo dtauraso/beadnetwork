@@ -24,13 +24,19 @@ const (
 	pathRadius   = 1.5
 	radiusStep   = 0.35
 	chevronScale = 0.15
+	partTick     = 0.08
 	zeroFrom     = 1.05
 	zeroTo       = 1.35
 )
 
+type Path struct {
+	Pts  []Vec3
+	Ends []int
+}
+
 type Angle struct {
 	At         Vec3
-	Phi, Theta []Vec3
+	Phi, Theta Path
 }
 
 func Build(selected bool, center Vec3, outer float64, angles []Angle) Arcs {
@@ -40,7 +46,7 @@ func Build(selected bool, center Vec3, outer float64, angles []Angle) Arcs {
 	}
 	i := 0
 	for _, an := range angles {
-		if len(an.Phi) < 2 || len(an.Theta) < 2 {
+		if len(an.Phi.Pts) < 2 || len(an.Theta.Pts) < 2 {
 			continue
 		}
 		c := center.Add(an.At)
@@ -57,10 +63,15 @@ func Build(selected bool, center Vec3, outer float64, angles []Angle) Arcs {
 	return a
 }
 
-func (a *Arcs) path(center Vec3, kind uint8, r float64, pts []Vec3) [2]Vec3 {
+func (a *Arcs) path(center Vec3, kind uint8, r float64, p Path) [2]Vec3 {
+	pts := p.Pts
 	at := func(i int) Vec3 { return pts[i].Normalize().Scale(r) }
 	for i := 1; i < len(pts); i++ {
 		a.Lines = append(a.Lines, Line{From: center.Add(at(i - 1)), To: center.Add(at(i)), Kind: kind})
+	}
+	for _, i := range p.Ends {
+		u := pts[i].Normalize()
+		a.Lines = append(a.Lines, Line{From: center.Add(u.Scale(r * (1 - partTick))), To: center.Add(u.Scale(r * (1 + partTick))), Kind: kind})
 	}
 	return [2]Vec3{at(len(pts) - 2), at(len(pts) - 1)}
 }

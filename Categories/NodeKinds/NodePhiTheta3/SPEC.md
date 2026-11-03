@@ -70,7 +70,8 @@ drawn from `C_a` is the link's global version, `C_b − C_a`, from the two recov
 Each angle's arc is the path its angle parts walk: from where its side begins (0 on the + side,
 −6s on the − side, the same point) to start, then each Δ press one at a time by the cases above.
 Every point on it is drawn by d's own code (turn, polar_to_cart, the z case); the φ arc at θ = 0,
-the θ arc at the link's φ. So an arc ends where d points.
+the θ arc at the link's φ. So an arc ends where d points. A tick across the arc marks the end of
+the start part and the end of the Δ part, each only when that part covers some distance.
 
 ## Messages
 

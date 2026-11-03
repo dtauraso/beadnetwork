@@ -23,7 +23,7 @@ func (n *NodePhiTheta3) postArcs() {
 			continue
 		}
 		phi, theta := n.peer.Frame.Arcs(s, l)
-		arcs = append(arcs, AngleArcs.Angle{At: n.peer.Offset(l.From), Phi: phi, Theta: theta})
+		arcs = append(arcs, AngleArcs.Angle{At: n.peer.Offset(l.From), Phi: AngleArcs.Path(phi), Theta: AngleArcs.Path(theta)})
 	}
 	n.geom.KindPosts().PostArcs(arcs)
 }
