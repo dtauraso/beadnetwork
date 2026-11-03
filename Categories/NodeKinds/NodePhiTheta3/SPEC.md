@@ -31,19 +31,18 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 held by b, the target. Angles are in ticks of b's `s`; r + Δr is never below 0, and Δr has no lock and
 is not stepped by StepAll.
 
-A position (start, and start + Δ) is stored, shown and pressed on the **signed loop**
-`0, 1s … 6s, −1s … −6s`, never as `0..12s`: a + press moves one tick on, so 6s + 1 is −1s and
-−6s + 1 is 1s; a − press moves back, so 1s − 1 is 0 and 0 − 1 is −5s. −6s and 0 are the same
-tick (a full turn); + reaching it from −5s writes −6s, − reaching it from 1s writes 0. The
-`0..12s` turn exists only inside polar ↔ cartesian conversion: `turn(x) = x` for `x ≥ 0`,
-`6s − x` for `x < 0`, and back `x` for `x ≤ 6s`, `−(x − 6s)` past it. A file holding an older
-`0..12s` start is read onto the loop (10 → −4). Δ is not a position: it is the count of ticks
-the presses have moved, never wrapped and never put on the loop, so its sign is the way it was
-pressed, not an arc.
+An angle (start, and start + Δ) is stored and shown in the **signed range**
+`[1s, 6s]`, `[−1s, −6s]` (and 0), never as `0..12s`. The sign is the arc: + is the + arc from
+cartesian, − the − arc. A start press goes up or down from each side: 6s + 1 is −1s, −1s − 1 is
+−2s … , and a − press from 1s reaches 0. The `0..12s` range exists only inside polar ↔ cartesian
+conversion, by the mapping `(1s ↔ 1s) … (6s ↔ 6s)`, `(−1s ↔ 7s) … (−6s ↔ 12s)`: `turn(x) = x`
+for `x ≥ 0`, `6s − x` for `x < 0`. A file holding an older `0..12s` start is read through the
+mapping (10 → −4). Δ is a term: the count of ticks pressed, with the sign it was pressed.
 
-Its direction is `start + Δ`: Δ ticks on from `turn(start)`, put back on the loop, and its local vector is
+The displayed angle is the sum `start + Δ`, plain addition (4 + −5 = −1). A sum past ±6s is read
+as a `0..12s` value and mapped back (15 → 3). Its local vector is
 `d = polar_to_cart((r+Δr)·ρ, turn(φ+Δφ)·2π/12s, turn(θ+Δθ)·2π/12s)` with its z
-negated when φ = θ and both are on the negative side of the loop, where the angle counts as
+negated when φ = θ and both are negative, where the angle counts as
 negative: with the two angles equal, sin φ · sin θ is a square and would otherwise never let d
 reach the negative side. What is
 drawn from `C_a` is the link's global version, `C_b − C_a`, from the two recovered points.
