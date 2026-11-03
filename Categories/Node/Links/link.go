@@ -34,7 +34,7 @@ func NewLink(from, to string) *Link {
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
 func (l *Link) Dir(s int) Start {
-	add := func(a float64, d int) float64 { return Sum(s, a+float64(d)) }
+	add := func(a float64, d int) float64 { return Signed(s, Turn(s, a)+float64(d)) }
 	return Start{Phi: add(l.Start.Phi, l.Delta.Phi), Theta: add(l.Start.Theta, l.Delta.Theta), R: l.Start.R + float64(l.Delta.R)}
 }
 
@@ -113,11 +113,6 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
 	v := Measure(f, s, l.Dir(s), p, t)
-	sub := func(a float64, d int) float64 {
-		if f := Sum(s, a-float64(d)); math.Abs(Sum(s, f+float64(d))-a) < 1e-9 {
-			return f
-		}
-		return a - float64(d)
-	}
+	sub := func(a float64, d int) float64 { return Signed(s, Turn(s, a)-float64(d)) }
 	l.Start = Start{Phi: sub(v.Phi, l.Delta.Phi), Theta: sub(v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
 }

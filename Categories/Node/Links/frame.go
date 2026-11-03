@@ -58,13 +58,6 @@ func Norm(s int, signed float64) float64 {
 	return Signed(s, Turn(s, signed))
 }
 
-func Sum(s int, v float64) float64 {
-	if math.Abs(v) <= half(s) {
-		return v
-	}
-	return Norm(s, v)
-}
-
 func StepSigned(s int, signed float64, by float64) float64 {
 	if v := Signed(s, Turn(s, signed)+by); v != 0 || by <= 0 {
 		return v
