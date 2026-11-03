@@ -1,8 +1,6 @@
 package NodePhiTheta3
 
 import (
-	"math"
-
 	"github.com/dtauraso/beadnetwork/Categories/Node/AngleArcs"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
@@ -19,14 +17,13 @@ func (n *NodePhiTheta3) postVectors() {
 
 func (n *NodePhiTheta3) postArcs() {
 	s := n.peer.S
-	tick := 2 * math.Pi / float64(Links.TurnTicks*s)
 	var arcs []AngleArcs.Angle
 	for _, l := range n.peer.Links() {
-		d := l.Dir(s)
-		arcs = append(arcs, AngleArcs.Angle{
-			At:  n.peer.Offset(l.From),
-			Dir: polar.Polar{R: d.R * n.peer.Frame.Rho, Phi: Links.Turn(s, d.Phi) * tick, Theta: Links.Turn(s, d.Theta) * tick},
-		})
+		if l.Dir(s).R*n.peer.Frame.Rho < 1e-9 {
+			continue
+		}
+		phi, theta := n.peer.Frame.Arcs(s, l)
+		arcs = append(arcs, AngleArcs.Angle{At: n.peer.Offset(l.From), Phi: phi, Theta: theta})
 	}
 	n.geom.KindPosts().PostArcs(arcs)
 }

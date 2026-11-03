@@ -184,9 +184,12 @@ func (f Frame) GridAt(p Vec3) Place {
 }
 
 func (f Frame) Vec(s int, t Start) Vec3 {
+	return f.cart(s, t.R, Turn(s, t.Phi), Turn(s, t.Theta))
+}
+
+func (f Frame) cart(s int, r, phi, theta float64) Vec3 {
 	ang := func(x float64) float64 { return x * 2 * math.Pi / float64(TurnTicks*s) }
-	phi, theta := Turn(s, t.Phi), Turn(s, t.Theta)
-	v := Cart(t.R*f.Rho, ang(phi), ang(theta))
+	v := Cart(r*f.Rho, ang(phi), ang(theta))
 	if phi > half(s) && math.Abs(phi-theta) < 1e-9 {
 		v.Z = -v.Z
 	}

@@ -1,11 +1,6 @@
 package AngleArcs
 
-import (
-	"math"
-
-	"github.com/dtauraso/beadnetwork/Categories/Vectors"
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
-)
+import "github.com/dtauraso/beadnetwork/Categories/Vectors"
 
 type Vec3 = Vectors.Vec3
 
@@ -26,7 +21,6 @@ type Arcs struct {
 }
 
 const (
-	segments     = 24
 	pathRadius   = 1.5
 	radiusStep   = 0.35
 	chevronScale = 0.15
@@ -35,8 +29,8 @@ const (
 )
 
 type Angle struct {
-	At  Vec3
-	Dir polar.Polar
+	At         Vec3
+	Phi, Theta []Vec3
 }
 
 func Build(selected bool, center Vec3, outer float64, angles []Angle) Arcs {
@@ -46,19 +40,13 @@ func Build(selected bool, center Vec3, outer float64, angles []Angle) Arcs {
 	}
 	i := 0
 	for _, an := range angles {
-		vec := an.Dir
-		if vec.R < 1e-9 {
+		if len(an.Phi) < 2 || len(an.Theta) < 2 {
 			continue
 		}
 		c := center.Add(an.At)
 		r := outer * (pathRadius + radiusStep*float64(i))
-		theta := math.Mod(vec.Theta+2*math.Pi, 2*math.Pi)
-		a.sweep(c, KindPhi, func(t float64) Vec3 {
-			return Vec3(polar.Polar2cart(polar.Polar{R: r, Phi: t * vec.Phi}))
-		})
-		end := a.sweep(c, KindTheta, func(t float64) Vec3 {
-			return Vec3(polar.Polar2cart(polar.Polar{R: r, Phi: vec.Phi, Theta: t * theta}))
-		})
+		a.path(c, KindPhi, r, an.Phi)
+		end := a.path(c, KindTheta, r, an.Theta)
 		a.chevron(c, end, KindTheta)
 		up, x := Vec3{Y: outer}, Vec3{X: outer}
 		a.Lines = append(a.Lines,
@@ -69,14 +57,12 @@ func Build(selected bool, center Vec3, outer float64, angles []Angle) Arcs {
 	return a
 }
 
-func (a *Arcs) sweep(center Vec3, kind uint8, at func(t float64) Vec3) [2]Vec3 {
-	prev := at(0)
-	for i := 1; i <= segments; i++ {
-		p := at(float64(i) / segments)
-		a.Lines = append(a.Lines, Line{From: center.Add(prev), To: center.Add(p), Kind: kind})
-		prev = p
+func (a *Arcs) path(center Vec3, kind uint8, r float64, pts []Vec3) [2]Vec3 {
+	at := func(i int) Vec3 { return pts[i].Normalize().Scale(r) }
+	for i := 1; i < len(pts); i++ {
+		a.Lines = append(a.Lines, Line{From: center.Add(at(i - 1)), To: center.Add(at(i)), Kind: kind})
 	}
-	return [2]Vec3{at(1 - 1.0/segments), at(1)}
+	return [2]Vec3{at(len(pts) - 2), at(len(pts) - 1)}
 }
 
 func (a *Arcs) chevron(center Vec3, end [2]Vec3, kind uint8) {
