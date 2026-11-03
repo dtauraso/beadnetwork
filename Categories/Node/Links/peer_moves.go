@@ -17,20 +17,20 @@ func (p *Peer) stepR(l *Link, sign int) {
 		p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %d", l.From, p.ID, l.Delta.R)
 		return
 	}
-	l.Step(p.S, KR, sign)
+	l.Step(KR, sign)
 }
 
 func (p *Peer) stepAll(m StepAll) []Envelope {
 	if l := p.pickedIn(); l != nil {
 		switch m.K {
 		case KBoth:
-			l.Step(p.S, KPhi, m.Sign*way(l, m.LockAll, KPhi))
-			l.Step(p.S, KTheta, m.Sign*way(l, m.LockAll, KTheta))
+			l.Step(KPhi, m.Sign*way(l, m.LockAll, KPhi))
+			l.Step(KTheta, m.Sign*way(l, m.LockAll, KTheta))
 			p.stepR(l, m.Sign*way(l, m.LockAll, KR))
 		case KR:
 			p.stepR(l, m.Sign)
 		default:
-			l.Step(p.S, m.K, m.Sign)
+			l.Step(m.K, m.Sign)
 		}
 		p.touched(l.From)
 	}

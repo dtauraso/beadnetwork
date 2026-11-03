@@ -26,7 +26,7 @@ func (p *Peer) press(m Press) []Envelope {
 			p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %d", m.From, p.ID, l.Delta.R)
 			return nil
 		}
-		l.Step(p.S, m.K, m.Sign)
+		l.Step(m.K, m.Sign)
 		p.touched(m.From)
 		return p.take(l)
 	}
@@ -37,7 +37,7 @@ func (p *Peer) press(m Press) []Envelope {
 	case l.Locking:
 		*lock = m.Sign
 	default:
-		l.Step(p.S, m.K, m.Sign)
+		l.Step(m.K, m.Sign)
 		p.touched(m.From)
 		return p.take(l)
 	}
@@ -149,6 +149,7 @@ func (p *Peer) connect(m Connect) []Envelope {
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
 	l.Start = Measure(p.Frame, p.S, l.Dir(p.S), p.posOf(m.From), p.Pos())
+	l.Start.Sides()
 	p.own[m.From] = l
 	p.order = append(p.order, m.From)
 	p.touched(m.From)

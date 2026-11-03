@@ -70,87 +70,18 @@ func Norm(s int, signed float64) float64 {
 	return Signed(s, signed)
 }
 
-func Up(s int, left bool, v float64) float64 {
-	six := half(s)
-	switch {
-	case left && v == six:
-		return six - 1
-	case v >= 0 && v+1 <= six:
-		return v + 1
-	case v >= 0:
-		return -(v + 1 - six)
-	case v+1 < 0:
-		return v + 1
-	default:
-		return six - (v + 1)
-	}
-}
-
-func Down(s int, left bool, v float64) float64 {
-	six := half(s)
-	switch {
-	case left && v == six:
-		return -1
-	case v >= 0 && v-1 >= 0:
-		return v - 1
-	case v >= 0:
-		return -six + (v - 1 + 1)
-	case v-1 >= -six:
-		return v - 1
-	default:
-		return -six - (v - 1) - 1
-	}
-}
-
-func unUp(s int, left bool, v float64) float64 {
-	six := half(s)
-	switch {
-	case left && v == six-1:
-		return six
-	case v > 0:
-		return v - 1
-	case v < 0 && v-1 >= -six:
-		return v - 1
-	default:
+func Presses(s int, left bool, v float64, n int) float64 {
+	if n == 0 {
 		return v
 	}
+	way := 1
+	if left {
+		way = -1
+	}
+	return Signed(s, Turn(s, v)+float64(way*n))
 }
 
-func unDown(s int, left bool, v float64) float64 {
-	six := half(s)
-	switch {
-	case left && v == -1:
-		return six
-	case v >= 0 && v+1 <= six:
-		return v + 1
-	case v < 0 && v+1 < 0:
-		return v + 1
-	default:
-		return v
-	}
-}
-
-func Presses(s int, v float64, n int) float64 { return PressesIn(s, v < 0, v, n) }
-
-func PressesIn(s int, left bool, v float64, n int) float64 {
-	for ; n > 0; n-- {
-		v = Up(s, left, v)
-	}
-	for ; n < 0; n++ {
-		v = Down(s, left, v)
-	}
-	return v
-}
-
-func Unpress(s int, left bool, v float64, n int) float64 {
-	for ; n > 0; n-- {
-		v = unUp(s, left, v)
-	}
-	for ; n < 0; n++ {
-		v = unDown(s, left, v)
-	}
-	return v
-}
+func Unpress(s int, left bool, v float64, n int) float64 { return Presses(s, left, v, -n) }
 
 func whole(x float64) bool { return math.Abs(x-math.Round(x)) < 1e-6 }
 
