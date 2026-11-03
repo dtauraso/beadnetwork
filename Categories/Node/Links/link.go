@@ -72,6 +72,32 @@ func (l *Link) SetStart(s int, k string, v float64) {
 func (l *Link) Step(s int, k string, sign int) {
 	d := l.Delta.at(k)
 	*d += sign * *l.Increment.at(k)
+	switch k {
+	case KPhi:
+		Rebase(s, &l.Start.Phi, d)
+	case KTheta:
+		Rebase(s, &l.Start.Theta, d)
+	}
+}
+
+func Rebase(s int, start *float64, d *int) {
+	n, way := *d, 1
+	if n < 0 {
+		n, way = -n, -1
+	}
+	v, crossed := *start, 0
+	for i := 1; i <= n; i++ {
+		next := Presses(s, v, way)
+		if (next < 0) != (v < 0) {
+			crossed = i
+		}
+		v = next
+	}
+	if crossed == 0 {
+		return
+	}
+	*d = way * (n - crossed + 1)
+	*start = Unpress(s, v, *d)
 }
 
 func (l *Link) ScaleAngles(k float64) {

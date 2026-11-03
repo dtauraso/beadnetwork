@@ -53,8 +53,11 @@ Case by case:
 | −6s | −5s | 0 |
 
 The displayed angle is the sum `start + Δ`: `Δ` presses applied to start, one at a time by the
-cases above, up for Δ > 0 and down for Δ < 0 (4 + −4 = 0, 4 + −5 = −6s, 4 + 3 = −1s). A start
-± press is one press. A recovered start runs the same presses back from the measured angle. Its
+cases above, up for Δ > 0 and down for Δ < 0. When the sum changes hemisphere, start and Δ are
+rewritten in the new hemisphere's numbers: Δ becomes the presses since the crossing and start the
+value those presses lead up from, so 4 up 3 is start −2s, Δ +1 (= −1s), and 1 down 2 is start
+−5s, Δ −1 (= −6s). A link loaded across a hemisphere is rewritten the same way. A start ± press is
+one press. A recovered start runs the same presses back from the measured angle. Its
 local vector is
 `d = polar_to_cart((r+Δr)·ρ, turn(φ+Δφ)·2π/12s, turn(θ+Δθ)·2π/12s)` with its z
 negated when φ = θ and both are negative, where the angle counts as
