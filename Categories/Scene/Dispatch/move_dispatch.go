@@ -3,10 +3,12 @@ package Dispatch
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"sync"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
@@ -136,4 +138,30 @@ func (md *MoveDispatch) differentIncrement(a Sheet.Act, v int) *Links.Link {
 		}
 	}
 	return nil
+}
+
+func manyIn(m Builder.Model) []string {
+	var out []string
+	for id, r := range m.Reports {
+		from := map[string]bool{}
+		for _, l := range r.Links {
+			from[l.From] = true
+		}
+		if len(from) > 1 {
+			out = append(out, id)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+func (md *MoveDispatch) refuseFixedR(a Sheet.Act, stays string) bool {
+	fixed := manyIn(md.UI.Builder)
+	for _, id := range []string{a.To, a.Node} {
+		if slices.Contains(fixed, id) {
+			md.UI.Builder.Refused = fmt.Sprintf("%s→%s: %s has more than one incoming link, so no radius it is part of can change; %s", a.Node, a.To, id, stays)
+			return true
+		}
+	}
+	return false
 }

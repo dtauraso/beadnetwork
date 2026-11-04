@@ -1,6 +1,9 @@
 package Links
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 func way(l *Link, all Lock, k string) int {
 	if v := *l.Lock.at(k); v != 0 {
@@ -22,13 +25,26 @@ func (p *Peer) stepR(l *Link, sign int) {
 
 func (p *Peer) stepAll(m StepAll) []Envelope {
 	if l := p.pickedIn(); l != nil {
+		fixed := ""
+		for _, id := range []string{p.ID, l.From} {
+			if fixed == "" && slices.Contains(m.FixedR, id) {
+				fixed = id
+			}
+		}
+		if fixed != "" && m.Sign != 0 && (m.K == KBoth || m.K == KR) {
+			p.Changed.Refused = fmt.Sprintf("%s→%s Δr: %s has more than one incoming link, so no radius it is part of can change; Δr stays at %d", l.From, p.ID, fixed, l.Delta.R)
+		}
 		switch m.K {
 		case KBoth:
 			l.Step(p.S, KPhi, m.Sign*way(l, m.LockAll, KPhi))
 			l.Step(p.S, KTheta, m.Sign*way(l, m.LockAll, KTheta))
-			p.stepR(l, m.Sign*way(l, m.LockAll, KR))
+			if fixed == "" {
+				p.stepR(l, m.Sign*way(l, m.LockAll, KR))
+			}
 		case KR:
-			p.stepR(l, m.Sign)
+			if fixed == "" {
+				p.stepR(l, m.Sign)
+			}
 		default:
 			l.Step(p.S, m.K, m.Sign)
 		}
