@@ -108,6 +108,7 @@ type Group struct {
 	Title  string
 	Rows   [][]Cell
 	Slides bool
+	Wraps  bool
 }
 
 type Pill struct {
