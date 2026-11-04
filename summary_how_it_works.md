@@ -70,6 +70,10 @@ selected link into itself.
   - `peer.go`, `Peer.Ready`: shown once every neighbour is heard.
   - `Peer.stepR` and `peer_edits.go`, `Peer.press`: a length below zero is refused.
   - `peer_edits.go`, `Peer.pickReq`: a second selected link is refused.
+  - `Categories/Scene/Dispatch/move_dispatch.go`, `differentIncrement`: an angle step size
+    unlike the other links out of the same node is refused before it is sent.
+  - `move_dispatch.go`, `manyIn` and `refuseFixedR`, and `peer_moves.go`, `Peer.stepAll`
+    (`FixedR`): no length into or out of a node with more than one incoming link changes.
 
 ## Time
 
