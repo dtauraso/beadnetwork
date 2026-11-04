@@ -111,7 +111,7 @@ returns a link to exactly where it was, however many steps are made.
 
 Each node has its own s, a whole number, for the links into it: a full turn is 12 × s steps.
 A larger s splits the turn into more steps, each a smaller part of the turn. Changing s
-rescales the links' counts, and s is only set to a number that keeps them whole.
+rescales the links' counts.
 
 ### Two angles
 
@@ -139,8 +139,25 @@ centres: each selected link's start node is a centre, and links selected from th
 node share it. One step changes every selected link at once, each by its own step size, and
 every node those links move moves in that one step. Each node moves itself: its start node
 sends it its place, and it places itself from that place plus its link. In one step, each
-node is moved by at most one link, so a second selected link into the same node is refused,
-as is a length below zero.
+node is moved by at most one link.
+
+### Constraints
+
+Some changes are not accepted. The setting stays as it was, and the editor says why.
+
+- A second selected link into a node, since in one step each node is moved by at most one
+  link.
+- A length below zero.
+- An s that would leave a link's counts between whole steps. The nearest s that keeps them
+  whole is used instead.
+- An angle step size on one link that differs from that of the other links out of the same
+  node: every node rotating around one centre turns by the same step size in φ, and the
+  same in θ.
+- A change to the length of any link into or out of a node that has more than one link
+  coming into it.
+
+The last two keep vectors from stretching. A vector that stretches breaks 3D rotation's
+independence from order.
 
 ### Sequences
 
