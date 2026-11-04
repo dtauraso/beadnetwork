@@ -28,7 +28,9 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 ## A link a→b — its angles stored at b
 
 `start (φ, θ, r)`, `Δ (φ, θ, r)`, `increment n (φ, θ, r)` — what one press of Δφ, Δθ or Δr moves it by, whole ticks for an angle and a whole number above 0 for r —; Δ and increment are integers, start is measured and real —, `lock (φ, θ) ∈ {−1, 0, 1}`, `locking`, `picked`,
-held by b, the target. Angles are in ticks of b's `s`; r + Δr is never below 0, and Δr has no lock and
+held by b, the target. Every node rotating around a turns by the same angle increment: an
+`nΔφ` or `nΔθ` on a→b that differs from that of another link out of a is refused, with the
+reason shown below the links table, and the increment stays as it was. Angles are in ticks of b's `s`; r + Δr is never below 0, and Δr has no lock and
 is not stepped by StepAll.
 
 Everything below counts **ticks**: a turn is `12s` ticks, a half turn `6s`, and one press moves

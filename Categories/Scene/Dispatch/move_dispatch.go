@@ -3,6 +3,7 @@ package Dispatch
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
@@ -96,7 +97,7 @@ func (md *MoveDispatch) setIncrement(ctx context.Context, a Sheet.Act, sign int,
 	if !ok || (typed == nil && sign == 0) {
 		return
 	}
-	v := float64(map[string]int{Links.KPhi: l.Increment.Phi, Links.KTheta: l.Increment.Theta, Links.KR: l.Increment.R}[a.K] + sign)
+	v := float64(incrementOf(l, a.K) + sign)
 	if typed != nil {
 		v = *typed
 	}
@@ -105,7 +106,34 @@ func (md *MoveDispatch) setIncrement(ctx context.Context, a Sheet.Act, sign int,
 		md.UI.Builder.Refused = fmt.Sprintf("%s→%s increment %v: not a whole number, so it stays as it is", a.Node, a.To, v)
 	case a.K == Links.KR && v <= 0:
 		md.UI.Builder.Refused = fmt.Sprintf("%s→%s increment %v: not a whole number of ticks, so it stays as it is", a.Node, a.To, v)
+	case a.K != Links.KR && md.differentIncrement(a, int(v)) != nil:
+		o := md.differentIncrement(a, int(v))
+		md.UI.Builder.Refused = fmt.Sprintf("%s→%s nΔ%s %v: every node rotating around %s turns by the same increment, and %s→%s's is %d, so it stays at %d",
+			a.Node, a.To, map[string]string{Links.KPhi: "φ", Links.KTheta: "θ"}[a.K], v, a.Node, o.From, o.To, incrementOf(*o, a.K), incrementOf(l, a.K))
 	default:
 		md.sendLink(ctx, a.To, Links.SetIncrement{From: a.Node, K: a.K, V: v})
 	}
+}
+
+func incrementOf(l Links.Link, k string) int {
+	return map[string]int{Links.KPhi: l.Increment.Phi, Links.KTheta: l.Increment.Theta, Links.KR: l.Increment.R}[k]
+}
+
+func (md *MoveDispatch) differentIncrement(a Sheet.Act, v int) *Links.Link {
+	ids := make([]string, 0, len(md.UI.Builder.Reports))
+	for id := range md.UI.Builder.Reports {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	for _, id := range ids {
+		if id == a.To {
+			continue
+		}
+		for _, o := range md.UI.Builder.Reports[id].Links {
+			if o.From == a.Node && incrementOf(o, a.K) != v {
+				return &o
+			}
+		}
+	}
+	return nil
 }

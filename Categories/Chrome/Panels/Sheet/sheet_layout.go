@@ -109,6 +109,11 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			continue
 		}
 		room := stack.ContentRoomW()
+		groups := make([]Group, len(p.Groups))
+		for i, g := range p.Groups {
+			groups[i] = wrapped(g, room)
+		}
+		p.Groups = groups
 		var contentW, contentH float32
 		for i, g := range p.Groups {
 			contentW = max(contentW, shownW(g, room))
