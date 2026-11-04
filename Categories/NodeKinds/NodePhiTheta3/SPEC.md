@@ -27,51 +27,49 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 
 ## A link a→b — its angles stored at b
 
-`start (φ, θ, r)`, `Δ (φ, θ, r)`, `pole (φₚ, θₚ)`, `increment n (φ, θ, r)` — what one press of φₚ, θₚ or Δr moves it by, whole ticks for an angle and a whole number above 0 for r —; Δ, pole and increment are integers, start is measured and real —, `lock (φ, θ) ∈ {−1, 0, 1}`, `locking`, `picked`,
+`start (φ, θ, r)`, `Δ (φ, θ, r)`, `increment n (φ, θ, r)` — what one press of Δφ, Δθ or Δr moves it by, whole ticks for an angle and a whole number above 0 for r —; Δ and increment are integers, start is measured and real —, `lock (φ, θ) ∈ {−1, 0, 1}`, `locking`, `picked`,
 held by b, the target. Angles are in ticks of b's `s`; r + Δr is never below 0, and Δr has no lock and
 is not stepped by StepAll.
 
 Everything below counts **ticks**: a turn is `12s` ticks, a half turn `6s`, and one press moves
 one tick. `1` and `−1` are one tick, not one `s`; at `s = 1` the two read the same.
 
-An angle (start, and start + Δ) is stored and shown as a turn in `0..12s`: `12s` is the same
+A start angle is stored and shown as a turn in `0..12s`: `12s` is the same
 point as 0 and is written 0. There are no negative angles and no direction change: past 6s an
 angle keeps going the same way round the circle (at `s = 1`, 6 + 1 = 7). A file holding an
 older signed start (`−k`, `1 ≤ k ≤ 6s`) is read as `6s + k` (at `s = 1`, −1 → 7, −6 → 0). Δ is a
 term: the count of ticks pressed, with the sign it was pressed.
 
-The displayed angle is the sum `start + Δ` wrapped into `0..12s` (at `s = 1`: 4 + −4 = 0,
-4 + −5 = 11, 11 + 1 = 0), measured from the link's **pole**. A φ or θ press moves the pole,
-not Δ: one tick of φₚ or θₚ up the `0..12s` circle for +, down for −, wrapped, the same way for
-every link with no cases and no ends; a press of increment n moves it n ticks in one go. Δφ and
-Δθ are kept as they were and no press changes them; Δr is still pressed. Start is never
-rewritten by a press, and every press has an exact inverse. A start ± press is one tick the
-same way, and a typed start is wrapped into `0..12s`. A recovered start is the angle measured
-from the pole turned back Δ ticks (`measured − Δ`, wrapped), so it moves exactly as far as the
-node did and Δ and the pole are kept.
+**Δ is the pole.** `(φₚ, θₚ) = (Δφ, Δθ)`: the link's start is the direction measured from the
+pole, and a Δφ or Δθ press moves the pole, so it carries the start's direction with it. A press
+is one tick, + or −, the same way for every link with no cases and no ends; a press of
+increment n adds n to Δ in one go. Start is never rewritten by a press, and every press has an
+exact inverse. A start ± press is one tick the same way, and a typed start is wrapped into
+`0..12s`. A recovered start is the direction measured from the pole, so it moves exactly as far
+as the node did and Δ is kept.
 
 The pole names three directions, each the plain polar_to_cart at r = 1:
 `P = polar_to_cart(1, φₚ, θₚ)` (the pole), `U = polar_to_cart(1, φₚ + 3s, θₚ)` (where θ = 0 points
 from it), `W = polar_to_cart(1, 3s, θₚ + 3s)` (a quarter turn of θ from U); each has length 1 and
-each pair is perpendicular. At pole (0, 0) they are y, x, z, so a link with no pole is exactly the
-plain formula. A θₚ press turns d around y; a φₚ press turns it around W, the horizontal axis
-θₚ names — whatever start and Δ put d at, so the disk a press sweeps is chosen by the pole, not
-by d's own θ.
+each pair is perpendicular. At Δ = (0, 0) they are y, x, z, so d is the plain formula of the start.
+A Δθ press turns d around y; a Δφ press turns it around W, the horizontal axis Δθ names —
+whatever the start is, so the disk a press sweeps is chosen by the pole, not by d's own θ. The
+start is the disk's preset: with start θ = 0 a link reads exactly as the old start + Δ did.
 
-Only Δ and the pole are order-free: they are integer counts, and d is computed from the final
-counts, so φₚ then θₚ lands where θₚ then φₚ does. Start and every place are real-valued —
-measured through trig from cartesian points — so they record the order the nodes moved in; a
-start that does not look right is set again (a typed start or start ±), and Δ and the pole are
-untouched by it. With `(x, y, z) = polar_to_cart((r+Δr)·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)`, its z
+Only Δ is order-free: it is an integer count, and d is computed from the final counts, so Δφ
+then Δθ lands where Δθ then Δφ does. Start and every place are real-valued — measured through
+trig from cartesian points — so they record the order the nodes moved in; a start that does not
+look right is set again (a typed start or start ±), and Δ is untouched by it. With
+`(x, y, z) = polar_to_cart((r+Δr)·ρ, φ·2π/12s, θ·2π/12s)` from the start, its z
 negated when φ = θ and both are past 6s (with the two angles equal, sin φ · sin θ is a square and
 would otherwise never let d reach the negative side), its local vector is
 `d = x·U + y·P + z·W`. Measuring back reads `(d·U, d·P, d·W)` as `(x, y, z)`. What is drawn from
 `C_a` is the link's global version, `C_b − C_a`, from the two recovered points.
 
-Each angle's arc is the path its angle parts walk: from 0 to start, then each Δ tick, then each
-pole tick, one at a time around the circle. Every point on it is drawn by d's own code
-(polar_to_cart, the z case, then U, P, W); the φ arc at θ = 0 with the pole's θₚ at 0, the θ arc
-at the link's φ with the pole's φₚ. So the θ arc ends where d points. A tick across the arc marks
+Each angle's arc is the path its angle parts walk: from 0 to start, then each Δ tick (the pole
+moving) one at a time around the circle. Every point on it is drawn by d's own code
+(polar_to_cart, the z case, then U, P, W); the φ arc at θ = 0 with θₚ at 0, the θ arc at the
+start's φ with the pole's φₚ. So the θ arc ends where d points. A tick across the arc marks
 the end of each part, only when that part covers some distance.
 
 ## Messages
@@ -84,14 +82,14 @@ the end of each part, only when that part covers some distance.
   its place, so a draws it and tells b when it moves. **Drop** (UI → b) sends a **Unlinked**.
 - **Edits** (start, press, increment, locking — UI → b): b changes the angles it holds and places
   itself at `GridAt(C_a + d)`.
-- **S** (UI → b): b's new `s` rescales start, Δ and pole of every link into b by `new s / old s`, so each
-  keeps its direction. Δ and the pole must land on the new `12·s` tick line, whole, which holds exactly for an
-  `s` that is a multiple of `s / gcd(s, every Δ and pole)`; an `s` that would put any link's Δ or pole between
+- **S** (UI → b): b's new `s` rescales start and Δ of every link into b by `new s / old s`, so each
+  keeps its direction. Δ must land on the new `12·s` tick line, whole, which holds exactly for an
+  `s` that is a multiple of `s / gcd(s, every Δ)`; an `s` that would put any link's Δ between
   ticks is replaced by the closest such multiple (a tie takes the larger), and the reason is shown
   on the line below the node. So Δ stays whole and steps stay exact in any order.
 - **Pick** (UI → b, b → a): b grants a pick only if no other link into b is picked, and tells a
   with **PickSet**, so a knows to send b its point.
-- **StepAll** (UI → every node, numbered): every node first steps the pole (and Δr) on the one picked link it
+- **StepAll** (UI → every node, numbered): every node first steps Δ on the one picked link it
   holds, before any global point changes. Recovery comes last: a node with no picked link into it is rotated by nothing, so it
   stays placed and sends its point down each picked link out of it; a target sent its source's
   point sits at `C_a + d'` and sends its own point on. A node sends its point only once it is

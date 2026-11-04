@@ -12,7 +12,6 @@ type Link struct {
 	From, To  string
 	Start     Start
 	Delta     Ticks
-	Pole      Ticks
 	Increment Ticks
 	Lock      Lock
 	Locking   bool
@@ -35,9 +34,10 @@ func NewLink(from, to string) *Link {
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
 func (l *Link) Dir(s int) Start {
-	add := func(a float64, d int) float64 { return Wrap(s, a+float64(d)) }
-	return Start{Phi: add(l.Start.Phi, l.Delta.Phi), Theta: add(l.Start.Theta, l.Delta.Theta), R: l.Start.R + float64(l.Delta.R)}
+	return Start{Phi: Wrap(s, l.Start.Phi), Theta: Wrap(s, l.Start.Theta), R: l.Start.R + float64(l.Delta.R)}
 }
+
+func (l *Link) Pole() Ticks { return Ticks{Phi: l.Delta.Phi, Theta: l.Delta.Theta} }
 
 func (a *Ticks) at(k string) *int {
 	if k == KR {
@@ -71,12 +71,8 @@ func (l *Link) SetStart(s int, k string, v float64) {
 }
 
 func (l *Link) Step(s int, k string, sign int) {
-	if k == KR {
-		l.Delta.R += sign * l.Increment.R
-		return
-	}
-	d := l.Pole.at(k)
-	*d = WrapTicks(s, *d+sign**l.Increment.at(k))
+	d := l.Delta.at(k)
+	*d += sign * *l.Increment.at(k)
 }
 
 func (l *Link) ScaleAngles(k float64) {
@@ -84,8 +80,6 @@ func (l *Link) ScaleAngles(k float64) {
 	l.Start.Theta *= k
 	l.Delta.Phi = int(math.Round(float64(l.Delta.Phi) * k))
 	l.Delta.Theta = int(math.Round(float64(l.Delta.Theta) * k))
-	l.Pole.Phi = int(math.Round(float64(l.Pole.Phi) * k))
-	l.Pole.Theta = int(math.Round(float64(l.Pole.Theta) * k))
 }
 
 func Measure(f Frame, s int, pole Ticks, was Start, p, t Vec3) Start {
@@ -119,7 +113,6 @@ func Measure(f Frame, s int, pole Ticks, was Start, p, t Vec3) Start {
 }
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
-	v := Measure(f, s, l.Pole, l.Dir(s), p, t)
-	sub := func(a float64, d int) float64 { return Wrap(s, a-float64(d)) }
-	l.Start = Start{Phi: sub(v.Phi, l.Delta.Phi), Theta: sub(v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
+	v := Measure(f, s, l.Pole(), l.Dir(s), p, t)
+	l.Start = Start{Phi: v.Phi, Theta: v.Theta, R: v.R - float64(l.Delta.R)}
 }

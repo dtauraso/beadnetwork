@@ -64,7 +64,7 @@ func rowsInto(m Model, item string) []row {
 		at := m.Reports[l.From].At
 		c := m.Frame.At(at)
 		d := m.Frame.LinkVec(s, l)
-		out = append(out, row{from: l.From, s: s, t: t, pole: l.Pole, d: d, at: at, c: c, b: c.Add(d)})
+		out = append(out, row{from: l.From, s: s, t: t, pole: l.Pole(), d: d, at: at, c: c, b: c.Add(d)})
 	}
 	return out
 }

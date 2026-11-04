@@ -11,11 +11,11 @@ type Path struct {
 
 func (f Frame) Arcs(s int, l Link) (phi, theta Path) {
 	d := l.Dir(s)
-	pp := float64(l.Pole.Phi)
-	phi = f.path(s, l.Start.Phi, l.Delta.Phi, func(v float64) Vec3 { return f.cart(s, 1, v, 0) })
-	phi = phi.join(f.path(s, 0, l.Pole.Phi, func(v float64) Vec3 { return PoleAxesAt(s, v, 0).Out(f.cart(s, 1, d.Phi, 0)) }), l.Pole.Phi)
-	theta = f.path(s, l.Start.Theta, l.Delta.Theta, func(v float64) Vec3 { return PoleAxesAt(s, pp, 0).Out(f.cart(s, 1, d.Phi, v)) })
-	theta = theta.join(f.path(s, 0, l.Pole.Theta, func(v float64) Vec3 { return PoleAxesAt(s, pp, v).Out(f.cart(s, 1, d.Phi, d.Theta)) }), l.Pole.Theta)
+	pp := float64(l.Delta.Phi)
+	phi = f.path(s, l.Start.Phi, 0, func(v float64) Vec3 { return f.cart(s, 1, v, 0) })
+	phi = phi.join(f.path(s, 0, l.Delta.Phi, func(v float64) Vec3 { return PoleAxesAt(s, v, 0).Out(f.cart(s, 1, d.Phi, 0)) }), l.Delta.Phi)
+	theta = f.path(s, l.Start.Theta, 0, func(v float64) Vec3 { return PoleAxesAt(s, pp, 0).Out(f.cart(s, 1, d.Phi, v)) })
+	theta = theta.join(f.path(s, 0, l.Delta.Theta, func(v float64) Vec3 { return PoleAxesAt(s, pp, v).Out(f.cart(s, 1, d.Phi, d.Theta)) }), l.Delta.Theta)
 	return phi, theta
 }
 

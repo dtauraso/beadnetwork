@@ -104,7 +104,7 @@ func (a Axes) In(v Vec3) Vec3 {
 }
 
 func (f Frame) LinkVec(s int, l Link) Vec3 {
-	return PoleAxes(s, l.Pole).Out(f.Vec(s, l.Dir(s)))
+	return PoleAxes(s, l.Pole()).Out(f.Vec(s, l.Dir(s)))
 }
 
 func (f Frame) cart(s int, r, phi, theta float64) Vec3 {

@@ -46,15 +46,13 @@ func (m Model) linkCols() []linkCol {
 	var cols []linkCol
 	cols = append(cols, chain(
 		linkCol{"φ", "phi", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, true, false},
-		linkCol{"Δφ", "dphi", func(l Links.Link) float64 { return float64(l.Delta.Phi) }, "", Links.KPhi, false, false, false},
-		linkCol{"φₚ", "pphi", func(l Links.Link) float64 { return float64(l.Pole.Phi) }, OpLinkPress, Links.KPhi, false, true, true},
-		linkCol{"nφₚ", "", func(l Links.Link) float64 { return float64(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true, true},
+		linkCol{"Δφ", "dphi", func(l Links.Link) float64 { return float64(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false, true, true},
+		linkCol{"nΔφ", "", func(l Links.Link) float64 { return float64(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true, true},
 	)...)
 	cols = append(cols, chain(
 		linkCol{"θ", "theta", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, true, false},
-		linkCol{"Δθ", "dtheta", func(l Links.Link) float64 { return float64(l.Delta.Theta) }, "", Links.KTheta, false, false, false},
-		linkCol{"θₚ", "ptheta", func(l Links.Link) float64 { return float64(l.Pole.Theta) }, OpLinkPress, Links.KTheta, false, true, true},
-		linkCol{"nθₚ", "", func(l Links.Link) float64 { return float64(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true, true},
+		linkCol{"Δθ", "dtheta", func(l Links.Link) float64 { return float64(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false, true, true},
+		linkCol{"nΔθ", "", func(l Links.Link) float64 { return float64(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true, true},
 	)...)
 	return append(cols, chain(
 		linkCol{"r", "r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, true, false},
@@ -157,12 +155,11 @@ func landsGroup(m Model) Group {
 		rows = append(rows, []Cell{
 			Text(l.Name()),
 			Text("start φ " + Num(l.Start.Phi) + "  θ " + Num(l.Start.Theta) + "  r " + Num(l.Start.R)),
-			Text("start + Δ φ " + Num(d.Phi) + "  θ " + Num(d.Theta) + "  r " + Num(d.R)),
-			Text("measured from pole φₚ " + strconv.Itoa(l.Pole.Phi) + "  θₚ " + strconv.Itoa(l.Pole.Theta)),
+			Text("from the pole Δ: φₚ " + strconv.Itoa(l.Delta.Phi) + "  θₚ " + strconv.Itoa(l.Delta.Theta) + "  r + Δr " + Num(d.R)),
 		})
 	}
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no rows")}}
 	}
-	return Group{Title: "read only: each row's start, and start + Δ measured from its pole — the direction from its first node to its second", Rows: rows}
+	return Group{Title: "read only: each row's start, measured from its pole (φₚ, θₚ) = (Δφ, Δθ) — the direction from its first node to its second", Rows: rows}
 }
