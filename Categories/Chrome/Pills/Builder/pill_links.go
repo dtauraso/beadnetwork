@@ -115,14 +115,11 @@ func LinksPill(m Model) Pill {
 	}
 	groups := []Group{
 		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows, Slides: true},
-		pickGroup(m),
-		pickedGroup(m),
-		recalcGroup(m),
-		landsGroup(m),
 	}
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}})
 	}
+	groups = append(groups, pickGroup(m), pickedGroup(m), recalcGroup(m), landsGroup(m))
 	return Pill{Label: LinksLabel, Groups: groups}
 }
 
