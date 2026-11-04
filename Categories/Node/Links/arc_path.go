@@ -11,12 +11,12 @@ type Path struct {
 
 func (f Frame) Arcs(s int, l Link) (phi, theta Path) {
 	ph := Turn(s, l.Dir(s).Phi)
-	phi = f.path(s, l.Start.PhiLeft, l.Start.Phi, l.Delta.Phi, func(v float64) Vec3 { return f.cart(s, 1, v, 0) })
-	theta = f.path(s, l.Start.ThetaLeft, l.Start.Theta, l.Delta.Theta, func(v float64) Vec3 { return f.cart(s, 1, ph, v) })
+	phi = f.path(s, l.Start.Phi, l.Delta.Phi, func(v float64) Vec3 { return f.cart(s, 1, v, 0) })
+	theta = f.path(s, l.Start.Theta, l.Delta.Theta, func(v float64) Vec3 { return f.cart(s, 1, ph, v) })
 	return phi, theta
 }
 
-func presses(s int, left bool, start float64, delta int) []float64 {
+func presses(s int, start float64, delta int) []float64 {
 	base := 0.0
 	if start < 0 {
 		base = -half(s)
@@ -28,14 +28,14 @@ func presses(s int, left bool, start float64, delta int) []float64 {
 	}
 	v := start
 	for n := delta; n != 0; n -= sign {
-		v = Presses(s, left, v, sign)
+		v = Signed(s, Turn(s, v)+float64(sign))
 		vs = append(vs, v)
 	}
 	return vs
 }
 
-func (f Frame) path(s int, left bool, start float64, delta int, at func(turn float64) Vec3) Path {
-	vs := presses(s, left, start, delta)
+func (f Frame) path(s int, start float64, delta int, at func(turn float64) Vec3) Path {
+	vs := presses(s, start, delta)
 	turn := float64(TurnTicks * s)
 	p := Path{Pts: []Vec3{at(Turn(s, vs[0]))}}
 	part := 0.0

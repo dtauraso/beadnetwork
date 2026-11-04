@@ -2,10 +2,7 @@ package Links
 
 import "math"
 
-type Start struct {
-	Phi, Theta, R      float64
-	PhiLeft, ThetaLeft bool
-}
+type Start struct{ Phi, Theta, R float64 }
 
 type Ticks struct{ Phi, Theta, R int }
 
@@ -37,11 +34,8 @@ func NewLink(from, to string) *Link {
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
 func (l *Link) Dir(s int) Start {
-	return Start{
-		Phi:   Presses(s, l.Start.PhiLeft, l.Start.Phi, l.Delta.Phi),
-		Theta: Presses(s, l.Start.ThetaLeft, l.Start.Theta, l.Delta.Theta),
-		R:     l.Start.R + float64(l.Delta.R),
-	}
+	add := func(a float64, d int) float64 { return Signed(s, Turn(s, a)+float64(d)) }
+	return Start{Phi: add(l.Start.Phi, l.Delta.Phi), Theta: add(l.Start.Theta, l.Delta.Theta), R: l.Start.R + float64(l.Delta.R)}
 }
 
 func (a *Ticks) at(k string) *int {
@@ -75,19 +69,9 @@ func (l *Link) SetStart(s int, k string, v float64) {
 	}
 }
 
-func (l *Link) Step(k string, sign int) {
-	*l.Delta.at(k) += sign * *l.Increment.at(k)
-}
-
-func (st *Start) Sides() {
-	st.PhiLeft, st.ThetaLeft = st.Phi < 0, st.Theta < 0
-}
-
-func (st Start) Left(k string) bool {
-	if k == KTheta {
-		return st.ThetaLeft
-	}
-	return st.PhiLeft
+func (l *Link) Step(s int, k string, sign int) {
+	d := l.Delta.at(k)
+	*d += sign * *l.Increment.at(k)
 }
 
 func (l *Link) ScaleAngles(k float64) {
@@ -129,7 +113,6 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
 	v := Measure(f, s, l.Dir(s), p, t)
-	l.Start.Phi = Unpress(s, l.Start.PhiLeft, v.Phi, l.Delta.Phi)
-	l.Start.Theta = Unpress(s, l.Start.ThetaLeft, v.Theta, l.Delta.Theta)
-	l.Start.R = v.R - float64(l.Delta.R)
+	sub := func(a float64, d int) float64 { return Signed(s, Turn(s, a)-float64(d)) }
+	l.Start = Start{Phi: sub(v.Phi, l.Delta.Phi), Theta: sub(v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
 }
