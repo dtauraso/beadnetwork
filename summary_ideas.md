@@ -157,7 +157,8 @@ Some changes are not accepted. The setting stays as it was, and the editor says 
   coming into it.
 
 The last two keep vectors from stretching. A vector that stretches breaks 3D rotation's
-independence from order.
+independence from order. The last one, fixing the lengths around a node with more than one
+link coming into it, was assumed and not tested.
 
 ### Sequences
 
