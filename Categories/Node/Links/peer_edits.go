@@ -121,9 +121,9 @@ func (p *Peer) setS(m SetS) []Envelope {
 func (p *Peer) closestS(v int) (int, string) {
 	step, by := 1, ""
 	for _, from := range p.order {
-		d := p.own[from].Delta
-		if n := p.S / gcd(p.S, gcd(d.Phi, d.Theta)); n > step {
-			step, by = n, fmt.Sprintf("%s→%s's Δ (%d, %d)", from, p.ID, d.Phi, d.Theta)
+		d, q := p.own[from].Delta, p.own[from].Pole
+		if n := p.S / gcd(p.S, gcd(gcd(d.Phi, d.Theta), gcd(q.Phi, q.Theta))); n > step {
+			step, by = n, fmt.Sprintf("%s→%s's Δ (%d, %d) and pole (%d, %d)", from, p.ID, d.Phi, d.Theta, q.Phi, q.Theta)
 		}
 	}
 	c := max(step, (2*v+step)/(2*step)*step)
@@ -148,7 +148,7 @@ func (p *Peer) connect(m Connect) []Envelope {
 	p.heard[m.From] = p.round
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
-	l.Start = Measure(p.Frame, p.S, l.Dir(p.S), p.posOf(m.From), p.Pos())
+	l.Start = Measure(p.Frame, p.S, l.Pole, l.Dir(p.S), p.posOf(m.From), p.Pos())
 	p.own[m.From] = l
 	p.order = append(p.order, m.From)
 	p.touched(m.From)

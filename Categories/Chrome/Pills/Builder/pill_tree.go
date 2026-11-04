@@ -103,6 +103,7 @@ func TreePill(m Model) Pill {
 		d := l.Dir(m.ScaleOf(l.To))
 		groups = append(groups, box(3, "edge "+l.Name(), kv("from", l.From, true), kv("to", l.To, true),
 			kv("start", ang(l.Start.Phi, l.Start.Theta, &l.Start.R), false), kv("Δ", ticks(l.Delta), false),
+			kv("pole", "φₚ "+strconv.Itoa(l.Pole.Phi)+" | θₚ "+strconv.Itoa(l.Pole.Theta), false),
 			kv("increment", ticks(l.Increment), false), kv("lock", lockText(l.Lock), false),
 			kv("locking", onOff(l.Locking), false), notStored(), kv("start + Δ", ang(d.Phi, d.Theta, &d.R), false)))
 	}

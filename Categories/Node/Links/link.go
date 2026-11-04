@@ -12,6 +12,7 @@ type Link struct {
 	From, To  string
 	Start     Start
 	Delta     Ticks
+	Pole      Ticks
 	Increment Ticks
 	Lock      Lock
 	Locking   bool
@@ -70,8 +71,12 @@ func (l *Link) SetStart(s int, k string, v float64) {
 }
 
 func (l *Link) Step(s int, k string, sign int) {
-	d := l.Delta.at(k)
-	*d += sign * *l.Increment.at(k)
+	if k == KR {
+		l.Delta.R += sign * l.Increment.R
+		return
+	}
+	d := l.Pole.at(k)
+	*d = WrapTicks(s, *d+sign**l.Increment.at(k))
 }
 
 func (l *Link) ScaleAngles(k float64) {
@@ -79,11 +84,13 @@ func (l *Link) ScaleAngles(k float64) {
 	l.Start.Theta *= k
 	l.Delta.Phi = int(math.Round(float64(l.Delta.Phi) * k))
 	l.Delta.Theta = int(math.Round(float64(l.Delta.Theta) * k))
+	l.Pole.Phi = int(math.Round(float64(l.Pole.Phi) * k))
+	l.Pole.Theta = int(math.Round(float64(l.Pole.Theta) * k))
 }
 
-func Measure(f Frame, s int, was Start, p, t Vec3) Start {
+func Measure(f Frame, s int, pole Ticks, was Start, p, t Vec3) Start {
 	was = Start{Phi: Wrap(s, was.Phi), Theta: Wrap(s, was.Theta), R: was.R}
-	v := t.Sub(p)
+	v := PoleAxes(s, pole).In(t.Sub(p))
 	n := v.Length()
 	tick := 2 * math.Pi / float64(TurnTicks*s)
 	if n < 1e-9 {
@@ -112,7 +119,7 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 }
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
-	v := Measure(f, s, l.Dir(s), p, t)
+	v := Measure(f, s, l.Pole, l.Dir(s), p, t)
 	sub := func(a float64, d int) float64 { return Wrap(s, a-float64(d)) }
 	l.Start = Start{Phi: sub(v.Phi, l.Delta.Phi), Theta: sub(v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
 }

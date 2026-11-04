@@ -10,10 +10,24 @@ type Path struct {
 }
 
 func (f Frame) Arcs(s int, l Link) (phi, theta Path) {
-	ph := l.Dir(s).Phi
+	d := l.Dir(s)
+	pp := float64(l.Pole.Phi)
 	phi = f.path(s, l.Start.Phi, l.Delta.Phi, func(v float64) Vec3 { return f.cart(s, 1, v, 0) })
-	theta = f.path(s, l.Start.Theta, l.Delta.Theta, func(v float64) Vec3 { return f.cart(s, 1, ph, v) })
+	phi = phi.join(f.path(s, 0, l.Pole.Phi, func(v float64) Vec3 { return PoleAxesAt(s, v, 0).Out(f.cart(s, 1, d.Phi, 0)) }), l.Pole.Phi)
+	theta = f.path(s, l.Start.Theta, l.Delta.Theta, func(v float64) Vec3 { return PoleAxesAt(s, pp, 0).Out(f.cart(s, 1, d.Phi, v)) })
+	theta = theta.join(f.path(s, 0, l.Pole.Theta, func(v float64) Vec3 { return PoleAxesAt(s, pp, v).Out(f.cart(s, 1, d.Phi, d.Theta)) }), l.Pole.Theta)
 	return phi, theta
+}
+
+func (a Path) join(b Path, ticks int) Path {
+	if ticks == 0 {
+		return a
+	}
+	out := Path{Pts: append(append([]Vec3{}, a.Pts...), b.Pts[1:]...), Ends: append([]int{}, a.Ends...)}
+	for _, e := range b.Ends {
+		out.Ends = append(out.Ends, len(a.Pts)+e-1)
+	}
+	return out
 }
 
 func presses(s int, start float64, delta int) []float64 {

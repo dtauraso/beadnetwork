@@ -78,6 +78,35 @@ func (f Frame) Vec(s int, t Start) Vec3 {
 	return f.cart(s, t.R, Wrap(s, t.Phi), Wrap(s, t.Theta))
 }
 
+type Axes struct{ P, U, W Vec3 }
+
+func PoleAxes(s int, pole Ticks) Axes {
+	return PoleAxesAt(s, float64(pole.Phi), float64(pole.Theta))
+}
+
+func PoleAxesAt(s int, phi, theta float64) Axes {
+	ang := func(x float64) float64 { return x * 2 * math.Pi / float64(TurnTicks*s) }
+	sp, cp := math.Sincos(ang(phi))
+	st, ct := math.Sincos(ang(theta))
+	return Axes{
+		P: Vec3{X: sp * ct, Y: cp, Z: sp * st},
+		U: Vec3{X: cp * ct, Y: -sp, Z: cp * st},
+		W: Vec3{X: -st, Y: 0, Z: ct},
+	}
+}
+
+func (a Axes) Out(v Vec3) Vec3 {
+	return a.U.Scale(v.X).Add(a.P.Scale(v.Y)).Add(a.W.Scale(v.Z))
+}
+
+func (a Axes) In(v Vec3) Vec3 {
+	return Vec3{X: v.Dot(a.U), Y: v.Dot(a.P), Z: v.Dot(a.W)}
+}
+
+func (f Frame) LinkVec(s int, l Link) Vec3 {
+	return PoleAxes(s, l.Pole).Out(f.Vec(s, l.Dir(s)))
+}
+
 func (f Frame) cart(s int, r, phi, theta float64) Vec3 {
 	ang := func(x float64) float64 { return x * 2 * math.Pi / float64(TurnTicks*s) }
 	v := Cart(r*f.Rho, ang(phi), ang(theta))

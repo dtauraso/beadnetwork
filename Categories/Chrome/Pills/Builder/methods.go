@@ -46,6 +46,7 @@ type row struct {
 	from string
 	s    int
 	t    Links.Start
+	pole Links.Ticks
 	d    Links.Vec3
 	at   Links.Place
 	c    Links.Vec3
@@ -62,8 +63,8 @@ func rowsInto(m Model, item string) []row {
 		t := l.Dir(s)
 		at := m.Reports[l.From].At
 		c := m.Frame.At(at)
-		d := m.Frame.Vec(s, t)
-		out = append(out, row{from: l.From, s: s, t: t, d: d, at: at, c: c, b: c.Add(d)})
+		d := m.Frame.LinkVec(s, l)
+		out = append(out, row{from: l.From, s: s, t: t, pole: l.Pole, d: d, at: at, c: c, b: c.Add(d)})
 	}
 	return out
 }
@@ -71,8 +72,8 @@ func rowsInto(m Model, item string) []row {
 func vectorStep(rows []row, item string) CardStep {
 	st := CardStep{Title: "local: each row's start as a vector", Note: "from the row's start ticks alone; a vector, not yet a place", OK: len(rows) > 0}
 	for _, r := range rows {
-		st.Lines = append(st.Lines, fmt.Sprintf("φ %s, θ %s on 0..12s_%s", Num(r.t.Phi), Num(r.t.Theta), item),
-			fmt.Sprintf("d_%s%s = polar_to_cart(%s·ρ, %s·2π/12s_%s, %s·2π/12s_%s) = %s",
+		st.Lines = append(st.Lines, fmt.Sprintf("φ %s, θ %s on 0..12s_%s, from pole φₚ %d, θₚ %d", Num(r.t.Phi), Num(r.t.Theta), item, r.pole.Phi, r.pole.Theta),
+			fmt.Sprintf("d_%s%s = r cosφ·P + r sinφ cosθ·U + r sinφ sinθ·W, from polar_to_cart(%s·ρ, %s·2π/12s_%s, %s·2π/12s_%s) = %s",
 				r.from, item, Num(r.t.R), Num(r.t.Phi), item, Num(r.t.Theta), item, pt(r.d)))
 	}
 	if len(rows) == 0 {
