@@ -41,24 +41,22 @@ function sameArray(a: Float32Array, b: Float32Array): boolean {
 export function AngleArcs() {
   const { size } = useThree();
 
-  const { lines, lineGeom, lineMat, held } = useMemo(() => {
-    const lineGeom = new LineSegmentsGeometry();
+  const { lines, lineMat, held } = useMemo(() => {
     const lineMat = new LineMaterial({ vertexColors: true, linewidth: LINE_WIDTH_PX, worldUnits: false });
-    const lines = new LineSegments2(lineGeom, lineMat);
+    const lines = new LineSegments2(new LineSegmentsGeometry(), lineMat);
     lines.frustumCulled = false;
     lines.raycast = () => {};
     return {
       lines,
-      lineGeom,
       lineMat,
       held: { positions: new Float32Array(0), colors: new Float32Array(0) },
     };
   }, []);
 
   useEffect(() => () => {
-    lineGeom.dispose();
+    lines.geometry.dispose();
     lineMat.dispose();
-  }, [lineGeom, lineMat]);
+  }, [lines, lineMat]);
 
   useFrame(() => {
     lineMat.resolution.set(size.width, size.height);
@@ -81,12 +79,16 @@ export function AngleArcs() {
     const nextPos = Float32Array.from(pos);
     const nextCol = Float32Array.from(col);
     if (!sameArray(nextPos, held.positions) || !sameArray(nextCol, held.colors)) {
+      if (nextPos.length !== held.positions.length) {
+        lines.geometry.dispose();
+        lines.geometry = new LineSegmentsGeometry();
+      }
       held.positions = nextPos;
       held.colors = nextCol;
       lines.visible = nextPos.length > 0;
       if (lines.visible) {
-        lineGeom.setPositions(nextPos);
-        lineGeom.setColors(nextCol);
+        lines.geometry.setPositions(nextPos);
+        lines.geometry.setColors(nextCol);
       }
     }
   });

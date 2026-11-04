@@ -34,38 +34,31 @@ is not stepped by StepAll.
 Everything below counts **ticks**: a turn is `12s` ticks, a half turn `6s`, and one press moves
 one tick. `1` and `−1` are one tick, not one `s`; at `s = 1` the two read the same.
 
-An angle (start, and start + Δ) is stored and shown in the **signed range**
-`[1, 6s]`, `[−1, −6s]` (and 0), never as `0..12s`. The `0..12s` range is used only for
-polar ↔ cartesian, through the mapping, case by case: `0 ↔ 0`; `k ↔ k` for `1 ≤ k ≤ 6s`;
-`−k ↔ 6s + k` for `1 ≤ k < 6s`, so `−1 ↔ 6s + 1` (one tick past 6s, right next to it: the label
-breaks, the point does not flip) and `−(6s − 1) ↔ 12s − 1`; `−6s ↔ 12s`, the same point as 0.
-At `s = 1` that is `−1 ↔ 7`, `−2 ↔ 8` … `−5 ↔ 11`, `−6 ↔ 12`. A file holding an older `0..12s`
-start is read through the mapping (at `s = 1`, 10 → −4). Δ is a term: the count of ticks
-pressed, with the sign it was pressed.
+An angle (start, and start + Δ) is stored and shown as a turn in `0..12s`: `12s` is the same
+point as 0 and is written 0. There are no negative angles and no direction change: past 6s an
+angle keeps going the same way round the circle (at `s = 1`, 6 + 1 = 7). A file holding an
+older signed start (`−k`, `1 ≤ k ≤ 6s`) is read as `6s + k` (at `s = 1`, −1 → 7, −6 → 0). Δ is a
+term: the count of ticks pressed, with the sign it was pressed.
 
 A press is a rotation: one tick up the `0..12s` circle for +, one tick down for −, the same way
-for every link and on either side, with no cases and no ends. The displayed angle is the sum
-`start + Δ`: `turn(start) + Δ` in `0..12s`, mapped back (at `s = 1`: 4 + −4 = 0, 4 + −5 = 11 =
-−5, −1 + 1 = 8 = −2). On the − side the labels run the other way round the circle, so + counts
-them away from −1 (−1, −2 … −6s, 0). A press of increment n adds n to Δ in one go. Start and Δ are
-never rewritten, and every press has an exact inverse. A start ± press is one tick the same way
-(one that lands on 0 from below is shown as −6s, the same point). A recovered start is the
-measured angle turned back Δ ticks (`turn(measured) − Δ`, mapped back), so it moves exactly as
-far as the node did and Δ is kept.
+for every link, with no cases and no ends. The displayed angle is the sum `start + Δ` wrapped
+into `0..12s` (at `s = 1`: 4 + −4 = 0, 4 + −5 = 11, 11 + 1 = 0). A press of increment n adds n
+to Δ in one go. Start and Δ are never rewritten, and every press has an exact inverse. A start
+± press is one tick the same way, and a typed start is wrapped into `0..12s`. A recovered start
+is the measured angle turned back Δ ticks (`measured − Δ`, wrapped), so it moves exactly as far
+as the node did and Δ is kept.
 
 Only Δ is order-free: it is an integer count. Start and every place are real-valued — measured
 through trig from cartesian points — so they record the order the nodes moved in; a start that
 does not look right is set again (a typed start or start ±), and Δ is untouched by it. Its
 local vector is
-`d = polar_to_cart((r+Δr)·ρ, turn(φ+Δφ)·2π/12s, turn(θ+Δθ)·2π/12s)` with its z
-negated when φ = θ and both are negative, where the angle counts as
-negative: with the two angles equal, sin φ · sin θ is a square and would otherwise never let d
-reach the negative side. What is
+`d = polar_to_cart((r+Δr)·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)` with its z
+negated when φ = θ and both are past 6s: with the two angles equal, sin φ · sin θ is a square
+and would otherwise never let d reach the negative side. What is
 drawn from `C_a` is the link's global version, `C_b − C_a`, from the two recovered points.
 
-Each angle's arc is the path its angle parts walk: from where its side begins (0 on the + side,
-−6s on the − side, the same point) to start, then each Δ tick one at a time around the circle.
-Every point on it is drawn by d's own code (turn, polar_to_cart, the z case); the φ arc at θ = 0,
+Each angle's arc is the path its angle parts walk: from 0 to start, then each Δ tick one at a
+time around the circle. Every point on it is drawn by d's own code (polar_to_cart, the z case); the φ arc at θ = 0,
 the θ arc at the link's φ. So an arc ends where d points. A tick across the arc marks the end of
 the start part and the end of the Δ part, each only when that part covers some distance.
 

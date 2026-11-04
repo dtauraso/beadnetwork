@@ -36,33 +36,11 @@ func WrapTicks(s, t int) int {
 
 func half(s int) float64 { return float64(TurnTicks * s / 2) }
 
-func Signed(s int, turn float64) float64 {
-	if w := Wrap(s, turn); w > half(s) {
-		return -(w - half(s))
-	} else {
-		return w
+func FromSigned(s int, v float64) float64 {
+	if v < 0 {
+		return Wrap(s, half(s)-v)
 	}
-}
-
-func Turn(s int, signed float64) float64 {
-	if signed < 0 {
-		return Wrap(s, half(s)-signed)
-	}
-	return Wrap(s, signed)
-}
-
-func Norm(s int, signed float64) float64 {
-	if signed == -half(s) {
-		return signed
-	}
-	return Signed(s, Turn(s, signed))
-}
-
-func StepSigned(s int, signed float64, by float64) float64 {
-	if v := Signed(s, Turn(s, signed)+by); v != 0 || by <= 0 {
-		return v
-	}
-	return -half(s)
+	return Wrap(s, v)
 }
 
 func whole(x float64) bool { return math.Abs(x-math.Round(x)) < 1e-6 }
@@ -97,7 +75,7 @@ func (f Frame) GridAt(p Vec3) Place {
 }
 
 func (f Frame) Vec(s int, t Start) Vec3 {
-	return f.cart(s, t.R, Turn(s, t.Phi), Turn(s, t.Theta))
+	return f.cart(s, t.R, Wrap(s, t.Phi), Wrap(s, t.Theta))
 }
 
 func (f Frame) cart(s int, r, phi, theta float64) Vec3 {

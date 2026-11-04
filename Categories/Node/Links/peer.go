@@ -51,7 +51,7 @@ func NewPeer(id string, seed Seed) *Peer {
 		switch {
 		case l.To == id:
 			c := l
-			c.Start.Phi, c.Start.Theta = Norm(p.S, c.Start.Phi), Norm(p.S, c.Start.Theta)
+			c.Start.Phi, c.Start.Theta = FromSigned(p.S, c.Start.Phi), FromSigned(p.S, c.Start.Theta)
 			p.own[l.From] = &c
 			p.order = append(p.order, l.From)
 		case l.From == id:
