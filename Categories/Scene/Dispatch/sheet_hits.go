@@ -63,6 +63,9 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if typed != nil {
 			v = *typed
 		}
+		if a.K == Links.KR && md.refuseFixedR(a, fmt.Sprintf("r stays at %v", l.Start.R)) {
+			return
+		}
 		if a.K == Links.KR && (v < 0 || v+float64(l.Delta.R) < 0) {
 			md.UI.Builder.Refused = fmt.Sprintf("%s→%s r %v: neither r nor r + Δr can be negative, so r stays at %v", a.Node, a.To, v, l.Start.R)
 			return
@@ -71,6 +74,9 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpLinkPress:
 		if sign == 0 {
 			sign = a.Sign
+		}
+		if l, ok := m.Link(a.Node, a.To); ok && a.K == Links.KR && md.refuseFixedR(a, fmt.Sprintf("Δr stays at %d", l.Delta.R)) {
+			return
 		}
 		if sign != 0 {
 			md.sendLink(ctx, a.To, Links.Press{From: a.Node, K: a.K, Sign: sign})
@@ -151,7 +157,7 @@ func (md *MoveDispatch) stepAll(ctx context.Context, k string, sign int) {
 	st.Round++
 	h := clock.HumanTick(md.UI.Builder.TickMs)
 	for _, id := range md.UI.Builder.Nodes {
-		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, H: h, K: k, Sign: sign, LockAll: st.Locks()})
+		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, H: h, K: k, Sign: sign, LockAll: st.Locks(), FixedR: manyIn(md.UI.Builder)})
 	}
 }
 

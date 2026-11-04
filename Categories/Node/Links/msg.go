@@ -36,6 +36,7 @@ type StepAll struct {
 	K       string
 	Sign    int
 	LockAll Lock
+	FixedR  []string
 }
 
 const KBoth = "both"
