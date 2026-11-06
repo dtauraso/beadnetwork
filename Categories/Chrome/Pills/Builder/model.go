@@ -32,6 +32,7 @@ type Model struct {
 	Refused string
 
 	Step    Step
+	Steps   map[string]*Step
 	StepDir string
 
 	Seqs    []Seq

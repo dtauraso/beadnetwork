@@ -44,19 +44,20 @@ var linkCols = []linkCol{
 	{"nΔr", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true, false},
 }
 
-func (c linkCol) head(m Model) Cell {
+func (c linkCol) head(m Model, id string) Cell {
 	if c.op == OpLinkPress {
-		way, on := m.Step.At(c.k)
-		lockAct := Act{Op: OpAllLock, K: c.k}
+		st := m.StepOf(id)
+		way, on := st.At(c.k)
+		lockAct := Act{Op: OpAllLock, Node: id, K: c.k}
 		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).LockedOn(*on)
 	}
 	return Text(c.label).AboveLastDigit()
 }
 
-func linkHeader(m Model) []Cell {
-	labels := []Cell{Text("φ+θ+r").Acting(Act{Op: OpAllLocks}).Outline(m.Step.Both).Stepping(Act{Op: OpAllBoth}, 0)}
+func linkHeader(m Model, id string) []Cell {
+	labels := []Cell{Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id}).Outline(m.StepOf(id).Both).Stepping(Act{Op: OpAllBoth, Node: id}, 0)}
 	for _, c := range linkCols {
-		labels = append(labels, c.head(m))
+		labels = append(labels, c.head(m, id))
 	}
 	return labels
 }
@@ -84,7 +85,7 @@ func LinksPill(m Model) Pill {
 		if len(rows) == 0 {
 			rows = [][]Cell{{Text("no links")}}
 		} else {
-			rows = append([][]Cell{linkHeader(m)}, rows...)
+			rows = append([][]Cell{linkHeader(m, id)}, rows...)
 		}
 		groups = append(groups, Group{Title: "node " + id, Rows: rows, Slides: true})
 	}

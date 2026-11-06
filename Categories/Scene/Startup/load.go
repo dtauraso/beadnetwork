@@ -62,6 +62,7 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 
 	md.MR.Bind(outSink, destRun, md.RT.EdgeRowForPair)
 	md.UI.Builder.Nodes = md.Links.IDs()
+	md.UI.Builder.ReadNodeSteps()
 	md.Settle(ctx)
 
 	return Scene{

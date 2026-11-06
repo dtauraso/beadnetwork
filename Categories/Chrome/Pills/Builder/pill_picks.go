@@ -57,7 +57,24 @@ func signButtons(lockOf func(k string) int, act func(k string, sign int) Act, k 
 
 func pickedGroup(m Model) Group {
 	var rows [][]Cell
+	for _, id := range m.Nodes {
+		if len(m.Reports[id].Links) > 0 {
+			rows = append(rows, allRow(m, id))
+		}
+		rows = append(rows, pickedRows(m, id)...)
+	}
+	if len(rows) == 0 {
+		return Group{Title: "picked", Rows: [][]Cell{{Text("no edges")}}}
+	}
+	return Group{Title: "picked — + / − steps Δ; \"all from\" steps every edge from that node; ● then + or − locks that way, a lit one unlocks", Rows: rows}
+}
+
+func pickedRows(m Model, id string) [][]Cell {
+	var rows [][]Cell
 	for _, l := range m.Picked() {
+		if l.From != id {
+			continue
+		}
 		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
 		press := func(k string, sign int) Act { return Act{Op: OpLinkPress, Node: l.From, To: l.To, K: k, Sign: sign} }
 		lockOf := func(k string) int { return lockSign(l, k) }
@@ -72,10 +89,7 @@ func pickedGroup(m Model) Group {
 		row = append(row, Button("unpick", act(OpUnpick, ""), false), Button(mark, act(OpLocking, ""), l.Locking))
 		rows = append(rows, row)
 	}
-	if len(rows) == 0 {
-		return Group{Title: "picked", Rows: [][]Cell{{Text("no edges picked")}}}
-	}
-	return Group{Title: "picked — + / − steps Δ; ● then + or − locks that way, a lit one unlocks", Rows: append([][]Cell{allRow(m)}, rows...)}
+	return rows
 }
 
 const (
@@ -86,8 +100,8 @@ const (
 	OpAllLocks   = "all-locks"
 )
 
-func allRow(m Model) []Cell {
-	st := m.Step
+func allRow(m Model, id string) []Cell {
+	st := m.StepOf(id)
 	locks := st.Locks()
 	lockOf := func(k string) int {
 		if k == Links.KTheta {
@@ -95,9 +109,9 @@ func allRow(m Model) []Cell {
 		}
 		return locks.Phi
 	}
-	press := func(k string, sign int) Act { return Act{Op: OpAllStep, K: k, Sign: sign} }
+	press := func(k string, sign int) Act { return Act{Op: OpAllStep, Node: id, K: k, Sign: sign} }
 	locked := locks != (Links.Lock{})
-	for _, l := range m.Picked() {
+	for _, l := range m.Reports[id].Links {
 		locked = locked || l.Lock != (Links.Lock{})
 	}
 	up, down := "+", "−"
@@ -108,13 +122,13 @@ func allRow(m Model) []Cell {
 	if st.Locking {
 		mark = "●"
 	}
-	row := []Cell{Text("all"), Text("Δφ")}
+	row := []Cell{Text("all from " + id), Text("Δφ")}
 	row = append(row, signButtons(lockOf, press, Links.KPhi)...)
 	row = append(row, Text("Δθ"))
 	row = append(row, signButtons(lockOf, press, Links.KTheta)...)
-	row = append(row, Button(up+" both", Act{Op: OpAllBoth, Sign: 1}, false), Button(down+" both", Act{Op: OpAllBoth, Sign: -1}, false))
+	row = append(row, Button(up+" both", Act{Op: OpAllBoth, Node: id, Sign: 1}, false), Button(down+" both", Act{Op: OpAllBoth, Node: id, Sign: -1}, false))
 	if !m.RowsLocking() {
-		row = append(row, Button(mark, Act{Op: OpAllLocking}, st.Locking))
+		row = append(row, Button(mark, Act{Op: OpAllLocking, Node: id}, st.Locking))
 	}
 	return row
 }

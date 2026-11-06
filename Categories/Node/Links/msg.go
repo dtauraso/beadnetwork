@@ -35,6 +35,7 @@ type StepAll struct {
 	H       int64
 	K       string
 	Sign    int
+	From    string
 	LockAll Lock
 	FixedR  []string
 }

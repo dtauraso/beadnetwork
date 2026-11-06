@@ -95,8 +95,7 @@ func TreePill(m Model) Pill {
 			kv("T_θ", n3(float64(f.Ttheta)), false), kv("c_r", n3(f.Cr), false), kv("sequences", names(seqNames), false), kv("open", open, true)),
 		box(1, open, kv("steps", "1", false)),
 		box(2, "step 1", kv("cards", "method cards", true), kv("edges", names(linkNames(all)), true), kv("nodes", names(m.Nodes), true),
-			kv("picked", names(linkNames(m.Picked())), true), kv("all lock", lockText(m.Step.Locks()), false), kv("all locking", onOff(m.Step.Locking), false),
-			notStored(), kv("recalculated", names(linkNames(recalc)), true)),
+			kv("picked", names(linkNames(m.Picked())), true), notStored(), kv("recalculated", names(linkNames(recalc)), true)),
 		box(3, "method cards", kv("item", m.Item(), true), kv("methods", names(methods), false), kv("card step", strconv.Itoa(m.CardShown()), false)),
 	}
 	for _, l := range all {
@@ -120,7 +119,8 @@ func TreePill(m Model) Pill {
 		c := f.At(r.At)
 		groups = append(groups, box(4, "node "+id, kv("s", n3(float64(m.ScaleOf(id))), false),
 			kv("at on O's grid", "r "+n3(r.At.R)+" | φ "+n3(r.At.Phi)+" | θ "+n3(r.At.Theta), false),
-			kv("out", names(out), true), kv("in", names(in), true), notStored(),
+			kv("out", names(out), true), kv("in", names(in), true),
+			kv("all lock", lockText(m.StepOf(id).Locks()), false), kv("all locking", onOff(m.StepOf(id).Locking), false), notStored(),
 			kv("C", "x "+n3(c.X)+" | y "+n3(c.Y)+" | z "+n3(c.Z), false)))
 	}
 	return Pill{Label: TreeLabel, Left: true, Groups: groups}

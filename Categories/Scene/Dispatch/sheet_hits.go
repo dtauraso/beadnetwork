@@ -97,17 +97,18 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if sign == 0 {
 			sign = a.Sign
 		}
-		allStep(ctx, md, a.K, sign)
+		allStep(ctx, md, a.Node, a.K, sign)
 	case Builder.OpAllLock:
-		way, on := md.UI.Builder.Step.At(a.K)
+		st := md.UI.Builder.NodeStep(a.Node)
+		way, on := st.At(a.K)
 		switch {
 		case sign == 0:
 			*on = !*on
-			md.UI.Builder.Step.Both = md.UI.Builder.Step.Both && !*on
+			st.Both = st.Both && !*on
 		case *on:
 			*way = sign
 		default:
-			md.stepAll(ctx, a.K, sign)
+			md.stepFrom(ctx, a.Node, a.K, sign)
 			return
 		}
 		if *way == 0 {
@@ -118,12 +119,12 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if sign == 0 {
 			sign = a.Sign
 		}
-		md.stepAll(ctx, Links.KBoth, sign)
+		md.stepFrom(ctx, a.Node, Links.KBoth, sign)
 	case Builder.OpAllLocks:
-		md.UI.Builder.Step.ToggleBoth()
+		md.UI.Builder.NodeStep(a.Node).ToggleBoth()
 		md.persistStep()
 	case Builder.OpAllLocking:
-		st := &md.UI.Builder.Step
+		st := md.UI.Builder.NodeStep(a.Node)
 		if !m.RowsLocking() {
 			st.Locking = !st.Locking
 			md.persistStep()
@@ -131,8 +132,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	}
 }
 
-func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
-	st := &md.UI.Builder.Step
+func allStep(ctx context.Context, md *MoveDispatch, from, k string, sign int) {
+	st := md.UI.Builder.NodeStep(from)
 	way, on := st.At(k)
 	switch {
 	case *on && *way == sign:
@@ -140,20 +141,20 @@ func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
 	case st.Locking:
 		*way, *on = sign, true
 	default:
-		md.stepAll(ctx, k, sign)
+		md.stepFrom(ctx, from, k, sign)
 		return
 	}
 	md.persistStep()
 }
 
-func (md *MoveDispatch) Settle(ctx context.Context) { md.stepAll(ctx, Links.KBoth, 0) }
+func (md *MoveDispatch) Settle(ctx context.Context) { md.stepFrom(ctx, "", Links.KBoth, 0) }
 
-func (md *MoveDispatch) stepAll(ctx context.Context, k string, sign int) {
-	st := &md.UI.Builder.Step
-	st.Round++
-	h := clock.HumanTick(md.UI.Builder.TickMs)
-	for _, id := range md.UI.Builder.Nodes {
-		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, H: h, K: k, Sign: sign, LockAll: st.Locks(), FixedR: md.UI.Builder.ManyIn()})
+func (md *MoveDispatch) stepFrom(ctx context.Context, from, k string, sign int) {
+	m := &md.UI.Builder
+	m.Step.Round++
+	h := clock.HumanTick(m.TickMs)
+	for _, id := range m.Nodes {
+		md.sendLink(ctx, id, Links.StepAll{Round: m.Step.Round, H: h, K: k, Sign: sign, From: from, LockAll: m.StepOf(from).Locks(), FixedR: m.ManyIn()})
 	}
 }
 
@@ -181,7 +182,7 @@ func setCards(md *MoveDispatch, a Sheet.Act) {
 
 func (md *MoveDispatch) persistStep() {
 	if dir := md.UI.Builder.StepDir; dir != "" {
-		if err := Builder.WriteStep(dir, md.UI.Builder.Step); err != nil {
+		if err := md.UI.Builder.WriteSteps(); err != nil {
 			View.LogPersistErr("sheet_step_persist", dir, err)
 		}
 	}

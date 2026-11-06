@@ -1,6 +1,7 @@
 package Builder
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -60,6 +61,55 @@ func (s *Step) At(k string) (*int, *bool) {
 }
 
 func StepDir(nodesRoot string) string { return filepath.Join(nodesRoot, DirStep) }
+
+func (m Model) StepOf(id string) Step {
+	if id == "" {
+		return m.Step
+	}
+	if s := m.Steps[id]; s != nil {
+		return *s
+	}
+	return Step{}
+}
+
+func (m *Model) NodeStep(id string) *Step {
+	if id == "" {
+		return &m.Step
+	}
+	if m.Steps == nil {
+		m.Steps = map[string]*Step{}
+	}
+	if m.Steps[id] == nil {
+		s := Step{}
+		if m.StepDir != "" {
+			s = ReadStep(filepath.Join(m.StepDir, id))
+		}
+		m.Steps[id] = &s
+	}
+	return m.Steps[id]
+}
+
+func (m *Model) ReadNodeSteps() {
+	for _, id := range m.Nodes {
+		m.NodeStep(id)
+	}
+}
+
+func (m Model) WriteSteps() error {
+	if err := WriteStep(m.StepDir, m.Step); err != nil {
+		return err
+	}
+	for id, s := range m.Steps {
+		dir := filepath.Join(m.StepDir, id)
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
+		if err := WriteStep(dir, *s); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func ReadStep(dir string) Step {
 	var s Step
