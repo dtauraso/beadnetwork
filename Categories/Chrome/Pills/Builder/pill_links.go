@@ -44,47 +44,50 @@ var linkCols = []linkCol{
 	{"nΔr", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true, false},
 }
 
-func (c linkCol) head(m Model) Cell {
+func (c linkCol) head(m Model, id string) Cell {
 	if c.op == OpLinkPress {
-		way, on := m.Step.At(c.k)
-		lockAct := Act{Op: OpAllLock, K: c.k}
+		st := m.StepOf(id)
+		way, on := st.At(c.k)
+		lockAct := Act{Op: OpAllLock, Node: id, K: c.k}
 		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).LockedOn(*on)
 	}
 	return Text(c.label).AboveLastDigit()
 }
 
+func linkHeader(m Model, id string) []Cell {
+	labels := []Cell{Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id}).Outline(m.StepOf(id).Both).Stepping(Act{Op: OpAllBoth, Node: id}, 0)}
+	for _, c := range linkCols {
+		labels = append(labels, c.head(m, id))
+	}
+	return labels
+}
+
 func LinksPill(m Model) Pill {
 	const fit = "0.0"
 	cols := linkCols
-	var rows [][]Cell
-	for _, l := range m.allLinks() {
-		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
-		pick := OpPick
-		if l.Picked {
-			pick = OpUnpick
-		}
-		row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
-		for _, c := range cols {
-			row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && l.Picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
-		}
-		rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
-	}
-	if len(rows) == 0 {
-		rows = [][]Cell{{Text("no links")}}
-	} else {
-		labels := []Cell{Text("φ+θ+r").Acting(Act{Op: OpAllLocks}).Outline(m.Step.Both).Stepping(Act{Op: OpAllBoth}, 0)}
-		for _, c := range cols {
-			labels = append(labels, c.head(m))
-		}
-		rows = append([][]Cell{labels}, rows...)
-	}
-	var ids [][]Cell
+	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it")}}, Wraps: true}}
 	for _, id := range m.Nodes {
-		ids = append(ids, []Cell{Text(id)})
-	}
-	groups := []Group{
-		{Rows: ids},
-		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows, Slides: true},
+		var rows [][]Cell
+		own := append([]Links.Link(nil), m.Reports[id].Links...)
+		Links.SortLinks(own)
+		for _, l := range own {
+			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
+			pick := OpPick
+			if l.Picked {
+				pick = OpUnpick
+			}
+			row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
+			for _, c := range cols {
+				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && l.Picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
+			}
+			rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
+		}
+		if len(rows) == 0 {
+			rows = [][]Cell{{Text("no links")}}
+		} else {
+			rows = append([][]Cell{linkHeader(m, id)}, rows...)
+		}
+		groups = append(groups, Group{Title: "node " + id, Rows: rows, Slides: true})
 	}
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})

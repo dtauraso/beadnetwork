@@ -127,8 +127,8 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			if g.Slides {
 				vis := slideW(g, room)
 				pb := &lay.Pills[box]
-				pb.Slide = Rect{X: x, Y: popover.Y, W: vis, H: popover.H}
-				pb.MaxScrollX = colsW(g) - vis
+				pb.Slide = Rect{X: x, Y: popover.Y, W: max(pb.Slide.W, vis), H: popover.H}
+				pb.MaxScrollX = max(pb.MaxScrollX, colsW(g)-vis)
 				dx = max(0, min(st.ScrollX[p.Label], pb.MaxScrollX))
 			}
 			lay.place(box, g, x, y, dx)

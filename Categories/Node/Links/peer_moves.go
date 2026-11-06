@@ -24,7 +24,11 @@ func (p *Peer) stepR(l *Link, sign int) {
 }
 
 func (p *Peer) stepAll(m StepAll) []Envelope {
-	if l := p.pickedIn(); l != nil {
+	l := p.pickedIn()
+	if m.From != "" {
+		l = p.own[m.From]
+	}
+	if l != nil {
 		fixed := ""
 		for _, id := range []string{p.ID, l.From} {
 			if fixed == "" && slices.Contains(m.FixedR, id) {
