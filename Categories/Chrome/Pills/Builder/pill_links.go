@@ -63,7 +63,7 @@ func (m Model) linkCols() []linkCol {
 
 func (c linkCol) head(m Model) Cell {
 	if c.unfold == "" {
-		return c.mark(Text(c.label)).AboveLastDigit()
+		return Text(c.label).AboveLastDigit()
 	}
 	open := m.Unfold[c.unfold]
 	mark := " ▸"
@@ -77,14 +77,7 @@ func (c linkCol) head(m Model) Cell {
 		lockAct := Act{Op: OpAllLock, K: c.k}
 		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).LockedOn(*on).Folding(fold, open)
 	}
-	return c.mark(LitText(c.label+mark, fold, open)).AboveLastDigit()
-}
-
-func (c linkCol) mark(cell Cell) Cell {
-	if c.picked {
-		return cell.Outline(true)
-	}
-	return cell
+	return LitText(c.label+mark, fold, open).AboveLastDigit()
 }
 
 func LinksPill(m Model) Pill {
