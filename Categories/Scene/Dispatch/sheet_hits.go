@@ -22,10 +22,10 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 		} else {
 			runSheetAct(ctx, md, h.Cell.Act, 0, nil)
 		}
-	case Sheet.PartUp:
-		runSheetAct(ctx, md, h.Cell.ArrowAct(), 1, nil)
-	case Sheet.PartDown:
-		runSheetAct(ctx, md, h.Cell.ArrowAct(), -1, nil)
+	case Sheet.PartUp, Sheet.PartDown:
+		if !h.Cell.Dim {
+			runSheetAct(ctx, md, h.Cell.ArrowAct(), map[Sheet.Part]int{Sheet.PartUp: 1, Sheet.PartDown: -1}[h.Part], nil)
+		}
 	}
 	md.UI.EmitViewFrame(nil)
 }
@@ -153,7 +153,7 @@ func (md *MoveDispatch) stepAll(ctx context.Context, k string, sign int) {
 	st.Round++
 	h := clock.HumanTick(md.UI.Builder.TickMs)
 	for _, id := range md.UI.Builder.Nodes {
-		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, H: h, K: k, Sign: sign, LockAll: st.Locks(), FixedR: manyIn(md.UI.Builder)})
+		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, H: h, K: k, Sign: sign, LockAll: st.Locks(), FixedR: md.UI.Builder.ManyIn()})
 	}
 }
 

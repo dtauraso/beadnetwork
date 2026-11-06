@@ -54,10 +54,9 @@ func (s *State) Write(lay Layout) {
 		w.U8("cellSlides", flag(cb.Slides))
 		if cb.Up.W > 0 {
 			w.U8("upSlides", flag(cb.Slides))
-			stepping := cb.Cell.Kind == CellText && !cb.Cell.Locked
-			w.U8("upLit", flag(stepping || cb.Cell.Locked && cb.Cell.LockSign > 0))
-			w.U8("downLit", flag(stepping || cb.Cell.Locked && cb.Cell.LockSign < 0))
-			w.U8("upHead", flag(cb.Cell.Locked))
+			w.U8("upLit", flag(cb.Cell.Locked && cb.Cell.LockSign > 0))
+			w.U8("downLit", flag(cb.Cell.Locked && cb.Cell.LockSign < 0))
+			w.U8("upDim", flag(cb.Cell.Dim))
 		}
 	}
 

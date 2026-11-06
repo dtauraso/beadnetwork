@@ -40,7 +40,7 @@ func textW(c Cell) float32 {
 	return Panel.TextWidth(c.Key, KeyFontPx) + 2
 }
 
-func lockW() float32  { return LockGap + 2*LockArrowW + StepGap }
+func lockW() float32  { return LockGap + StepArrowW }
 func rowH() float32   { return Panel.LineHeight(ValFontPx) + 2*CellPadY }
 func titleH() float32 { return Panel.LineHeight(TitleFontPx) }
 
@@ -147,6 +147,12 @@ func stepsIn(g Group, i int) bool {
 	return false
 }
 
+func stepPair(right, y float32) (up, down Rect) {
+	half := rowH() / 2
+	ax := right - StepArrowW
+	return Rect{X: ax, Y: y, W: StepArrowW, H: half}, Rect{X: ax, Y: y + half, W: StepArrowW, H: half}
+}
+
 func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 	if g.Title != "" {
 		lay.Heads = append(lay.Heads, HeadBox{Box: box, Rect: Rect{X: x, Y: y, W: groupW(g), H: titleH()}, Title: g.Title})
@@ -162,15 +168,10 @@ func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 				tw := textW(c)
 				lx := right - lockW()
 				cb.Rect.X, cb.Rect.W = lx-tw, tw
-				ax := right - 2*LockArrowW - StepGap
-				cb.Up = Rect{X: ax, Y: y, W: LockArrowW, H: rowH()}
-				cb.Down = Rect{X: ax + LockArrowW + StepGap, Y: y, W: LockArrowW, H: rowH()}
+				cb.Up, cb.Down = stepPair(right, y)
 			} else if c.Kind == CellField && c.Steps {
 				cb.Rect.W = cols[i] - StepGap - StepArrowW
-				ax := cx + cb.Rect.W + StepGap
-				half := rowH() / 2
-				cb.Up = Rect{X: ax, Y: y, W: StepArrowW, H: half}
-				cb.Down = Rect{X: ax, Y: y + half, W: StepArrowW, H: half}
+				cb.Up, cb.Down = stepPair(cx+cols[i], y)
 			}
 			if c.Kind == CellText && c.OverLastDigit && c.Arrows.Op == "" {
 				right := cx + cols[i]

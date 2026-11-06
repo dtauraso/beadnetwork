@@ -18,8 +18,7 @@ const (
 	StepArrowW = 14
 	StepGap    = 2
 
-	LockArrowW = 16
-	LockGap    = 8
+	LockGap = 8
 
 	valueField = "-00.00"
 )
@@ -58,9 +57,12 @@ type Cell struct {
 	Arrows        Act
 	LockSign      int
 	Locked        bool
+	Dim           bool
 }
 
 func (c Cell) LockedOn(on bool) Cell { c.Locked = on; return c }
+
+func (c Cell) Dimmed(on bool) Cell { c.Dim = on; return c }
 
 func (c Cell) Stepping(a Act, lock int) Cell { c.Arrows, c.LockSign = a, lock; return c }
 
