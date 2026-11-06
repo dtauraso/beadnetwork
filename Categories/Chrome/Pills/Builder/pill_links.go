@@ -74,7 +74,7 @@ func linkHeader(m Model, id string) []Cell {
 func LinksPill(m Model) Pill {
 	const fit = "0.0"
 	cols := linkCols
-	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); clicking a name picks or unpicks it")}}, Wraps: true}, {Title: "step 1"}}
+	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); clicking a name picks or unpicks it")}}, Wraps: true}, stepGroup(m)}
 	for _, id := range m.Nodes {
 		var rows [][]Cell
 		for _, l := range m.linksFrom(id) {
@@ -94,13 +94,21 @@ func LinksPill(m Model) Pill {
 		} else {
 			rows = append([][]Cell{linkHeader(m, id)}, rows...)
 		}
-		groups = append(groups, Group{Title: "    node " + id, Rows: rows, Slides: true})
+		groups = append(groups, Group{Title: "node " + id, Rows: rows, Slides: true})
 	}
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
 	}
 	groups = append(groups, pickGroup(m), pickedGroup(m), recalcGroup(m), landsGroup(m))
 	return Pill{Label: LinksLabel, Groups: groups}
+}
+
+func stepGroup(m Model) Group {
+	rows := [][]Cell{{Text("node"), Text("table")}}
+	for _, id := range m.Nodes {
+		rows = append(rows, []Cell{Text("node " + id), Text(names(linkNames(m.linksFrom(id))))})
+	}
+	return Group{Title: "step 1", Rows: rows}
 }
 
 func num1(v float64) string {
