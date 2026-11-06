@@ -2,6 +2,8 @@ package Builder
 
 import (
 	"math"
+	"slices"
+	"sort"
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
@@ -53,6 +55,26 @@ func (m Model) RowsLocking() bool {
 }
 
 func (m Model) On() bool { return len(m.Nodes) > 0 }
+
+func (m Model) ManyIn() []string {
+	var out []string
+	for id, r := range m.Reports {
+		from := map[string]bool{}
+		for _, l := range r.Links {
+			from[l.From] = true
+		}
+		if len(from) > 1 {
+			out = append(out, id)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+func (m Model) FixedR(l Links.Link) bool {
+	fixed := m.ManyIn()
+	return slices.Contains(fixed, l.From) || slices.Contains(fixed, l.To)
+}
 
 func (m *Model) Take(r Links.Report) {
 	if m.Reports == nil {

@@ -65,7 +65,7 @@ func LinksPill(m Model) Pill {
 		}
 		row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
 		for _, c := range cols {
-			row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && l.Picked))
+			row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && l.Picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
 		}
 		rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
 	}

@@ -17,7 +17,8 @@ const BUTTON_EDGE = "#bbb";
 const BUTTON_LIT_FILL = "#0d47a1";
 
 const OUTLINE_EDGE = "#0d47a1";
-const CHOSEN_FILL = "#bbdefb";
+const DIM_FILL = "#d6d6d6";
+const DIM_INK = "#f4f4f4";
 
 const CELL_TEXT = 0;
 const CELL_FIELD = 1;
@@ -92,29 +93,18 @@ export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
   else drawButton(c, r, l.key, l.lit);
 }
 
-export function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean, lit: boolean, head: boolean): void {
+export function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean, lit: boolean, dim: boolean): void {
   if (r.w <= 0 || r.h <= 0) return;
-  if (head) {
-    roundRect(c, r.x + 0.5, r.y + 1, r.w - 1, r.h - 2, 2);
-    if (lit) {
-      c.fillStyle = CHOSEN_FILL;
-      c.fill();
-    }
-    c.strokeStyle = OUTLINE_EDGE;
-    c.lineWidth = lit ? 2 : 1;
-    c.stroke();
-  } else {
-    roundRect(c, r.x, r.y + 0.5, r.w, r.h - 1, 2);
-    c.fillStyle = lit ? BUTTON_LIT_FILL : CELL_FILL;
-    c.fill();
-  }
+  roundRect(c, r.x, r.y + 0.5, r.w, r.h - 1, 2);
+  c.fillStyle = dim ? DIM_FILL : lit ? BUTTON_LIT_FILL : CELL_FILL;
+  c.fill();
   const cx = r.x + r.w / 2, cy = r.y + r.h / 2, half = Math.min(r.w, r.h) * 0.28;
   c.beginPath();
   c.moveTo(cx - half, cy + (up ? 1 : -1) * half * 0.6);
   c.lineTo(cx + half, cy + (up ? 1 : -1) * half * 0.6);
   c.lineTo(cx, cy - (up ? 1 : -1) * half * 0.6);
   c.closePath();
-  c.fillStyle = head ? TEXT_LIT_INK : VAL_INK;
+  c.fillStyle = dim ? DIM_INK : VAL_INK;
   c.fill();
 }
 
