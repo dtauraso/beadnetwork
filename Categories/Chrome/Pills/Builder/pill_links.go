@@ -104,9 +104,16 @@ func LinksPill(m Model) Pill {
 }
 
 func stepGroup(m Model) Group {
-	rows := [][]Cell{{Text("node"), Text("table")}}
+	rows := [][]Cell{{Text("node").Outline(false), Text("table").Outline(false)}}
 	for _, id := range m.Nodes {
-		rows = append(rows, []Cell{Text("node " + id), Text(names(linkNames(m.linksFrom(id))))})
+		row := []Cell{Text("node " + id).Outline(false)}
+		for _, l := range m.linksFrom(id) {
+			row = append(row, Text(l.Name()).Outline(false))
+		}
+		if len(row) == 1 {
+			row = append(row, Text("—").Outline(false))
+		}
+		rows = append(rows, row)
 	}
 	return Group{Title: "step 1", Rows: rows}
 }
