@@ -24,6 +24,16 @@ func (m Model) allLinks() []Links.Link {
 	return out
 }
 
+func (m Model) linksFrom(id string) []Links.Link {
+	var out []Links.Link
+	for _, l := range m.allLinks() {
+		if l.From == id {
+			out = append(out, l)
+		}
+	}
+	return out
+}
+
 type linkCol struct {
 	label  string
 	value  func(Links.Link) float64
@@ -68,9 +78,7 @@ func LinksPill(m Model) Pill {
 	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it")}}, Wraps: true}}
 	for _, id := range m.Nodes {
 		var rows [][]Cell
-		own := append([]Links.Link(nil), m.Reports[id].Links...)
-		Links.SortLinks(own)
-		for _, l := range own {
+		for _, l := range m.linksFrom(id) {
 			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
 			pick := OpPick
 			if l.Picked {
