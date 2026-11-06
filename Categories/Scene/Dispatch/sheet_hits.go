@@ -111,6 +111,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		switch {
 		case sign == 0:
 			*on = !*on
+			md.UI.Builder.Step.Both = md.UI.Builder.Step.Both && !*on
 		case *on:
 			*way = sign
 		default:
@@ -127,7 +128,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 		md.stepAll(ctx, Links.KBoth, sign)
 	case Builder.OpAllLocks:
-		md.UI.Builder.Step.ToggleLocks()
+		md.UI.Builder.Step.ToggleBoth()
 		md.persistStep()
 	case Builder.OpAllLocking:
 		st := &md.UI.Builder.Step
