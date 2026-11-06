@@ -19,13 +19,14 @@ const BUTTON_LIT_FILL = "#0d47a1";
 const OUTLINE_EDGE = "#0d47a1";
 const DIM_FILL = "#d6d6d6";
 const DIM_INK = "#f4f4f4";
+const DIM_TEXT_INK = "#9e9e9e";
 
 const CELL_TEXT = 0;
 const CELL_FIELD = 1;
 
 export type R = { x: number; y: number; w: number; h: number };
 
-export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean };
+export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean };
 
 function drawField(c: CanvasRenderingContext2D, r: R, key: string, value: string, editing: boolean): void {
   roundRect(c, r.x, r.y, r.w, r.h, CELL_RADIUS);
@@ -64,14 +65,14 @@ function drawText(c: CanvasRenderingContext2D, r: R, text: string, lit: boolean)
   c.fillText(text, r.x + 1, r.y + r.h / 2);
 }
 
-function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: boolean, lit: boolean): void {
+function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: boolean, lit: boolean, dim = false): void {
   if (outlined) {
     roundRect(c, r.x + 0.75, r.y + 0.75, r.w - 1.5, r.h - 1.5, CELL_RADIUS);
     c.strokeStyle = OUTLINE_EDGE;
     c.lineWidth = 1.5;
     c.stroke();
   }
-  c.fillStyle = lit ? TEXT_LIT_INK : TEXT_INK;
+  c.fillStyle = dim ? DIM_TEXT_INK : lit ? TEXT_LIT_INK : TEXT_INK;
   c.font = canvasFont(KEY_FONT_PX, lit ? 700 : 500);
   c.textAlign = "center";
   c.textBaseline = "middle";
@@ -79,7 +80,8 @@ function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: bo
 }
 
 export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
-  if (l.kind === CELL_FIELD) {
+  if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value, l.outlined || l.editing, l.lit, l.dim);
+  else if (l.kind === CELL_FIELD) {
     drawField(c, r, l.key, l.value, l.editing);
     if (l.outlined) {
       roundRect(c, r.x - 1.5, r.y - 1.5, r.w + 3, r.h + 3, CELL_RADIUS + 1);
