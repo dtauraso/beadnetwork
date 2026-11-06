@@ -74,8 +74,10 @@ func linkHeader(m Model, id string) []Cell {
 
 func LinksPill(m Model) Pill {
 	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it")}}, Wraps: true}}
-	groups = append(groups, Group{Title: "step 1"})
-	groups = append(groups, nodeTables(m, false)...)
+	for _, step := range []string{"step 1", "step 2"} {
+		groups = append(groups, Group{Title: step})
+		groups = append(groups, nodeTables(m, false)...)
+	}
 	groups = append(groups, nodeTables(m, true)...)
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
