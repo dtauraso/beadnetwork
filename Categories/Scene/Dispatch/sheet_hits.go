@@ -126,6 +126,9 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 			sign = a.Sign
 		}
 		md.stepAll(ctx, Links.KBoth, sign)
+	case Builder.OpAllLocks:
+		md.UI.Builder.Step.ToggleLocks()
+		md.persistStep()
 	case Builder.OpAllLocking:
 		st := &md.UI.Builder.Step
 		if !m.RowsLocking() {

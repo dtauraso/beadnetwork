@@ -40,6 +40,17 @@ func (s Step) Locks() Links.Lock {
 	return l
 }
 
+func (s *Step) ToggleLocks() {
+	turnOn := s.Locks() == (Links.Lock{})
+	for _, k := range []string{Links.KPhi, Links.KTheta, Links.KR} {
+		way, on := s.At(k)
+		*on = turnOn
+		if *way == 0 {
+			*way = 1
+		}
+	}
+}
+
 func (s *Step) At(k string) (*int, *bool) {
 	switch k {
 	case Links.KTheta:
