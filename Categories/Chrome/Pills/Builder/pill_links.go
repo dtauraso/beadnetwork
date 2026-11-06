@@ -57,20 +57,25 @@ func LinksPill(m Model) Pill {
 	const fit = "0.0"
 	cols := linkCols
 	var rows [][]Cell
-	for _, l := range m.allLinks() {
-		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
-		pick := OpPick
-		if l.Picked {
-			pick = OpUnpick
+	for _, id := range m.Nodes {
+		rows = append(rows, []Cell{Text(id)})
+		own := append([]Links.Link(nil), m.Reports[id].Links...)
+		Links.SortLinks(own)
+		for _, l := range own {
+			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
+			pick := OpPick
+			if l.Picked {
+				pick = OpUnpick
+			}
+			row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
+			for _, c := range cols {
+				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && l.Picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
+			}
+			rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
 		}
-		row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
-		for _, c := range cols {
-			row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && l.Picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
-		}
-		rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
 	}
-	if len(rows) == 0 {
-		rows = [][]Cell{{Text("no links")}}
+	if len(m.allLinks()) == 0 {
+		rows = append(rows, []Cell{Text("no links")})
 	} else {
 		labels := []Cell{Text("φ+θ+r").Acting(Act{Op: OpAllLocks}).Outline(m.Step.Both).Stepping(Act{Op: OpAllBoth}, 0)}
 		for _, c := range cols {
@@ -78,12 +83,7 @@ func LinksPill(m Model) Pill {
 		}
 		rows = append([][]Cell{labels}, rows...)
 	}
-	var ids [][]Cell
-	for _, id := range m.Nodes {
-		ids = append(ids, []Cell{Text(id)})
-	}
 	groups := []Group{
-		{Rows: ids},
 		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows, Slides: true},
 	}
 	if m.Refused != "" {
