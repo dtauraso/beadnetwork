@@ -73,9 +73,20 @@ func linkHeader(m Model, id string) []Cell {
 }
 
 func LinksPill(m Model) Pill {
-	const fit = "0.0"
-	cols := linkCols
 	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it")}}, Wraps: true}}
+	groups = append(groups, Group{Title: "step 1"})
+	groups = append(groups, nodeTables(m, false)...)
+	groups = append(groups, nodeTables(m, true)...)
+	if m.Refused != "" {
+		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
+	}
+	groups = append(groups, pickGroup(m), pickedGroup(m), recalcGroup(m), landsGroup(m))
+	return Pill{Label: LinksLabel, Groups: groups}
+}
+
+func nodeTables(m Model, selected bool) []Group {
+	const fit = "0.0"
+	var groups []Group
 	for _, id := range m.Nodes {
 		var rows [][]Cell
 		for _, l := range m.linksFrom(id) {
@@ -84,24 +95,24 @@ func LinksPill(m Model) Pill {
 			if l.Picked {
 				pick = OpUnpick
 			}
-			row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
-			for _, c := range cols {
-				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && l.Picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
+			row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(selected && l.Picked)}
+			for _, c := range linkCols {
+				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(selected && c.picked && l.Picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
 			}
 			rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
 		}
 		if len(rows) == 0 {
 			rows = [][]Cell{{Text("no links")}}
 		} else {
-			rows = append([][]Cell{linkHeader(m, id)}, rows...)
+			head := linkHeader(m, id)
+			for i := range head {
+				head[i].Outlined = selected && head[i].Outlined
+			}
+			rows = append([][]Cell{head}, rows...)
 		}
 		groups = append(groups, Group{Title: "node " + id, Rows: rows, Slides: true})
 	}
-	if m.Refused != "" {
-		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
-	}
-	groups = append(groups, pickGroup(m), pickedGroup(m), recalcGroup(m), landsGroup(m))
-	return Pill{Label: LinksLabel, Groups: groups}
+	return groups
 }
 
 func num1(v float64) string {
