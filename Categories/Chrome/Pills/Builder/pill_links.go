@@ -35,23 +35,22 @@ func (m Model) linksFrom(id string) []Links.Link {
 }
 
 type linkCol struct {
-	label  string
-	value  func(Links.Link) float64
-	op, k  string
-	typed  bool
-	picked bool
+	label string
+	value func(Links.Link) float64
+	op, k string
+	typed bool
 }
 
 var linkCols = []linkCol{
-	{"φ", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, false},
-	{"Δφ", func(l Links.Link) float64 { return float64(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false, true},
-	{"nΔφ", func(l Links.Link) float64 { return float64(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true},
-	{"θ", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, false},
-	{"Δθ", func(l Links.Link) float64 { return float64(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false, true},
-	{"nΔθ", func(l Links.Link) float64 { return float64(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true},
-	{"r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, false},
-	{"Δr", func(l Links.Link) float64 { return float64(l.Delta.R) }, OpLinkPress, Links.KR, false, false},
-	{"nΔr", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true, false},
+	{"φ", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true},
+	{"Δφ", func(l Links.Link) float64 { return float64(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false},
+	{"nΔφ", func(l Links.Link) float64 { return float64(l.Increment.Phi) }, OpIncrement, Links.KPhi, true},
+	{"θ", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true},
+	{"Δθ", func(l Links.Link) float64 { return float64(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false},
+	{"nΔθ", func(l Links.Link) float64 { return float64(l.Increment.Theta) }, OpIncrement, Links.KTheta, true},
+	{"r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true},
+	{"Δr", func(l Links.Link) float64 { return float64(l.Delta.R) }, OpLinkPress, Links.KR, false},
+	{"nΔr", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true},
 }
 
 func (c linkCol) head(m Model, id string) Cell {
@@ -75,7 +74,7 @@ func linkHeader(m Model, id string) []Cell {
 func LinksPill(m Model) Pill {
 	const fit = "0.0"
 	cols := linkCols
-	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it")}}, Wraps: true}}
+	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); clicking a name picks or unpicks it")}}, Wraps: true}, {Title: "step 1"}}
 	for _, id := range m.Nodes {
 		var rows [][]Cell
 		for _, l := range m.linksFrom(id) {
@@ -84,9 +83,9 @@ func LinksPill(m Model) Pill {
 			if l.Picked {
 				pick = OpUnpick
 			}
-			row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
+			row := []Cell{Text(l.Name()).Acting(act(pick, ""))}
 			for _, c := range cols {
-				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && l.Picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
+				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
 			}
 			rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
 		}
@@ -95,7 +94,7 @@ func LinksPill(m Model) Pill {
 		} else {
 			rows = append([][]Cell{linkHeader(m, id)}, rows...)
 		}
-		groups = append(groups, Group{Title: "node " + id, Rows: rows, Slides: true})
+		groups = append(groups, Group{Title: "    node " + id, Rows: rows, Slides: true})
 	}
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
