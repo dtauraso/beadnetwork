@@ -78,7 +78,12 @@ func LinksPill(m Model) Pill {
 		}
 		rows = append([][]Cell{labels}, rows...)
 	}
+	var ids [][]Cell
+	for _, id := range m.Nodes {
+		ids = append(ids, []Cell{Text(id)})
+	}
 	groups := []Group{
+		{Rows: ids},
 		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows, Slides: true},
 	}
 	if m.Refused != "" {
