@@ -58,7 +58,7 @@ func signButtons(lockOf func(k string) int, act func(k string, sign int) Act, k 
 func pickedGroup(m Model) Group {
 	var rows [][]Cell
 	for _, id := range m.Nodes {
-		if len(m.Reports[id].Links) > 0 {
+		if len(m.linksFrom(id)) > 0 {
 			rows = append(rows, allRow(m, id))
 		}
 		rows = append(rows, pickedRows(m, id)...)
@@ -111,7 +111,7 @@ func allRow(m Model, id string) []Cell {
 	}
 	press := func(k string, sign int) Act { return Act{Op: OpAllStep, Node: id, K: k, Sign: sign} }
 	locked := locks != (Links.Lock{})
-	for _, l := range m.Reports[id].Links {
+	for _, l := range m.linksFrom(id) {
 		locked = locked || l.Lock != (Links.Lock{})
 	}
 	up, down := "+", "−"
