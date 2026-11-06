@@ -13,7 +13,6 @@ const LinksLabel = "Links"
 const (
 	OpLinkStart = "link-start"
 	OpLinkPress = "link-press"
-	OpUnfold    = "unfold"
 )
 
 func (m Model) allLinks() []Links.Link {
@@ -27,62 +26,36 @@ func (m Model) allLinks() []Links.Link {
 
 type linkCol struct {
 	label  string
-	unfold string
 	value  func(Links.Link) float64
 	op, k  string
 	typed  bool
-	steps  bool
 	picked bool
 }
 
-func (m Model) linkCols() []linkCol {
-	chain := func(cols ...linkCol) []linkCol {
-		out := []linkCol{cols[0]}
-		for i := 1; i < len(cols) && m.Unfold[cols[i-1].unfold]; i++ {
-			out = append(out, cols[i])
-		}
-		return out
-	}
-	var cols []linkCol
-	cols = append(cols, chain(
-		linkCol{"φ", "phi", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, true, false},
-		linkCol{"Δφ", "dphi", func(l Links.Link) float64 { return float64(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false, true, true},
-		linkCol{"nΔφ", "", func(l Links.Link) float64 { return float64(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true, true},
-	)...)
-	cols = append(cols, chain(
-		linkCol{"θ", "theta", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, true, false},
-		linkCol{"Δθ", "dtheta", func(l Links.Link) float64 { return float64(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false, true, true},
-		linkCol{"nΔθ", "", func(l Links.Link) float64 { return float64(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true, true},
-	)...)
-	return append(cols, chain(
-		linkCol{"r", "r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, true, false},
-		linkCol{"Δr", "dr", func(l Links.Link) float64 { return float64(l.Delta.R) }, OpLinkPress, Links.KR, false, true, false},
-		linkCol{"nΔr", "", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true, true, false},
-	)...)
+var linkCols = []linkCol{
+	{"φ", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, false},
+	{"Δφ", func(l Links.Link) float64 { return float64(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false, true},
+	{"nΔφ", func(l Links.Link) float64 { return float64(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true},
+	{"θ", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, false},
+	{"Δθ", func(l Links.Link) float64 { return float64(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false, true},
+	{"nΔθ", func(l Links.Link) float64 { return float64(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true},
+	{"r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, false},
+	{"Δr", func(l Links.Link) float64 { return float64(l.Delta.R) }, OpLinkPress, Links.KR, false, false},
+	{"nΔr", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true, false},
 }
 
 func (c linkCol) head(m Model) Cell {
-	if c.unfold == "" {
-		return Text(c.label).AboveLastDigit()
-	}
-	open := m.Unfold[c.unfold]
-	mark := " ▸"
-	if open {
-		mark = " ▾"
-	}
-	fold := Act{Op: OpUnfold, K: c.unfold}
 	if c.op == OpLinkPress {
-		st := m.Step
-		way, on := st.At(c.k)
+		way, on := m.Step.At(c.k)
 		lockAct := Act{Op: OpAllLock, K: c.k}
-		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).LockedOn(*on).Folding(fold, open)
+		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).LockedOn(*on)
 	}
-	return LitText(c.label+mark, fold, open).AboveLastDigit()
+	return Text(c.label).AboveLastDigit()
 }
 
 func LinksPill(m Model) Pill {
 	const fit = "0.0"
-	cols := m.linkCols()
+	cols := linkCols
 	var rows [][]Cell
 	for _, l := range m.allLinks() {
 		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
@@ -92,7 +65,7 @@ func LinksPill(m Model) Pill {
 		}
 		row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
 		for _, c := range cols {
-			row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, c.steps).Fitting(fit).Outline(c.picked && l.Picked))
+			row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && l.Picked))
 		}
 		rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
 	}

@@ -27,9 +27,6 @@ func cellW(c Cell) float32 {
 		return Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
 	}
 	w := textW(c)
-	if c.Fold.Op != "" {
-		w += foldW()
-	}
 	if c.Arrows.Op != "" {
 		w += lockW()
 	}
@@ -44,7 +41,6 @@ func textW(c Cell) float32 {
 }
 
 func lockW() float32  { return LockGap + 2*LockArrowW + StepGap }
-func foldW() float32  { return Panel.TextWidth("▾", KeyFontPx) + 2*CellPadX }
 func rowH() float32   { return Panel.LineHeight(ValFontPx) + 2*CellPadY }
 func titleH() float32 { return Panel.LineHeight(TitleFontPx) }
 
@@ -165,12 +161,6 @@ func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 				right := cx + cols[i]
 				tw := textW(c)
 				lx := right - lockW()
-				if c.Fold.Op != "" {
-					lx -= foldW()
-					mark := LitText(c.FoldMark(), c.Fold, c.Open)
-					mark.Boxed = true
-					lay.Cells = append(lay.Cells, CellBox{Box: box, Cell: mark, Rect: Rect{X: lx, Y: y, W: foldW(), H: rowH()}, Slides: g.Slides})
-				}
 				cb.Rect.X, cb.Rect.W = lx-tw, tw
 				ax := right - 2*LockArrowW - StepGap
 				cb.Up = Rect{X: ax, Y: y, W: LockArrowW, H: rowH()}
