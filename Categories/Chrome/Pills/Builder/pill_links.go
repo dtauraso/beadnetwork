@@ -53,12 +53,20 @@ func (c linkCol) head(m Model) Cell {
 	return Text(c.label).AboveLastDigit()
 }
 
+func linkHeader(m Model) []Cell {
+	labels := []Cell{Text("φ+θ+r").Acting(Act{Op: OpAllLocks}).Outline(m.Step.Both).Stepping(Act{Op: OpAllBoth}, 0)}
+	for _, c := range linkCols {
+		labels = append(labels, c.head(m))
+	}
+	return labels
+}
+
 func LinksPill(m Model) Pill {
 	const fit = "0.0"
 	cols := linkCols
-	var rows [][]Cell
+	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it")}}, Wraps: true}}
 	for _, id := range m.Nodes {
-		rows = append(rows, []Cell{Text(id)})
+		var rows [][]Cell
 		own := append([]Links.Link(nil), m.Reports[id].Links...)
 		Links.SortLinks(own)
 		for _, l := range own {
@@ -73,18 +81,12 @@ func LinksPill(m Model) Pill {
 			}
 			rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
 		}
-	}
-	if len(m.allLinks()) == 0 {
-		rows = append(rows, []Cell{Text("no links")})
-	} else {
-		labels := []Cell{Text("φ+θ+r").Acting(Act{Op: OpAllLocks}).Outline(m.Step.Both).Stepping(Act{Op: OpAllBoth}, 0)}
-		for _, c := range cols {
-			labels = append(labels, c.head(m))
+		if len(rows) == 0 {
+			rows = [][]Cell{{Text("no links")}}
+		} else {
+			rows = append([][]Cell{linkHeader(m)}, rows...)
 		}
-		rows = append([][]Cell{labels}, rows...)
-	}
-	groups := []Group{
-		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows, Slides: true},
+		groups = append(groups, Group{Title: "node " + id, Rows: rows, Slides: true})
 	}
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
