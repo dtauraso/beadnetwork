@@ -17,15 +17,14 @@ const BUTTON_EDGE = "#bbb";
 const BUTTON_LIT_FILL = "#0d47a1";
 
 const OUTLINE_EDGE = "#0d47a1";
-const DIM_FILL = "#d6d6d6";
-const DIM_INK = "#f4f4f4";
+const DIM_TEXT_INK = "#9e9e9e";
 
 const CELL_TEXT = 0;
 const CELL_FIELD = 1;
 
 export type R = { x: number; y: number; w: number; h: number };
 
-export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean };
+export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean };
 
 function drawField(c: CanvasRenderingContext2D, r: R, key: string, value: string, editing: boolean): void {
   roundRect(c, r.x, r.y, r.w, r.h, CELL_RADIUS);
@@ -64,14 +63,12 @@ function drawText(c: CanvasRenderingContext2D, r: R, text: string, lit: boolean)
   c.fillText(text, r.x + 1, r.y + r.h / 2);
 }
 
-function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: boolean, lit: boolean): void {
-  if (outlined) {
-    roundRect(c, r.x + 0.75, r.y + 0.75, r.w - 1.5, r.h - 1.5, CELL_RADIUS);
-    c.strokeStyle = OUTLINE_EDGE;
-    c.lineWidth = 1.5;
-    c.stroke();
-  }
-  c.fillStyle = lit ? TEXT_LIT_INK : TEXT_INK;
+function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: boolean, lit: boolean, dim = false): void {
+  roundRect(c, r.x + 0.75, r.y + 0.75, r.w - 1.5, r.h - 1.5, CELL_RADIUS);
+  c.strokeStyle = outlined ? OUTLINE_EDGE : BUTTON_EDGE;
+  c.lineWidth = outlined ? 1.5 : 1;
+  c.stroke();
+  c.fillStyle = dim ? DIM_TEXT_INK : lit ? TEXT_LIT_INK : TEXT_INK;
   c.font = canvasFont(KEY_FONT_PX, lit ? 700 : 500);
   c.textAlign = "center";
   c.textBaseline = "middle";
@@ -79,7 +76,8 @@ function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: bo
 }
 
 export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
-  if (l.kind === CELL_FIELD) {
+  if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value, l.outlined || l.editing, l.lit, l.dim);
+  else if (l.kind === CELL_FIELD) {
     drawField(c, r, l.key, l.value, l.editing);
     if (l.outlined) {
       roundRect(c, r.x - 1.5, r.y - 1.5, r.w + 3, r.h + 3, CELL_RADIUS + 1);
@@ -95,16 +93,18 @@ export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
 
 export function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean, lit: boolean, dim: boolean): void {
   if (r.w <= 0 || r.h <= 0) return;
-  roundRect(c, r.x, r.y + 0.5, r.w, r.h - 1, 2);
-  c.fillStyle = dim ? DIM_FILL : lit ? BUTTON_LIT_FILL : CELL_FILL;
-  c.fill();
+  const on = lit && !dim;
+  roundRect(c, r.x + 0.75, r.y + 1, r.w - 1.5, r.h - 2, 2);
+  c.strokeStyle = on ? OUTLINE_EDGE : BUTTON_EDGE;
+  c.lineWidth = on ? 1.5 : 1;
+  c.stroke();
   const cx = r.x + r.w / 2, cy = r.y + r.h / 2, half = Math.min(r.w, r.h) * 0.28;
   c.beginPath();
   c.moveTo(cx - half, cy + (up ? 1 : -1) * half * 0.6);
   c.lineTo(cx + half, cy + (up ? 1 : -1) * half * 0.6);
   c.lineTo(cx, cy - (up ? 1 : -1) * half * 0.6);
   c.closePath();
-  c.fillStyle = dim ? DIM_INK : VAL_INK;
+  c.fillStyle = dim ? DIM_TEXT_INK : TEXT_INK;
   c.fill();
 }
 

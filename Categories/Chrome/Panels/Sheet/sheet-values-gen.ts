@@ -54,6 +54,7 @@ export const SHEET_VALUE_NAMES = [
   "upLit",
   "downLit",
   "upDim",
+  "cellDim",
 ] as const;
 
 export type SheetValueName = (typeof SHEET_VALUE_NAMES)[number];
