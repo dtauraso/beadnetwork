@@ -32,9 +32,6 @@ type Model struct {
 	Step    Step
 	StepDir string
 
-	Unfold    map[string]bool
-	UnfoldDir string
-
 	Seqs    []Seq
 	OpenSeq int
 
@@ -56,13 +53,6 @@ func (m Model) RowsLocking() bool {
 }
 
 func (m Model) On() bool { return len(m.Nodes) > 0 }
-
-func (m *Model) ToggleUnfold(k string) {
-	if m.Unfold == nil {
-		m.Unfold = map[string]bool{}
-	}
-	m.Unfold[k] = !m.Unfold[k]
-}
 
 func (m *Model) Take(r Links.Report) {
 	if m.Reports == nil {
