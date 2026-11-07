@@ -63,8 +63,10 @@ func (s *PillStack) AddChip(label string) Rect {
 	return r
 }
 
+func PillH() float32 { return LineHeight(PillFontPx) + 2*PillPadY + 2 }
+
 func (s *PillStack) AddPill() Rect {
-	h := LineHeight(PillFontPx) + 2*PillPadY + 2
+	h := PillH()
 	r := Rect{X: s.X(), Y: s.y, W: s.width, H: h}
 	s.y += h
 	return r
@@ -147,7 +149,7 @@ func (s *PillStack) AddDock(contentH, h, barH, scroll float32) (bar, box Rect, c
 	if h <= 0 {
 		h = s.viewH * DockDefaultH
 	}
-	pillBelow := LineHeight(PillFontPx) + 2*PillPadY + 2 + PillGap
+	pillBelow := PillH() + PillGap
 	h = max(barH, min(h, s.viewH-s.y-pillBelow-PopoverGap))
 	top := s.viewH - h
 	bar = Rect{X: OriginX, Y: top, W: s.viewW - OriginX - PillRight, H: barH}

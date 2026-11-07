@@ -25,6 +25,9 @@ type Hit struct {
 
 func (l Layout) Hit(x, y float64) Hit {
 	for _, p := range l.Pills {
+		if p.Bar && Panel.HitRect(p.Pill, x, y) {
+			return Hit{Part: PartBody, Label: p.Label, Cell: Cell{Act: Act{Op: OpDockMax, Node: p.Label}}, Rect: p.Pill}
+		}
 		if p.Pill.W > 0 && Panel.HitRect(p.Pill, x, y) {
 			return Hit{Part: PartPill, Label: p.Label, Rect: p.Pill}
 		}
