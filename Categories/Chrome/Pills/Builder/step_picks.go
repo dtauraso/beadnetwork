@@ -17,20 +17,20 @@ const (
 
 var StepNumbers = []int{1, 2}
 
-type StepPick struct {
+type StepEdge struct {
 	Step     int
 	From, To string
 }
 
 func (m Model) StepPicked(step int, l Links.Link) bool {
-	return m.StepPicks[StepPick{step, l.From, l.To}]
+	return m.StepPicks[StepEdge{step, l.From, l.To}]
 }
 
 func (m *Model) ToggleStepPick(step int, from, to string) {
 	if m.StepPicks == nil {
-		m.StepPicks = map[StepPick]bool{}
+		m.StepPicks = map[StepEdge]bool{}
 	}
-	k := StepPick{step, from, to}
+	k := StepEdge{step, from, to}
 	m.StepPicks[k] = !m.StepPicks[k]
 }
 
@@ -42,7 +42,7 @@ func (m *Model) ReadStepPicks() {
 	if m.StepDir == "" {
 		return
 	}
-	m.StepPicks = map[StepPick]bool{}
+	m.StepPicks = map[StepEdge]bool{}
 	for _, step := range StepNumbers {
 		dir := stepPicksDir(m.StepDir, step)
 		entries, err := os.ReadDir(dir)
@@ -56,7 +56,7 @@ func (m *Model) ReadStepPicks() {
 			}
 			var on bool
 			if Links.ReadIfExists(filepath.Join(dir, e.Name()), &on) && on {
-				m.StepPicks[StepPick{step, from, to}] = true
+				m.StepPicks[StepEdge{step, from, to}] = true
 			}
 		}
 	}
