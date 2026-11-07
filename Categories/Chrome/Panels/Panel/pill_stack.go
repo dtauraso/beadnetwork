@@ -151,11 +151,13 @@ func (s *PillStack) DockH(h float32) float32 {
 	return max(DockMinH, min(h, s.viewH-s.y-PopoverGap))
 }
 
-func (s *PillStack) AddDock(contentH, h, scroll float32) (box Rect, contentX, contentY, maxScroll float32) {
+func (s *PillStack) AddDock(contentH, h, barH, scroll float32) (bar, box Rect, contentX, contentY, maxScroll float32) {
 	h = s.DockH(h)
-	_, scroll, maxScroll = ClipToRoom(contentH+2*PopoverPad, h, scroll)
-	box = Rect{X: OriginX, Y: s.viewH - h, W: s.viewW - OriginX - PillRight, H: h}
-	return box, box.X + PopoverPad, box.Y + PopoverPad - scroll, maxScroll
+	top := s.viewH - h
+	bar = Rect{X: OriginX, Y: top, W: s.viewW - OriginX - PillRight, H: barH}
+	box = Rect{X: bar.X, Y: top + barH, W: bar.W, H: h - barH}
+	_, scroll, maxScroll = ClipToRoom(contentH+2*PopoverPad, box.H, scroll)
+	return bar, box, box.X + PopoverPad, box.Y + PopoverPad - scroll, maxScroll
 }
 
 func (s *PillStack) DockRoomW() float32 { return s.viewW - OriginX - PillRight - 2*PopoverPad }

@@ -25,7 +25,7 @@ type Hit struct {
 
 func (l Layout) Hit(x, y float64) Hit {
 	for _, p := range l.Pills {
-		if Panel.HitRect(p.Pill, x, y) {
+		if p.Pill.W > 0 && Panel.HitRect(p.Pill, x, y) {
 			return Hit{Part: PartPill, Label: p.Label, Rect: p.Pill}
 		}
 		if p.Open && p.Grab.W > 0 && Panel.HitRect(p.Grab, x, y) {
