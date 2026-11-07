@@ -27,12 +27,12 @@ func (s *State) ToggleMax(label string) {
 	if s.Max == nil {
 		s.Max = map[string]bool{}
 	}
-	s.Max[label] = !s.Max[label]
-	on := int32(0)
 	if s.Max[label] {
-		on = 1
+		s.SetHeight(label, 1)
+		return
 	}
-	s.save(label, "max", on)
+	s.Max[label] = true
+	s.save(label, "max", 1)
 }
 
 func (s *State) StartResize(label string) { s.Resizing = label }

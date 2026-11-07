@@ -139,20 +139,15 @@ func (s *PillStack) AddWideScrollingPopover(contentW, contentH, scroll float32) 
 }
 
 const (
-	DockMinH     = 80
 	DockDefaultH = 0.4
 	DockGrabH    = 8
 )
 
-func (s *PillStack) DockH(h float32) float32 {
+func (s *PillStack) AddDock(contentH, h, barH, scroll float32) (bar, box Rect, contentX, contentY, maxScroll float32) {
 	if h <= 0 {
 		h = s.viewH * DockDefaultH
 	}
-	return max(DockMinH, min(h, s.viewH-s.y-PopoverGap))
-}
-
-func (s *PillStack) AddDock(contentH, h, barH, scroll float32) (bar, box Rect, contentX, contentY, maxScroll float32) {
-	h = s.DockH(h)
+	h = max(barH, min(h, s.viewH-s.y-PopoverGap))
 	top := s.viewH - h
 	bar = Rect{X: OriginX, Y: top, W: s.viewW - OriginX - PillRight, H: barH}
 	box = Rect{X: bar.X, Y: top + barH, W: bar.W, H: h - barH}
