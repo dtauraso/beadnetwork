@@ -46,6 +46,14 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
 	m := md.UI.Builder
 	md.UI.Builder.Refused = ""
+	if Builder.IsStepEdit(a) {
+		md.UI.Builder.Refused = md.UI.Builder.StepEdit(a, sign, typed)
+		md.persistStep()
+		if l := md.UI.Builder.StepLinks[Builder.StepEdge{Step: a.I, From: a.Node, To: a.To}]; l != nil && md.UI.Builder.Refused == "" {
+			md.sendLink(ctx, a.To, Links.SetLink{From: a.Node, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
+		}
+		return
+	}
 	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) {
 		return
 	}
@@ -180,32 +188,5 @@ func setCards(md *MoveDispatch, a Sheet.Act) {
 		if err := Builder.WriteCards(m.CardsDir, *c); err != nil {
 			View.LogPersistErr("sheet_cards_persist", m.CardsDir, err)
 		}
-	}
-}
-
-func (md *MoveDispatch) persistStep() {
-	if dir := md.UI.Builder.StepDir; dir != "" {
-		if err := md.UI.Builder.WriteSteps(); err != nil {
-			View.LogPersistErr("sheet_step_persist", dir, err)
-		}
-	}
-}
-
-func DrainLinkReports(md *MoveDispatch) {
-	if md == nil || md.Links == nil {
-		return
-	}
-	m := &md.UI.Builder
-	rs := md.Links.TakeReports()
-	for _, r := range rs {
-		m.Take(r)
-	}
-	before := m.TimeKey()
-	for _, t := range md.Links.TakeTimings() {
-		m.TakeTiming(t)
-	}
-	m.Now = clock.HumanTick(m.TickMs)
-	if len(rs) > 0 || m.TimeKey() != before {
-		md.UI.EmitViewFrame(nil)
 	}
 }

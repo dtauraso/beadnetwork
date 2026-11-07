@@ -16,6 +16,16 @@ func (p *Peer) setStart(m SetStart) []Envelope {
 	return p.take(l)
 }
 
+func (p *Peer) setLink(m SetLink) []Envelope {
+	l, ok := p.own[m.From]
+	if !ok {
+		return nil
+	}
+	l.Start, l.Delta, l.Increment = m.Start, m.Delta, m.Increment
+	p.touched(m.From)
+	return p.take(l)
+}
+
 func (p *Peer) press(m Press) []Envelope {
 	l, ok := p.own[m.From]
 	if !ok {

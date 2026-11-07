@@ -149,3 +149,33 @@ func (md *MoveDispatch) refuseFixedR(a Sheet.Act, stays string) bool {
 	}
 	return false
 }
+
+func (md *MoveDispatch) persistStep() {
+	if dir := md.UI.Builder.StepDir; dir != "" {
+		if err := md.UI.Builder.WriteSteps(); err != nil {
+			View.LogPersistErr("sheet_step_persist", dir, err)
+		}
+	}
+}
+
+func DrainLinkReports(md *MoveDispatch) {
+	if md == nil || md.Links == nil {
+		return
+	}
+	m := &md.UI.Builder
+	rs := md.Links.TakeReports()
+	for _, r := range rs {
+		m.Take(r)
+	}
+	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {
+		md.persistStep()
+	}
+	before := m.TimeKey()
+	for _, t := range md.Links.TakeTimings() {
+		m.TakeTiming(t)
+	}
+	m.Now = clock.HumanTick(m.TickMs)
+	if len(rs) > 0 || m.TimeKey() != before {
+		md.UI.EmitViewFrame(nil)
+	}
+}

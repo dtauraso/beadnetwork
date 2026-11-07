@@ -35,7 +35,8 @@ type Model struct {
 	Steps   map[string]*Step
 	StepDir string
 
-	StepPicks map[StepPick]bool
+	StepPicks map[StepEdge]bool
+	StepLinks map[StepEdge]*Links.Link
 
 	Seqs    []Seq
 	OpenSeq int

@@ -95,8 +95,12 @@ func nodeTables(m Model, step int) []Group {
 	var groups []Group
 	for _, id := range m.Nodes {
 		var rows [][]Cell
-		for _, l := range m.linksFrom(id) {
-			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
+		links := m.linksFrom(id)
+		if !selected {
+			links = m.stepLinksFrom(step, id)
+		}
+		for _, l := range links {
+			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 			picked := l.Picked
 			pick := act(OpPick, "")
 			if l.Picked {
@@ -110,14 +114,20 @@ func nodeTables(m Model, step int) []Group {
 			for _, c := range linkCols {
 				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
 			}
-			rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
+			if selected {
+				row = append(row, Button("×", act(OpDropLink, ""), false))
+			}
+			rows = append(rows, row)
 		}
 		if len(rows) == 0 {
 			rows = [][]Cell{{Text("no links")}}
 		} else {
 			head := linkHeader(m, id)
-			for i := range head {
-				head[i].Outlined = selected && head[i].Outlined
+			if !selected {
+				head = []Cell{Text("φ+θ+r")}
+				for _, c := range linkCols {
+					head = append(head, Text(c.label).AboveLastDigit())
+				}
 			}
 			rows = append([][]Cell{head}, rows...)
 		}

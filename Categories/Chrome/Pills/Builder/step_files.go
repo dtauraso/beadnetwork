@@ -94,6 +94,9 @@ func (m *Model) ReadNodeSteps() {
 		m.NodeStep(id)
 	}
 	m.ReadStepPicks()
+	if m.StepDir != "" {
+		m.readStepLinks()
+	}
 }
 
 func (m Model) WriteSteps() error {
@@ -109,7 +112,10 @@ func (m Model) WriteSteps() error {
 			return err
 		}
 	}
-	return m.writeStepPicks()
+	if err := m.writeStepPicks(); err != nil {
+		return err
+	}
+	return m.writeStepLinks()
 }
 
 func ReadStep(dir string) Step {

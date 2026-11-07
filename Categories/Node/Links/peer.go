@@ -131,6 +131,8 @@ func (p *Peer) Handle(msg any) []Envelope {
 	switch m := msg.(type) {
 	case SetStart:
 		return p.setStart(m)
+	case SetLink:
+		return p.setLink(m)
 	case Press:
 		return p.press(m)
 	case SetIncrement:
