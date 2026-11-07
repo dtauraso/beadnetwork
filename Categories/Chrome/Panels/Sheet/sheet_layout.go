@@ -100,7 +100,18 @@ func groupH(g Group) float32 {
 
 func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 	var lay Layout
+	var docked []string
 	for _, p := range pills {
+		if p.Bottom {
+			docked = append(docked, p.Label)
+		}
+	}
+	docked = st.ordered(docked)
+	on := min(max(st.Tab, 0), len(docked)-1)
+	for _, p := range pills {
+		if p.Bottom && p.Label != docked[on] {
+			continue
+		}
 		stack := right
 		if p.Left {
 			stack = left
@@ -135,7 +146,7 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 		var popover, bar Rect
 		var x, y, maxScroll float32
 		if p.Bottom {
-			bar, popover, x, y, maxScroll = stack.AddDock(contentH, st.dockH(p.Label), barH(), st.Scroll[p.Label])
+			bar, popover, x, y, maxScroll = stack.AddDock(contentH, st.dockH(DockKey), barH(), st.Scroll[p.Label])
 			pb.Grab = Rect{X: bar.X, Y: bar.Y - Panel.DockGrabH/2, W: bar.W, H: Panel.DockGrabH}
 		} else {
 			popover, x, y, maxScroll = stack.AddWideScrollingPopover(contentW, contentH, st.Scroll[p.Label])
@@ -157,59 +168,8 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			y += groupH(g) + Panel.Gap
 		}
 		if p.Bottom {
-			lay.addBar(p.Label, bar, st.Folded[p.Label])
+			lay.addBar(docked, on, bar, st.Folded[DockKey])
 		}
 	}
 	return lay
-}
-
-func stepsIn(g Group, i int) bool {
-	for _, row := range g.Rows {
-		if i < len(row) && row[i].Kind == CellField && row[i].Steps {
-			return true
-		}
-	}
-	return false
-}
-
-func stepPair(right, y float32) (up, down Rect) {
-	half := rowH() / 2
-	ax := right - StepArrowW
-	return Rect{X: ax, Y: y, W: StepArrowW, H: half}, Rect{X: ax, Y: y + half, W: StepArrowW, H: half}
-}
-
-func (lay *Layout) place(box int, g Group, x, y, dx float32) {
-	if g.Title != "" {
-		lay.Heads = append(lay.Heads, HeadBox{Box: box, Rect: Rect{X: x, Y: y, W: groupW(g), H: titleH()}, Title: g.Title, Fold: g.Fold})
-		y += titleH() + TitleGap
-	}
-	cols := columns(g)
-	for _, row := range g.Rows {
-		cx := x - dx
-		for i, c := range row {
-			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}, Slides: g.Slides}
-			if c.Arrows.Op != "" {
-				right := cx + cols[i]
-				tw := textW(c)
-				lx := right - lockW()
-				cb.Rect.X, cb.Rect.W = lx-tw, tw
-				cb.Up, cb.Down = stepPair(right, y)
-			} else if c.Kind == CellField && c.Steps {
-				cb.Rect.W = cols[i] - StepGap - StepArrowW
-				cb.Up, cb.Down = stepPair(cx+cols[i], y)
-			}
-			if c.Kind == CellText && c.OverLastDigit && c.Arrows.Op == "" {
-				right := cx + cols[i]
-				if stepsIn(g, i) {
-					right -= StepGap + StepArrowW
-				}
-				tw := cellW(c)
-				cb.Rect.X = min(right-CellPadX-Panel.Advance(ValFontPx)/2-tw/2, right-tw)
-				cb.Rect.W = tw
-			}
-			lay.Cells = append(lay.Cells, cb)
-			cx += cols[i] + CellGapX
-		}
-		y += rowH() + RowGapY
-	}
 }

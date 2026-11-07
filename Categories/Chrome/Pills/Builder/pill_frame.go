@@ -18,7 +18,7 @@ const (
 func FramePill(m Model) Pill {
 	f := m.Frame
 	act := func(k string) Act { return Act{Op: OpFrame, K: k} }
-	return Pill{Label: FrameLabel, Groups: []Group{
+	return Pill{Label: FrameLabel, Bottom: true, Groups: []Group{
 		{Title: "the frame every node is placed in — a change reloads the scene", Rows: [][]Cell{
 			{Field("ρ", Num(f.Rho), act(FrameRho), true, false), Text("length of one unit of a link's r")},
 			{Field("T_φ", strconv.Itoa(f.Tphi), act(FrameTphi), true, false), Text("index steps a turn in φ")},

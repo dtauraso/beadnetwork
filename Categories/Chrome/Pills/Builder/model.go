@@ -107,10 +107,6 @@ func Pills(m Model) []Pill {
 	return []Pill{FramePill(m), NodesPill(m), LinksPill(m), PlacePill(m), TreePill(m)}
 }
 
-var RightLabels = []string{FrameLabel, NodesLabel}
-
-var LeftLabels = []string{PlaceLabel, TreeLabel}
-
 func Num(v float64) string {
 	if math.Abs(v) < 5e-4 {
 		v = 0

@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 const stateRelDir = "view/chrome/sheet-state"
@@ -15,8 +16,18 @@ func (s *State) load(sceneRoot string) {
 	if err != nil {
 		return
 	}
+	pos := map[string]int{}
+	defer func() {
+		for l := range pos {
+			s.Order = append(s.Order, l)
+		}
+		slices.SortFunc(s.Order, func(a, b string) int { return pos[a] - pos[b] })
+	}()
 	for _, e := range entries {
 		label := e.Name()
+		if v := LoadScalar(s.file(label, "tab-pos"), -1, 0); v >= 0 {
+			pos[label] = v
+		}
 		if LoadScalar(s.file(label, "open"), 0, 0) == 1 {
 			if s.Open == nil {
 				s.Open = map[string]bool{}
@@ -34,6 +45,9 @@ func (s *State) load(sceneRoot string) {
 				s.Height = map[string]float32{}
 			}
 			s.Height[label] = float32(v)
+		}
+		if label == DockKey {
+			s.Tab = int(LoadScalar(s.file(label, "tab"), 0, 0))
 		}
 		if LoadScalar(s.file(label, "folded"), 0, 0) == 1 {
 			if s.Folded == nil {

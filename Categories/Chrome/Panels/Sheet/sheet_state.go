@@ -9,6 +9,9 @@ type State struct {
 	Scroll  map[string]float32
 	ScrollX map[string]float32
 
+	Tab      int
+	Order    []string
+	Dragging string
 	Height   map[string]float32
 	Folded   map[string]bool
 	Resizing string

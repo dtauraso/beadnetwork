@@ -2,7 +2,11 @@ package Sheet
 
 import "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 
-const OpDockFold = "dock-fold"
+const (
+	OpDockFold = "dock-fold"
+	OpDockTab  = "dock-tab"
+	DockKey    = "dock"
+)
 
 func (s *State) dockH(label string) float32 {
 	if s.Folded[label] {
@@ -57,11 +61,26 @@ func (s *State) EndResize() bool {
 	return was
 }
 
-func (lay *Layout) addBar(label string, bar Rect, folded bool) {
-	lay.Pills = append(lay.Pills, PillBox{Label: label, Pill: bar, Open: folded, Bar: true})
+func (s *State) SelectTab(i int) {
+	s.Tab = i
+	s.setFolded(DockKey, false)
+	s.save(DockKey, "tab", int32(i))
 }
 
-func barH() float32 { return Panel.PillH() }
+func (lay *Layout) addBar(labels []string, on int, bar Rect, folded bool) {
+	var tabs []DockTab
+	x := bar.X + tabInset
+	for i, l := range labels {
+		w := Panel.TextWidth(l, Panel.PillFontPx) + 2*Panel.PillPadX
+		tabs = append(tabs, DockTab{Label: l, Rect: Rect{X: x, Y: bar.Y + tabInset, W: w, H: bar.H - 2*tabInset}, On: i == on})
+		x += w + tabInset
+	}
+	lay.Pills = append(lay.Pills, PillBox{Label: labels[on], Pill: bar, Open: folded, Bar: true, Tabs: tabs})
+}
+
+const tabInset = 4
+
+func barH() float32 { return Panel.PillH() + 2*tabInset }
 
 func caretRect(bar Rect) Rect {
 	w := float32(Panel.CaretW + 6)

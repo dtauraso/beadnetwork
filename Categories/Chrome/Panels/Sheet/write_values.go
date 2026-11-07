@@ -22,9 +22,18 @@ func (s *State) Write(lay Layout) {
 		w.Rect("pillX", "pillY", "pillW", "pillH", p.Pill)
 		w.Str("pillText", "pillLen", p.Label)
 		w.U8("pillOpen", flag(p.Open))
+		w.U8("pillBar", flag(p.Bar))
 		w.Rect("boxX", "boxY", "boxW", "boxH", p.Popover)
 		w.F32("slideX", p.Slide.X)
 		w.F32("slideW", p.Slide.W)
+	}
+	for i, p := range lay.Pills {
+		for _, t := range p.Tabs {
+			w.U32("tabPill", uint32(i))
+			w.Rect("tabX", "tabY", "tabW", "tabH", t.Rect)
+			w.Str("tabText", "tabLen", t.Label)
+			w.U8("tabOn", flag(t.On))
+		}
 	}
 	for _, h := range lay.Heads {
 		w.U32("headBox", uint32(h.Box))

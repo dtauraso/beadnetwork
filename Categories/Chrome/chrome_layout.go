@@ -50,7 +50,7 @@ type Of struct {
 	PillsBar Pills.State
 }
 
-var PillLabels = append([]string{AngleDropdown.Label, NodesDropdown.Label, Pills.Label}, Builder.RightLabels...)
+var PillLabels = []string{AngleDropdown.Label, NodesDropdown.Label, Pills.Label}
 
 func LayoutOf(in Of) Layout {
 	pills := Panel.NewPillStack(float32(in.ViewW), float32(in.ViewH), PillLabels)
@@ -65,7 +65,7 @@ func LayoutOf(in Of) Layout {
 	}
 
 	fit := pills.AddChip(FitButton.FitLabel)
-	tabs := Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected, in.Sheet != nil && !in.Sheet.Folded[Builder.LinksLabel])
+	tabs := Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected, in.Sheet != nil && !in.Sheet.Folded[Sheet.DockKey])
 	top := float32(Panel.OriginY)
 	if tabs.Strip.H > 0 {
 		top = tabs.Strip.Y + tabs.Strip.H + Panel.Gap
@@ -82,7 +82,7 @@ func LayoutOf(in Of) Layout {
 	lay.Angle = AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints, nodes)
 	lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen))
 	if in.Sheet != nil {
-		left := Panel.NewLeftPillStack(float32(in.ViewW), float32(in.ViewH), st.Next(), Builder.LeftLabels)
+		left := Panel.NewLeftPillStack(float32(in.ViewW), float32(in.ViewH), st.Next(), nil)
 		lay.Sheet = Sheet.Build(pills, left, Builder.Pills(in.Builder), in.Sheet)
 	}
 	lay.Overlays = Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll)

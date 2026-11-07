@@ -121,9 +121,16 @@ type PillBox struct {
 	Popover    Rect
 	Grab       Rect
 	Bar        bool
+	Tabs       []DockTab
 	MaxScroll  float32
 	Slide      Rect
 	MaxScrollX float32
+}
+
+type DockTab struct {
+	Label string
+	Rect  Rect
+	On    bool
 }
 
 type HeadBox struct {

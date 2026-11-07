@@ -9,6 +9,9 @@ const ValueRelFile = "view/chrome/sheets.bin"
 var SheetValueNames = []string{
 	"pillX", "pillY", "pillW", "pillH",
 	"pillText", "pillLen", "pillOpen",
+	"pillBar",
+	"tabPill", "tabX", "tabY", "tabW", "tabH",
+	"tabText", "tabLen", "tabOn",
 	"boxX", "boxY", "boxW", "boxH",
 	"headBox", "headX", "headY", "headH",
 	"titleText", "titleLen",

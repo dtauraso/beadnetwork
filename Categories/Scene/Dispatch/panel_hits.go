@@ -11,7 +11,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
@@ -55,7 +54,7 @@ func panelTookPointerDown(
 	}
 
 	if pl.Tabs.HitPanel(ev.X, ev.Y) {
-		md.UI.Sheet.ToggleFold(Builder.LinksLabel)
+		md.UI.Sheet.ToggleFold(Sheet.DockKey)
 		md.UI.EmitViewFrame(nil)
 		return true
 	}
