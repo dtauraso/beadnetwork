@@ -93,6 +93,7 @@ func (m *Model) ReadNodeSteps() {
 	for _, id := range m.Nodes {
 		m.NodeStep(id)
 	}
+	m.ReadStepPicks()
 }
 
 func (m Model) WriteSteps() error {
@@ -108,7 +109,7 @@ func (m Model) WriteSteps() error {
 			return err
 		}
 	}
-	return nil
+	return m.writeStepPicks()
 }
 
 func ReadStep(dir string) Step {
