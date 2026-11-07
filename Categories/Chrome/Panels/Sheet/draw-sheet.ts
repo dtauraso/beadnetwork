@@ -1,6 +1,7 @@
-import { drawBox, canvasFont } from "../../canvas-box";
+import { drawBox, canvasFont, roundRect } from "../../canvas-box";
+import * as T from "../../chrome-theme";
 import { decodeAt } from "../../leaf-text";
-import { drawPill } from "../../Pills/pill";
+import { CARET_W, drawPill } from "../../Pills/pill";
 import { drawArrow, drawCell, slid, type R } from "./draw-sheet-cell";
 import { sheetBytes, sheetF32Run, sheetU32Run, sheetText } from "./sheet-leaves";
 
@@ -56,8 +57,8 @@ export function sheetKey(): string {
   ].join(",");
 }
 
-function rects(x: "pillX" | "boxX" | "cellX" | "upX" | "downX", y: "pillY" | "boxY" | "cellY" | "upY" | "downY",
-  w: "pillW" | "boxW" | "cellW" | "upW" | "downW", h: "pillH" | "boxH" | "cellH" | "upH" | "downH"): R[] {
+function rects(x: "pillX" | "tabX" | "boxX" | "cellX" | "upX" | "downX", y: "pillY" | "tabY" | "boxY" | "cellY" | "upY" | "downY",
+  w: "pillW" | "tabW" | "boxW" | "cellW" | "upW" | "downW", h: "pillH" | "tabH" | "boxH" | "cellH" | "upH" | "downH"): R[] {
   const xs = sheetF32Run(x), ys = sheetF32Run(y), ws = sheetF32Run(w), hs = sheetF32Run(h);
   const out: R[] = [];
   if (!xs || !ys || !ws || !hs) return out;
@@ -65,11 +66,38 @@ function rects(x: "pillX" | "boxX" | "cellX" | "upX" | "downX", y: "pillY" | "bo
   return out;
 }
 
+function drawTabBar(c: CanvasRenderingContext2D, bar: R, tab: R, label: string, folded: boolean): void {
+  roundRect(c, bar.x + 0.5, bar.y + 0.5, bar.w - 1, bar.h - 1, T.RADIUS_CHIP);
+  c.fillStyle = T.SURFACE;
+  c.fill();
+  c.strokeStyle = T.BORDER;
+  c.lineWidth = 1;
+  c.stroke();
+
+  roundRect(c, tab.x, tab.y, tab.w, tab.h, T.RADIUS_CHIP);
+  c.fillStyle = T.HOVER_CHIP;
+  c.fill();
+  c.fillStyle = T.TEXT;
+  c.font = canvasFont(T.FONT_SIZE, T.FONT_WEIGHT_LABEL);
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(label, tab.x + tab.w / 2, tab.y + tab.h / 2);
+
+  c.font = canvasFont(T.FONT_SIZE_GLYPH);
+  c.fillText(folded ? "▲" : "▼", bar.x + bar.w - CARET_W / 2 - 3, bar.y + bar.h / 2);
+}
+
 export function drawSheets(c: CanvasRenderingContext2D): void {
   const pills = rects("pillX", "pillY", "pillW", "pillH");
   const labels = strings("pillText", "pillLen");
   const open = bytesOf("pillOpen");
-  pills.forEach((p, i) => { if (p.w > 0) drawPill(c, p.x, p.y, p.w, p.h, labels[i] ?? "", open[i] !== 0); });
+  const tabs = rects("tabX", "tabY", "tabW", "tabH");
+  pills.forEach((p, i) => {
+    if (p.w <= 0) return;
+    const tab = tabs[i];
+    if (tab && tab.w > 0) drawTabBar(c, p, tab, labels[i] ?? "", open[i] !== 0);
+    else drawPill(c, p.x, p.y, p.w, p.h, labels[i] ?? "", open[i] !== 0);
+  });
 
   const boxes = rects("boxX", "boxY", "boxW", "boxH");
   const headBox = sheetU32Run("headBox"), headX = sheetF32Run("headX"), headY = sheetF32Run("headY"), headH = sheetF32Run("headH");

@@ -22,6 +22,7 @@ func (s *State) Write(lay Layout) {
 		w.Rect("pillX", "pillY", "pillW", "pillH", p.Pill)
 		w.Str("pillText", "pillLen", p.Label)
 		w.U8("pillOpen", flag(p.Open))
+		w.Rect("tabX", "tabY", "tabW", "tabH", p.Tab)
 		w.Rect("boxX", "boxY", "boxW", "boxH", p.Popover)
 		w.F32("slideX", p.Slide.X)
 		w.F32("slideW", p.Slide.W)

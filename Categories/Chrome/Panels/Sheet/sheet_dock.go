@@ -58,10 +58,13 @@ func (s *State) EndResize() bool {
 }
 
 func (lay *Layout) addBar(label string, bar Rect, folded bool) {
-	lay.Pills = append(lay.Pills, PillBox{Label: label, Pill: bar, Open: folded, Bar: true})
+	tab := Rect{X: bar.X + tabInset, Y: bar.Y + tabInset, W: Panel.TextWidth(label, Panel.PillFontPx) + 2*Panel.PillPadX, H: bar.H - 2*tabInset}
+	lay.Pills = append(lay.Pills, PillBox{Label: label, Pill: bar, Open: folded, Bar: true, Tab: tab})
 }
 
-func barH() float32 { return Panel.PillH() }
+const tabInset = 4
+
+func barH() float32 { return Panel.PillH() + 2*tabInset }
 
 func caretRect(bar Rect) Rect {
 	w := float32(Panel.CaretW + 6)

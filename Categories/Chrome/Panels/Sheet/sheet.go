@@ -121,6 +121,7 @@ type PillBox struct {
 	Popover    Rect
 	Grab       Rect
 	Bar        bool
+	Tab        Rect
 	MaxScroll  float32
 	Slide      Rect
 	MaxScrollX float32
