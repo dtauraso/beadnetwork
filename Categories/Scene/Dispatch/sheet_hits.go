@@ -2,7 +2,6 @@ package Dispatch
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
@@ -42,9 +41,7 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	return err != nil || (ok && md.UI.Builder.Refused != "")
 }
 
-
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
-	m := md.UI.Builder
 	md.UI.Builder.Refused = ""
 	if Builder.IsStepEdit(a) {
 		md.UI.Builder.Refused = md.UI.Builder.StepEdit(a, sign, typed)
@@ -63,37 +60,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		return
 	}
 	switch a.Op {
-	case Builder.OpLinkStart:
-		l, ok := m.Link(a.Node, a.To)
-		if !ok {
-			return
-		}
-		v := float64(sign) + map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K]
-		if s := m.ScaleOf(a.To); a.K != Links.KR {
-			was := map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta}[a.K]
-			v = Links.Wrap(s, was+float64(sign))
-		}
-		if typed != nil {
-			v = *typed
-		}
-		if a.K == Links.KR && md.refuseFixedR(a, fmt.Sprintf("r stays at %v", l.Start.R)) {
-			return
-		}
-		if a.K == Links.KR && (v < 0 || v+float64(l.Delta.R) < 0) {
-			md.UI.Builder.Refused = fmt.Sprintf("%s→%s r %v: neither r nor r + Δr can be negative, so r stays at %v", a.Node, a.To, v, l.Start.R)
-			return
-		}
-		md.sendLink(ctx, a.To, Links.SetStart{From: a.Node, K: a.K, V: v})
-	case Builder.OpLinkPress:
-		if sign == 0 {
-			sign = a.Sign
-		}
-		if l, ok := m.Link(a.Node, a.To); ok && a.K == Links.KR && md.refuseFixedR(a, fmt.Sprintf("Δr stays at %d", l.Delta.R)) {
-			return
-		}
-		if sign != 0 {
-			md.sendLink(ctx, a.To, Links.Press{From: a.Node, K: a.K, Sign: sign})
-		}
 	case Builder.OpStepPick:
 		if md.UI.Builder.Refused = md.UI.Builder.ToggleStepPick(a.I, a.Node, a.To); md.UI.Builder.Refused == "" {
 			md.persistStep()
@@ -101,38 +67,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 	case Builder.OpStepFold:
 		md.UI.Builder.ToggleStepFold(a.I, a.Node)
-	case Builder.OpIncrement:
-		md.setIncrement(ctx, a, sign, typed)
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)
-	case Builder.OpAllLock:
-		st := md.UI.Builder.NodeStep(a.Node)
-		way, on := st.At(a.K)
-		switch {
-		case sign == 0:
-			*on = !*on
-			st.Both = st.Both && !*on
-		case *on:
-			*way = sign
-			md.persistStep()
-			md.stepFrom(ctx, a.Node, a.K, sign)
-			return
-		default:
-			md.stepFrom(ctx, a.Node, a.K, sign)
-			return
-		}
-		if *way == 0 {
-			*way = 1
-		}
-		md.persistStep()
-	case Builder.OpAllBoth:
-		if sign == 0 {
-			sign = a.Sign
-		}
-		md.stepFrom(ctx, a.Node, Links.KBoth, sign)
-	case Builder.OpAllLocks:
-		md.UI.Builder.NodeStep(a.Node).ToggleBoth()
-		md.persistStep()
 	}
 }
 

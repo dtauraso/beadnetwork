@@ -80,7 +80,6 @@ func LinksPill(m Model) Pill {
 			groups = append(groups, g)
 		}
 	}
-	groups = append(groups, nodeTables(m, 0)...)
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
 	}
@@ -89,32 +88,20 @@ func LinksPill(m Model) Pill {
 
 func nodeTables(m Model, step int) []Group {
 	const fit = "0.0"
-	selected := step == 0
 	var groups []Group
 	for _, id := range m.Nodes {
-		var rows [][]Cell
-		links := m.linksFrom(id)
-		if !selected {
-			links = m.stepLinksFrom(step, id)
-			if m.StepFolded(step, id) {
-				groups = append(groups, Group{Title: foldTitle(true, "node "+id), Fold: Act{Op: OpStepFold, Node: id, I: step}})
-				continue
-			}
+		fold := Act{Op: OpStepFold, Node: id, I: step}
+		if m.StepFolded(step, id) {
+			groups = append(groups, Group{Title: foldTitle(true, "node "+id), Fold: fold})
+			continue
 		}
-		for _, l := range links {
+		var rows [][]Cell
+		for _, l := range m.stepLinksFrom(step, id) {
 			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
-			name := Text(l.Name()).Outline(l.Picked)
-			picked := l.Picked
-			if !selected {
-				picked = m.StepPicked(step, l)
-				name = Text(l.Name()).Acting(Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}).Outline(picked)
-			}
-			row := []Cell{name}
+			picked := m.StepPicked(step, l)
+			row := []Cell{Text(l.Name()).Acting(act(OpStepPick, "")).Outline(picked)}
 			for _, c := range linkCols {
 				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
-			}
-			if selected {
-				row = append(row, Button("×", act(OpDropLink, ""), false))
 			}
 			rows = append(rows, row)
 		}
@@ -123,11 +110,7 @@ func nodeTables(m Model, step int) []Group {
 		} else {
 			rows = append([][]Cell{linkHeader(m, id, step)}, rows...)
 		}
-		g := Group{Title: "node " + id, Rows: rows, Slides: true}
-		if !selected {
-			g.Title, g.Fold = foldTitle(false, g.Title), Act{Op: OpStepFold, Node: id, I: step}
-		}
-		groups = append(groups, g)
+		groups = append(groups, Group{Title: foldTitle(false, "node "+id), Fold: fold, Rows: rows, Slides: true})
 	}
 	return groups
 }

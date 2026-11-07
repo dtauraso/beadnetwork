@@ -44,8 +44,6 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 			return true
 		}
 		md.sendLink(ctx, a.To, Links.Connect{From: a.Node, At: r.At})
-	case Builder.OpDropLink:
-		md.sendLink(ctx, a.To, Links.Drop{From: a.Node})
 	case Builder.OpAddNode:
 		addLinkNode(md)
 	case Builder.OpRemoveNode:

@@ -14,7 +14,6 @@ const (
 	OpAddNode    = "add-node"
 	OpRemoveNode = "remove-node"
 	OpConnect    = "connect"
-	OpDropLink   = "drop-link"
 )
 
 func NodesPill(m Model) Pill {
