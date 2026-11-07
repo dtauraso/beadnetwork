@@ -15,7 +15,6 @@ const (
 	FileLockOnPhi   = "lock-on-phi.bin"
 	FileLockOnTheta = "lock-on-theta.bin"
 	FileLockOnR     = "lock-on-r.bin"
-	FileLocking     = "locking.bin"
 	FileLockOnBoth  = "lock-on-both.bin"
 )
 
@@ -25,7 +24,6 @@ type Step struct {
 	LockAll Links.Lock
 	On      LockOn
 	Both    bool
-	Locking bool
 	Round   int
 }
 
@@ -135,14 +133,13 @@ func ReadStep(dir string) Step {
 	Links.ReadIfExists(filepath.Join(dir, FileLockOnPhi), &s.On.Phi)
 	Links.ReadIfExists(filepath.Join(dir, FileLockOnTheta), &s.On.Theta)
 	Links.ReadIfExists(filepath.Join(dir, FileLockOnR), &s.On.R)
-	Links.ReadIfExists(filepath.Join(dir, FileLocking), &s.Locking)
 	Links.ReadIfExists(filepath.Join(dir, FileLockOnBoth), &s.Both)
 	return s
 }
 
 func WriteStep(dir string, s Step) error {
 	for name, v := range map[string]any{FileLockPhi: s.LockAll.Phi, FileLockTheta: s.LockAll.Theta, FileLockR: s.LockAll.R,
-		FileLockOnPhi: s.On.Phi, FileLockOnTheta: s.On.Theta, FileLockOnR: s.On.R, FileLocking: s.Locking, FileLockOnBoth: s.Both} {
+		FileLockOnPhi: s.On.Phi, FileLockOnTheta: s.On.Theta, FileLockOnR: s.On.R, FileLockOnBoth: s.Both} {
 		if err := Links.WriteAtomicIfChanged(filepath.Join(dir, name), v); err != nil {
 			return err
 		}

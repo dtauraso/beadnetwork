@@ -27,7 +27,7 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 
 ## A link a→b — its angles stored at b
 
-`start (φ, θ, r)`, `Δ (φ, θ, r)`, `increment n (φ, θ, r)` — what one press of Δφ, Δθ or Δr moves it by, whole ticks for an angle and a whole number above 0 for r —; Δ and increment are integers, start is measured and real —, `lock (φ, θ) ∈ {−1, 0, 1}`, `locking`, `picked`,
+`start (φ, θ, r)`, `Δ (φ, θ, r)`, `increment n (φ, θ, r)` — what one press of Δφ, Δθ or Δr moves it by, whole ticks for an angle and a whole number above 0 for r —; Δ and increment are integers, start is measured and real —, `lock (φ, θ) ∈ {−1, 0, 1}`, `picked`,
 held by b, the target. Every node rotating around a turns by the same angle increment: an
 `nΔφ` or `nΔθ` on a→b that differs from that of another link out of a is refused, with the
 reason shown below the links table, and the increment stays as it was. A node with more than one
@@ -74,8 +74,8 @@ the start part and the end of the Δ part, each only when that part covers some 
   remeasures it (start = the measured direction − Δ), except every picked link during an
   all-step; b remeasures the links into itself. A source only records the place, to draw from.
 - **Connect** (UI → b, carrying a's place): b measures a new link a→b and sends a **Linked** with
-  its place, so a draws it and tells b when it moves. **Drop** (UI → b) sends a **Unlinked**.
-- **Edits** (start, press, increment, locking — UI → b): b changes the angles it holds and places
+  its place, so a draws it and tells b when it moves.
+- **Edits** (a step's start, Δ and increment for the link — UI → b): b changes the angles it holds and places
   itself at `GridAt(C_a + d)`.
 - **S** (UI → b): b's new `s` rescales start and Δ of every link into b by `new s / old s`, so each
   keeps its direction. Δ must land on the new `12·s` tick line, whole, which holds exactly for an

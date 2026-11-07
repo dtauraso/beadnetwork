@@ -14,7 +14,6 @@ type Link struct {
 	Delta     Ticks
 	Increment Ticks
 	Lock      Lock
-	Locking   bool
 	Picked    bool
 	Order     int
 }
