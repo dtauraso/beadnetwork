@@ -65,6 +65,7 @@ func (m *Model) StepHeadEdit(a Act, sign int) (string, []StepEdge) {
 			st.Both = st.Both && !*on
 		case *on:
 			*way = sign
+			return m.stepHeadLinks(a.I, a.Node, k, sign, st.Locks())
 		default:
 			return m.stepHeadLinks(a.I, a.Node, k, sign, st.Locks())
 		}

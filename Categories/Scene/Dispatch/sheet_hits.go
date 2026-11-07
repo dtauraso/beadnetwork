@@ -125,6 +125,9 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 			st.Both = st.Both && !*on
 		case *on:
 			*way = sign
+			md.persistStep()
+			md.stepFrom(ctx, a.Node, a.K, sign)
+			return
 		default:
 			md.stepFrom(ctx, a.Node, a.K, sign)
 			return
