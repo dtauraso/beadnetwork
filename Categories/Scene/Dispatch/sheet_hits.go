@@ -16,7 +16,7 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 	case Sheet.PartPill:
 		sh.Toggle(h.Label)
 	case Sheet.PartGrab:
-		sh.StartResize(h.Label)
+		sh.StartResize(h.Label, h.DY)
 	case Sheet.PartBody:
 		if h.Cell.Act.Op == Sheet.OpDockFold {
 			sh.ToggleFold(h.Cell.Act.Node)

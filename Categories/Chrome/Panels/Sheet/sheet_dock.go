@@ -37,13 +37,13 @@ func (s *State) setFolded(label string, on bool) {
 	s.save(label, "folded", v)
 }
 
-func (s *State) StartResize(label string) { s.Resizing = label }
+func (s *State) StartResize(label string, dy float32) { s.Resizing, s.resizeDY = label, dy }
 
 func (s *State) Resize(viewH, y float64) bool {
 	if s.Resizing == "" {
 		return false
 	}
-	if h := float32(viewH - y); h < 2*barH() {
+	if h := float32(viewH-y) + s.resizeDY; h < 2*barH() {
 		s.setFolded(s.Resizing, true)
 	} else {
 		s.SetHeight(s.Resizing, h)
@@ -62,3 +62,8 @@ func (lay *Layout) addBar(label string, bar Rect, folded bool) {
 }
 
 func barH() float32 { return Panel.PillH() }
+
+func caretRect(bar Rect) Rect {
+	w := float32(Panel.CaretW + 6)
+	return Rect{X: bar.X + bar.W - w, Y: bar.Y, W: w, H: bar.H}
+}

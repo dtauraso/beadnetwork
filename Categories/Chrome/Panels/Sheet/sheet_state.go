@@ -12,6 +12,7 @@ type State struct {
 	Height   map[string]float32
 	Folded   map[string]bool
 	Resizing string
+	resizeDY float32
 }
 
 func (s *State) Arm(sceneRoot string) {

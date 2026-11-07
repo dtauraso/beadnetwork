@@ -114,13 +114,13 @@ type Pill struct {
 }
 
 type PillBox struct {
-	Label     string
-	Left      bool
-	Pill      Rect
-	Open      bool
-	Popover   Rect
-	Grab      Rect
-	Bar       bool
+	Label      string
+	Left       bool
+	Pill       Rect
+	Open       bool
+	Popover    Rect
+	Grab       Rect
+	Bar        bool
 	MaxScroll  float32
 	Slide      Rect
 	MaxScrollX float32
