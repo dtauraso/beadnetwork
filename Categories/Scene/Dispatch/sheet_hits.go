@@ -50,6 +50,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.Refused = md.UI.Builder.StepEdit(a, sign, typed)
 		md.persistStep()
 		if l := md.UI.Builder.StepLinks[Builder.StepEdge{Step: a.I, From: a.Node, To: a.To}]; l != nil && md.UI.Builder.Refused == "" {
+			md.syncStepPicks(ctx, a.I)
 			md.sendLink(ctx, a.To, Links.SetLink{From: a.Node, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
 		}
 		return
@@ -94,8 +95,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpUnpick:
 		md.sendLink(ctx, a.To, Links.Unpick{From: a.Node})
 	case Builder.OpStepPick:
-		md.UI.Builder.ToggleStepPick(a.I, a.Node, a.To)
-		md.persistStep()
+		if md.UI.Builder.Refused = md.UI.Builder.ToggleStepPick(a.I, a.Node, a.To); md.UI.Builder.Refused == "" {
+			md.persistStep()
+			md.syncStepPicks(ctx, a.I)
+		}
 	case Builder.OpIncrement:
 		md.setIncrement(ctx, a, sign, typed)
 	case Builder.OpLocking:
