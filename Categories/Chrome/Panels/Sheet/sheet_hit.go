@@ -32,7 +32,7 @@ func (l Layout) Hit(x, y float64) Hit {
 			}
 			for i, t := range p.Tabs {
 				if Panel.HitRect(t.Rect, x, y) {
-					return Hit{Part: PartBody, Label: p.Label, Cell: Cell{Act: Act{Op: OpDockTab, I: i}}, Rect: t.Rect}
+					return Hit{Part: PartBody, Label: p.Label, Cell: Cell{Act: Act{Op: OpDockTab, I: i, Node: t.Label}}, Rect: t.Rect}
 				}
 			}
 			return Hit{Part: PartGrab, Label: DockKey, Rect: p.Pill, DY: float32(y) - p.Pill.Y}

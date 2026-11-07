@@ -22,6 +22,7 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 			sh.ToggleFold(h.Cell.Act.Node)
 		} else if h.Cell.Act.Op == Sheet.OpDockTab {
 			sh.SelectTab(h.Cell.Act.I)
+			sh.StartTabDrag(h.Cell.Act.Node)
 		} else if h.Cell.Typed {
 			Sheet.StartDraft(&sh.Edit, h.Cell.Act)
 		} else {

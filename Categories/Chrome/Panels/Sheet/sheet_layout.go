@@ -106,13 +106,11 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			docked = append(docked, p.Label)
 		}
 	}
+	docked = st.ordered(docked)
 	on := min(max(st.Tab, 0), len(docked)-1)
-	j := -1
 	for _, p := range pills {
-		if p.Bottom {
-			if j++; j != on {
-				continue
-			}
+		if p.Bottom && p.Label != docked[on] {
+			continue
 		}
 		stack := right
 		if p.Left {
