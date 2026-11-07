@@ -20,6 +20,8 @@ const (
 
 	LockGap = 8
 
+	IndentX = 18
+
 	valueField = "-00.00"
 )
 
@@ -100,6 +102,7 @@ type Group struct {
 	Rows   [][]Cell
 	Slides bool
 	Wraps  bool
+	Indent bool
 }
 
 type Pill struct {
