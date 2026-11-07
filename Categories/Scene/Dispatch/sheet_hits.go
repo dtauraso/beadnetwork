@@ -20,6 +20,8 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 	case Sheet.PartBody:
 		if h.Cell.Act.Op == Sheet.OpDockFold {
 			sh.ToggleFold(h.Cell.Act.Node)
+		} else if h.Cell.Act.Op == Sheet.OpDockTab {
+			sh.SelectTab(h.Cell.Act.I)
 		} else if h.Cell.Typed {
 			Sheet.StartDraft(&sh.Edit, h.Cell.Act)
 		} else {

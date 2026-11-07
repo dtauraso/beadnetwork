@@ -116,5 +116,5 @@ func TreePill(m Model) Pill {
 			kv("all lock", lockText(m.StepOf(id).Locks()), false), notStored(),
 			kv("C", "x "+n3(c.X)+" | y "+n3(c.Y)+" | z "+n3(c.Z), false)))
 	}
-	return Pill{Label: TreeLabel, Left: true, Groups: groups}
+	return Pill{Label: TreeLabel, Bottom: true, Groups: groups}
 }

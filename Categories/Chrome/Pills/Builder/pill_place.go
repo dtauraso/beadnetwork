@@ -81,5 +81,5 @@ func PlacePill(m Model) Pill {
 		}
 		groups = append(groups, Group{Title: r.method.Name, Rows: rows})
 	}
-	return Pill{Label: PlaceLabel, Left: true, Groups: groups}
+	return Pill{Label: PlaceLabel, Bottom: true, Groups: groups}
 }

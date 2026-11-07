@@ -37,7 +37,7 @@ func NodesPill(m Model) Pill {
 		}
 	}
 	rows = append(rows, []Cell{Button("+ add node", Act{Op: OpAddNode}, false)})
-	return Pill{Label: NodesLabel, Groups: []Group{
+	return Pill{Label: NodesLabel, Bottom: true, Groups: []Group{
 		{Title: "nodes — s (ticks a twelfth of a turn) and the place I, an index on the frame", Rows: rows},
 		connectGroup(m),
 	}}

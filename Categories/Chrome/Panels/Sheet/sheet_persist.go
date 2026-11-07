@@ -35,6 +35,9 @@ func (s *State) load(sceneRoot string) {
 			}
 			s.Height[label] = float32(v)
 		}
+		if label == DockKey {
+			s.Tab = int(LoadScalar(s.file(label, "tab"), 0, 0))
+		}
 		if LoadScalar(s.file(label, "folded"), 0, 0) == 1 {
 			if s.Folded == nil {
 				s.Folded = map[string]bool{}
