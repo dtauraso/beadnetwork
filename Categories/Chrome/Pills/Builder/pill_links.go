@@ -3,7 +3,6 @@ package Builder
 import (
 	"math"
 	"strconv"
-	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
@@ -85,7 +84,6 @@ func LinksPill(m Model) Pill {
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
 	}
-	groups = append(groups, recalcGroup(m), landsGroup(m))
 	return Pill{Label: LinksLabel, Groups: groups}
 }
 
@@ -132,34 +130,4 @@ func num1(v float64) string {
 		return strconv.Itoa(int(v))
 	}
 	return strconv.FormatFloat(v, 'f', 1, 64)
-}
-
-func recalcGroup(m Model) Group {
-	var names []string
-	for _, l := range m.allLinks() {
-		if !l.Picked {
-			names = append(names, l.Name())
-		}
-	}
-	text := "no links chosen for recalculation"
-	if len(names) > 0 {
-		text = strings.Join(names, "  ")
-	}
-	return Group{Title: "chosen for vector recalculation — remeasured when either end moves", Rows: [][]Cell{{Text(text)}}}
-}
-
-func landsGroup(m Model) Group {
-	var rows [][]Cell
-	for _, l := range m.allLinks() {
-		d := l.Dir(m.ScaleOf(l.To))
-		rows = append(rows, []Cell{
-			Text(l.Name()),
-			Text("start φ " + Num(l.Start.Phi) + "  θ " + Num(l.Start.Theta) + "  r " + Num(l.Start.R)),
-			Text("start + Δ φ " + Num(d.Phi) + "  θ " + Num(d.Theta) + "  r " + Num(d.R)),
-		})
-	}
-	if len(rows) == 0 {
-		rows = [][]Cell{{Text("no rows")}}
-	}
-	return Group{Title: "read only: each row's start, and start + Δ — the direction from its first node to its second", Rows: rows}
 }
