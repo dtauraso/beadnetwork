@@ -17,6 +17,11 @@ export const TAB_STRIP_VALUE_NAMES = [
   "tabNameText",
   "tabNameLen",
   "tabSelected",
+  "panelX",
+  "panelY",
+  "panelW",
+  "panelH",
+  "panelUp",
 ] as const;
 
 export type TabStripValueName = (typeof TAB_STRIP_VALUE_NAMES)[number];

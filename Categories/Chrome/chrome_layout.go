@@ -65,7 +65,7 @@ func LayoutOf(in Of) Layout {
 	}
 
 	fit := pills.AddChip(FitButton.FitLabel)
-	tabs := Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected)
+	tabs := Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected, in.Sheet != nil && in.Sheet.Max[Builder.LinksLabel])
 	top := float32(Panel.OriginY)
 	if tabs.Strip.H > 0 {
 		top = tabs.Strip.Y + tabs.Strip.H + Panel.Gap

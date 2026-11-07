@@ -25,9 +25,26 @@ type Tab struct {
 type Layout struct {
 	Strip Rect
 	Tabs  []Tab
+
+	Panel   Rect
+	PanelUp bool
 }
 
-func Build(viewW float32, names []string, selected int) Layout {
+const PanelGap = 6
+
+func Build(viewW float32, names []string, selected int, panelUp bool) Layout {
+	lay := build(viewW, names, selected)
+	if lay.Strip.W > 0 {
+		s := lay.Strip
+		lay.Panel = Rect{X: s.X + s.W + PanelGap, Y: s.Y, W: s.H, H: s.H}
+		lay.PanelUp = panelUp
+	}
+	return lay
+}
+
+func (l Layout) HitPanel(x, y float64) bool { return l.Panel.W > 0 && Panel.HitRect(l.Panel, x, y) }
+
+func build(viewW float32, names []string, selected int) Layout {
 	if len(names) == 0 || viewW <= 0 {
 		return Layout{}
 	}
