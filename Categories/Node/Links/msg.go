@@ -7,34 +7,11 @@ type Envelope struct {
 	Msg any
 }
 
-type SetStart struct {
-	From string
-	K    string
-	V    float64
-}
-
-type Press struct {
-	From string
-	K    string
-	Sign int
-}
-
 type SetLink struct {
 	From      string
 	Start     Start
 	Delta     Ticks
 	Increment Ticks
-}
-
-type SetIncrement struct {
-	From string
-	K    string
-	V    float64
-}
-
-type SetLocking struct {
-	From string
-	On   bool
 }
 
 type StepAll struct {
@@ -72,14 +49,10 @@ type Connect struct {
 	At   Place
 }
 
-type Drop struct{ From string }
-
 type Linked struct {
 	From string
 	At   Place
 }
-
-type Unlinked struct{ From string }
 
 type Put struct {
 	From  string

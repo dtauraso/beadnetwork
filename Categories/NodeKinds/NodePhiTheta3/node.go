@@ -104,7 +104,7 @@ func (n *NodePhiTheta3) apply() {
 		}
 		n.postTicks()
 	}
-	if len(c.Links) > 0 || len(c.Dropped) > 0 {
+	if len(c.Links) > 0 {
 		if err := Links.WriteLinks(NodeCat.NodeDir(root, id), n.peer.Links()); err != nil {
 			n.breadcrumb("links-persist", err.Error())
 		}

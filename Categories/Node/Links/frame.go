@@ -43,8 +43,6 @@ func FromSigned(s int, v float64) float64 {
 	return Wrap(s, v)
 }
 
-func whole(x float64) bool { return math.Abs(x-math.Round(x)) < 1e-6 }
-
 func (f Frame) cellPhi() float64   { return 2 * math.Pi / float64(f.Tphi) }
 func (f Frame) cellTheta() float64 { return 2 * math.Pi / float64(f.Ttheta) }
 
