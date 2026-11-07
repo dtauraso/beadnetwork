@@ -181,3 +181,18 @@ func setTickMs(ctx context.Context, md *MoveDispatch, sign int, typed *float64) 
 	}
 	md.sendLink(ctx, Links.All, Links.SetTickMs{V: v})
 }
+
+func setSceneS(ctx context.Context, md *MoveDispatch, v float64) {
+	m := &md.UI.Builder
+	if !whole(v) || v < 1 {
+		m.Refused = fmt.Sprintf("s %v: not a whole number of at least 1, so it stays at %d", v, m.S)
+		return
+	}
+	m.S = int(math.Round(v))
+	if root := md.Scenes.TreeRoot; root != "" {
+		if err := Sheet.WriteScalar(Scenes.SFilePath(root), int32(m.S)); err != nil {
+			m.Refused = fmt.Sprintf("could not write s: %v", err)
+		}
+	}
+	md.sendLink(ctx, Links.All, Links.SetS{V: m.S})
+}
