@@ -50,15 +50,6 @@ type Model struct {
 	Timings map[string]NodeTiming
 }
 
-func (m Model) RowsLocking() bool {
-	for _, l := range m.Picked() {
-		if l.Locking {
-			return true
-		}
-	}
-	return false
-}
-
 func (m Model) On() bool { return len(m.Nodes) > 0 }
 
 func (m Model) ManyIn() []string {

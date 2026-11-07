@@ -2,21 +2,7 @@ package Builder
 
 import "github.com/dtauraso/beadnetwork/Categories/Node/Links"
 
-const (
-	OpPick      = "pick"
-	OpUnpick    = "unpick"
-	OpIncrement = "increment"
-	OpLocking   = "locking"
-)
-
-func (m Model) allows(l Links.Link) bool {
-	for _, x := range m.allLinks() {
-		if x.Picked && x.To == l.To && x.From != l.From {
-			return false
-		}
-	}
-	return true
-}
+const OpIncrement = "increment"
 
 func (m Model) Picked() []Links.Link {
 	var out []Links.Link
@@ -28,107 +14,8 @@ func (m Model) Picked() []Links.Link {
 	return out
 }
 
-func pickGroup(m Model) Group {
-	var row []Cell
-	for _, l := range m.allLinks() {
-		if !l.Picked && m.allows(l) {
-			row = append(row, Button(l.Name(), Act{Op: OpPick, Node: l.From, To: l.To}, false))
-		}
-	}
-	if len(row) == 0 {
-		row = []Cell{Text("no edge left to pick")}
-	}
-	return Group{Title: "pick an edge — at most one picked edge into each node", Rows: [][]Cell{row}}
-}
-
-func lockSign(l Links.Link, k string) int {
-	if k == Links.KTheta {
-		return l.Lock.Theta
-	}
-	return l.Lock.Phi
-}
-
-func signButtons(lockOf func(k string) int, act func(k string, sign int) Act, k string) []Cell {
-	return []Cell{
-		Button("+", act(k, 1), lockOf(k) == 1),
-		Button("−", act(k, -1), lockOf(k) == -1),
-	}
-}
-
-func pickedGroup(m Model) Group {
-	var rows [][]Cell
-	for _, id := range m.Nodes {
-		if len(m.linksFrom(id)) > 0 {
-			rows = append(rows, allRow(m, id))
-		}
-		rows = append(rows, pickedRows(m, id)...)
-	}
-	if len(rows) == 0 {
-		return Group{Title: "picked", Rows: [][]Cell{{Text("no edges")}}}
-	}
-	return Group{Title: "picked — + / − steps Δ; \"all from\" steps every edge from that node; ● then + or − locks that way, a lit one unlocks", Rows: rows}
-}
-
-func pickedRows(m Model, id string) [][]Cell {
-	var rows [][]Cell
-	for _, l := range m.Picked() {
-		if l.From != id {
-			continue
-		}
-		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
-		press := func(k string, sign int) Act { return Act{Op: OpLinkPress, Node: l.From, To: l.To, K: k, Sign: sign} }
-		lockOf := func(k string) int { return lockSign(l, k) }
-		mark := "○"
-		if l.Locking {
-			mark = "●"
-		}
-		row := []Cell{Text(l.Name()), Field("Δφ by", Num(float64(l.Increment.Phi)), act(OpIncrement, Links.KPhi), true, false)}
-		row = append(row, signButtons(lockOf, press, Links.KPhi)...)
-		row = append(row, Field("Δθ by", Num(float64(l.Increment.Theta)), act(OpIncrement, Links.KTheta), true, false))
-		row = append(row, signButtons(lockOf, press, Links.KTheta)...)
-		row = append(row, Button("unpick", act(OpUnpick, ""), false), Button(mark, act(OpLocking, ""), l.Locking))
-		rows = append(rows, row)
-	}
-	return rows
-}
-
 const (
-	OpAllStep    = "all-step"
-	OpAllBoth    = "all-both"
-	OpAllLocking = "all-locking"
-	OpAllLock    = "all-lock"
-	OpAllLocks   = "all-locks"
+	OpAllBoth  = "all-both"
+	OpAllLock  = "all-lock"
+	OpAllLocks = "all-locks"
 )
-
-func allRow(m Model, id string) []Cell {
-	st := m.StepOf(id)
-	locks := st.Locks()
-	lockOf := func(k string) int {
-		if k == Links.KTheta {
-			return locks.Theta
-		}
-		return locks.Phi
-	}
-	press := func(k string, sign int) Act { return Act{Op: OpAllStep, Node: id, K: k, Sign: sign} }
-	locked := locks != (Links.Lock{})
-	for _, l := range m.linksFrom(id) {
-		locked = locked || l.Lock != (Links.Lock{})
-	}
-	up, down := "+", "−"
-	if locked {
-		up, down = "▲", "▼"
-	}
-	mark := "○"
-	if st.Locking {
-		mark = "●"
-	}
-	row := []Cell{Text("all from " + id), Text("Δφ")}
-	row = append(row, signButtons(lockOf, press, Links.KPhi)...)
-	row = append(row, Text("Δθ"))
-	row = append(row, signButtons(lockOf, press, Links.KTheta)...)
-	row = append(row, Button(up+" both", Act{Op: OpAllBoth, Node: id, Sign: 1}, false), Button(down+" both", Act{Op: OpAllBoth, Node: id, Sign: -1}, false))
-	if !m.RowsLocking() {
-		row = append(row, Button(mark, Act{Op: OpAllLocking, Node: id}, st.Locking))
-	}
-	return row
-}

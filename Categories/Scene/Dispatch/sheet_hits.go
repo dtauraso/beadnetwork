@@ -94,10 +94,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if sign != 0 {
 			md.sendLink(ctx, a.To, Links.Press{From: a.Node, K: a.K, Sign: sign})
 		}
-	case Builder.OpPick:
-		md.sendLink(ctx, a.To, Links.PickReq{From: a.Node})
-	case Builder.OpUnpick:
-		md.sendLink(ctx, a.To, Links.Unpick{From: a.Node})
 	case Builder.OpStepPick:
 		if md.UI.Builder.Refused = md.UI.Builder.ToggleStepPick(a.I, a.Node, a.To); md.UI.Builder.Refused == "" {
 			md.persistStep()
@@ -105,17 +101,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 	case Builder.OpIncrement:
 		md.setIncrement(ctx, a, sign, typed)
-	case Builder.OpLocking:
-		if l, ok := m.Link(a.Node, a.To); ok {
-			md.sendLink(ctx, a.To, Links.SetLocking{From: a.Node, On: !l.Locking})
-		}
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)
-	case Builder.OpAllStep:
-		if sign == 0 {
-			sign = a.Sign
-		}
-		allStep(ctx, md, a.Node, a.K, sign)
 	case Builder.OpAllLock:
 		st := md.UI.Builder.NodeStep(a.Node)
 		way, on := st.At(a.K)
@@ -144,28 +131,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpAllLocks:
 		md.UI.Builder.NodeStep(a.Node).ToggleBoth()
 		md.persistStep()
-	case Builder.OpAllLocking:
-		st := md.UI.Builder.NodeStep(a.Node)
-		if !m.RowsLocking() {
-			st.Locking = !st.Locking
-			md.persistStep()
-		}
 	}
-}
-
-func allStep(ctx context.Context, md *MoveDispatch, from, k string, sign int) {
-	st := md.UI.Builder.NodeStep(from)
-	way, on := st.At(k)
-	switch {
-	case *on && *way == sign:
-		*on = false
-	case st.Locking:
-		*way, *on = sign, true
-	default:
-		md.stepFrom(ctx, from, k, sign)
-		return
-	}
-	md.persistStep()
 }
 
 func (md *MoveDispatch) Settle(ctx context.Context) { md.stepFrom(ctx, "", Links.KBoth, 0) }
