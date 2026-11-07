@@ -99,6 +99,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 			md.persistStep()
 			md.syncStepPicks(ctx, a.I)
 		}
+	case Builder.OpStepFold:
+		md.UI.Builder.ToggleStepFold(a.I, a.Node)
 	case Builder.OpIncrement:
 		md.setIncrement(ctx, a, sign, typed)
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:

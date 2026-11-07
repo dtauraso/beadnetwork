@@ -164,7 +164,7 @@ func stepPair(right, y float32) (up, down Rect) {
 
 func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 	if g.Title != "" {
-		lay.Heads = append(lay.Heads, HeadBox{Box: box, Rect: Rect{X: x, Y: y, W: groupW(g), H: titleH()}, Title: g.Title})
+		lay.Heads = append(lay.Heads, HeadBox{Box: box, Rect: Rect{X: x, Y: y, W: groupW(g), H: titleH()}, Title: g.Title, Fold: g.Fold})
 		y += titleH() + TitleGap
 	}
 	cols := columns(g)
