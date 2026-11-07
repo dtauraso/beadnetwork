@@ -8,10 +8,11 @@ import (
 
 func (n *NodePhiTheta3) postVectors() {
 	var out []polar.Polar
-	for _, v := range n.peer.PickedOutVecs() {
+	vecs, picked := n.peer.OutVecs()
+	for _, v := range vecs {
 		out = append(out, polar.Cart2polar(v))
 	}
-	n.geom.KindPosts().PostStartVectors(out)
+	n.geom.KindPosts().PostStartVectors(out, picked)
 	n.geom.KindPosts().PostShownEdges(n.peer.PickedOuts())
 	n.postArcs()
 }

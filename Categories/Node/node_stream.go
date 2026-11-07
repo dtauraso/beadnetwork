@@ -35,6 +35,7 @@ func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 	selected, hovered, latchedSel := m.ui.Flags()
 	roundsToParallel, msgsToParallel := m.readout.RoundsToParallel()
 	ruleGroupID, ruleGroupSize := m.RuleGroup()
+	startVectors, startPicked := m.tilt.StartVectors()
 
 	return FrameInputs{
 		Geom: m.geom,
@@ -75,7 +76,8 @@ func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 		ChannelVectors: m.channelVectors(),
 
 		TickCount:    m.tilt.TickCount(),
-		StartVectors: m.tilt.StartVectors(),
+		StartVectors: startVectors,
+		StartPicked:  startPicked,
 		Arcs:         m.tilt.Arcs(),
 	}
 }

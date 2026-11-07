@@ -17,12 +17,13 @@ type Tilt struct {
 	tickCount int32
 
 	startVectors []polar.Polar
+	startPicked  []bool
 	arcs         []AngleArcs.Angle
 }
 
-func (t *Tilt) SetStartVectors(v []polar.Polar) { t.startVectors = v }
+func (t *Tilt) SetStartVectors(v []polar.Polar, picked []bool) { t.startVectors, t.startPicked = v, picked }
 
-func (t *Tilt) StartVectors() []polar.Polar { return t.startVectors }
+func (t *Tilt) StartVectors() ([]polar.Polar, []bool) { return t.startVectors, t.startPicked }
 
 func (t *Tilt) SetArcs(a []AngleArcs.Angle) { t.arcs = a }
 
