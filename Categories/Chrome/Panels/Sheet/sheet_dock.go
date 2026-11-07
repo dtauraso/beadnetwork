@@ -58,5 +58,7 @@ func maxButton(label string, box Rect, max bool) CellBox {
 	}
 	c := Button(glyph, Act{Op: OpDockMax, Node: label}, false)
 	w, h := cellW(c), rowH()
-	return CellBox{Cell: c, Rect: Rect{X: box.X + box.W - Panel.PopoverPad - w, Y: box.Y + Panel.PopoverPad, W: w, H: h}}
+	return CellBox{Cell: c, Rect: Rect{X: box.X + Panel.PopoverPad, Y: box.Y + Panel.PopoverPad, W: w, H: h}}
 }
+
+func barH() float32 { return rowH() + Panel.Gap }

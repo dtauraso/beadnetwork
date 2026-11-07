@@ -132,7 +132,8 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 		var popover Rect
 		var x, y, maxScroll float32
 		if p.Bottom {
-			popover, x, y, maxScroll = stack.AddDock(contentH, st.dockH(p.Label), st.Scroll[p.Label])
+			popover, x, y, maxScroll = stack.AddDock(contentH+barH(), st.dockH(p.Label), st.Scroll[p.Label])
+			y += barH()
 			pb.Grab = Rect{X: popover.X, Y: popover.Y - Panel.DockGrabH/2, W: popover.W, H: Panel.DockGrabH}
 		} else {
 			popover, x, y, maxScroll = stack.AddWideScrollingPopover(contentW, contentH, st.Scroll[p.Label])
