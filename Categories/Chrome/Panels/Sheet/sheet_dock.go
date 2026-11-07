@@ -43,7 +43,11 @@ func (s *State) Resize(viewH, y float64) bool {
 	if s.Resizing == "" {
 		return false
 	}
-	s.SetHeight(s.Resizing, float32(viewH-y))
+	if h := float32(viewH - y); h < 2*barH() {
+		s.setFolded(s.Resizing, true)
+	} else {
+		s.SetHeight(s.Resizing, h)
+	}
 	return true
 }
 
