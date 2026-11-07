@@ -96,6 +96,10 @@ func nodeTables(m Model, step int) []Group {
 		links := m.linksFrom(id)
 		if !selected {
 			links = m.stepLinksFrom(step, id)
+			if m.StepFolded(step, id) {
+				groups = append(groups, Group{Title: foldTitle(true, "node "+id), Fold: Act{Op: OpStepFold, Node: id, I: step}})
+				continue
+			}
 		}
 		for _, l := range links {
 			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
@@ -119,7 +123,11 @@ func nodeTables(m Model, step int) []Group {
 		} else {
 			rows = append([][]Cell{linkHeader(m, id, step)}, rows...)
 		}
-		groups = append(groups, Group{Title: "node " + id, Rows: rows, Slides: true})
+		g := Group{Title: "node " + id, Rows: rows, Slides: true}
+		if !selected {
+			g.Title, g.Fold = foldTitle(false, g.Title), Act{Op: OpStepFold, Node: id, I: step}
+		}
+		groups = append(groups, g)
 	}
 	return groups
 }

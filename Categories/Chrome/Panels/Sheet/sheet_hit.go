@@ -54,6 +54,11 @@ func (l Layout) Hit(x, y float64) Hit {
 			return Hit{Part: PartBody, Label: label, Cell: cb.Cell, Rect: cb.Rect}
 		}
 	}
+	for _, h := range l.Heads {
+		if h.Box == top && h.Fold.Op != "" && Panel.HitRect(h.Rect, x, y) {
+			return Hit{Part: PartBody, Label: l.Pills[top].Label, Cell: Cell{Act: h.Fold}, Rect: h.Rect}
+		}
+	}
 	return Hit{Part: PartInside, Label: l.Pills[top].Label}
 }
 

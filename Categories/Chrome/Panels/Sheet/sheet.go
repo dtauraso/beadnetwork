@@ -99,6 +99,7 @@ func Field(key, value string, act Act, typed, steps bool) Cell {
 
 type Group struct {
 	Title  string
+	Fold   Act
 	Rows   [][]Cell
 	Slides bool
 	Wraps  bool
@@ -126,6 +127,7 @@ type HeadBox struct {
 	Box   int
 	Rect  Rect
 	Title string
+	Fold  Act
 }
 
 type CellBox struct {
