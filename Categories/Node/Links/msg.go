@@ -19,6 +19,13 @@ type Press struct {
 	Sign int
 }
 
+type SetLink struct {
+	From      string
+	Start     Start
+	Delta     Ticks
+	Increment Ticks
+}
+
 type SetIncrement struct {
 	From string
 	K    string

@@ -49,6 +49,9 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	if Builder.IsStepEdit(a) {
 		md.UI.Builder.Refused = md.UI.Builder.StepEdit(a, sign, typed)
 		md.persistStep()
+		if l := md.UI.Builder.StepLinks[Builder.StepEdge{Step: a.I, From: a.Node, To: a.To}]; l != nil && md.UI.Builder.Refused == "" {
+			md.sendLink(ctx, a.To, Links.SetLink{From: a.Node, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
+		}
 		return
 	}
 	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) {
