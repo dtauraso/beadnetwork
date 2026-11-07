@@ -61,4 +61,11 @@ func maxButton(label string, box Rect, max bool) CellBox {
 	return CellBox{Cell: c, Rect: Rect{X: box.X + Panel.PopoverPad, Y: box.Y + Panel.PopoverPad, W: w, H: h}}
 }
 
+func (lay *Layout) addBar(label string, bar Rect, max bool) {
+	b := maxButton(label, bar, max)
+	b.Box = len(lay.Pills)
+	lay.Pills = append(lay.Pills, PillBox{Label: label, Open: true, Popover: bar})
+	lay.Cells = append(lay.Cells, b)
+}
+
 func barH() float32 { return rowH() + 2*Panel.PopoverPad }

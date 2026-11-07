@@ -147,7 +147,8 @@ func (s *PillStack) AddDock(contentH, h, barH, scroll float32) (bar, box Rect, c
 	if h <= 0 {
 		h = s.viewH * DockDefaultH
 	}
-	h = max(barH, min(h, s.viewH-s.y-PopoverGap))
+	pillBelow := LineHeight(PillFontPx) + 2*PillPadY + 2 + PillGap
+	h = max(barH, min(h, s.viewH-s.y-pillBelow-PopoverGap))
 	top := s.viewH - h
 	bar = Rect{X: OriginX, Y: top, W: s.viewW - OriginX - PillRight, H: barH}
 	box = Rect{X: bar.X, Y: top + barH, W: bar.W, H: h - barH}

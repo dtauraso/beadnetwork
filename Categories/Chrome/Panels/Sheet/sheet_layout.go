@@ -106,7 +106,10 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			stack = left
 		}
 		box := len(lay.Pills)
-		pb := PillBox{Label: p.Label, Left: p.Left, Pill: stack.AddPill(), Open: st.Open[p.Label]}
+		pb := PillBox{Label: p.Label, Left: p.Left, Open: true}
+		if !p.Bottom {
+			pb.Pill, pb.Open = stack.AddPill(), st.Open[p.Label]
+		}
 		if !pb.Open {
 			stack.EndGroup()
 			lay.Pills = append(lay.Pills, pb)
@@ -136,8 +139,8 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			pb.Grab = Rect{X: bar.X, Y: bar.Y - Panel.DockGrabH/2, W: bar.W, H: Panel.DockGrabH}
 		} else {
 			popover, x, y, maxScroll = stack.AddWideScrollingPopover(contentW, contentH, st.Scroll[p.Label])
+			stack.EndGroup()
 		}
-		stack.EndGroup()
 		pb.Popover, pb.MaxScroll = popover, maxScroll
 		lay.Pills = append(lay.Pills, pb)
 		for _, g := range p.Groups {
@@ -154,10 +157,7 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			y += groupH(g) + Panel.Gap
 		}
 		if p.Bottom {
-			b := maxButton(p.Label, bar, st.Max[p.Label])
-			b.Box = len(lay.Pills)
-			lay.Pills = append(lay.Pills, PillBox{Label: p.Label, Open: true, Popover: bar})
-			lay.Cells = append(lay.Cells, b)
+			lay.addBar(p.Label, bar, st.Max[p.Label])
 		}
 	}
 	return lay

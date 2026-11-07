@@ -107,7 +107,7 @@ func Pills(m Model) []Pill {
 	return []Pill{FramePill(m), NodesPill(m), LinksPill(m), PlacePill(m), TreePill(m)}
 }
 
-var RightLabels = []string{FrameLabel, NodesLabel, LinksLabel}
+var RightLabels = []string{FrameLabel, NodesLabel}
 
 var LeftLabels = []string{PlaceLabel, TreeLabel}
 
