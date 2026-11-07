@@ -11,6 +11,8 @@ var StripValueNames = []string{
 	"tabX", "tabY", "tabW", "tabH",
 	"tabNameText", "tabNameLen",
 	"tabSelected",
+	"panelX", "panelY", "panelW", "panelH",
+	"panelUp",
 }
 
 func ValueRelPath() string { return ValueRelFile }

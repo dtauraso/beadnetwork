@@ -6,12 +6,44 @@ import { stripBytes, stripF32, stripF32Run, stripU32Run, stripText } from "./str
 export function tabStripKey(): string {
   const sel = stripBytes("tabSelected");
   return [
-    stripF32("stripX"), stripF32("stripW"),
+    stripF32("stripX"), stripF32("stripW"), stripF32("panelX"),
+    stripBytes("panelUp")?.getUint8(0) ?? 0,
     sel ? new Uint8Array(sel.buffer, sel.byteOffset, sel.byteLength).join(".") : "",
   ].join(",");
 }
 
+function drawPanelToggle(c: CanvasRenderingContext2D): void {
+  const w = stripF32("panelW");
+  if (w <= 0) return;
+  const x = stripF32("panelX"), y = stripF32("panelY"), h = stripF32("panelH");
+  const up = (stripBytes("panelUp")?.getUint8(0) ?? 0) !== 0;
+  const inset = h * 0.22;
+  const ix = x + inset, iy = y + inset, iw = w - 2 * inset, ih = h - 2 * inset;
+  const split = iy + ih * 0.62;
+
+  roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, T.RADIUS_CHIP);
+  c.fillStyle = T.CHIP;
+  c.fill();
+  c.strokeStyle = T.BORDER;
+  c.lineWidth = 1;
+  c.stroke();
+
+  if (up) {
+    c.fillStyle = T.TEXT;
+    c.fillRect(ix, split, iw, iy + ih - split);
+  }
+  roundRect(c, ix, iy, iw, ih, 2);
+  c.strokeStyle = T.TEXT;
+  c.lineWidth = 1.5;
+  c.stroke();
+  c.beginPath();
+  c.moveTo(ix, split);
+  c.lineTo(ix + iw, split);
+  c.stroke();
+}
+
 export function drawTabStrip(c: CanvasRenderingContext2D): void {
+  drawPanelToggle(c);
   const sw = stripF32("stripW");
   const sh = stripF32("stripH");
   if (sw <= 0 || sh <= 0) return;

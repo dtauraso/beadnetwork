@@ -8,6 +8,11 @@ type State struct {
 	Open    map[string]bool
 	Scroll  map[string]float32
 	ScrollX map[string]float32
+
+	Height   map[string]float32
+	Folded   map[string]bool
+	Resizing string
+	resizeDY float32
 }
 
 func (s *State) Arm(sceneRoot string) {

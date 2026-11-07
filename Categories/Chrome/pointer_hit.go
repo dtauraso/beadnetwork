@@ -22,13 +22,18 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 			Rect: pl.Fit, Kind: Panels.PointerInteractive, Tip: "Frame the whole diagram",
 		}
 	}
+	if pl.Tabs.HitPanel(x, y) {
+		return Panels.PointerTarget{Rect: pl.Tabs.Panel, Kind: Panels.PointerInteractive, Tip: "Toggle the Links panel"}
+	}
 	if i := pl.Tabs.Hit(x, y); i >= 0 && i < len(pl.Tabs.Tabs) {
 		return Panels.PointerTarget{Rect: pl.Tabs.Tabs[i].Rect, Kind: Panels.PointerInteractive}
 	}
 	if h := pl.Nodes.Hit(x, y); h.Kind != NodesDropdown.HitNone {
 		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 	}
-	if h := pl.Sheet.Hit(x, y); h.Part != Sheet.PartNone && h.Part != Sheet.PartInside {
+	if h := pl.Sheet.Hit(x, y); h.Part == Sheet.PartGrab {
+		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerResize}
+	} else if h.Part != Sheet.PartNone && h.Part != Sheet.PartInside {
 		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 	}
 	if i := pl.Speed.Hit(x, y); i >= 0 && i < len(pl.Speed.Ticks) {

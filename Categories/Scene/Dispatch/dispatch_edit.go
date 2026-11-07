@@ -40,6 +40,13 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		}
 		return
 	}
+	if ev.Kind == "pointermove" && md.UI.Sheet.Resize(md.UI.ViewH, ev.Y) {
+		md.UI.EmitViewFrame(nil)
+		return
+	}
+	if ev.Kind == "pointerup" && md.UI.Sheet.EndResize() {
+		return
+	}
 	if ev.Kind == "pointerup" && md.UI.PlacingPending {
 		md.UI.PlacingPending = false
 		placeNodeAt(md, &ev)

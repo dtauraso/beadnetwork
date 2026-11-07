@@ -63,8 +63,10 @@ func (s *PillStack) AddChip(label string) Rect {
 	return r
 }
 
+func PillH() float32 { return LineHeight(PillFontPx) + 2*PillPadY + 2 }
+
 func (s *PillStack) AddPill() Rect {
-	h := LineHeight(PillFontPx) + 2*PillPadY + 2
+	h := PillH()
 	r := Rect{X: s.X(), Y: s.y, W: s.width, H: h}
 	s.y += h
 	return r
@@ -137,6 +139,26 @@ func (s *PillStack) AddWideScrollingPopover(contentW, contentH, scroll float32) 
 	s.y += box.H
 	return box, box.X + PopoverPad, box.Y + PopoverPad - scroll, maxScroll
 }
+
+const (
+	DockDefaultH = 0.4
+	DockGrabH    = 8
+)
+
+func (s *PillStack) AddDock(contentH, h, barH, scroll float32) (bar, box Rect, contentX, contentY, maxScroll float32) {
+	if h <= 0 {
+		h = s.viewH * DockDefaultH
+	}
+	pillBelow := PillH() + PillGap
+	h = max(barH, min(h, s.viewH-s.y-pillBelow-PopoverGap))
+	top := s.viewH - h
+	bar = Rect{X: OriginX, Y: top, W: s.viewW - OriginX - PillRight, H: barH}
+	box = Rect{X: bar.X, Y: top + barH, W: bar.W, H: h - barH}
+	_, scroll, maxScroll = ClipToRoom(contentH+2*PopoverPad, box.H, scroll)
+	return bar, box, box.X + PopoverPad, box.Y + PopoverPad - scroll, maxScroll
+}
+
+func (s *PillStack) DockRoomW() float32 { return s.viewW - OriginX - PillRight - 2*PopoverPad }
 
 func (s *PillStack) ContentRoomW() float32 {
 	if s.viewW <= 0 {

@@ -19,6 +19,8 @@ func (s *State) Write(lay Layout) {
 		w.Str("tabNameText", "tabNameLen", t.Name)
 		w.Bool("tabSelected", t.Selected)
 	}
+	w.Rect("panelX", "panelY", "panelW", "panelH", lay.Panel)
+	w.Bool("panelUp", lay.PanelUp)
 
 	if err := w.Flush(); err != nil {
 		fmt.Fprintf(os.Stderr, "tab_strip_values: %v\n", err)

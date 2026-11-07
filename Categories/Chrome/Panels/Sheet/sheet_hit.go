@@ -13,6 +13,7 @@ const (
 	PartUp
 	PartDown
 	PartInside
+	PartGrab
 )
 
 type Hit struct {
@@ -20,12 +21,22 @@ type Hit struct {
 	Label string
 	Cell  Cell
 	Rect  Rect
+	DY    float32
 }
 
 func (l Layout) Hit(x, y float64) Hit {
 	for _, p := range l.Pills {
-		if Panel.HitRect(p.Pill, x, y) {
+		if p.Bar && Panel.HitRect(p.Pill, x, y) {
+			if c := caretRect(p.Pill); Panel.HitRect(c, x, y) {
+				return Hit{Part: PartBody, Label: p.Label, Cell: Cell{Act: Act{Op: OpDockFold, Node: p.Label}}, Rect: c}
+			}
+			return Hit{Part: PartGrab, Label: p.Label, Rect: p.Pill, DY: float32(y) - p.Pill.Y}
+		}
+		if p.Pill.W > 0 && Panel.HitRect(p.Pill, x, y) {
 			return Hit{Part: PartPill, Label: p.Label, Rect: p.Pill}
+		}
+		if p.Open && p.Grab.W > 0 && Panel.HitRect(p.Grab, x, y) {
+			return Hit{Part: PartGrab, Label: p.Label, Rect: p.Grab, DY: float32(y) - (p.Grab.Y + Panel.DockGrabH/2)}
 		}
 	}
 	top := -1
@@ -37,7 +48,8 @@ func (l Layout) Hit(x, y float64) Hit {
 	if top < 0 {
 		return Hit{}
 	}
-	for _, cb := range l.Cells {
+	for i := len(l.Cells) - 1; i >= 0; i-- {
+		cb := l.Cells[i]
 		if cb.Box != top || cb.Slides && !Panel.HitRect(l.Pills[top].Slide, x, y) {
 			continue
 		}

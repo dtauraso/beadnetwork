@@ -109,15 +109,18 @@ type Group struct {
 type Pill struct {
 	Label  string
 	Left   bool
+	Bottom bool
 	Groups []Group
 }
 
 type PillBox struct {
-	Label     string
-	Left      bool
-	Pill      Rect
-	Open      bool
-	Popover   Rect
+	Label      string
+	Left       bool
+	Pill       Rect
+	Open       bool
+	Popover    Rect
+	Grab       Rect
+	Bar        bool
 	MaxScroll  float32
 	Slide      Rect
 	MaxScrollX float32
