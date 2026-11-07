@@ -16,6 +16,7 @@ export const EDGE_VALUE_NAMES = [
   "deltaR",
   "dragActive",
   "label",
+  "shown",
 ] as const;
 
 export type EdgeValueName = (typeof EDGE_VALUE_NAMES)[number];

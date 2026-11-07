@@ -77,13 +77,17 @@ func (p *Peer) posOf(id string) Vec3 { return p.Frame.At(p.places[id]) }
 
 func (p *Peer) Offset(id string) Vec3 { return p.posOf(id).Sub(p.Pos()) }
 
-func (p *Peer) Outs() []Vec3 {
+func (p *Peer) PickedOutVecs() []Vec3 {
 	var out []Vec3
 	for _, to := range slices.Sorted(maps.Keys(p.out)) {
-		out = append(out, p.posOf(to).Sub(p.Pos()))
+		if p.outPicked[to] {
+			out = append(out, p.posOf(to).Sub(p.Pos()))
+		}
 	}
 	return out
 }
+
+func (p *Peer) PickedOuts() map[string]bool { return maps.Clone(p.outPicked) }
 
 func (p *Peer) TakeChanges() Changes {
 	c := p.Changed

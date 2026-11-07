@@ -15,6 +15,8 @@ export interface EdgeAccessor {
 
   dragActive(row: number): boolean;
 
+  shown(row: number): boolean;
+
 }
 
 export function getEdgeStreamAccessor(): EdgeAccessor | null {
@@ -46,6 +48,9 @@ export function getEdgeStreamAccessor(): EdgeAccessor | null {
     dragActive(row) {
 
       return edgeBytes(row, "dragActive") ? edgeU8(row, "dragActive") !== 0 : true;
+    },
+    shown(row) {
+      return edgeBytes(row, "shown") ? edgeU8(row, "shown") !== 0 : true;
     },
   };
 }
