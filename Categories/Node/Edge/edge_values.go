@@ -9,7 +9,7 @@ const ValueRelTemplate = "view/edges/{row}/edge.bin"
 
 var EdgeValueNames = []string{
 	"sx", "sy", "sz", "ex", "ey", "ez",
-	"srcNodeRow", "dstNodeRow", "deltaR", "dragActive", "label",
+	"srcNodeRow", "dstNodeRow", "deltaR", "dragActive", "label", "shown",
 }
 
 func ValueRelPath(row int) string {
@@ -27,7 +27,7 @@ func NewValueWriter(sceneRoot string, row int) *ValueWriter {
 
 func (w *ValueWriter) Write(
 	sx, sy, sz, ex, ey, ez float32,
-	srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string,
+	srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, shown uint8,
 ) error {
 	w.Begin()
 	w.F32("sx", sx)
@@ -41,5 +41,6 @@ func (w *ValueWriter) Write(
 	w.F32("deltaR", deltaR)
 	w.U8("dragActive", dragActive)
 	w.Text("label", label)
+	w.U8("shown", shown)
 	return w.Flush()
 }

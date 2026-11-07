@@ -8,10 +8,11 @@ import (
 
 func (n *NodePhiTheta3) postVectors() {
 	var out []polar.Polar
-	for _, v := range n.peer.Outs() {
+	for _, v := range n.peer.PickedOutVecs() {
 		out = append(out, polar.Cart2polar(v))
 	}
 	n.geom.KindPosts().PostStartVectors(out)
+	n.geom.KindPosts().PostShownEdges(n.peer.PickedOuts())
 	n.postArcs()
 }
 
@@ -19,7 +20,7 @@ func (n *NodePhiTheta3) postArcs() {
 	s := n.peer.S
 	var arcs []AngleArcs.Angle
 	for _, l := range n.peer.Links() {
-		if l.Dir(s).R*n.peer.Frame.Rho < 1e-9 {
+		if !l.Picked || l.Dir(s).R*n.peer.Frame.Rho < 1e-9 {
 			continue
 		}
 		phi, theta := n.peer.Frame.Arcs(s, l)

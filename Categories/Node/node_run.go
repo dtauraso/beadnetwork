@@ -98,6 +98,9 @@ func (g *NodeGeometry) applyKindPosts() {
 	if p.Arcs != nil {
 		g.tilt.SetArcs(*p.Arcs)
 	}
+	if p.Shown != nil {
+		g.outEdges.ShowOnly(*p.Shown)
+	}
 	if p.Ticks != nil {
 		g.tilt.SetTickCount(*p.Ticks)
 	}

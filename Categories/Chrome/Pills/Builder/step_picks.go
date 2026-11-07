@@ -1,6 +1,7 @@
 package Builder
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -26,12 +27,33 @@ func (m Model) StepPicked(step int, l Links.Link) bool {
 	return m.StepPicks[StepEdge{step, l.From, l.To}]
 }
 
-func (m *Model) ToggleStepPick(step int, from, to string) {
+func (m *Model) ToggleStepPick(step int, from, to string) string {
 	if m.StepPicks == nil {
 		m.StepPicks = map[StepEdge]bool{}
 	}
 	k := StepEdge{step, from, to}
+	if !m.StepPicks[k] {
+		for o, on := range m.StepPicks {
+			if on && o.Step == step && o.To == to && o.From != from {
+				return fmt.Sprintf("step %d %s→%s: %s already has a picked link into it in step %d, from %s", step, from, to, to, step, o.From)
+			}
+		}
+	}
 	m.StepPicks[k] = !m.StepPicks[k]
+	return ""
+}
+
+func (m Model) StepPickChanges(step int) (unpick, pick []Links.Link) {
+	for _, l := range m.allLinks() {
+		want := m.StepPicks[StepEdge{step, l.From, l.To}]
+		switch {
+		case l.Picked && !want:
+			unpick = append(unpick, l)
+		case !l.Picked && want:
+			pick = append(pick, l)
+		}
+	}
+	return unpick, pick
 }
 
 func stepPicksDir(stepDir string, step int) string {

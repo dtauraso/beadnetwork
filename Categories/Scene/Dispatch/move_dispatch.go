@@ -158,6 +158,16 @@ func (md *MoveDispatch) persistStep() {
 	}
 }
 
+func (md *MoveDispatch) syncStepPicks(ctx context.Context, step int) {
+	unpick, pick := md.UI.Builder.StepPickChanges(step)
+	for _, l := range unpick {
+		md.sendLink(ctx, l.To, Links.Unpick{From: l.From})
+	}
+	for _, l := range pick {
+		md.sendLink(ctx, l.To, Links.PickReq{From: l.From})
+	}
+}
+
 func DrainLinkReports(md *MoveDispatch) {
 	if md == nil || md.Links == nil {
 		return

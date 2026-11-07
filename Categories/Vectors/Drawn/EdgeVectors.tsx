@@ -41,6 +41,7 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
     const n = Math.min(edges.edgeCount, capacity);
     let drawn = 0;
     for (let row = 0; row < n; row++) {
+      if (!edges.shown(row)) continue;
       const [bx, by, bz, cx, cy, cz] = edges.segment(row);
 
       const src = edges.srcNodeRow(row);
