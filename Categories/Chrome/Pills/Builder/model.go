@@ -40,8 +40,9 @@ type Model struct {
 	StepHeads map[StepNode]*Step
 	StepFolds map[StepNode]bool
 
-	Seqs    []Seq
-	OpenSeq int
+	Seqs      []Seq
+	OpenSeq   int
+	SeqFolded bool
 
 	Cards    Cards
 	CardsDir string
@@ -103,16 +104,12 @@ func Pills(m Model) []Pill {
 	if !m.On() {
 		return nil
 	}
-	pills := []Pill{FramePill(m), NodesPill(m), LinksPill(m)}
-	if len(m.Seqs) > 0 {
-		pills = append(pills, SequencesPill(m))
-	}
-	return append(pills, PlacePill(m), TreePill(m))
+	return []Pill{FramePill(m), NodesPill(m), LinksPill(m), PlacePill(m), TreePill(m)}
 }
 
 var RightLabels = []string{FrameLabel, NodesLabel, LinksLabel}
 
-var LeftLabels = []string{SeqLabel, PlaceLabel, TreeLabel}
+var LeftLabels = []string{PlaceLabel, TreeLabel}
 
 func Num(v float64) string {
 	if math.Abs(v) < 5e-4 {

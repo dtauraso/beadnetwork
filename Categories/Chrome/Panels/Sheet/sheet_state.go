@@ -1,7 +1,8 @@
 package Sheet
 
 type State struct {
-	w *ValueWriter
+	w   *ValueWriter
+	dir string
 
 	Edit    Edit
 	Open    map[string]bool
@@ -9,7 +10,10 @@ type State struct {
 	ScrollX map[string]float32
 }
 
-func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
+func (s *State) Arm(sceneRoot string) {
+	s.w = NewValueWriter(sceneRoot)
+	s.load(sceneRoot)
+}
 
 func (s *State) Toggle(label string) {
 	if s.Open == nil {
@@ -19,6 +23,11 @@ func (s *State) Toggle(label string) {
 	if !s.Open[label] && s.Edit.Active {
 		s.Edit = Edit{}
 	}
+	open := int32(0)
+	if s.Open[label] {
+		open = 1
+	}
+	s.save(label, "open", open)
 }
 
 func (s *State) ScrollOf(label string) *float32 {
@@ -34,6 +43,7 @@ func (s *State) SetScroll(label string, v float32) {
 		s.Scroll = map[string]float32{}
 	}
 	s.Scroll[label] = v
+	s.save(label, "scroll", px(v))
 }
 
 func (s *State) ScrollXOf(label string) *float32 {
@@ -46,4 +56,5 @@ func (s *State) SetScrollX(label string, v float32) {
 		s.ScrollX = map[string]float32{}
 	}
 	s.ScrollX[label] = v
+	s.save(label, "scroll-x", px(v))
 }

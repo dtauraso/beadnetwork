@@ -73,6 +73,9 @@ func linkHeader(m Model, id string, step int) []Cell {
 
 func LinksPill(m Model) Pill {
 	var groups []Group
+	if len(m.Seqs) > 0 {
+		groups = append(groups, sequenceGroup(m))
+	}
 	for _, step := range StepNumbers {
 		groups = append(groups, Group{Title: "step " + strconv.Itoa(step)})
 		for _, g := range nodeTables(m, step) {

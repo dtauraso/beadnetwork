@@ -67,6 +67,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 	case Builder.OpStepFold:
 		md.UI.Builder.ToggleStepFold(a.I, a.Node)
+	case Builder.OpSeqFold:
+		md.UI.Builder.SeqFolded = !md.UI.Builder.SeqFolded
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)
 	}

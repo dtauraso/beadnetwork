@@ -236,9 +236,9 @@ topology-pair-phi-theta-3/sequences/*
 !topology-pair-phi-theta-3/sequences/3/
 !topology-pair-phi-theta-3/sequences/4/
 
-# A sequence's all-links step locks (direction lock-<k>.bin, on/off lock-on-<k>.bin): set
-# from the Links pill headers while the editor is used, kept local.
-topology*/sequences/*/step/lock-*.bin
+# A sequence's step state (its locks, each node's and each step's, picks, and the steps'
+# copies of the links): set from the Links pill while the editor is used, kept local.
+topology*/sequences/*/step/
 
 # Where the running extension listens for "open this file as a tab", and that
 # session's token. Written on activation, removed on shutdown.
