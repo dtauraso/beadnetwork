@@ -15,8 +15,12 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 	switch h.Part {
 	case Sheet.PartPill:
 		sh.Toggle(h.Label)
+	case Sheet.PartGrab:
+		sh.StartResize(h.Label)
 	case Sheet.PartBody:
-		if h.Cell.Typed {
+		if h.Cell.Act.Op == Sheet.OpDockMax {
+			sh.ToggleMax(h.Cell.Act.Node)
+		} else if h.Cell.Typed {
 			Sheet.StartDraft(&sh.Edit, h.Cell.Act)
 		} else {
 			runSheetAct(ctx, md, h.Cell.Act, 0, nil)

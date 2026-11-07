@@ -13,6 +13,7 @@ const (
 	PartUp
 	PartDown
 	PartInside
+	PartGrab
 )
 
 type Hit struct {
@@ -27,6 +28,9 @@ func (l Layout) Hit(x, y float64) Hit {
 		if Panel.HitRect(p.Pill, x, y) {
 			return Hit{Part: PartPill, Label: p.Label, Rect: p.Pill}
 		}
+		if p.Open && p.Grab.W > 0 && Panel.HitRect(p.Grab, x, y) {
+			return Hit{Part: PartGrab, Label: p.Label, Rect: p.Grab}
+		}
 	}
 	top := -1
 	for i, p := range l.Pills {
@@ -37,7 +41,8 @@ func (l Layout) Hit(x, y float64) Hit {
 	if top < 0 {
 		return Hit{}
 	}
-	for _, cb := range l.Cells {
+	for i := len(l.Cells) - 1; i >= 0; i-- {
+		cb := l.Cells[i]
 		if cb.Box != top || cb.Slides && !Panel.HitRect(l.Pills[top].Slide, x, y) {
 			continue
 		}

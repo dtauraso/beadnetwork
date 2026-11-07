@@ -28,7 +28,9 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	if h := pl.Nodes.Hit(x, y); h.Kind != NodesDropdown.HitNone {
 		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 	}
-	if h := pl.Sheet.Hit(x, y); h.Part != Sheet.PartNone && h.Part != Sheet.PartInside {
+	if h := pl.Sheet.Hit(x, y); h.Part == Sheet.PartGrab {
+		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerResize}
+	} else if h.Part != Sheet.PartNone && h.Part != Sheet.PartInside {
 		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 	}
 	if i := pl.Speed.Hit(x, y); i >= 0 && i < len(pl.Speed.Ticks) {

@@ -8,6 +8,7 @@ const (
 	PointerNothing PointerKind = iota
 	PointerInteractive
 	PointerRefusing
+	PointerResize
 )
 
 type PointerTarget struct {

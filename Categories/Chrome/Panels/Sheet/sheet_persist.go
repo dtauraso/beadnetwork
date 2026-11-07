@@ -29,6 +29,18 @@ func (s *State) load(sceneRoot string) {
 		if v := LoadScalar(s.file(label, "scroll-x"), 0, 0); v > 0 {
 			s.SetScrollX(label, float32(v))
 		}
+		if v := LoadScalar(s.file(label, "height"), 0, 0); v > 0 {
+			if s.Height == nil {
+				s.Height = map[string]float32{}
+			}
+			s.Height[label] = float32(v)
+		}
+		if LoadScalar(s.file(label, "max"), 0, 0) == 1 {
+			if s.Max == nil {
+				s.Max = map[string]bool{}
+			}
+			s.Max[label] = true
+		}
 	}
 }
 

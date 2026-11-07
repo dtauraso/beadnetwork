@@ -86,7 +86,7 @@ func LinksPill(m Model) Pill {
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
 	}
-	return Pill{Label: LinksLabel, Groups: groups}
+	return Pill{Label: LinksLabel, Bottom: true, Groups: groups}
 }
 
 func nodeTables(m Model, step int) []Group {
