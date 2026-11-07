@@ -72,7 +72,7 @@ func linkHeader(m Model, id string, step int) []Cell {
 }
 
 func LinksPill(m Model) Pill {
-	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined; clicking a name in a step picks or unpicks it in that step")}}, Wraps: true}}
+	var groups []Group
 	for _, step := range StepNumbers {
 		groups = append(groups, Group{Title: "step " + strconv.Itoa(step)})
 		for _, g := range nodeTables(m, step) {
