@@ -55,6 +55,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 		return
 	}
+	if Builder.IsStepHead(a) {
+		md.runStepHead(ctx, a, sign)
+		return
+	}
 	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) {
 		return
 	}
