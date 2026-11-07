@@ -1,20 +1,6 @@
 package Links
 
-import (
-	"fmt"
-	"math"
-	"slices"
-)
-
-func (p *Peer) setStart(m SetStart) []Envelope {
-	l, ok := p.own[m.From]
-	if !ok {
-		return nil
-	}
-	l.SetStart(p.S, m.K, m.V)
-	p.touched(m.From)
-	return p.take(l)
-}
+import "fmt"
 
 func (p *Peer) setLink(m SetLink) []Envelope {
 	l, ok := p.own[m.From]
@@ -24,53 +10,6 @@ func (p *Peer) setLink(m SetLink) []Envelope {
 	l.Start, l.Delta, l.Increment = m.Start, m.Delta, m.Increment
 	p.touched(m.From)
 	return p.take(l)
-}
-
-func (p *Peer) press(m Press) []Envelope {
-	l, ok := p.own[m.From]
-	if !ok {
-		return nil
-	}
-	if m.K == KR {
-		if l.Start.R+float64(l.Delta.R+m.Sign*l.Increment.R) < 0 {
-			p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %d", m.From, p.ID, l.Delta.R)
-			return nil
-		}
-		l.Step(p.S, m.K, m.Sign)
-		p.touched(m.From)
-		return p.take(l)
-	}
-	lock := l.Lock.at(m.K)
-	switch {
-	case *lock == m.Sign:
-		*lock = 0
-	case l.Locking:
-		*lock = m.Sign
-	default:
-		l.Step(p.S, m.K, m.Sign)
-		p.touched(m.From)
-		return p.take(l)
-	}
-	p.touched(m.From)
-	return nil
-}
-
-func (p *Peer) setIncrement(m SetIncrement) {
-	l, ok := p.own[m.From]
-	switch {
-	case !ok || !whole(m.V) || (m.K == KR && m.V <= 0):
-		return
-	default:
-		*l.Increment.at(m.K) = int(math.Round(m.V))
-	}
-	p.touched(m.From)
-}
-
-func (p *Peer) setLocking(m SetLocking) {
-	if l, ok := p.own[m.From]; ok {
-		l.Locking = m.On
-		p.touched(m.From)
-	}
 }
 
 func (p *Peer) pickReq(m PickReq) []Envelope {
@@ -163,14 +102,4 @@ func (p *Peer) connect(m Connect) []Envelope {
 	p.order = append(p.order, m.From)
 	p.touched(m.From)
 	return []Envelope{{To: m.From, Msg: Linked{From: p.ID, At: p.At}}}
-}
-
-func (p *Peer) drop(m Drop) []Envelope {
-	if _, ok := p.own[m.From]; !ok {
-		return nil
-	}
-	delete(p.own, m.From)
-	p.order = slices.DeleteFunc(p.order, func(f string) bool { return f == m.From })
-	p.Changed.Dropped = append(p.Changed.Dropped, m.From)
-	return []Envelope{{To: m.From, Msg: Unlinked{From: p.ID}}}
 }

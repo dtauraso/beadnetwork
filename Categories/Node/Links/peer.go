@@ -10,7 +10,6 @@ type Changes struct {
 	Place   bool
 	S       bool
 	Links   map[string]bool
-	Dropped []string
 	Refused string
 }
 
@@ -133,16 +132,8 @@ func (p *Peer) neighbours() []string {
 
 func (p *Peer) Handle(msg any) []Envelope {
 	switch m := msg.(type) {
-	case SetStart:
-		return p.setStart(m)
 	case SetLink:
 		return p.setLink(m)
-	case Press:
-		return p.press(m)
-	case SetIncrement:
-		p.setIncrement(m)
-	case SetLocking:
-		p.setLocking(m)
 	case StepAll:
 		return p.stepAll(m)
 	case Put:
@@ -165,15 +156,10 @@ func (p *Peer) Handle(msg any) []Envelope {
 		return p.setS(m)
 	case Connect:
 		return p.connect(m)
-	case Drop:
-		return p.drop(m)
 	case Linked:
 		p.out[m.From] = true
 		p.places[m.From] = m.At
 		p.heard[m.From] = p.round
-	case Unlinked:
-		delete(p.out, m.From)
-		delete(p.outPicked, m.From)
 	default:
 		panic(fmt.Sprintf("Links.Peer.Handle: node %s was handed a %T, which no case takes — every message a node can be sent has a case here, so an unhandled one is a sender naming the wrong thing", p.ID, msg))
 	}
