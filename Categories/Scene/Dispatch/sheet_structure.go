@@ -21,7 +21,9 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 	case Builder.OpTickMs:
 		setTickMs(ctx, md, sign, typed)
 	case Builder.OpFrame:
-		if typed != nil {
+		if typed != nil && a.K == Builder.FrameS {
+			setSceneS(ctx, md, *typed)
+		} else if typed != nil {
 			setFrame(md, a.K, *typed)
 		}
 	case Builder.OpNodeS:
@@ -67,11 +69,9 @@ func setFrame(md *MoveDispatch, k string, v float64) {
 		f.Tphi, ok = int(math.Round(v)), ok && whole(v)
 	case Builder.FrameTtheta:
 		f.Ttheta, ok = int(math.Round(v)), ok && whole(v)
-	case Builder.FrameS:
-		s, ok = int(math.Round(v)), ok && whole(v)
 	}
 	if !ok {
-		m.Refused = fmt.Sprintf("%s %v: must be above 0 (and whole for T_φ, T_θ and s), so the frame stays as it is", k, v)
+		m.Refused = fmt.Sprintf("%s %v: must be above 0 (and whole for T_φ and T_θ), so the frame stays as it is", k, v)
 		return
 	}
 	root := md.Scenes.TreeRoot
