@@ -168,6 +168,20 @@ func (md *MoveDispatch) syncStepPicks(ctx context.Context, step int) {
 	}
 }
 
+func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) {
+	m := &md.UI.Builder
+	refused, moved := m.StepHeadEdit(a, sign)
+	m.Refused = refused
+	md.persistStep()
+	if len(moved) > 0 {
+		md.syncStepPicks(ctx, a.I)
+	}
+	for _, e := range moved {
+		l := m.StepLinks[e]
+		md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
+	}
+}
+
 func DrainLinkReports(md *MoveDispatch) {
 	if md == nil || md.Links == nil {
 		return

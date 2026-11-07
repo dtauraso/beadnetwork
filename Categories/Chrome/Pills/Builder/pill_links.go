@@ -54,20 +54,20 @@ var linkCols = []linkCol{
 	{"nΔr", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true, false},
 }
 
-func (c linkCol) head(m Model, id string) Cell {
+func (c linkCol) head(m Model, id string, step int) Cell {
 	if c.op == OpLinkPress {
-		st := m.StepOf(id)
+		st := m.headOf(step, id)
 		way, on := st.At(c.k)
-		lockAct := Act{Op: OpAllLock, Node: id, K: c.k}
+		lockAct := Act{Op: OpAllLock, Node: id, K: c.k, I: step}
 		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).LockedOn(*on)
 	}
 	return Text(c.label).AboveLastDigit()
 }
 
-func linkHeader(m Model, id string) []Cell {
-	labels := []Cell{Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id}).Outline(m.StepOf(id).Both).Stepping(Act{Op: OpAllBoth, Node: id}, 0)}
+func linkHeader(m Model, id string, step int) []Cell {
+	labels := []Cell{Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id, I: step}).Outline(m.headOf(step, id).Both).Stepping(Act{Op: OpAllBoth, Node: id, I: step}, 0)}
 	for _, c := range linkCols {
-		labels = append(labels, c.head(m, id))
+		labels = append(labels, c.head(m, id, step))
 	}
 	return labels
 }
@@ -122,14 +122,7 @@ func nodeTables(m Model, step int) []Group {
 		if len(rows) == 0 {
 			rows = [][]Cell{{Text("no links")}}
 		} else {
-			head := linkHeader(m, id)
-			if !selected {
-				head = []Cell{Text("φ+θ+r")}
-				for _, c := range linkCols {
-					head = append(head, Text(c.label).AboveLastDigit())
-				}
-			}
-			rows = append([][]Cell{head}, rows...)
+			rows = append([][]Cell{linkHeader(m, id, step)}, rows...)
 		}
 		groups = append(groups, Group{Title: "node " + id, Rows: rows, Slides: true})
 	}
