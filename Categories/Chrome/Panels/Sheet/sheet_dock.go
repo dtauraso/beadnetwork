@@ -2,11 +2,11 @@ package Sheet
 
 import "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 
-const OpDockMax = "dock-max"
+const OpDockFold = "dock-fold"
 
 func (s *State) dockH(label string) float32 {
-	if s.Max[label] {
-		return 1 << 20
+	if s.Folded[label] {
+		return 1
 	}
 	return s.Height[label]
 }
@@ -16,23 +16,25 @@ func (s *State) SetHeight(label string, h float32) {
 		s.Height = map[string]float32{}
 	}
 	s.Height[label] = h
-	if s.Max[label] {
-		s.Max[label] = false
-		s.save(label, "max", 0)
-	}
+	s.setFolded(label, false)
 	s.save(label, "height", px(h))
 }
 
-func (s *State) ToggleMax(label string) {
-	if s.Max == nil {
-		s.Max = map[string]bool{}
-	}
-	if s.Max[label] {
-		s.SetHeight(label, 1)
+func (s *State) ToggleFold(label string) { s.setFolded(label, !s.Folded[label]) }
+
+func (s *State) setFolded(label string, on bool) {
+	if s.Folded[label] == on {
 		return
 	}
-	s.Max[label] = true
-	s.save(label, "max", 1)
+	if s.Folded == nil {
+		s.Folded = map[string]bool{}
+	}
+	s.Folded[label] = on
+	v := int32(0)
+	if on {
+		v = 1
+	}
+	s.save(label, "folded", v)
 }
 
 func (s *State) StartResize(label string) { s.Resizing = label }
@@ -51,8 +53,8 @@ func (s *State) EndResize() bool {
 	return was
 }
 
-func (lay *Layout) addBar(label string, bar Rect, max bool) {
-	lay.Pills = append(lay.Pills, PillBox{Label: label, Pill: bar, Open: !max, Bar: true})
+func (lay *Layout) addBar(label string, bar Rect, folded bool) {
+	lay.Pills = append(lay.Pills, PillBox{Label: label, Pill: bar, Open: folded, Bar: true})
 }
 
 func barH() float32 { return Panel.PillH() }

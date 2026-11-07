@@ -55,7 +55,7 @@ func panelTookPointerDown(
 	}
 
 	if pl.Tabs.HitPanel(ev.X, ev.Y) {
-		md.UI.Sheet.ToggleMax(Builder.LinksLabel)
+		md.UI.Sheet.ToggleFold(Builder.LinksLabel)
 		md.UI.EmitViewFrame(nil)
 		return true
 	}

@@ -35,11 +35,11 @@ func (s *State) load(sceneRoot string) {
 			}
 			s.Height[label] = float32(v)
 		}
-		if LoadScalar(s.file(label, "max"), 0, 0) == 1 {
-			if s.Max == nil {
-				s.Max = map[string]bool{}
+		if LoadScalar(s.file(label, "folded"), 0, 0) == 1 {
+			if s.Folded == nil {
+				s.Folded = map[string]bool{}
 			}
-			s.Max[label] = true
+			s.Folded[label] = true
 		}
 	}
 }

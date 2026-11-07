@@ -157,7 +157,7 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			y += groupH(g) + Panel.Gap
 		}
 		if p.Bottom {
-			lay.addBar(p.Label, bar, st.Max[p.Label])
+			lay.addBar(p.Label, bar, st.Folded[p.Label])
 		}
 	}
 	return lay

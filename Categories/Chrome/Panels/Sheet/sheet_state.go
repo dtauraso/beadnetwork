@@ -10,7 +10,7 @@ type State struct {
 	ScrollX map[string]float32
 
 	Height   map[string]float32
-	Max      map[string]bool
+	Folded   map[string]bool
 	Resizing string
 }
 
