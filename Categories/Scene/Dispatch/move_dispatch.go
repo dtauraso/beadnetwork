@@ -2,20 +2,17 @@ package Dispatch
 
 import (
 	"context"
-	"fmt"
-	"slices"
-	"sort"
 	"sync"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 	SceneB "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
@@ -91,63 +88,6 @@ func (md *MoveDispatch) sendLink(ctx context.Context, to string, msg any) {
 		return
 	}
 	md.Links.Send(ctx, "", Links.Envelope{To: to, Msg: msg})
-}
-
-func (md *MoveDispatch) setIncrement(ctx context.Context, a Sheet.Act, sign int, typed *float64) {
-	l, ok := md.UI.Builder.Link(a.Node, a.To)
-	if !ok || (typed == nil && sign == 0) {
-		return
-	}
-	v := float64(incrementOf(l, a.K) + sign)
-	if typed != nil {
-		v = *typed
-	}
-	switch {
-	case !whole(v):
-		md.UI.Builder.Refused = fmt.Sprintf("%s→%s increment %v: not a whole number, so it stays as it is", a.Node, a.To, v)
-	case a.K == Links.KR && v <= 0:
-		md.UI.Builder.Refused = fmt.Sprintf("%s→%s increment %v: not a whole number of ticks, so it stays as it is", a.Node, a.To, v)
-	case a.K != Links.KR && md.differentIncrement(a, int(v)) != nil:
-		o := md.differentIncrement(a, int(v))
-		md.UI.Builder.Refused = fmt.Sprintf("%s→%s nΔ%s %v: every node rotating around %s turns by the same increment, and %s→%s's is %d, so it stays at %d",
-			a.Node, a.To, map[string]string{Links.KPhi: "φ", Links.KTheta: "θ"}[a.K], v, a.Node, o.From, o.To, incrementOf(*o, a.K), incrementOf(l, a.K))
-	default:
-		md.sendLink(ctx, a.To, Links.SetIncrement{From: a.Node, K: a.K, V: v})
-	}
-}
-
-func incrementOf(l Links.Link, k string) int {
-	return map[string]int{Links.KPhi: l.Increment.Phi, Links.KTheta: l.Increment.Theta, Links.KR: l.Increment.R}[k]
-}
-
-func (md *MoveDispatch) differentIncrement(a Sheet.Act, v int) *Links.Link {
-	ids := make([]string, 0, len(md.UI.Builder.Reports))
-	for id := range md.UI.Builder.Reports {
-		ids = append(ids, id)
-	}
-	sort.Strings(ids)
-	for _, id := range ids {
-		if id == a.To {
-			continue
-		}
-		for _, o := range md.UI.Builder.Reports[id].Links {
-			if o.From == a.Node && incrementOf(o, a.K) != v {
-				return &o
-			}
-		}
-	}
-	return nil
-}
-
-func (md *MoveDispatch) refuseFixedR(a Sheet.Act, stays string) bool {
-	fixed := md.UI.Builder.ManyIn()
-	for _, id := range []string{a.To, a.Node} {
-		if slices.Contains(fixed, id) {
-			md.UI.Builder.Refused = fmt.Sprintf("%s→%s: %s has more than one incoming link, so no radius it is part of can change; %s", a.Node, a.To, id, stays)
-			return true
-		}
-	}
-	return false
 }
 
 func (md *MoveDispatch) persistStep() {
