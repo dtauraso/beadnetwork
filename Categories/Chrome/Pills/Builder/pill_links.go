@@ -73,7 +73,7 @@ func linkHeader(m Model, id string, step int) []Cell {
 }
 
 func LinksPill(m Model) Pill {
-	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it")}}, Wraps: true}}
+	groups := []Group{{Rows: [][]Cell{{Text("links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined; clicking a name in a step picks or unpicks it in that step")}}, Wraps: true}}
 	for _, step := range StepNumbers {
 		groups = append(groups, Group{Title: "step " + strconv.Itoa(step)})
 		for _, g := range nodeTables(m, step) {
@@ -85,7 +85,7 @@ func LinksPill(m Model) Pill {
 	if m.Refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
 	}
-	groups = append(groups, pickGroup(m), pickedGroup(m), recalcGroup(m), landsGroup(m))
+	groups = append(groups, recalcGroup(m), landsGroup(m))
 	return Pill{Label: LinksLabel, Groups: groups}
 }
 
@@ -101,16 +101,13 @@ func nodeTables(m Model, step int) []Group {
 		}
 		for _, l := range links {
 			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
+			name := Text(l.Name()).Outline(l.Picked)
 			picked := l.Picked
-			pick := act(OpPick, "")
-			if l.Picked {
-				pick = act(OpUnpick, "")
-			}
 			if !selected {
 				picked = m.StepPicked(step, l)
-				pick = Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}
+				name = Text(l.Name()).Acting(Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}).Outline(picked)
 			}
-			row := []Cell{Text(l.Name()).Acting(pick).Outline(picked)}
+			row := []Cell{name}
 			for _, c := range linkCols {
 				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
 			}
