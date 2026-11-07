@@ -37,13 +37,6 @@ func lockText(l Links.Lock) string {
 	return "φ " + strconv.Itoa(l.Phi) + " | θ " + strconv.Itoa(l.Theta) + " | r " + strconv.Itoa(l.R)
 }
 
-func onOff(b bool) string {
-	if b {
-		return "on"
-	}
-	return "off"
-}
-
 func names(xs []string) string {
 	if len(xs) == 0 {
 		return "—"
@@ -103,7 +96,7 @@ func TreePill(m Model) Pill {
 		groups = append(groups, box(3, "edge "+l.Name(), kv("from", l.From, true), kv("to", l.To, true),
 			kv("start", ang(l.Start.Phi, l.Start.Theta, &l.Start.R), false), kv("Δ", ticks(l.Delta), false),
 			kv("increment", ticks(l.Increment), false), kv("lock", lockText(l.Lock), false),
-			kv("locking", onOff(l.Locking), false), notStored(), kv("start + Δ", ang(d.Phi, d.Theta, &d.R), false)))
+			notStored(), kv("start + Δ", ang(d.Phi, d.Theta, &d.R), false)))
 	}
 	for _, id := range m.Nodes {
 		r := m.Reports[id]
@@ -120,7 +113,7 @@ func TreePill(m Model) Pill {
 		groups = append(groups, box(4, "node "+id, kv("s", n3(float64(m.ScaleOf(id))), false),
 			kv("at on O's grid", "r "+n3(r.At.R)+" | φ "+n3(r.At.Phi)+" | θ "+n3(r.At.Theta), false),
 			kv("out", names(out), true), kv("in", names(in), true),
-			kv("all lock", lockText(m.StepOf(id).Locks()), false), kv("all locking", onOff(m.StepOf(id).Locking), false), notStored(),
+			kv("all lock", lockText(m.StepOf(id).Locks()), false), notStored(),
 			kv("C", "x "+n3(c.X)+" | y "+n3(c.Y)+" | z "+n3(c.Z), false)))
 	}
 	return Pill{Label: TreeLabel, Left: true, Groups: groups}

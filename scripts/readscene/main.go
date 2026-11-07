@@ -186,8 +186,8 @@ func dumpSequence(out *bufio.Writer, root string, k int, constants polarindex.Sc
 		fmt.Fprintf(out, "  link %s→%s  start φ=%s θ=%s r=%s   Δ φ=%d θ=%d r=%d   start+Δ φ=%s θ=%s r=%s   vector x=%s y=%s z=%s\n",
 			l.From, l.To, num(l.Start.Phi), num(l.Start.Theta), num(l.Start.R),
 			l.Delta.Phi, l.Delta.Theta, l.Delta.R, num(d.Phi), num(d.Theta), num(d.R), num(v.X), num(v.Y), num(v.Z))
-		fmt.Fprintf(out, "           increment φ=%d θ=%d r=%d   lock φ=%d θ=%d   locking=%v  picked=%v  order=%d\n",
-			l.Increment.Phi, l.Increment.Theta, l.Increment.R, l.Lock.Phi, l.Lock.Theta, l.Locking, l.Picked, l.Order)
+		fmt.Fprintf(out, "           increment φ=%d θ=%d r=%d   lock φ=%d θ=%d   picked=%v  order=%d\n",
+			l.Increment.Phi, l.Increment.Theta, l.Increment.R, l.Lock.Phi, l.Lock.Theta, l.Picked, l.Order)
 		if from, ok := seed.Places[l.From]; ok {
 			if to, ok := seed.Places[l.To]; ok {
 				end := f.At(from).Add(v)

@@ -23,7 +23,6 @@ const (
 	FileIncR       = "increment-r.bin"
 	FileLockPhi    = "lock-phi.bin"
 	FileLockTheta  = "lock-theta.bin"
-	FileLocking    = "locking.bin"
 	FilePicked     = "picked.bin"
 )
 
@@ -71,7 +70,6 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 		ReadIfExists(filepath.Join(dir, FileIncR), &l.Increment.R)
 		ReadIfExists(filepath.Join(dir, FileLockPhi), &l.Lock.Phi)
 		ReadIfExists(filepath.Join(dir, FileLockTheta), &l.Lock.Theta)
-		ReadIfExists(filepath.Join(dir, FileLocking), &l.Locking)
 		ReadIfExists(filepath.Join(dir, FilePicked), &l.Picked)
 		all = append(all, l)
 	}
@@ -120,7 +118,7 @@ func writeLinksIn(linksDir string, links []Link) error {
 			FileDeltaPhi: l.Delta.Phi, FileDeltaTheta: l.Delta.Theta, FileDeltaR: l.Delta.R,
 			FileIncPhi: l.Increment.Phi, FileIncTheta: l.Increment.Theta, FileIncR: l.Increment.R,
 			FileLockPhi: l.Lock.Phi, FileLockTheta: l.Lock.Theta,
-			FileLocking: l.Locking, FilePicked: l.Picked,
+			FilePicked: l.Picked,
 		} {
 			if err := WriteAtomicIfChanged(filepath.Join(dir, file), v); err != nil {
 				return err
