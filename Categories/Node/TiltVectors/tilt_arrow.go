@@ -56,9 +56,10 @@ func composeColumnMajor(bx, by, bz, center Vec3, sx, sy, sz float64) [16]float32
 }
 
 const (
-	ArrowTilt     uint8 = 0
-	ArrowReceived uint8 = 1
-	ArrowStart    uint8 = 2
+	ArrowTilt       uint8 = 0
+	ArrowReceived   uint8 = 1
+	ArrowStart      uint8 = 2
+	ArrowStartStill uint8 = 3
 )
 
 func ArrowMatrices(center Vec3, length, phi float64, received bool) TiltArrow {

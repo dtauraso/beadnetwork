@@ -31,6 +31,7 @@ type KindPost struct {
 	Lattice     *int32
 	Ticks       *int32
 	Starts      *[]polar.Polar
+	StartPicked *[]bool
 	Arcs        *[]AngleArcs.Angle
 	Shown       *map[string]bool
 	Center     *polarindex.Index
@@ -97,8 +98,8 @@ func (k *KindPosts) PostLatticePoints(points int32) {
 	k.post(func(p *KindPost) { p.Lattice = &points })
 }
 
-func (k *KindPosts) PostStartVectors(v []polar.Polar) {
-	k.post(func(p *KindPost) { p.Starts = &v })
+func (k *KindPosts) PostStartVectors(v []polar.Polar, picked []bool) {
+	k.post(func(p *KindPost) { p.Starts, p.StartPicked = &v, &picked })
 }
 
 func (k *KindPosts) PostArcs(a []AngleArcs.Angle) {
