@@ -32,9 +32,10 @@ type KindPost struct {
 	Ticks       *int32
 	Starts      *[]polar.Polar
 	StartPicked *[]bool
+	Refs        *[]Vec3
 	Arcs        *[]AngleArcs.Angle
 	Shown       *map[string]bool
-	Center     *polarindex.Index
+	Center      *polarindex.Index
 	Place       *polarindex.Place
 	FromPartner *PartnerVectorPost
 }
@@ -105,6 +106,8 @@ func (k *KindPosts) PostStartVectors(v []polar.Polar, picked []bool) {
 func (k *KindPosts) PostArcs(a []AngleArcs.Angle) {
 	k.post(func(p *KindPost) { p.Arcs = &a })
 }
+
+func (k *KindPosts) PostRefVectors(v []Vec3) { k.post(func(p *KindPost) { p.Refs = &v }) }
 
 func (k *KindPosts) PostShownEdges(to map[string]bool) {
 	k.post(func(p *KindPost) { p.Shown = &to })

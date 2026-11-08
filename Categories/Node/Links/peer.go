@@ -9,6 +9,7 @@ import (
 type Changes struct {
 	Place   bool
 	S       bool
+	Ref     bool
 	Links   map[string]bool
 	Refused string
 }
@@ -19,7 +20,9 @@ type Peer struct {
 	SNote string
 	At    Place
 	Frame Frame
+	Ref   Ticks
 
+	refs      map[string]Turn
 	own       map[string]*Link
 	order     []string
 	out       map[string]bool
@@ -38,6 +41,7 @@ type Seed struct {
 	Frame  Frame
 	Places map[string]Place
 	Scales map[string]int
+	Refs   map[string]Ticks
 	Links  []Link
 	TickMs int
 }
@@ -46,6 +50,10 @@ func NewPeer(id string, seed Seed) *Peer {
 	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame, placed: true,
 		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}}
 	maps.Copy(p.places, seed.Places)
+	p.Ref, p.refs = seed.Refs[id], map[string]Turn{}
+	for n, r := range seed.Refs {
+		p.refs[n] = RefTurn(seed.Scales[n], r)
+	}
 	for _, l := range seed.Links {
 		switch {
 		case l.To == id:
@@ -106,7 +114,7 @@ func (p *Peer) Ready() bool {
 	return true
 }
 
-func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.Vec(p.S, l.Dir(p.S)) }
+func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.LinkVec(p.S, *l, p.refs[l.From]) }
 
 func (p *Peer) pickedIn() *Link {
 	for _, from := range p.order {
@@ -152,6 +160,10 @@ func (p *Peer) Handle(msg any) []Envelope {
 		return p.setIdx(m)
 	case SetS:
 		return p.setS(m)
+	case SetRef:
+		return p.setRef(m)
+	case RefSet:
+		return p.refSet(m)
 	case Connect:
 		return p.connect(m)
 	case Linked:

@@ -39,6 +39,13 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 			v = *typed
 		}
 		md.sendLink(ctx, a.Node, Links.SetIdx{K: a.K, V: v})
+	case Builder.OpNodeRef:
+		ref := m.Reports[a.Node].Ref
+		v := sign + map[string]int{Links.KPhi: ref.Phi, Links.KTheta: ref.Theta}[a.K]
+		if typed != nil {
+			v = int(math.Round(*typed))
+		}
+		md.sendLink(ctx, a.Node, Links.SetRef{K: a.K, V: v})
 	case Builder.OpConnect:
 		r, ok := m.Reports[a.Node]
 		if !ok {

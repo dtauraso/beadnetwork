@@ -24,3 +24,14 @@ func startArrows(g NodeGeom, center Vec3, starts []polar.Polar, picked []bool) [
 	}
 	return out
 }
+
+func refArrows(g NodeGeom, center Vec3, refs []Vec3) []TiltVectors.TiltArrow {
+	size := NodeRadius(g.Kind)
+	var out []TiltVectors.TiltArrow
+	for _, v := range refs {
+		if a, ok := TiltVectors.ArrowBetween(center, center.Add(v), size, TiltVectors.ArrowRef); ok {
+			out = append(out, a)
+		}
+	}
+	return out
+}

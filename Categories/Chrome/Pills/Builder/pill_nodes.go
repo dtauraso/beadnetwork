@@ -11,6 +11,7 @@ const NodesLabel = "Node places"
 const (
 	OpNodeS      = "node-s"
 	OpNodeIdx    = "node-idx"
+	OpNodeRef    = "node-ref"
 	OpAddNode    = "add-node"
 	OpRemoveNode = "remove-node"
 	OpConnect    = "connect"
@@ -27,8 +28,7 @@ func NodesPill(m Model) Pill {
 			Field("s", strconv.Itoa(m.ScaleOf(id)), act(OpNodeS, ""), true, false),
 			Field("I_r", Num(r.At.R), act(OpNodeIdx, Links.KR), true, true),
 			Field("I_φ", Num(r.At.Phi), act(OpNodeIdx, Links.KPhi), true, true),
-			Field("I_θ", Num(r.At.Theta), act(OpNodeIdx, Links.KTheta), true, true),
-			Text("C x " + Num(c.X) + " y " + Num(c.Y) + " z " + Num(c.Z)),
+			Field("I_θ", Num(r.At.Theta), act(OpNodeIdx, Links.KTheta), true, true),			Text("C x " + Num(c.X) + " y " + Num(c.Y) + " z " + Num(c.Z)),
 			Text("n " + m.NOf(id)),
 			Button("remove", act(OpRemoveNode, ""), false),
 		})
