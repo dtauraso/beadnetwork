@@ -15,9 +15,10 @@ func LinkFrame(spec TopoSpec) Links.Frame {
 }
 
 func LinkSeed(spec TopoSpec, sceneS, tickMs int) Links.Seed {
-	sd := Links.Seed{Frame: LinkFrame(spec), Places: map[string]Links.Place{}, Scales: map[string]int{}, Refs: map[string]Links.Nums{}, Links: spec.Links, TickMs: tickMs}
+	sd := Links.Seed{Frame: LinkFrame(spec), Places: map[string]Links.Place{}, Scales: map[string]int{}, Refs: map[string]Links.Ref{}, Links: spec.Links, TickMs: tickMs}
 	for _, n := range spec.Nodes {
-		sd.Refs[n.ID] = Links.Nums{Phi: n.RefPhi, Theta: n.RefTheta}
+		sd.Refs[n.ID] = Links.Ref{Phi: n.RefPhi, Theta: n.RefTheta, S: n.RefS}
+		Links.MustBeRefCount(n.ID, sd.Refs[n.ID])
 		if n.At != nil {
 			sd.Places[n.ID] = *n.At
 		}

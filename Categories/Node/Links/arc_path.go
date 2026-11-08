@@ -9,11 +9,11 @@ type Path struct {
 	Ends []int
 }
 
-func (f Frame) Arcs(s int, l Link, ref Turn) (phi, theta Path) {
-	l = l.Times(s)
-	ph := Wrap(s, l.Start.Phi+l.Delta.Phi)
-	phi = f.path(s, 0, l.Start.Phi, l.Delta.Phi, func(v float64) Vec3 { return ref.Rotate(f.cart(s, 1, v, 0)) })
-	theta = f.path(s, 0, l.Start.Theta, l.Delta.Theta, func(v float64) Vec3 { return ref.Rotate(f.cart(s, 1, ph, v)) })
+func (f Frame) Arcs(l Link, ref Turn) (phi, theta Path) {
+	const s = 1
+	ph := Wrap(s, l.Start.Phi+float64(l.Delta.Phi))
+	phi = f.path(s, 0, l.Start.Phi, float64(l.Delta.Phi), func(v float64) Vec3 { return ref.Rotate(f.cart(s, 1, v, 0)) })
+	theta = f.path(s, 0, l.Start.Theta, float64(l.Delta.Theta), func(v float64) Vec3 { return ref.Rotate(f.cart(s, 1, ph, v)) })
 	return phi, theta
 }
 

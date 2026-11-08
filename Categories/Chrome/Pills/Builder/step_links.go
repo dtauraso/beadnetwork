@@ -35,9 +35,15 @@ func (m *Model) SeedStepLinks() bool {
 	for _, step := range StepNumbers {
 		for _, l := range m.allLinks() {
 			k := StepEdge{step, l.From, l.To}
-			if m.StepLinks[k] == nil {
+			c := m.StepLinks[k]
+			if c == nil {
 				c := l
 				m.StepLinks[k] = &c
+				seeded = true
+				continue
+			}
+			if c.Delta.S != l.Delta.S || c.Start.S != l.Start.S || c.Increment.S != l.Increment.S {
+				c.Start.S, c.Delta.S, c.Increment.S = l.Start.S, l.Delta.S, l.Increment.S
 				seeded = true
 			}
 		}
@@ -61,8 +67,8 @@ func (m *Model) DropStepEdge(from, to string) error {
 	return nil
 }
 
-func (m Model) StepDeltas(step int) map[StepEdge]Links.Nums {
-	out := map[StepEdge]Links.Nums{}
+func (m Model) StepDeltas(step int) map[StepEdge]Links.Ints {
+	out := map[StepEdge]Links.Ints{}
 	for e, l := range m.StepLinks {
 		if e.Step == step {
 			out[e] = l.Delta
@@ -71,13 +77,13 @@ func (m Model) StepDeltas(step int) map[StepEdge]Links.Nums {
 	return out
 }
 
-func (m Model) TurnFromDrawn(e StepEdge, was Links.Nums) (Links.Start, bool) {
+func (m Model) TurnFromDrawn(e StepEdge, was Links.Ints) (Links.Start, bool) {
 	live, ok := m.Link(e.From, e.To)
 	if !ok {
 		return Links.Start{}, false
 	}
 	drawn := live.Dir()
-	return Links.Start{Phi: Links.Wrap(1, drawn.Phi-was.Phi), Theta: Links.Wrap(1, drawn.Theta-was.Theta), R: drawn.R - was.R}, true
+	return Links.Start{Phi: Links.Wrap(1, drawn.Phi-float64(was.Phi)), Theta: Links.Wrap(1, drawn.Theta-float64(was.Theta)), R: drawn.R - float64(was.R), S: live.Start.S}, true
 }
 
 func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
@@ -92,7 +98,7 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 		if typed != nil {
 			v = *typed
 		}
-		if a.K == Links.KR && (v < 0 || v+l.Delta.R < 0) {
+		if a.K == Links.KR && (v < 0 || v+float64(l.Delta.R) < 0) {
 			return fmt.Sprintf("%s r %v: neither r nor r + Δr can be negative, so r stays at %v", name, v, l.Start.R)
 		}
 		l.SetStart(a.K, v)
@@ -100,18 +106,21 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 		if sign == 0 {
 			sign = a.Sign
 		}
-		if a.K == Links.KR && l.Start.R+l.Delta.R+float64(sign)*l.Increment.R < 0 {
-			return fmt.Sprintf("%s Δr: r + Δr would be below 0, so Δr stays at %v", name, l.Delta.R)
+		if a.K == Links.KR && l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0 {
+			return fmt.Sprintf("%s Δr: r + Δr would be below 0, so Δr stays at %d", name, l.Delta.R)
 		}
 		l.Step(a.K, sign)
 	case OpIncrement:
 		inc := *l.Increment.At(a.K)
-		v := inc + float64(sign)
+		v := inc + sign
 		if typed != nil {
-			v = *typed
+			if *typed != math.Trunc(*typed) {
+				return fmt.Sprintf("%s nΔ %v: not a whole number, so it stays at %d", name, *typed, inc)
+			}
+			v = int(*typed)
 		}
-		if v != math.Trunc(v) || (a.K == Links.KR && v <= 0) {
-			return fmt.Sprintf("%s increment %v: not a whole number of ticks, so it stays at %v", name, v, inc)
+		if a.K == Links.KR && v <= 0 {
+			return fmt.Sprintf("%s nΔr %d: it must stay above 0, so it stays at %d", name, v, inc)
 		}
 		*l.Increment.At(a.K) = v
 	}

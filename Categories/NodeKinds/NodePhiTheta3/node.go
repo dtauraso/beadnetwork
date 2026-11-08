@@ -113,7 +113,7 @@ func (n *NodePhiTheta3) apply() {
 		n.postTicks()
 	}
 	if c.Ref {
-		if err := NodeCat.WriteNodeRef(root, id, n.peer.Ref.Phi, n.peer.Ref.Theta); err != nil {
+		if err := NodeCat.WriteNodeRef(root, id, n.peer.Ref.Phi, n.peer.Ref.Theta, n.peer.Ref.S); err != nil {
 			n.breadcrumb("ref-persist", err.Error())
 		}
 	}

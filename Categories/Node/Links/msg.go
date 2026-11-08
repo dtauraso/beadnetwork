@@ -10,8 +10,8 @@ type Envelope struct {
 type SetLink struct {
 	From      string
 	Start     Start
-	Delta     Nums
-	Increment Nums
+	Delta     Ints
+	Increment Ints
 }
 
 type StepAll struct {

@@ -184,6 +184,7 @@ func loadNodeBase(nodesDir, nodeID string) (Node, error) {
 	}
 	readLeaf(filepath.Join(drag, NodeBuf.FileRefPhi), &sn.RefPhi)
 	readLeaf(filepath.Join(drag, NodeBuf.FileRefTheta), &sn.RefTheta)
+	readLeaf(filepath.Join(drag, NodeBuf.FileRefS), &sn.RefS)
 
 	return sn, nil
 }

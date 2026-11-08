@@ -39,22 +39,22 @@ func (m Model) SetS(id string, v int) Links.SetS {
 
 type linkCol struct {
 	label  string
-	value  func(Links.Link) float64
+	value  func(Links.Link) string
 	op, k  string
 	typed  bool
 	picked bool
 }
 
 var linkCols = []linkCol{
-	{"φ", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, false},
-	{"Δφ", func(l Links.Link) float64 { return l.Delta.Phi }, OpLinkPress, Links.KPhi, false, true},
-	{"nΔφ", func(l Links.Link) float64 { return l.Increment.Phi }, OpIncrement, Links.KPhi, true, true},
-	{"θ", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, false},
-	{"Δθ", func(l Links.Link) float64 { return l.Delta.Theta }, OpLinkPress, Links.KTheta, false, true},
-	{"nΔθ", func(l Links.Link) float64 { return l.Increment.Theta }, OpIncrement, Links.KTheta, true, true},
-	{"r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, false},
-	{"Δr", func(l Links.Link) float64 { return l.Delta.R }, OpLinkPress, Links.KR, false, false},
-	{"nΔr", func(l Links.Link) float64 { return l.Increment.R }, OpIncrement, Links.KR, true, false},
+	{"φ", func(l Links.Link) string { return num1(l.Start.Phi) }, OpLinkStart, Links.KPhi, true, false},
+	{"Δφ", func(l Links.Link) string { return strconv.Itoa(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false, true},
+	{"nΔφ", func(l Links.Link) string { return strconv.Itoa(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true},
+	{"θ", func(l Links.Link) string { return num1(l.Start.Theta) }, OpLinkStart, Links.KTheta, true, false},
+	{"Δθ", func(l Links.Link) string { return strconv.Itoa(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false, true},
+	{"nΔθ", func(l Links.Link) string { return strconv.Itoa(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true},
+	{"r", func(l Links.Link) string { return num1(l.Start.R) }, OpLinkStart, Links.KR, true, false},
+	{"Δr", func(l Links.Link) string { return strconv.Itoa(l.Delta.R) }, OpLinkPress, Links.KR, false, false},
+	{"nΔr", func(l Links.Link) string { return strconv.Itoa(l.Increment.R) }, OpIncrement, Links.KR, true, false},
 }
 
 func (c linkCol) head(m Model, id string, step int) Cell {
@@ -107,12 +107,12 @@ func nodeTables(m Model, step int) []Group {
 		}
 		var rows [][]Cell
 		for _, l := range m.stepLinksFrom(step, id) {
-			l = l.Times(m.ScaleOf(id))
+			l = l.Shown()
 			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 			picked := m.StepPicked(step, l)
 			row := []Cell{Text(l.Name()).Acting(act(OpStepPick, "")).Outline(picked)}
 			for _, c := range linkCols {
-				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
+				row = append(row, Field("", c.value(l), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
 			}
 			row = append(row, Button("x", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false))
 			rows = append(rows, row)
@@ -131,12 +131,12 @@ func nodeTables(m Model, step int) []Group {
 }
 
 func refRows(m Model, id, fit string) [][]Cell {
-	s := float64(m.ScaleOf(id))
 	ref := m.Reports[id].Ref
+	s := Links.ShownS(ref.S)
 	act := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
 	return [][]Cell{
 		{Text("reference"), Text("Δφ").AboveLastDigit(), Text("Δθ").AboveLastDigit(), Text("s").AboveLastDigit()},
-		{Text("ref " + id).Outline(false), Field("", num1(ref.Phi*s), act(Links.KPhi), true, true).Fitting(fit).Outline(false), Field("", num1(ref.Theta*s), act(Links.KTheta), true, true).Fitting(fit).Outline(false), Field("", strconv.Itoa(m.ScaleOf(id)), Act{Op: OpNodeS, Node: id}, true, false).Fitting(fit).Outline(false)},
+		{Text("ref " + id).Outline(false), Field("", strconv.Itoa(ref.Phi*s), act(Links.KPhi), true, true).Fitting(fit).Outline(false), Field("", strconv.Itoa(ref.Theta*s), act(Links.KTheta), true, true).Fitting(fit).Outline(false), Field("", strconv.Itoa(m.ScaleOf(id)), Act{Op: OpNodeS, Node: id}, true, false).Fitting(fit).Outline(false)},
 	}
 }
 

@@ -1,6 +1,7 @@
 package Links
 
 import (
+	"fmt"
 	"maps"
 	"math"
 	"slices"
@@ -8,8 +9,17 @@ import (
 
 type Turn struct{ Phi, Theta float64 }
 
-func RefTurn(ref Nums) Turn {
-	return Turn{Phi: ref.Phi / TurnTicks, Theta: ref.Theta / TurnTicks}
+func RefTurn(ref Ref) Turn {
+	return Turn{Phi: float64(ref.Phi) / TurnTicks, Theta: float64(ref.Theta) / TurnTicks}
+}
+
+func MustBeRefCount(id string, ref Ref) {
+	const most = 1 << 40
+	for _, v := range []int{ref.Phi, ref.Theta, ref.S} {
+		if v > most || v < -most {
+			panic(fmt.Sprintf("Links.MustBeRefCount: node %s holds %d in a ref file, which is a float64 read as an int64 — the reference Δφ, Δθ and s are whole numbers stored as int64, so this file was written before they were", id, v))
+		}
+	}
 }
 
 func (r Turn) In(s int) Start {
@@ -40,7 +50,7 @@ func (l *Link) DirFrom(f Frame, ref Turn) Start {
 
 type SetRef struct {
 	K string
-	V float64
+	V int
 }
 
 type RefSet struct {

@@ -24,41 +24,48 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 | place `at` | `base/at-{r,phi,theta}.bin` (f64), replaced by `drag/at-*.bin` once the node has moved |
 | `s` | `base/s.bin`, replaced by `drag/s.bin` |
 | the links into it | `links/<j>To<me>/` (`source.bin` names `j`), replaced as a whole by `drag/links/` once one is edited |
+| reference Δφ, Δθ and its `s` | `drag/ref-phi.bin`, `ref-theta.bin`, `ref-s.bin` (int64): whole numbers in base `s = 1`, shown as `number × s`; the `s` is the node's last `s` edit (node or frame). Typing or pressing sets the number itself; a float file is refused loudly at load |
 
 ## A link a→b — its angles stored at b
 
-`start (φ, θ, r)`, `Δ (φ, θ, r)`, `increment n (φ, θ, r)` — what one press of Δφ, Δθ or Δr moves it by, whole ticks for an angle and a whole number above 0 for r —; Δ and increment are integers, start is measured and real —, `lock (φ, θ) ∈ {−1, 0, 1}`, `picked`,
+`start (φ, θ, r)`, `Δ (φ, θ, r)`, `increment n (φ, θ, r)` — what one press of Δφ, Δθ or Δr moves it by, a whole number, above 0 for r —, `lock (φ, θ) ∈ {−1, 0, 1}`, `picked`,
 held by b, the target. Every node rotating around a turns by the same angle increment: an
 `nΔφ` or `nΔθ` on a→b that differs from that of another link out of a is refused, with the
 reason shown below the links table, and the increment stays as it was. A node with more than one
 incoming link keeps every radius it is part of (each link into it and out of it): an r or Δr
 edit on one is refused with the reason below the links table, and a StepAll leaves its Δr as it
-is. Angles are in ticks of b's `s`; r + Δr is never below 0, and Δr has no lock and
-is not stepped by StepAll.
+is. r + Δr is never below 0, and Δr has no lock and is not stepped by StepAll.
 
-Everything below counts **ticks**: a turn is `12s` ticks, a half turn `6s`, and one press moves
-one tick. `1` and `−1` are one tick, not one `s`; at `s = 1` the two read the same.
+**Each of start, Δ and increment holds two values: a number and an `s`.** Δ and increment
+numbers are integers (`int64` files `delta-*.bin`, `increment-*.bin`); start is measured and real.
+The number's base is `s = 1`: a number `k` is `k/12` of a turn, whatever the `s`. The `s` is the
+last `s` edited for the link's source node — a node `s` edit, or a frame `s` edit, which sets
+every node's `s` — and is stored beside the numbers (`start-s.bin`, `delta-s.bin`,
+`increment-s.bin`). The links table shows `number × s`. Typing or pressing sets the number
+itself; nothing divides by `s`, and changing `s` never changes a number. A Δ or increment file
+holding a float is refused loudly at read.
 
-An angle (start, and start + Δ) is stored and shown as a turn in `0..12s`: `12s` is the same
-point as 0 and is written 0. There are no negative angles and no direction change: past 6s an
-angle keeps going the same way round the circle (at `s = 1`, 6 + 1 = 7). A file holding an
-older signed start (`−k`, `1 ≤ k ≤ 6s`) is read as `6s + k` (at `s = 1`, −1 → 7, −6 → 0). Δ is a
-term: the count of ticks pressed, with the sign it was pressed.
+Everything below counts in the number's base, `s = 1`: a turn is 12, a half turn 6, and one
+press moves the number by the increment.
 
-A press is a rotation: one tick up the `0..12s` circle for +, one tick down for −, the same way
-for every link, with no cases and no ends. The displayed angle is the sum `start + Δ` wrapped
-into `0..12s` (at `s = 1`: 4 + −4 = 0, 4 + −5 = 11, 11 + 1 = 0). A press of increment n adds n
-to Δ in one go. Start and Δ are never rewritten, and every press has an exact inverse. A start
-± press is one tick the same way, and a typed start is wrapped into `0..12s`. A recovered start
-is the measured angle turned back Δ ticks (`measured − Δ`, wrapped), so it moves exactly as far
-as the node did and Δ is kept.
+An angle (start, and start + Δ) is a turn in `0..12`: 12 is the same point as 0 and is written
+0. There are no negative angles and no direction change: past 6 an angle keeps going the same way
+round the circle (6 + 1 = 7). A file holding an older signed start (`−k`, `1 ≤ k ≤ 6`) is read as
+`6 + k` (−1 → 7, −6 → 0). Δ is a term: the whole number pressed, with the sign it was pressed.
+
+A press is a rotation: the increment up the `0..12` circle for +, down for −, the same way for
+every link, with no cases and no ends. The angle is the sum `start + Δ` wrapped into `0..12`
+(4 + −4 = 0, 4 + −5 = 11, 11 + 1 = 0). Start and Δ are never rewritten, and every press has an
+exact inverse. A start ± press is 1 the same way, and a typed start is wrapped into `0..12`. A
+recovered start is the measured angle turned back by Δ (`measured − Δ`, wrapped), so it moves
+exactly as far as the node did and Δ is kept.
 
 Only Δ is order-free: it is an integer count. Start and every place are real-valued — measured
 through trig from cartesian points — so they record the order the nodes moved in; a start that
 does not look right is set again (a typed start or start ±), and Δ is untouched by it. Its
 local vector is
-`d = polar_to_cart((r+Δr)·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)` with its z
-negated when φ = θ and both are past 6s: with the two angles equal, sin φ · sin θ is a square
+`d = polar_to_cart((r+Δr)·ρ, (φ+Δφ)·2π/12, (θ+Δθ)·2π/12)` with its z
+negated when φ = θ and both are past 6: with the two angles equal, sin φ · sin θ is a square
 and would otherwise never let d reach the negative side. What is
 drawn from `C_a` is the link's global version, `C_b − C_a`, from the two recovered points.
 
@@ -77,11 +84,9 @@ the start part and the end of the Δ part, each only when that part covers some 
   its place, so a draws it and tells b when it moves.
 - **Edits** (a step's start, Δ and increment for the link — UI → b): b changes the angles it holds and places
   itself at `GridAt(C_a + d)`.
-- **S** (UI → b): b's new `s` rescales start and Δ of every link into b by `new s / old s`, so each
-  keeps its direction. Δ must land on the new `12·s` tick line, whole, which holds exactly for an
-  `s` that is a multiple of `s / gcd(s, every Δ)`; an `s` that would put any link's Δ between
-  ticks is replaced by the closest such multiple (a tie takes the larger), and the reason is shown
-  on the line below the node. So Δ stays whole and steps stay exact in any order.
+- **S** (UI → b): b's new `s`, a whole number of at least 1, is sent to every node b links to as
+  **SSet**; each stores it as the `s` of start, Δ and increment on its link from b. No number
+  changes, so no direction changes, and the shown `number × s` is whole for every `s`.
 - **Pick** (UI → b, b → a): b grants a pick only if no other link into b is picked, and tells a
   with **PickSet**, so a knows to send b its point.
 - **StepAll** (UI → every node, numbered): every node first steps Δ on the one picked link it

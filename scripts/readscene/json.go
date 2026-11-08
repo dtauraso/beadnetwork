@@ -23,6 +23,13 @@ type jsonTicks struct {
 	R     int `json:"r"`
 }
 
+type jsonCount struct {
+	Phi   int `json:"phi"`
+	Theta int `json:"theta"`
+	R     int `json:"r"`
+	S     int `json:"s"`
+}
+
 type jsonFrame struct {
 	Rho           float64 `json:"rho"`
 	ConstantR     float64 `json:"constantR"`
@@ -40,8 +47,8 @@ type jsonLink struct {
 	From      string     `json:"from"`
 	To        string     `json:"to"`
 	Start     jsonAngles `json:"start"`
-	Delta     jsonAngles `json:"delta"`
-	Increment jsonAngles `json:"increment"`
+	Delta     jsonCount  `json:"delta"`
+	Increment jsonCount  `json:"increment"`
 	Lock      jsonTicks  `json:"lock"`
 	Picked    bool       `json:"picked"`
 }
@@ -69,8 +76,8 @@ func sequenceJSON(root string, k int, spec Topology.TopoSpec, seed Links.Seed) j
 	for _, l := range seed.Links {
 		js.Links = append(js.Links, jsonLink{From: l.From, To: l.To,
 			Start:     jsonAngles{Phi: l.Start.Phi, Theta: l.Start.Theta, R: l.Start.R},
-			Delta:     jsonAngles{Phi: l.Delta.Phi, Theta: l.Delta.Theta, R: l.Delta.R},
-			Increment: jsonAngles{Phi: l.Increment.Phi, Theta: l.Increment.Theta, R: l.Increment.R},
+			Delta:     jsonCount(l.Delta),
+			Increment: jsonCount(l.Increment),
 			Lock:      jsonTicks{Phi: l.Lock.Phi, Theta: l.Lock.Theta, R: l.Lock.R},
 			Picked:    l.Picked})
 	}

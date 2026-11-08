@@ -1,6 +1,7 @@
 package Links
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -24,6 +25,9 @@ const (
 	FileLockPhi    = "lock-phi.bin"
 	FileLockTheta  = "lock-theta.bin"
 	FilePicked     = "picked.bin"
+	FileStartS     = "start-s.bin"
+	FileDeltaS     = "delta-s.bin"
+	FileIncS       = "increment-s.bin"
 )
 
 func BaseLinksDir(nodeDir string) string { return filepath.Join(nodeDir, DirLinks) }
@@ -54,7 +58,7 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 			continue
 		}
 		dir := filepath.Join(linksDir, e.Name())
-		l := Link{To: to, Increment: Nums{Phi: 1, Theta: 1, R: 1}}
+		l := Link{To: to, Increment: Ints{Phi: 1, Theta: 1, R: 1}}
 		if !ReadIfExists(filepath.Join(dir, FileSource), &l.From) {
 			continue
 		}
@@ -71,10 +75,23 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 		ReadIfExists(filepath.Join(dir, FileLockPhi), &l.Lock.Phi)
 		ReadIfExists(filepath.Join(dir, FileLockTheta), &l.Lock.Theta)
 		ReadIfExists(filepath.Join(dir, FilePicked), &l.Picked)
+		ReadIfExists(filepath.Join(dir, FileStartS), &l.Start.S)
+		ReadIfExists(filepath.Join(dir, FileDeltaS), &l.Delta.S)
+		ReadIfExists(filepath.Join(dir, FileIncS), &l.Increment.S)
+		mustBeCounts(dir, l)
 		all = append(all, l)
 	}
 	SortLinks(all)
 	return all, nil
+}
+
+func mustBeCounts(dir string, l Link) {
+	const most = 1 << 40
+	for _, v := range []int{l.Delta.Phi, l.Delta.Theta, l.Delta.R, l.Increment.Phi, l.Increment.Theta, l.Increment.R, l.Start.S, l.Delta.S, l.Increment.S} {
+		if v > most || v < -most {
+			panic(fmt.Sprintf("Links.readLinksIn: %s holds %d in a Δ, nΔ or s file, which is a float64 read as an int64 — Δ and nΔ are whole numbers stored as int64, so this file was written before they were, or by something writing floats into them", dir, v))
+		}
+	}
 }
 
 func SortLinks(ls []Link) {
@@ -119,6 +136,7 @@ func writeLinksIn(linksDir string, links []Link) error {
 			FileIncPhi: l.Increment.Phi, FileIncTheta: l.Increment.Theta, FileIncR: l.Increment.R,
 			FileLockPhi: l.Lock.Phi, FileLockTheta: l.Lock.Theta,
 			FilePicked: l.Picked,
+			FileStartS: l.Start.S, FileDeltaS: l.Delta.S, FileIncS: l.Increment.S,
 		} {
 			if err := WriteAtomicIfChanged(filepath.Join(dir, file), v); err != nil {
 				return err

@@ -41,9 +41,13 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		md.sendLink(ctx, a.Node, Links.SetIdx{K: a.K, V: v})
 	case Builder.OpNodeRef:
 		ref := m.Reports[a.Node].Ref
-		v := float64(sign) + map[string]float64{Links.KPhi: ref.Phi, Links.KTheta: ref.Theta}[a.K]
+		v := sign + map[string]int{Links.KPhi: ref.Phi, Links.KTheta: ref.Theta}[a.K]
 		if typed != nil {
-			v = *typed
+			if !whole(*typed) {
+				md.UI.Builder.Refused = fmt.Sprintf("ref %s %v: not a whole number, so it stays at %d", a.Node, *typed, v-sign)
+				break
+			}
+			v = int(math.Round(*typed))
 		}
 		md.sendLink(ctx, a.Node, Links.SetRef{K: a.K, V: v})
 	case Builder.OpConnect:
