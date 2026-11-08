@@ -33,6 +33,11 @@ func (m Model) linksFrom(id string) []Links.Link {
 	return out
 }
 
+func (m Model) SetS(id string, v int) Links.SetS {
+	c, note := Links.ClosestS(m.ScaleOf(id), v, m.linksFrom(id))
+	return Links.SetS{V: c, Note: note}
+}
+
 type linkCol struct {
 	label  string
 	value  func(Links.Link) float64

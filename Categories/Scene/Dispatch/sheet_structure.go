@@ -28,7 +28,7 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		}
 	case Builder.OpNodeS:
 		if typed != nil && whole(*typed) && *typed >= 1 {
-			md.sendLink(ctx, a.Node, Links.SetS{V: int(math.Round(*typed))})
+			md.sendLink(ctx, a.Node, m.SetS(a.Node, int(math.Round(*typed))))
 		} else if typed != nil {
 			md.UI.Builder.Refused = fmt.Sprintf("%s's s %v: not a whole number of at least 1, so it stays at %d", a.Node, *typed, m.ScaleOf(a.Node))
 		}

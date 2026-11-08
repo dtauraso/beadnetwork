@@ -20,7 +20,7 @@ func (p *Peer) stepR(l *Link, sign int) {
 		p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %d", l.From, p.ID, l.Delta.R)
 		return
 	}
-	l.Step(p.S, KR, sign)
+	l.Step(p.SOf(l.From), KR, sign)
 }
 
 func (p *Peer) stepAll(m StepAll) []Envelope {
@@ -40,8 +40,8 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 		}
 		switch m.K {
 		case KBoth:
-			l.Step(p.S, KPhi, m.Sign*way(l, m.LockAll, KPhi))
-			l.Step(p.S, KTheta, m.Sign*way(l, m.LockAll, KTheta))
+			l.Step(p.SOf(l.From), KPhi, m.Sign*way(l, m.LockAll, KPhi))
+			l.Step(p.SOf(l.From), KTheta, m.Sign*way(l, m.LockAll, KTheta))
 			if fixed == "" {
 				p.stepR(l, m.Sign*way(l, m.LockAll, KR))
 			}
@@ -50,7 +50,7 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 				p.stepR(l, m.Sign)
 			}
 		default:
-			l.Step(p.S, m.K, m.Sign)
+			l.Step(p.SOf(l.From), m.K, m.Sign)
 		}
 		p.touched(l.From)
 	}
@@ -101,7 +101,7 @@ func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
 		if from == keep || (keepPicked && l.Picked) {
 			continue
 		}
-		l.Remeasure(p.Frame, p.S, p.refs[from], p.posOf(from), p.Pos())
+		l.Remeasure(p.Frame, p.SOf(from), p.refs[from], p.posOf(from), p.Pos())
 		p.touched(from)
 	}
 	return p.movedTo(keepPicked)
@@ -119,7 +119,7 @@ func (p *Peer) moved(m Moved) {
 	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
 	if l, ok := p.own[m.ID]; ok && !(m.KeepPicked && l.Picked) {
-		l.Remeasure(p.Frame, p.S, p.refs[m.ID], p.posOf(m.ID), p.Pos())
+		l.Remeasure(p.Frame, p.SOf(m.ID), p.refs[m.ID], p.posOf(m.ID), p.Pos())
 		p.touched(m.ID)
 	}
 }

@@ -45,10 +45,10 @@ func (m *Model) SeedStepLinks() bool {
 	return seeded
 }
 
-func (m *Model) ScaleStepLinksTo(id string, k float64) bool {
+func (m *Model) ScaleStepLinksFrom(id string, k float64) bool {
 	scaled := false
 	for e, l := range m.StepLinks {
-		if e.To == id {
+		if e.From == id {
 			l.ScaleAngles(k)
 			scaled = true
 		}
@@ -87,7 +87,7 @@ func (m Model) TurnFromDrawn(e StepEdge, was Links.Ticks) (Links.Start, bool) {
 	if !ok {
 		return Links.Start{}, false
 	}
-	s := m.ScaleOf(e.To)
+	s := m.ScaleOf(e.From)
 	drawn := live.Dir(s)
 	return Links.Start{Phi: Links.Wrap(s, drawn.Phi-float64(was.Phi)), Theta: Links.Wrap(s, drawn.Theta-float64(was.Theta)), R: drawn.R - float64(was.R)}, true
 }
@@ -97,7 +97,7 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 	if l == nil {
 		return fmt.Sprintf("step %d %s→%s: this step has no copy of the link yet, so nothing changed", a.I, a.Node, a.To)
 	}
-	s := m.ScaleOf(a.To)
+	s := m.ScaleOf(a.Node)
 	name := fmt.Sprintf("step %d %s→%s", a.I, a.Node, a.To)
 	switch a.Op {
 	case OpLinkStart:

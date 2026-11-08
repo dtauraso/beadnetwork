@@ -58,7 +58,7 @@ func rowsInto(m Model, item string) []row {
 		if l.To != item {
 			continue
 		}
-		s := m.ScaleOf(l.To)
+		s := m.ScaleOf(l.From)
 		t := l.DirFrom(m.Frame, s, m.RefOf(l.From))
 		at := m.Reports[l.From].At
 		c := m.Frame.At(at)

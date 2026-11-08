@@ -20,9 +20,9 @@ func (n *NodePhiTheta3) postVectors() {
 }
 
 func (n *NodePhiTheta3) postArcs() {
-	s := n.peer.S
 	var arcs []AngleArcs.Angle
 	for _, l := range n.peer.Links() {
+		s := n.peer.SOf(l.From)
 		if !l.Picked || l.Dir(s).R*n.peer.Frame.Rho < 1e-9 {
 			continue
 		}

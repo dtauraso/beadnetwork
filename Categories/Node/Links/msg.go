@@ -40,7 +40,15 @@ type SetIdx struct {
 	V float64
 }
 
-type SetS struct{ V int }
+type SetS struct {
+	V    int
+	Note string
+}
+
+type SSet struct {
+	From string
+	S    int
+}
 
 type SetTickMs struct{ V int }
 

@@ -147,7 +147,7 @@ func DrainLinkReports(md *MoveDispatch) {
 	rescaled := false
 	for _, r := range rs {
 		if was := m.Reports[r.ID].S; was > 0 && r.S > 0 && r.S != was {
-			rescaled = m.ScaleStepLinksTo(r.ID, float64(r.S)/float64(was)) || rescaled
+			rescaled = m.ScaleStepLinksFrom(r.ID, float64(r.S)/float64(was)) || rescaled
 		}
 		m.Take(r)
 	}

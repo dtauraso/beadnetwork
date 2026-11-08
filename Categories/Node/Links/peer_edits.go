@@ -1,6 +1,10 @@
 package Links
 
-import "fmt"
+import (
+	"fmt"
+	"maps"
+	"slices"
+)
 
 func (p *Peer) setLink(m SetLink) []Envelope {
 	l, ok := p.own[m.From]
@@ -52,28 +56,37 @@ func (p *Peer) setS(m SetS) []Envelope {
 	if m.V < 1 {
 		return nil
 	}
-	v, why := p.closestS(m.V)
-	p.SNote = why
+	p.SNote = m.Note
 	p.Changed.S = true
-	if v == p.S {
+	if m.V == p.S {
 		return nil
 	}
-	k := float64(v) / float64(p.S)
-	p.S = v
+	k := float64(m.V) / float64(p.S)
+	p.S = m.V
+	p.scales[p.ID] = m.V
 	p.scaleRef(k)
-	for _, from := range p.order {
-		p.own[from].ScaleAngles(k)
-		p.touched(from)
+	var out []Envelope
+	for _, to := range slices.Sorted(maps.Keys(p.out)) {
+		out = append(out, Envelope{To: to, Msg: SSet{From: p.ID, S: m.V}})
 	}
-	return nil
+	return out
 }
 
-func (p *Peer) closestS(v int) (int, string) {
+func (p *Peer) sSet(m SSet) {
+	was := p.SOf(m.From)
+	p.scales[m.From] = m.S
+	if l, ok := p.own[m.From]; ok && m.S != was {
+		l.ScaleAngles(float64(m.S) / float64(was))
+		p.touched(m.From)
+	}
+}
+
+func ClosestS(s, v int, out []Link) (int, string) {
 	step, by := 1, ""
-	for _, from := range p.order {
-		d := p.own[from].Delta
-		if n := p.S / gcd(p.S, gcd(d.Phi, d.Theta)); n > step {
-			step, by = n, fmt.Sprintf("%s→%s's Δ (%d, %d)", from, p.ID, d.Phi, d.Theta)
+	for _, l := range out {
+		d := l.Delta
+		if n := s / gcd(s, gcd(d.Phi, d.Theta)); n > step {
+			step, by = n, fmt.Sprintf("%s→%s's Δ (%d, %d)", l.From, l.To, d.Phi, d.Theta)
 		}
 	}
 	c := max(step, (2*v+step)/(2*step)*step)
@@ -98,7 +111,8 @@ func (p *Peer) connect(m Connect) []Envelope {
 	p.heard[m.From] = p.round
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
-	l.Start = Measure(p.Frame, p.S, l.Dir(p.S), p.posOf(m.From), p.Pos())
+	s := p.SOf(m.From)
+	l.Start = Measure(p.Frame, s, l.Dir(s), p.posOf(m.From), p.Pos())
 	p.own[m.From] = l
 	p.order = append(p.order, m.From)
 	p.touched(m.From)

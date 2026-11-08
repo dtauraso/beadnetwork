@@ -194,5 +194,7 @@ func setSceneS(ctx context.Context, md *MoveDispatch, v float64) {
 			m.Refused = fmt.Sprintf("could not write s: %v", err)
 		}
 	}
-	md.sendLink(ctx, Links.All, Links.SetS{V: m.S})
+	for _, id := range m.Nodes {
+		md.sendLink(ctx, id, m.SetS(id, m.S))
+	}
 }

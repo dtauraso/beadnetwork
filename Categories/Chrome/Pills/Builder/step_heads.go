@@ -92,7 +92,7 @@ func (m *Model) stepHeadLinks(step int, from, k string, sign int, locks Links.Lo
 		if l == nil {
 			continue
 		}
-		s := m.ScaleOf(n.To)
+		s := m.ScaleOf(n.From)
 		stepR := func(sign int) {
 			name := fmt.Sprintf("step %d %s→%s Δr", step, n.From, n.To)
 			switch {
