@@ -39,6 +39,7 @@ type Model struct {
 	StepLinks map[StepEdge]*Links.Link
 	StepHeads map[StepNode]*Step
 	StepFolds map[StepNode]bool
+	StepShown int
 
 	Seqs      []Seq
 	OpenSeq   int

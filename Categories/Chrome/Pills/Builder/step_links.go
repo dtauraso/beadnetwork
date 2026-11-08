@@ -45,6 +45,25 @@ func (m *Model) SeedStepLinks() bool {
 	return seeded
 }
 
+func (m *Model) ChainStep() bool {
+	if m.StepShown == 0 {
+		return false
+	}
+	changed := false
+	for _, l := range m.allLinks() {
+		c := m.StepLinks[StepEdge{m.StepShown + 1, l.From, l.To}]
+		if c == nil {
+			continue
+		}
+		end := l.Dir(m.ScaleOf(l.To))
+		if math.Abs(end.Phi-c.Start.Phi) > 1e-9 || math.Abs(end.Theta-c.Start.Theta) > 1e-9 || math.Abs(end.R-c.Start.R) > 1e-9 {
+			c.Start = end
+			changed = true
+		}
+	}
+	return changed
+}
+
 func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 	l := m.StepLinks[StepEdge{a.I, a.Node, a.To}]
 	if l == nil {
