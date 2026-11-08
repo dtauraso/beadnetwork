@@ -59,10 +59,11 @@ func rowsInto(m Model, item string) []row {
 			continue
 		}
 		s := m.ScaleOf(l.From)
-		t := l.DirFrom(m.Frame, s, m.RefOf(l.From))
+		t := l.DirFrom(m.Frame, m.RefOf(l.From))
+		t.Phi, t.Theta = t.Phi*float64(s), t.Theta*float64(s)
 		at := m.Reports[l.From].At
 		c := m.Frame.At(at)
-		d := m.Frame.LinkVec(s, l, m.RefOf(l.From))
+		d := m.Frame.LinkVec(l, m.RefOf(l.From))
 		out = append(out, row{from: l.From, s: s, t: t, d: d, at: at, c: c, b: c.Add(d)})
 	}
 	return out

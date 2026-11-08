@@ -123,7 +123,7 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) 
 	}
 }
 
-func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge, was map[Builder.StepEdge]Links.Ticks, fromDrawn bool) {
+func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge, was map[Builder.StepEdge]Links.Nums, fromDrawn bool) {
 	m := &md.UI.Builder
 	l := m.StepLinks[e]
 	if l == nil {
@@ -144,14 +144,10 @@ func DrainLinkReports(md *MoveDispatch) {
 	}
 	m := &md.UI.Builder
 	rs := md.Links.TakeReports()
-	rescaled := false
 	for _, r := range rs {
-		if was := m.Reports[r.ID].S; was > 0 && r.S > 0 && r.S != was {
-			rescaled = m.ScaleStepLinksFrom(r.ID, float64(r.S)/float64(was)) || rescaled
-		}
 		m.Take(r)
 	}
-	if len(rs) > 0 && m.StepDir != "" && (m.SeedStepLinks() || rescaled) {
+	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {
 		md.persistStep()
 	}
 	before := m.TimeKey()

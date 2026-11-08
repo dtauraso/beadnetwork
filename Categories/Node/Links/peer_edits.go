@@ -73,34 +73,10 @@ func (p *Peer) setS(m SetS) []Envelope {
 }
 
 func (p *Peer) sSet(m SSet) {
-	was := p.SOf(m.From)
 	p.scales[m.From] = m.S
-	if l, ok := p.own[m.From]; ok && m.S != was {
-		l.ScaleAngles(float64(m.S) / float64(was))
+	if _, ok := p.own[m.From]; ok {
 		p.touched(m.From)
 	}
-}
-
-func ClosestS(s, v int, out []Link) (int, string) {
-	step, by := 1, ""
-	for _, l := range out {
-		d := l.Delta
-		if n := s / gcd(s, gcd(d.Phi, d.Theta)); n > step {
-			step, by = n, fmt.Sprintf("%s→%s's Δ (%d, %d)", l.From, l.To, d.Phi, d.Theta)
-		}
-	}
-	c := max(step, (2*v+step)/(2*step)*step)
-	if c == v {
-		return v, ""
-	}
-	return c, fmt.Sprintf("s %d would put %s between ticks; it stays whole only for s a multiple of %d, so s is %d", v, by, step, c)
-}
-
-func gcd(a, b int) int {
-	for b != 0 {
-		a, b = b, a%b
-	}
-	return max(a, -a)
 }
 
 func (p *Peer) connect(m Connect) []Envelope {
@@ -111,8 +87,7 @@ func (p *Peer) connect(m Connect) []Envelope {
 	p.heard[m.From] = p.round
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
-	s := p.SOf(m.From)
-	l.Start = Measure(p.Frame, s, l.Dir(s), p.posOf(m.From), p.Pos())
+	l.Start = Measure(p.Frame, l.Dir(), p.posOf(m.From), p.Pos())
 	p.own[m.From] = l
 	p.order = append(p.order, m.From)
 	p.touched(m.From)

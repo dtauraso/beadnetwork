@@ -34,8 +34,7 @@ func (m Model) linksFrom(id string) []Links.Link {
 }
 
 func (m Model) SetS(id string, v int) Links.SetS {
-	c, note := Links.ClosestS(m.ScaleOf(id), v, m.linksFrom(id))
-	return Links.SetS{V: c, Note: note}
+	return Links.SetS{V: v}
 }
 
 type linkCol struct {
@@ -48,14 +47,14 @@ type linkCol struct {
 
 var linkCols = []linkCol{
 	{"φ", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, false},
-	{"Δφ", func(l Links.Link) float64 { return float64(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false, true},
-	{"nΔφ", func(l Links.Link) float64 { return float64(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true},
+	{"Δφ", func(l Links.Link) float64 { return l.Delta.Phi }, OpLinkPress, Links.KPhi, false, true},
+	{"nΔφ", func(l Links.Link) float64 { return l.Increment.Phi }, OpIncrement, Links.KPhi, true, true},
 	{"θ", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, false},
-	{"Δθ", func(l Links.Link) float64 { return float64(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false, true},
-	{"nΔθ", func(l Links.Link) float64 { return float64(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true},
+	{"Δθ", func(l Links.Link) float64 { return l.Delta.Theta }, OpLinkPress, Links.KTheta, false, true},
+	{"nΔθ", func(l Links.Link) float64 { return l.Increment.Theta }, OpIncrement, Links.KTheta, true, true},
 	{"r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, false},
-	{"Δr", func(l Links.Link) float64 { return float64(l.Delta.R) }, OpLinkPress, Links.KR, false, false},
-	{"nΔr", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true, false},
+	{"Δr", func(l Links.Link) float64 { return l.Delta.R }, OpLinkPress, Links.KR, false, false},
+	{"nΔr", func(l Links.Link) float64 { return l.Increment.R }, OpIncrement, Links.KR, true, false},
 }
 
 func (c linkCol) head(m Model, id string, step int) Cell {
@@ -105,6 +104,7 @@ func nodeTables(m Model, step int) []Group {
 		}
 		var rows [][]Cell
 		for _, l := range m.stepLinksFrom(step, id) {
+			l = l.Times(m.ScaleOf(id))
 			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 			picked := m.StepPicked(step, l)
 			row := []Cell{Text(l.Name()).Acting(act(OpStepPick, "")).Outline(picked)}

@@ -54,7 +54,7 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 			continue
 		}
 		dir := filepath.Join(linksDir, e.Name())
-		l := Link{To: to, Increment: Ticks{Phi: 1, Theta: 1, R: 1}}
+		l := Link{To: to, Increment: Nums{Phi: 1, Theta: 1, R: 1}}
 		if !ReadIfExists(filepath.Join(dir, FileSource), &l.From) {
 			continue
 		}

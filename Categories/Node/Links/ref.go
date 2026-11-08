@@ -32,11 +32,11 @@ func (r Turn) Unrotate(v Vec3) Vec3 {
 	return Vec3{X: x*cb + v.Z*sb, Y: y, Z: v.Z*cb - x*sb}
 }
 
-func (f Frame) LinkVec(s int, l Link, ref Turn) Vec3 { return ref.Rotate(f.Vec(s, l.Dir(s))) }
+func (f Frame) LinkVec(l Link, ref Turn) Vec3 { return ref.Rotate(f.Vec(1, l.Dir())) }
 
-func (l *Link) DirFrom(f Frame, s int, ref Turn) Start {
-	d, a := l.Dir(s), ref.In(s)
-	return Measure(f, s, Start{Phi: d.Phi + a.Phi, Theta: d.Theta + a.Theta}, Vec3{}, f.LinkVec(s, *l, ref))
+func (l *Link) DirFrom(f Frame, ref Turn) Start {
+	d, a := l.Dir(), ref.In(1)
+	return Measure(f, Start{Phi: d.Phi + a.Phi, Theta: d.Theta + a.Theta}, Vec3{}, f.LinkVec(*l, ref))
 }
 
 type SetRef struct {

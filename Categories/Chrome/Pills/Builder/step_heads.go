@@ -92,27 +92,26 @@ func (m *Model) stepHeadLinks(step int, from, k string, sign int, locks Links.Lo
 		if l == nil {
 			continue
 		}
-		s := m.ScaleOf(n.From)
 		stepR := func(sign int) {
 			name := fmt.Sprintf("step %d %s→%s Δr", step, n.From, n.To)
 			switch {
 			case slices.Contains(m.ManyIn(), n.To) || slices.Contains(m.ManyIn(), n.From):
-				refused = fmt.Sprintf("%s: a node it joins has more than one incoming link, so no radius it is part of can change; Δr stays at %d", name, l.Delta.R)
-			case l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0:
-				refused = fmt.Sprintf("%s: r + Δr would be below 0, so Δr stays at %d", name, l.Delta.R)
+				refused = fmt.Sprintf("%s: a node it joins has more than one incoming link, so no radius it is part of can change; Δr stays at %v", name, l.Delta.R)
+			case l.Start.R+l.Delta.R+float64(sign)*l.Increment.R < 0:
+				refused = fmt.Sprintf("%s: r + Δr would be below 0, so Δr stays at %v", name, l.Delta.R)
 			default:
-				l.Step(s, Links.KR, sign)
+				l.Step(Links.KR, sign)
 			}
 		}
 		switch k {
 		case Links.KBoth:
-			l.Step(s, Links.KPhi, sign*wayOf(l, locks, Links.KPhi))
-			l.Step(s, Links.KTheta, sign*wayOf(l, locks, Links.KTheta))
+			l.Step(Links.KPhi, sign*wayOf(l, locks, Links.KPhi))
+			l.Step(Links.KTheta, sign*wayOf(l, locks, Links.KTheta))
 			stepR(sign * wayOf(l, locks, Links.KR))
 		case Links.KR:
 			stepR(sign)
 		default:
-			l.Step(s, k, sign)
+			l.Step(k, sign)
 		}
 		moved = append(moved, e)
 	}

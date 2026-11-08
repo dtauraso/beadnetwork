@@ -60,8 +60,7 @@ func NewPeer(id string, seed Seed) *Peer {
 		switch {
 		case l.To == id:
 			c := l
-			s := p.SOf(l.From)
-			c.Start.Phi, c.Start.Theta = FromSigned(s, c.Start.Phi), FromSigned(s, c.Start.Theta)
+			c.Start.Phi, c.Start.Theta = FromSigned(1, c.Start.Phi), FromSigned(1, c.Start.Theta)
 			p.own[l.From] = &c
 			p.order = append(p.order, l.From)
 		case l.From == id:
@@ -124,7 +123,7 @@ func (p *Peer) SOf(id string) int {
 	return p.S
 }
 
-func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.LinkVec(p.SOf(l.From), *l, p.refs[l.From]) }
+func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.LinkVec(*l, p.refs[l.From]) }
 
 func (p *Peer) pickedIn() *Link {
 	for _, from := range p.order {

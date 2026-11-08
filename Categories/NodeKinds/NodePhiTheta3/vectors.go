@@ -23,7 +23,7 @@ func (n *NodePhiTheta3) postArcs() {
 	var arcs []AngleArcs.Angle
 	for _, l := range n.peer.Links() {
 		s := n.peer.SOf(l.From)
-		if !l.Picked || l.Dir(s).R*n.peer.Frame.Rho < 1e-9 {
+		if !l.Picked || l.Dir().R*n.peer.Frame.Rho < 1e-9 {
 			continue
 		}
 		phi, theta := n.peer.Frame.Arcs(s, l, n.peer.RefOf(l.From))
