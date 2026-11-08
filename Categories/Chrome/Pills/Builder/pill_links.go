@@ -113,17 +113,17 @@ func nodeTables(m Model, step int) []Group {
 		} else {
 			rows = append([][]Cell{linkHeader(m, id, step)}, rows...)
 		}
-		groups = append(groups, Group{Title: foldTitle(false, "node "+id), Fold: fold, Rows: refRows(m, id)}, Group{Rows: rows, Slides: true})
+		groups = append(groups, Group{Title: foldTitle(false, "node "+id), Fold: fold}, Group{Rows: refRows(m, id, fit), Slides: true}, Group{Rows: rows, Slides: true})
 	}
 	return groups
 }
 
-func refRows(m Model, id string) [][]Cell {
+func refRows(m Model, id, fit string) [][]Cell {
 	ref := m.Reports[id].Ref
 	act := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
 	return [][]Cell{
 		{Text("reference"), Text("Δφ").AboveLastDigit(), Text("Δθ").AboveLastDigit()},
-		{Text("ref " + id), Field("", strconv.Itoa(ref.Phi), act(Links.KPhi), true, true), Field("", strconv.Itoa(ref.Theta), act(Links.KTheta), true, true)},
+		{Text("ref " + id), Field("", strconv.Itoa(ref.Phi), act(Links.KPhi), true, true).Fitting(fit), Field("", strconv.Itoa(ref.Theta), act(Links.KTheta), true, true).Fitting(fit)},
 	}
 }
 
