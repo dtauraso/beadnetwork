@@ -111,7 +111,7 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 }
 
 func (l *Link) Remeasure(f Frame, s int, ref Turn, p, t Vec3) {
-	v, a := Measure(f, s, l.DirFrom(s, ref), p, t), ref.In(s)
-	sub := func(x float64, d int, r float64) float64 { return Wrap(s, x-float64(d)-r) }
-	l.Start = Start{Phi: sub(v.Phi, l.Delta.Phi, a.Phi), Theta: sub(v.Theta, l.Delta.Theta, a.Theta), R: v.R - float64(l.Delta.R)}
+	v := Measure(f, s, l.Dir(s), Vec3{}, ref.Unrotate(t.Sub(p)))
+	sub := func(x float64, d int) float64 { return Wrap(s, x-float64(d)) }
+	l.Start = Start{Phi: sub(v.Phi, l.Delta.Phi), Theta: sub(v.Theta, l.Delta.Theta), R: v.R - float64(l.Delta.R)}
 }

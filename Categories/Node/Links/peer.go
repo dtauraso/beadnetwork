@@ -114,7 +114,7 @@ func (p *Peer) Ready() bool {
 	return true
 }
 
-func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.Vec(p.S, l.DirFrom(p.S, p.refs[l.From])) }
+func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.LinkVec(p.S, *l, p.refs[l.From]) }
 
 func (p *Peer) pickedIn() *Link {
 	for _, from := range p.order {

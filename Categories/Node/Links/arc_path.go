@@ -10,9 +10,9 @@ type Path struct {
 }
 
 func (f Frame) Arcs(s int, l Link, ref Turn) (phi, theta Path) {
-	ph, a := l.DirFrom(s, ref).Phi, ref.In(s)
-	phi = f.path(s, a.Phi, l.Start.Phi, l.Delta.Phi, func(v float64) Vec3 { return f.cart(s, 1, v, 0) })
-	theta = f.path(s, a.Theta, l.Start.Theta, l.Delta.Theta, func(v float64) Vec3 { return f.cart(s, 1, ph, v) })
+	ph := l.Dir(s).Phi
+	phi = f.path(s, 0, l.Start.Phi, l.Delta.Phi, func(v float64) Vec3 { return ref.Rotate(f.cart(s, 1, v, 0)) })
+	theta = f.path(s, 0, l.Start.Theta, l.Delta.Theta, func(v float64) Vec3 { return ref.Rotate(f.cart(s, 1, ph, v)) })
 	return phi, theta
 }
 

@@ -18,9 +18,25 @@ func (r Turn) In(s int) Start {
 	return Start{Phi: r.Phi * t, Theta: r.Theta * t}
 }
 
-func (l *Link) DirFrom(s int, ref Turn) Start {
+func (r Turn) Rotate(v Vec3) Vec3 {
+	sb, cb := math.Sincos(2 * math.Pi * r.Theta)
+	sa, ca := math.Sincos(2 * math.Pi * r.Phi)
+	x, z := v.X*cb-v.Z*sb, v.X*sb+v.Z*cb
+	return Vec3{X: x*ca + v.Y*sa, Y: v.Y*ca - x*sa, Z: z}
+}
+
+func (r Turn) Unrotate(v Vec3) Vec3 {
+	sb, cb := math.Sincos(2 * math.Pi * r.Theta)
+	sa, ca := math.Sincos(2 * math.Pi * r.Phi)
+	x, y := v.X*ca-v.Y*sa, v.X*sa+v.Y*ca
+	return Vec3{X: x*cb + v.Z*sb, Y: y, Z: v.Z*cb - x*sb}
+}
+
+func (f Frame) LinkVec(s int, l Link, ref Turn) Vec3 { return ref.Rotate(f.Vec(s, l.Dir(s))) }
+
+func (l *Link) DirFrom(f Frame, s int, ref Turn) Start {
 	d, a := l.Dir(s), ref.In(s)
-	return Start{Phi: Wrap(s, d.Phi+a.Phi), Theta: Wrap(s, d.Theta+a.Theta), R: d.R}
+	return Measure(f, s, Start{Phi: d.Phi + a.Phi, Theta: d.Theta + a.Theta}, Vec3{}, f.LinkVec(s, *l, ref))
 }
 
 type SetRef struct {
@@ -61,8 +77,8 @@ func (p *Peer) refSet(m RefSet) []Envelope {
 func (p *Peer) RefOf(id string) Turn { return p.refs[id] }
 
 func (p *Peer) RefVecs() (phi, theta Vec3) {
-	a := p.refs[p.ID].In(p.S)
-	return p.Frame.cart(p.S, 1, a.Phi, 0), p.Frame.cart(p.S, 1, half(p.S)/2, a.Theta)
+	r := p.refs[p.ID]
+	return r.Rotate(p.Frame.cart(p.S, 1, 0, 0)), r.Rotate(p.Frame.cart(p.S, 1, half(p.S)/2, 0))
 }
 
 func (p *Peer) scaleRef(k float64) {
