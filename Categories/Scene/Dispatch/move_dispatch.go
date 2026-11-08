@@ -140,7 +140,7 @@ func DrainLinkReports(md *MoveDispatch) {
 	}
 	if len(rs) > 0 && m.StepDir != "" {
 		seeded := m.SeedStepLinks()
-		if chained := m.ChainStep(); seeded || chained {
+		if chained := m.FollowDiagram(); seeded || chained {
 			md.persistStep()
 		}
 	}

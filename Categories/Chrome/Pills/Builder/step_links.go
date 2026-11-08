@@ -45,23 +45,31 @@ func (m *Model) SeedStepLinks() bool {
 	return seeded
 }
 
-func (m *Model) ChainStep() bool {
-	if m.StepShown == 0 {
+func (m *Model) FollowDiagram() bool {
+	k := m.StepShown
+	if k == 0 {
 		return false
 	}
 	changed := false
 	for _, l := range m.allLinks() {
-		c := m.StepLinks[StepEdge{m.StepShown + 1, l.From, l.To}]
-		if c == nil {
-			continue
+		s := m.ScaleOf(l.To)
+		drawn := l.Dir(s)
+		if c := m.StepLinks[StepEdge{k, l.From, l.To}]; c != nil && !m.StepPicks[StepEdge{k, l.From, l.To}] {
+			changed = setStart(c, Links.Start{Phi: Links.Wrap(s, drawn.Phi-float64(c.Delta.Phi)), Theta: Links.Wrap(s, drawn.Theta-float64(c.Delta.Theta)), R: drawn.R - float64(c.Delta.R)}) || changed
 		}
-		end := l.Dir(m.ScaleOf(l.To))
-		if math.Abs(end.Phi-c.Start.Phi) > 1e-9 || math.Abs(end.Theta-c.Start.Theta) > 1e-9 || math.Abs(end.R-c.Start.R) > 1e-9 {
-			c.Start = end
-			changed = true
+		if c := m.StepLinks[StepEdge{k + 1, l.From, l.To}]; c != nil {
+			changed = setStart(c, drawn) || changed
 		}
 	}
 	return changed
+}
+
+func setStart(c *Links.Link, v Links.Start) bool {
+	if math.Abs(v.Phi-c.Start.Phi) <= 1e-9 && math.Abs(v.Theta-c.Start.Theta) <= 1e-9 && math.Abs(v.R-c.Start.R) <= 1e-9 {
+		return false
+	}
+	c.Start = v
+	return true
 }
 
 func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
@@ -71,6 +79,9 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 	}
 	s := m.ScaleOf(a.To)
 	name := fmt.Sprintf("step %d %s→%s", a.I, a.Node, a.To)
+	if a.Op != OpIncrement && !m.StepPicks[StepEdge{a.I, a.Node, a.To}] {
+		return fmt.Sprintf("%s is not picked in step %d, so %s is placed by another link and %s→%s follows it; pick it in step %d to turn it", name, a.I, a.To, a.Node, a.To, a.I)
+	}
 	switch a.Op {
 	case OpLinkStart:
 		v := map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K] + float64(sign)
