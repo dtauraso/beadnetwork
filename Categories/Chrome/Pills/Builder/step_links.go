@@ -45,6 +45,22 @@ func (m *Model) SeedStepLinks() bool {
 	return seeded
 }
 
+func (m *Model) DropStepEdge(from, to string) error {
+	for _, step := range StepNumbers {
+		k := StepEdge{step, from, to}
+		if m.StepPicks[k] {
+			m.StepPicks[k] = false
+		}
+		delete(m.StepLinks, k)
+		if m.StepDir != "" {
+			if err := Links.RemoveLinksTo(filepath.Join(stepClonesDir(m.StepDir, step), to), from, to); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (m Model) StepDeltas(step int) map[StepEdge]Links.Ticks {
 	out := map[StepEdge]Links.Ticks{}
 	for e, l := range m.StepLinks {

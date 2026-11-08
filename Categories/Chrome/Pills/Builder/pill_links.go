@@ -106,6 +106,7 @@ func nodeTables(m Model, step int) []Group {
 			for _, c := range linkCols {
 				row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, true).Fitting(fit).Outline(c.picked && picked).Dimmed(c.k == Links.KR && c.op != OpIncrement && m.FixedR(l)))
 			}
+			row = append(row, Button("x", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false))
 			rows = append(rows, row)
 		}
 		if len(rows) > 0 {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
@@ -131,4 +132,53 @@ func DeleteNode(scenes *Scenes.SceneSwitch, ui *View.UIState, id string, row int
 		return
 	}
 	scenes.Reload()
+}
+
+func removeLink(md *MoveDispatch, from, to string) {
+	m := &md.UI.Builder
+	root := md.Scenes.NodesRoot
+	if root == "" || md.Scenes.Reload == nil {
+		m.Refused = fmt.Sprintf("%s→%s: this scene was opened with no nodes root to reload from, so the link stays", from, to)
+		return
+	}
+	if err := Links.RemoveLinksTo(Node.NodeDir(root, to), from, to); err != nil {
+		m.Refused = fmt.Sprintf("could not remove %s→%s: %v", from, to, err)
+		return
+	}
+	if err := m.DropStepEdge(from, to); err != nil {
+		m.Refused = fmt.Sprintf("could not remove %s→%s from the steps: %v", from, to, err)
+		return
+	}
+	md.persistStep()
+	if err := writeCounts(md.Scenes.TreeRoot, largestNodeID(root), countEdgeFiles(root)); err != nil {
+		m.Refused = fmt.Sprintf("could not update the counts: %v", err)
+		return
+	}
+	md.Scenes.Reload()
+}
+
+func removeLinkNode(md *MoveDispatch, id string) {
+	m := &md.UI.Builder
+	root := md.Scenes.NodesRoot
+	if root == "" || md.Scenes.Reload == nil {
+		return
+	}
+	for _, other := range m.Nodes {
+		if other == id {
+			continue
+		}
+		if err := Links.RemoveLinksTo(Node.NodeDir(root, other), id, other); err != nil {
+			m.Refused = fmt.Sprintf("could not remove %s→%s: %v", id, other, err)
+			return
+		}
+	}
+	if err := Node.RemoveNodeDir(root, id); err != nil {
+		m.Refused = fmt.Sprintf("could not remove node %s: %v", id, err)
+		return
+	}
+	if err := writeCounts(md.Scenes.TreeRoot, largestNodeID(root), countEdgeFiles(root)); err != nil {
+		m.Refused = fmt.Sprintf("could not update the counts: %v", err)
+		return
+	}
+	md.Scenes.Reload()
 }

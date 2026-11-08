@@ -53,6 +53,8 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 			return true
 		}
 		md.sendLink(ctx, a.To, Links.Connect{From: a.Node, At: r.At})
+	case Builder.OpDisconnect:
+		removeLink(md, a.Node, a.To)
 	case Builder.OpAddNode:
 		addLinkNode(md)
 	case Builder.OpRemoveNode:
@@ -108,32 +110,6 @@ func addLinkNodeAt(md *MoveDispatch, at Links.Place) {
 	id := newNodeID(root)
 	if err := NodeBuf.WriteNewPlaceNode(root, id, kind, at, m.S); err != nil {
 		m.Refused = fmt.Sprintf("could not write node %s: %v", id, err)
-		return
-	}
-	if err := writeCounts(md.Scenes.TreeRoot, largestNodeID(root), countEdgeFiles(root)); err != nil {
-		m.Refused = fmt.Sprintf("could not update the counts: %v", err)
-		return
-	}
-	md.Scenes.Reload()
-}
-
-func removeLinkNode(md *MoveDispatch, id string) {
-	m := &md.UI.Builder
-	root := md.Scenes.NodesRoot
-	if root == "" || md.Scenes.Reload == nil {
-		return
-	}
-	for _, other := range m.Nodes {
-		if other == id {
-			continue
-		}
-		if err := Links.RemoveLinksTo(NodeBuf.NodeDir(root, other), id, other); err != nil {
-			m.Refused = fmt.Sprintf("could not remove %s→%s: %v", id, other, err)
-			return
-		}
-	}
-	if err := NodeBuf.RemoveNodeDir(root, id); err != nil {
-		m.Refused = fmt.Sprintf("could not remove node %s: %v", id, err)
 		return
 	}
 	if err := writeCounts(md.Scenes.TreeRoot, largestNodeID(root), countEdgeFiles(root)); err != nil {
