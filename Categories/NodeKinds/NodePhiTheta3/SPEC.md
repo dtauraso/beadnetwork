@@ -41,7 +41,8 @@ numbers are integers (`int64` files `delta-*.bin`, `increment-*.bin`); start is 
 The number's base is `s = 1`: a number `k` is `k/12` of a turn, whatever the `s`. The `s` is the
 last `s` edited for the link's source node — a node `s` edit, or a frame `s` edit, which sets
 every node's `s` — and is stored beside the numbers (`start-s.bin`, `delta-s.bin`,
-`increment-s.bin`). The links table shows `number × s`. Typing or pressing sets the number
+`increment-s.bin`). The links table shows `number × s` for start and Δ, and the number itself for
+the increment (nΔ). Typing or pressing sets the number
 itself; nothing divides by `s`, and changing `s` never changes a number. A Δ or increment file
 holding a float is refused loudly at read.
 
