@@ -47,7 +47,35 @@ func (m Model) headOf(step int, id string) Step {
 }
 
 func IsStepHead(a Act) bool {
-	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock)
+	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock || a.Op == OpAllInc)
+}
+
+func (m *Model) stepHeadIncrements(step int, from, k string, sign int) (string, []StepEdge) {
+	if sign == 0 {
+		return "", nil
+	}
+	per := float64(m.ScaleOf(from))
+	if k == Links.KR {
+		per = 1
+	}
+	refused := ""
+	var moved []StepEdge
+	for _, n := range m.linksFrom(from) {
+		e := StepEdge{step, n.From, n.To}
+		l := m.StepLinks[e]
+		if l == nil {
+			continue
+		}
+		inc := l.Increment.At(k)
+		v := *inc*per + float64(sign)
+		if k == Links.KR && v <= 0 {
+			refused = fmt.Sprintf("step %d %s→%s nΔr: it would be %v, and it must stay above 0, so it stays at %v", step, n.From, n.To, v, *inc)
+			continue
+		}
+		*inc = v / per
+		moved = append(moved, e)
+	}
+	return refused, moved
 }
 
 func (m *Model) StepHeadEdit(a Act, sign int) (string, []StepEdge) {
@@ -57,6 +85,8 @@ func (m *Model) StepHeadEdit(a Act, sign int) (string, []StepEdge) {
 	case OpAllLocks:
 		st.ToggleBoth()
 		return "", nil
+	case OpAllInc:
+		return m.stepHeadIncrements(a.I, a.Node, k, sign)
 	case OpAllLock:
 		way, on := st.At(a.K)
 		switch {

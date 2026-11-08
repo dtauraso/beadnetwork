@@ -64,6 +64,9 @@ func (c linkCol) head(m Model, id string, step int) Cell {
 		lockAct := Act{Op: OpAllLock, Node: id, K: c.k, I: step}
 		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).LockedOn(*on)
 	}
+	if c.op == OpIncrement {
+		return Text(c.label).Stepping(Act{Op: OpAllInc, Node: id, K: c.k, I: step}, 0)
+	}
 	return Text(c.label).AboveLastDigit()
 }
 
