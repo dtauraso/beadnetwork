@@ -123,7 +123,7 @@ func refRows(m Model, id, fit string) [][]Cell {
 	act := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
 	return [][]Cell{
 		{Text("reference"), Text("Δφ").AboveLastDigit(), Text("Δθ").AboveLastDigit()},
-		{Text("ref " + id), Field("", strconv.Itoa(ref.Phi), act(Links.KPhi), true, true).Fitting(fit), Field("", strconv.Itoa(ref.Theta), act(Links.KTheta), true, true).Fitting(fit)},
+		{Text("ref " + id).Outline(false), Field("", strconv.Itoa(ref.Phi), act(Links.KPhi), true, true).Fitting(fit).Outline(false), Field("", strconv.Itoa(ref.Theta), act(Links.KTheta), true, true).Fitting(fit).Outline(false)},
 	}
 }
 
