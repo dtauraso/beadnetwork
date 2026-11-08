@@ -53,9 +53,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	if Builder.IsStepEdit(a) {
 		md.UI.Builder.Refused = md.UI.Builder.StepEdit(a, sign, typed)
 		md.persistStep()
-		if l := md.UI.Builder.StepLinks[Builder.StepEdge{Step: a.I, From: a.Node, To: a.To}]; l != nil && md.UI.Builder.Refused == "" {
-			md.syncStepPicks(ctx, a.I)
-			md.sendLink(ctx, a.To, Links.SetLink{From: a.Node, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
+		if md.UI.Builder.Refused == "" {
+			md.showStep(ctx, Builder.StepEdge{Step: a.I, From: a.Node, To: a.To})
 		}
 		return
 	}
@@ -64,12 +63,14 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		return
 	}
 	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) {
+		md.UI.Builder.StepShown = 0
 		return
 	}
 	switch a.Op {
 	case Builder.OpStepPick:
 		if md.UI.Builder.Refused = md.UI.Builder.ToggleStepPick(a.I, a.Node, a.To); md.UI.Builder.Refused == "" {
 			md.persistStep()
+			md.UI.Builder.StepShown = a.I
 			md.syncStepPicks(ctx, a.I)
 		}
 	case Builder.OpStepFold:

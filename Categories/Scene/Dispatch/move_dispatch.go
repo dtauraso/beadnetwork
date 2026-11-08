@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node"
@@ -114,11 +115,23 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) 
 	m.Refused = refused
 	md.persistStep()
 	if len(moved) > 0 {
+		m.StepShown = a.I
 		md.syncStepPicks(ctx, a.I)
 	}
 	for _, e := range moved {
 		l := m.StepLinks[e]
 		md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
+	}
+}
+
+func (md *MoveDispatch) showStep(ctx context.Context, pressed Builder.StepEdge) {
+	m := &md.UI.Builder
+	m.StepShown = pressed.Step
+	md.syncStepPicks(ctx, pressed.Step)
+	for e, l := range m.StepLinks {
+		if e.Step == pressed.Step && (m.StepPicks[e] || e == pressed) {
+			md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
+		}
 	}
 }
 
@@ -131,8 +144,11 @@ func DrainLinkReports(md *MoveDispatch) {
 	for _, r := range rs {
 		m.Take(r)
 	}
-	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {
-		md.persistStep()
+	if len(rs) > 0 && m.StepDir != "" {
+		seeded := m.SeedStepLinks()
+		if chained := m.ChainStep(); seeded || chained {
+			md.persistStep()
+		}
 	}
 	before := m.TimeKey()
 	for _, t := range md.Links.TakeTimings() {
