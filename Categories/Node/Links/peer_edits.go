@@ -60,6 +60,7 @@ func (p *Peer) setS(m SetS) []Envelope {
 	}
 	k := float64(v) / float64(p.S)
 	p.S = v
+	p.scaleRef(k)
 	for _, from := range p.order {
 		p.own[from].ScaleAngles(k)
 		p.touched(from)

@@ -14,6 +14,8 @@ func (n *NodePhiTheta3) postVectors() {
 	}
 	n.geom.KindPosts().PostStartVectors(out, picked)
 	n.geom.KindPosts().PostShownEdges(n.peer.PickedOuts())
+	refPhi, refTheta := n.peer.RefVecs()
+	n.geom.KindPosts().PostRefVectors([]Links.Vec3{refPhi, refTheta})
 	n.postArcs()
 }
 
@@ -24,7 +26,7 @@ func (n *NodePhiTheta3) postArcs() {
 		if !l.Picked || l.Dir(s).R*n.peer.Frame.Rho < 1e-9 {
 			continue
 		}
-		phi, theta := n.peer.Frame.Arcs(s, l)
+		phi, theta := n.peer.Frame.Arcs(s, l, n.peer.RefOf(l.From))
 		arcs = append(arcs, AngleArcs.Angle{At: n.peer.Offset(l.From), Phi: AngleArcs.Path(phi), Theta: AngleArcs.Path(theta)})
 	}
 	n.geom.KindPosts().PostArcs(arcs)

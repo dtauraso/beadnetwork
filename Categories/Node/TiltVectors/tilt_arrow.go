@@ -60,6 +60,7 @@ const (
 	ArrowReceived   uint8 = 1
 	ArrowStart      uint8 = 2
 	ArrowStartStill uint8 = 3
+	ArrowRef        uint8 = 4
 )
 
 func ArrowMatrices(center Vec3, length, phi float64, received bool) TiltArrow {

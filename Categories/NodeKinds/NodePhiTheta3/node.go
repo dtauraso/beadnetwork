@@ -104,6 +104,11 @@ func (n *NodePhiTheta3) apply() {
 		}
 		n.postTicks()
 	}
+	if c.Ref {
+		if err := NodeCat.WriteNodeRef(root, id, n.peer.Ref.Phi, n.peer.Ref.Theta); err != nil {
+			n.breadcrumb("ref-persist", err.Error())
+		}
+	}
 	if len(c.Links) > 0 {
 		if err := Links.WriteLinks(NodeCat.NodeDir(root, id), n.peer.Links()); err != nil {
 			n.breadcrumb("links-persist", err.Error())
@@ -116,7 +121,7 @@ func (n *NodePhiTheta3) publish() { n.publishWith("") }
 
 func (n *NodePhiTheta3) publishWith(refused string) {
 	n.postVectors()
-	n.mesh.Report(Links.Report{ID: n.peer.ID, S: n.peer.S, SNote: n.peer.SNote, At: n.peer.At, Links: n.peer.Links(), Refused: refused})
+	n.mesh.Report(Links.Report{ID: n.peer.ID, S: n.peer.S, SNote: n.peer.SNote, At: n.peer.At, Ref: n.peer.Ref, Links: n.peer.Links(), Refused: refused})
 }
 
 func (a BuildArgs) Geom() *NodeCat.NodeGeometry {

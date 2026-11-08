@@ -93,6 +93,8 @@ func (m Model) Link(from, to string) (Links.Link, bool) {
 	return Links.Link{}, false
 }
 
+func (m Model) RefOf(id string) Links.Turn { return Links.RefTurn(m.ScaleOf(id), m.Reports[id].Ref) }
+
 func (m Model) ScaleOf(id string) int {
 	if s := m.Reports[id].S; s > 0 {
 		return s

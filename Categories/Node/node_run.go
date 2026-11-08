@@ -95,6 +95,9 @@ func (g *NodeGeometry) applyKindPosts() {
 	if p.Starts != nil {
 		g.tilt.SetStartVectors(*p.Starts, *p.StartPicked)
 	}
+	if p.Refs != nil {
+		g.tilt.SetRefVectors(*p.Refs)
+	}
 	if p.Arcs != nil {
 		g.tilt.SetArcs(*p.Arcs)
 	}

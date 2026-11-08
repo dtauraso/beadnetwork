@@ -18,12 +18,19 @@ type Tilt struct {
 
 	startVectors []polar.Polar
 	startPicked  []bool
+	refVectors   []Vec3
 	arcs         []AngleArcs.Angle
 }
 
-func (t *Tilt) SetStartVectors(v []polar.Polar, picked []bool) { t.startVectors, t.startPicked = v, picked }
+func (t *Tilt) SetStartVectors(v []polar.Polar, picked []bool) {
+	t.startVectors, t.startPicked = v, picked
+}
 
 func (t *Tilt) StartVectors() ([]polar.Polar, []bool) { return t.startVectors, t.startPicked }
+
+func (t *Tilt) SetRefVectors(v []Vec3) { t.refVectors = v }
+
+func (t *Tilt) RefVectors() []Vec3 { return t.refVectors }
 
 func (t *Tilt) SetArcs(a []AngleArcs.Angle) { t.arcs = a }
 

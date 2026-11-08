@@ -101,7 +101,7 @@ func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
 		if from == keep || (keepPicked && l.Picked) {
 			continue
 		}
-		l.Remeasure(p.Frame, p.S, p.posOf(from), p.Pos())
+		l.Remeasure(p.Frame, p.S, p.refs[from], p.posOf(from), p.Pos())
 		p.touched(from)
 	}
 	return p.movedTo(keepPicked)
@@ -119,7 +119,7 @@ func (p *Peer) moved(m Moved) {
 	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
 	if l, ok := p.own[m.ID]; ok && !(m.KeepPicked && l.Picked) {
-		l.Remeasure(p.Frame, p.S, p.posOf(m.ID), p.Pos())
+		l.Remeasure(p.Frame, p.S, p.refs[m.ID], p.posOf(m.ID), p.Pos())
 		p.touched(m.ID)
 	}
 }

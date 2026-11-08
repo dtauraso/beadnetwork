@@ -59,7 +59,7 @@ func rowsInto(m Model, item string) []row {
 			continue
 		}
 		s := m.ScaleOf(l.To)
-		t := l.Dir(s)
+		t := l.DirFrom(s, m.RefOf(l.From))
 		at := m.Reports[l.From].At
 		c := m.Frame.At(at)
 		d := m.Frame.Vec(s, t)
