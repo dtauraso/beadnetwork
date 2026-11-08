@@ -9,9 +9,6 @@ func (p *Peer) setLink(m SetLink) []Envelope {
 	}
 	l.Start, l.Delta, l.Increment = m.Start, m.Delta, m.Increment
 	p.touched(m.From)
-	if m.Hold {
-		return nil
-	}
 	return p.take(l)
 }
 

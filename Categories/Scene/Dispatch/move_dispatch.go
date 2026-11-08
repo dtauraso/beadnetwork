@@ -114,18 +114,12 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) 
 	m.Refused = refused
 	md.persistStep()
 	if len(moved) > 0 {
-		md.showStep(ctx, a.I)
+		md.syncStepPicks(ctx, a.I)
 	}
-}
-
-func (md *MoveDispatch) showStep(ctx context.Context, step int) {
-	md.syncStepPicks(ctx, step)
-	for e, l := range md.UI.Builder.StepLinks {
-		if e.Step == step {
-			md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: l.Start, Delta: l.Delta, Increment: l.Increment, Hold: true})
-		}
+	for _, e := range moved {
+		l := m.StepLinks[e]
+		md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
 	}
-	md.Settle(ctx)
 }
 
 func DrainLinkReports(md *MoveDispatch) {
