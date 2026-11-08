@@ -63,9 +63,9 @@ func (m *Model) stepHeadIncrements(step int, from, k string, sign int) (string, 
 			continue
 		}
 		inc := l.Increment.At(k)
-		v := *inc + float64(sign)
+		v := *inc + sign
 		if k == Links.KR && v <= 0 {
-			refused = fmt.Sprintf("step %d %s→%s nΔr: it would be %v, and it must stay above 0, so it stays at %v", step, n.From, n.To, v, *inc)
+			refused = fmt.Sprintf("step %d %s→%s nΔr: it would be %d, and it must stay above 0, so it stays at %d", step, n.From, n.To, v, *inc)
 			continue
 		}
 		*inc = v
@@ -123,7 +123,7 @@ func (m *Model) stepHeadLinks(step int, from, k string, sign int, locks Links.Lo
 			switch {
 			case slices.Contains(m.ManyIn(), n.To) || slices.Contains(m.ManyIn(), n.From):
 				refused = fmt.Sprintf("%s: a node it joins has more than one incoming link, so no radius it is part of can change; Δr stays at %v", name, l.Delta.R)
-			case l.Start.R+l.Delta.R+float64(sign)*l.Increment.R < 0:
+			case l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0:
 				refused = fmt.Sprintf("%s: r + Δr would be below 0, so Δr stays at %v", name, l.Delta.R)
 			default:
 				l.Step(Links.KR, sign)

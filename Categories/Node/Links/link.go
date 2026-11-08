@@ -2,7 +2,12 @@ package Links
 
 import "math"
 
-type Start struct{ Phi, Theta, R float64 }
+type Start struct {
+	Phi, Theta, R float64
+	S             int
+}
+
+type Ints struct{ Phi, Theta, R, S int }
 
 type Nums struct{ Phi, Theta, R float64 }
 
@@ -11,8 +16,8 @@ type Lock struct{ Phi, Theta, R int }
 type Link struct {
 	From, To  string
 	Start     Start
-	Delta     Nums
-	Increment Nums
+	Delta     Ints
+	Increment Ints
 	Lock      Lock
 	Picked    bool
 	Order     int
@@ -27,24 +32,29 @@ const (
 )
 
 func NewLink(from, to string) *Link {
-	return &Link{From: from, To: to, Start: Start{R: 2}, Increment: Nums{Phi: 1, Theta: 1, R: 1}}
+	return &Link{From: from, To: to, Start: Start{R: 2, S: 1}, Delta: Ints{S: 1}, Increment: Ints{Phi: 1, Theta: 1, R: 1, S: 1}}
 }
 
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
 func (l *Link) Dir() Start {
-	return Start{Phi: Wrap(1, l.Start.Phi+l.Delta.Phi), Theta: Wrap(1, l.Start.Theta+l.Delta.Theta), R: l.Start.R + l.Delta.R}
+	return Start{Phi: Wrap(1, l.Start.Phi+float64(l.Delta.Phi)), Theta: Wrap(1, l.Start.Theta+float64(l.Delta.Theta)), R: l.Start.R + float64(l.Delta.R)}
 }
 
-func (l Link) Times(s int) Link {
-	k := float64(s)
+func ShownS(s int) int { return max(1, s) }
+
+func (l Link) Shown() Link {
+	k := float64(ShownS(l.Start.S))
 	l.Start.Phi, l.Start.Theta = l.Start.Phi*k, l.Start.Theta*k
-	l.Delta.Phi, l.Delta.Theta = l.Delta.Phi*k, l.Delta.Theta*k
-	l.Increment.Phi, l.Increment.Theta = l.Increment.Phi*k, l.Increment.Theta*k
+	d, n := ShownS(l.Delta.S), ShownS(l.Increment.S)
+	l.Delta.Phi, l.Delta.Theta = l.Delta.Phi*d, l.Delta.Theta*d
+	l.Increment.Phi, l.Increment.Theta = l.Increment.Phi*n, l.Increment.Theta*n
 	return l
 }
 
-func (a *Nums) At(k string) *float64 {
+func (l *Link) SetS(s int) { l.Start.S, l.Delta.S, l.Increment.S = s, s, s }
+
+func (a *Ints) At(k string) *int {
 	if k == KR {
 		return &a.R
 	}
@@ -76,7 +86,7 @@ func (l *Link) SetStart(k string, v float64) {
 }
 
 func (l *Link) Step(k string, sign int) {
-	*l.Delta.At(k) += float64(sign) * *l.Increment.At(k)
+	*l.Delta.At(k) += sign * *l.Increment.At(k)
 }
 
 func Measure(f Frame, was Start, p, t Vec3) Start {
@@ -112,5 +122,5 @@ func Measure(f Frame, was Start, p, t Vec3) Start {
 
 func (l *Link) Remeasure(f Frame, ref Turn, p, t Vec3) {
 	v := Measure(f, l.Dir(), Vec3{}, ref.Unrotate(t.Sub(p)))
-	l.Start = Start{Phi: Wrap(1, v.Phi-l.Delta.Phi), Theta: Wrap(1, v.Theta-l.Delta.Theta), R: v.R - l.Delta.R}
+	l.Start = Start{Phi: Wrap(1, v.Phi-float64(l.Delta.Phi)), Theta: Wrap(1, v.Theta-float64(l.Delta.Theta)), R: v.R - float64(l.Delta.R), S: l.Start.S}
 }

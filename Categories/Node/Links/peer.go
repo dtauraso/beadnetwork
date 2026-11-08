@@ -61,6 +61,9 @@ func NewPeer(id string, seed Seed) *Peer {
 		case l.To == id:
 			c := l
 			c.Start.Phi, c.Start.Theta = FromSigned(1, c.Start.Phi), FromSigned(1, c.Start.Theta)
+			if c.Delta.S < 1 {
+				c.SetS(ShownS(seed.Scales[l.From]))
+			}
 			p.own[l.From] = &c
 			p.order = append(p.order, l.From)
 		case l.From == id:

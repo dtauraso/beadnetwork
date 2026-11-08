@@ -12,6 +12,7 @@ func (p *Peer) setLink(m SetLink) []Envelope {
 		return nil
 	}
 	l.Start, l.Delta, l.Increment = m.Start, m.Delta, m.Increment
+	l.SetS(p.SOf(m.From))
 	p.touched(m.From)
 	return p.take(l)
 }
@@ -72,7 +73,8 @@ func (p *Peer) setS(m SetS) []Envelope {
 
 func (p *Peer) sSet(m SSet) {
 	p.scales[m.From] = m.S
-	if _, ok := p.own[m.From]; ok {
+	if l, ok := p.own[m.From]; ok {
+		l.SetS(m.S)
 		p.touched(m.From)
 	}
 }
@@ -85,6 +87,7 @@ func (p *Peer) connect(m Connect) []Envelope {
 	p.heard[m.From] = p.round
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
+	l.SetS(p.SOf(m.From))
 	l.Start = Measure(p.Frame, l.Dir(), p.posOf(m.From), p.Pos())
 	p.own[m.From] = l
 	p.order = append(p.order, m.From)

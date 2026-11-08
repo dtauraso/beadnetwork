@@ -26,8 +26,8 @@ func ang(phi, theta float64, r *float64) string {
 	return s
 }
 
-func ticks(t Links.Nums) string {
-	return "φ " + n3(t.Phi) + " | θ " + n3(t.Theta) + " | r " + n3(t.R)
+func ticks(t Links.Ints) string {
+	return "φ " + strconv.Itoa(t.Phi) + " | θ " + strconv.Itoa(t.Theta) + " | r " + strconv.Itoa(t.R) + " | s " + strconv.Itoa(t.S)
 }
 
 func lockText(l Links.Lock) string {
@@ -73,7 +73,6 @@ func TreePill(m Model) Pill {
 	all := m.allLinks()
 	var recalc []Links.Link
 	for _, l := range all {
-		l = l.Times(m.ScaleOf(l.From))
 		if !l.Picked {
 			recalc = append(recalc, l)
 		}
@@ -93,10 +92,10 @@ func TreePill(m Model) Pill {
 		box(3, "method cards", kv("item", m.Item(), true), kv("methods", names(methods), false), kv("card step", strconv.Itoa(m.CardShown()), false)),
 	}
 	for _, l := range all {
-		s := float64(m.ScaleOf(l.From))
+		s := float64(Links.ShownS(l.Start.S))
 		d := l.DirFrom(m.Frame, m.RefOf(l.From))
 		d.Phi, d.Theta = d.Phi*s, d.Theta*s
-		l = l.Times(m.ScaleOf(l.From))
+		l = l.Shown()
 		groups = append(groups, box(3, "edge "+l.Name(), kv("from", l.From, true), kv("to", l.To, true),
 			kv("start", ang(l.Start.Phi, l.Start.Theta, &l.Start.R), false), kv("Δ", ticks(l.Delta), false),
 			kv("increment", ticks(l.Increment), false), kv("lock", lockText(l.Lock), false),
