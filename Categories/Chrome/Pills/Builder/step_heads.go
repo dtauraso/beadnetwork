@@ -54,10 +54,6 @@ func (m *Model) stepHeadIncrements(step int, from, k string, sign int) (string, 
 	if sign == 0 {
 		return "", nil
 	}
-	per := float64(m.ScaleOf(from))
-	if k == Links.KR {
-		per = 1
-	}
 	refused := ""
 	var moved []StepEdge
 	for _, n := range m.linksFrom(from) {
@@ -67,12 +63,12 @@ func (m *Model) stepHeadIncrements(step int, from, k string, sign int) (string, 
 			continue
 		}
 		inc := l.Increment.At(k)
-		v := *inc*per + float64(sign)
+		v := *inc + float64(sign)
 		if k == Links.KR && v <= 0 {
 			refused = fmt.Sprintf("step %d %s→%s nΔr: it would be %v, and it must stay above 0, so it stays at %v", step, n.From, n.To, v, *inc)
 			continue
 		}
-		*inc = v / per
+		*inc = v
 		moved = append(moved, e)
 	}
 	return refused, moved
