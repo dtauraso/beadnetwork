@@ -108,10 +108,13 @@ func nodeTables(m Model, step int) []Group {
 			}
 			rows = append(rows, row)
 		}
-		if len(rows) == 0 {
-			rows = [][]Cell{{Text("no links")}}
-		} else {
+		if len(rows) > 0 {
 			rows = append([][]Cell{linkHeader(m, id, step)}, rows...)
+		}
+		if row := connectRow(m, id, "link to"); row != nil {
+			rows = append(rows, row)
+		} else if len(rows) == 0 {
+			rows = [][]Cell{{Text("no links")}}
 		}
 		groups = append(groups, Group{Title: foldTitle(false, "node "+id), Fold: fold}, Group{Rows: refRows(m, id, fit), Slides: true}, Group{Rows: rows, Slides: true})
 	}

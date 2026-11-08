@@ -46,13 +46,7 @@ func NodesPill(m Model) Pill {
 func connectGroup(m Model) Group {
 	var rows [][]Cell
 	for _, from := range m.Nodes {
-		row := []Cell{Text(from + " →")}
-		for _, to := range m.Nodes {
-			if _, has := m.Link(from, to); to != from && !has {
-				row = append(row, Button(to, Act{Op: OpConnect, Node: from, To: to}, false))
-			}
-		}
-		if len(row) > 1 {
+		if row := connectRow(m, from, from+" →"); row != nil {
 			rows = append(rows, row)
 		}
 	}
@@ -60,4 +54,17 @@ func connectGroup(m Model) Group {
 		rows = [][]Cell{{Text("no edge left to add")}}
 	}
 	return Group{Title: "+ add edge — its start is measured from where the two nodes are", Rows: rows}
+}
+
+func connectRow(m Model, from, label string) []Cell {
+	row := []Cell{Text(label)}
+	for _, to := range m.Nodes {
+		if _, has := m.Link(from, to); to != from && !has {
+			row = append(row, Button(to, Act{Op: OpConnect, Node: from, To: to}, false))
+		}
+	}
+	if len(row) == 1 {
+		return nil
+	}
+	return row
 }
