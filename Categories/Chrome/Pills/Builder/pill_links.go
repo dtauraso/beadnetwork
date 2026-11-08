@@ -113,9 +113,18 @@ func nodeTables(m Model, step int) []Group {
 		} else {
 			rows = append([][]Cell{linkHeader(m, id, step)}, rows...)
 		}
-		groups = append(groups, Group{Title: foldTitle(false, "node "+id), Fold: fold, Rows: rows, Slides: true})
+		groups = append(groups, Group{Title: foldTitle(false, "node "+id), Fold: fold, Rows: refRows(m, id)}, Group{Rows: rows, Slides: true})
 	}
 	return groups
+}
+
+func refRows(m Model, id string) [][]Cell {
+	ref := m.Reports[id].Ref
+	act := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
+	return [][]Cell{
+		{Text("reference"), Text("Δφ").AboveLastDigit(), Text("Δθ").AboveLastDigit()},
+		{Text("ref " + id), Field("", strconv.Itoa(ref.Phi), act(Links.KPhi), true, true), Field("", strconv.Itoa(ref.Theta), act(Links.KTheta), true, true)},
+	}
 }
 
 func num1(v float64) string {
