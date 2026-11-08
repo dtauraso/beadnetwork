@@ -12,6 +12,7 @@ type SetLink struct {
 	Start     Start
 	Delta     Ticks
 	Increment Ticks
+	Hold      bool
 }
 
 type StepAll struct {
