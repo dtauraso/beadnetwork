@@ -45,24 +45,24 @@ func (m *Model) SeedStepLinks() bool {
 	return seeded
 }
 
-func (m *Model) FollowDiagram() bool {
-	changed := false
-	for _, l := range m.allLinks() {
-		s := m.ScaleOf(l.To)
-		drawn := l.Dir(s)
-		for _, step := range StepNumbers {
-			c := m.StepLinks[StepEdge{step, l.From, l.To}]
-			if c == nil {
-				continue
-			}
-			v := Links.Start{Phi: Links.Wrap(s, drawn.Phi-float64(c.Delta.Phi)), Theta: Links.Wrap(s, drawn.Theta-float64(c.Delta.Theta)), R: drawn.R - float64(c.Delta.R)}
-			if math.Abs(v.Phi-c.Start.Phi) > 1e-9 || math.Abs(v.Theta-c.Start.Theta) > 1e-9 || math.Abs(v.R-c.Start.R) > 1e-9 {
-				c.Start = v
-				changed = true
-			}
+func (m Model) StepDeltas(step int) map[StepEdge]Links.Ticks {
+	out := map[StepEdge]Links.Ticks{}
+	for e, l := range m.StepLinks {
+		if e.Step == step {
+			out[e] = l.Delta
 		}
 	}
-	return changed
+	return out
+}
+
+func (m Model) TurnFromDrawn(e StepEdge, was Links.Ticks) (Links.Start, bool) {
+	live, ok := m.Link(e.From, e.To)
+	if !ok {
+		return Links.Start{}, false
+	}
+	s := m.ScaleOf(e.To)
+	drawn := live.Dir(s)
+	return Links.Start{Phi: Links.Wrap(s, drawn.Phi-float64(was.Phi)), Theta: Links.Wrap(s, drawn.Theta-float64(was.Theta)), R: drawn.R - float64(was.R)}, true
 }
 
 func (m *Model) StepEdit(a Act, sign int, typed *float64) string {

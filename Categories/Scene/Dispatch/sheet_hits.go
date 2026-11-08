@@ -51,11 +51,12 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
 	md.UI.Builder.Refused = ""
 	if Builder.IsStepEdit(a) {
+		was := md.UI.Builder.StepDeltas(a.I)
 		md.UI.Builder.Refused = md.UI.Builder.StepEdit(a, sign, typed)
 		md.persistStep()
 		if md.UI.Builder.Refused == "" {
 			md.syncStepPicks(ctx, a.I)
-			md.sendStepLink(ctx, Builder.StepEdge{Step: a.I, From: a.Node, To: a.To})
+			md.sendStepLink(ctx, Builder.StepEdge{Step: a.I, From: a.Node, To: a.To}, was, a.Op != Builder.OpLinkStart)
 		}
 		return
 	}

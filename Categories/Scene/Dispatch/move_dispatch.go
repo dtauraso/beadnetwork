@@ -111,6 +111,7 @@ func (md *MoveDispatch) syncStepPicks(ctx context.Context, step int) {
 
 func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) {
 	m := &md.UI.Builder
+	was := m.StepDeltas(a.I)
 	refused, moved := m.StepHeadEdit(a, sign)
 	m.Refused = refused
 	md.persistStep()
@@ -118,14 +119,23 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) 
 		md.syncStepPicks(ctx, a.I)
 	}
 	for _, e := range moved {
-		md.sendStepLink(ctx, e)
+		md.sendStepLink(ctx, e, was, true)
 	}
 }
 
-func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge) {
-	if l := md.UI.Builder.StepLinks[e]; l != nil {
-		md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
+func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge, was map[Builder.StepEdge]Links.Ticks, fromDrawn bool) {
+	m := &md.UI.Builder
+	l := m.StepLinks[e]
+	if l == nil {
+		return
 	}
+	start := l.Start
+	if fromDrawn {
+		if v, ok := m.TurnFromDrawn(e, was[e]); ok {
+			start = v
+		}
+	}
+	md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: start, Delta: l.Delta, Increment: l.Increment})
 }
 
 func DrainLinkReports(md *MoveDispatch) {
@@ -137,11 +147,8 @@ func DrainLinkReports(md *MoveDispatch) {
 	for _, r := range rs {
 		m.Take(r)
 	}
-	if len(rs) > 0 && m.StepDir != "" {
-		seeded := m.SeedStepLinks()
-		if followed := m.FollowDiagram(); seeded || followed {
-			md.persistStep()
-		}
+	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {
+		md.persistStep()
 	}
 	before := m.TimeKey()
 	for _, t := range md.Links.TakeTimings() {
