@@ -45,20 +45,21 @@ func (m *Model) SeedStepLinks() bool {
 	return seeded
 }
 
-func (m *Model) ChainStep() bool {
-	if m.StepShown == 0 {
-		return false
-	}
+func (m *Model) FollowDiagram() bool {
 	changed := false
 	for _, l := range m.allLinks() {
-		c := m.StepLinks[StepEdge{m.StepShown + 1, l.From, l.To}]
-		if c == nil {
-			continue
-		}
-		end := l.Dir(m.ScaleOf(l.To))
-		if math.Abs(end.Phi-c.Start.Phi) > 1e-9 || math.Abs(end.Theta-c.Start.Theta) > 1e-9 || math.Abs(end.R-c.Start.R) > 1e-9 {
-			c.Start = end
-			changed = true
+		s := m.ScaleOf(l.To)
+		drawn := l.Dir(s)
+		for _, step := range StepNumbers {
+			c := m.StepLinks[StepEdge{step, l.From, l.To}]
+			if c == nil {
+				continue
+			}
+			v := Links.Start{Phi: Links.Wrap(s, drawn.Phi-float64(c.Delta.Phi)), Theta: Links.Wrap(s, drawn.Theta-float64(c.Delta.Theta)), R: drawn.R - float64(c.Delta.R)}
+			if math.Abs(v.Phi-c.Start.Phi) > 1e-9 || math.Abs(v.Theta-c.Start.Theta) > 1e-9 || math.Abs(v.R-c.Start.R) > 1e-9 {
+				c.Start = v
+				changed = true
+			}
 		}
 	}
 	return changed
