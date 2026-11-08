@@ -2,6 +2,7 @@ package Dispatch
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
@@ -138,6 +139,23 @@ func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge, wa
 	md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: start, Delta: l.Delta, Increment: l.Increment})
 }
 
+func frameSIsLargestNodeS(md *MoveDispatch) {
+	m := &md.UI.Builder
+	top := 0
+	for _, id := range m.Nodes {
+		top = max(top, m.Reports[id].S)
+	}
+	if top < 1 || top == m.S {
+		return
+	}
+	m.S = top
+	if root := md.Scenes.TreeRoot; root != "" {
+		if err := Sheet.WriteScalar(Scenes.SFilePath(root), int32(top)); err != nil {
+			m.Refused = fmt.Sprintf("could not write s: %v", err)
+		}
+	}
+}
+
 func DrainLinkReports(md *MoveDispatch) {
 	if md == nil || md.Links == nil {
 		return
@@ -146,6 +164,9 @@ func DrainLinkReports(md *MoveDispatch) {
 	rs := md.Links.TakeReports()
 	for _, r := range rs {
 		m.Take(r)
+	}
+	if len(rs) > 0 {
+		frameSIsLargestNodeS(md)
 	}
 	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {
 		md.persistStep()
