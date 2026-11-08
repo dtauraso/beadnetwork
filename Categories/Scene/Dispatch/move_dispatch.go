@@ -144,10 +144,14 @@ func DrainLinkReports(md *MoveDispatch) {
 	}
 	m := &md.UI.Builder
 	rs := md.Links.TakeReports()
+	rescaled := false
 	for _, r := range rs {
+		if was := m.Reports[r.ID].S; was > 0 && r.S > 0 && r.S != was {
+			rescaled = m.ScaleStepLinksTo(r.ID, float64(r.S)/float64(was)) || rescaled
+		}
 		m.Take(r)
 	}
-	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {
+	if len(rs) > 0 && m.StepDir != "" && (m.SeedStepLinks() || rescaled) {
 		md.persistStep()
 	}
 	before := m.TimeKey()

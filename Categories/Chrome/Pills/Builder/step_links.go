@@ -45,6 +45,17 @@ func (m *Model) SeedStepLinks() bool {
 	return seeded
 }
 
+func (m *Model) ScaleStepLinksTo(id string, k float64) bool {
+	scaled := false
+	for e, l := range m.StepLinks {
+		if e.To == id {
+			l.ScaleAngles(k)
+			scaled = true
+		}
+	}
+	return scaled
+}
+
 func (m *Model) DropStepEdge(from, to string) error {
 	for _, step := range StepNumbers {
 		k := StepEdge{step, from, to}
