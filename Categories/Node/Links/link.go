@@ -78,6 +78,15 @@ func (l *Link) ScaleAngles(k float64) {
 	l.Start.Theta *= k
 	l.Delta.Phi = int(math.Round(float64(l.Delta.Phi) * k))
 	l.Delta.Theta = int(math.Round(float64(l.Delta.Theta) * k))
+	l.Increment.Phi = scaleInc(l.Increment.Phi, k)
+	l.Increment.Theta = scaleInc(l.Increment.Theta, k)
+}
+
+func scaleInc(v int, k float64) int {
+	if v == 0 {
+		return 0
+	}
+	return max(1, int(math.Round(float64(v)*k)))
 }
 
 func Measure(f Frame, s int, was Start, p, t Vec3) Start {
