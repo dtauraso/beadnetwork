@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Categories/Node/Links/*.go, Categories/Chrome/Pills/Builder/*.go | Δ and increment are whole numbers (Ints) and s only multiplies: no float Δ/increment, no division by s
+# PLACEMENT: Categories/Node/Links/*.go, Categories/Chrome/Pills/Builder/*.go | Δ, increment and the reference are whole numbers (Ints, Ref) and s only multiplies: no float Δ/increment/reference, no division by s
 
 set -euo pipefail
 
@@ -15,6 +15,8 @@ link = "Categories/Node/Links/link.go"
 src = open(link, encoding="utf-8").read()
 if not re.search(r'^type Ints struct\{ Phi, Theta, R, S int \}$', src, re.M):
     hits.append(f"{link}: Ints is not `struct{{ Phi, Theta, R, S int }}` — Δ and increment numbers are whole")
+if not re.search(r'^type Ref struct\{ Phi, Theta, S int \}$', src, re.M):
+    hits.append(f"{link}: Ref is not `struct{{ Phi, Theta, S int }}` — the reference Δφ and Δθ are whole")
 for field in ("Delta", "Increment"):
     if not re.search(rf'^\s+{field}\s+Ints$', src, re.M):
         hits.append(f"{link}: Link.{field} is not Ints")

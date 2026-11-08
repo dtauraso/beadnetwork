@@ -59,6 +59,10 @@ func (p *Peer) setS(m SetS) []Envelope {
 	}
 	p.SNote = m.Note
 	p.Changed.S = true
+	if p.Ref.S != m.V {
+		p.Ref.S = m.V
+		p.Changed.Ref = true
+	}
 	if m.V == p.S {
 		return nil
 	}

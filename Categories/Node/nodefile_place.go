@@ -26,11 +26,16 @@ func WriteNodeS(root, id string, s int) error {
 	return WriteAtomicIfChanged(filepath.Join(dragDir(root, id), FileS), s)
 }
 
-func WriteNodeRef(root, id string, phi, theta float64) error {
-	if err := WriteAtomicIfChanged(filepath.Join(dragDir(root, id), FileRefPhi), phi); err != nil {
-		return err
+func WriteNodeRef(root, id string, phi, theta, s int) error {
+	for _, f := range []struct {
+		name string
+		v    int
+	}{{FileRefPhi, phi}, {FileRefTheta, theta}, {FileRefS, s}} {
+		if err := WriteAtomicIfChanged(filepath.Join(dragDir(root, id), f.name), f.v); err != nil {
+			return err
+		}
 	}
-	return WriteAtomicIfChanged(filepath.Join(dragDir(root, id), FileRefTheta), theta)
+	return nil
 }
 
 func (m *NodeGeometry) PersistRoot() string { return m.persistRoot }

@@ -18,6 +18,7 @@ const (
 	FileS          = "s.bin"
 	FileRefPhi     = "ref-phi.bin"
 	FileRefTheta   = "ref-theta.bin"
+	FileRefS       = "ref-s.bin"
 	FileTiltIdx    = "top-tilt-vector-phi-idx.bin"
 
 	DirDragRule = "drag-rule"

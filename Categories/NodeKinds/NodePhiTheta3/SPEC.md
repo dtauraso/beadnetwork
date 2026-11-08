@@ -24,6 +24,7 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 | place `at` | `base/at-{r,phi,theta}.bin` (f64), replaced by `drag/at-*.bin` once the node has moved |
 | `s` | `base/s.bin`, replaced by `drag/s.bin` |
 | the links into it | `links/<j>To<me>/` (`source.bin` names `j`), replaced as a whole by `drag/links/` once one is edited |
+| reference Δφ, Δθ and its `s` | `drag/ref-phi.bin`, `ref-theta.bin`, `ref-s.bin` (int64): whole numbers in base `s = 1`, shown as `number × s`; the `s` is the node's last `s` edit (node or frame). Typing or pressing sets the number itself; a float file is refused loudly at load |
 
 ## A link a→b — its angles stored at b
 

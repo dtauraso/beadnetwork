@@ -9,7 +9,7 @@ type Start struct {
 
 type Ints struct{ Phi, Theta, R, S int }
 
-type Nums struct{ Phi, Theta, R float64 }
+type Ref struct{ Phi, Theta, S int }
 
 type Lock struct{ Phi, Theta, R int }
 

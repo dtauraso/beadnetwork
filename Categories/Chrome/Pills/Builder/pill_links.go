@@ -131,12 +131,12 @@ func nodeTables(m Model, step int) []Group {
 }
 
 func refRows(m Model, id, fit string) [][]Cell {
-	s := float64(m.ScaleOf(id))
 	ref := m.Reports[id].Ref
+	s := Links.ShownS(ref.S)
 	act := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
 	return [][]Cell{
 		{Text("reference"), Text("Δφ").AboveLastDigit(), Text("Δθ").AboveLastDigit(), Text("s").AboveLastDigit()},
-		{Text("ref " + id).Outline(false), Field("", num1(ref.Phi*s), act(Links.KPhi), true, true).Fitting(fit).Outline(false), Field("", num1(ref.Theta*s), act(Links.KTheta), true, true).Fitting(fit).Outline(false), Field("", strconv.Itoa(m.ScaleOf(id)), Act{Op: OpNodeS, Node: id}, true, false).Fitting(fit).Outline(false)},
+		{Text("ref " + id).Outline(false), Field("", strconv.Itoa(ref.Phi*s), act(Links.KPhi), true, true).Fitting(fit).Outline(false), Field("", strconv.Itoa(ref.Theta*s), act(Links.KTheta), true, true).Fitting(fit).Outline(false), Field("", strconv.Itoa(m.ScaleOf(id)), Act{Op: OpNodeS, Node: id}, true, false).Fitting(fit).Outline(false)},
 	}
 }
 
