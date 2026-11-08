@@ -71,9 +71,17 @@ func (n *NodePhiTheta3) take(ctx context.Context, msg any) bool {
 	if s, ok := msg.(Links.StepAll); ok {
 		n.showAt = s.H + 2
 	}
-	for _, e := range n.peer.Handle(msg) {
+	out := n.peer.Handle(msg)
+	for _, e := range out {
 		n.mesh.Send(ctx, n.peer.ID, e)
 	}
+	picked := ""
+	for _, l := range n.peer.Links() {
+		if l.Picked {
+			picked += l.From + "→" + l.To + " "
+		}
+	}
+	n.breadcrumb("msg", fmt.Sprintf("%T %+v | at=%+v picked=[%s] sent=%d", msg, msg, n.peer.At, picked, len(out)))
 	return true
 }
 
