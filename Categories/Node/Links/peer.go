@@ -20,7 +20,7 @@ type Peer struct {
 	SNote string
 	At    Place
 	Frame Frame
-	Ref   Ticks
+	Ref   Nums
 
 	refs      map[string]Turn
 	scales    map[string]int
@@ -42,7 +42,7 @@ type Seed struct {
 	Frame  Frame
 	Places map[string]Place
 	Scales map[string]int
-	Refs   map[string]Ticks
+	Refs   map[string]Nums
 	Links  []Link
 	TickMs int
 }
@@ -54,7 +54,7 @@ func NewPeer(id string, seed Seed) *Peer {
 	maps.Copy(p.scales, seed.Scales)
 	p.Ref, p.refs = seed.Refs[id], map[string]Turn{}
 	for n, r := range seed.Refs {
-		p.refs[n] = RefTurn(seed.Scales[n], r)
+		p.refs[n] = RefTurn(r)
 	}
 	for _, l := range seed.Links {
 		switch {

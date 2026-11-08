@@ -40,12 +40,13 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		}
 		md.sendLink(ctx, a.Node, Links.SetIdx{K: a.K, V: v})
 	case Builder.OpNodeRef:
+		s := float64(m.ScaleOf(a.Node))
 		ref := m.Reports[a.Node].Ref
-		v := sign + map[string]int{Links.KPhi: ref.Phi, Links.KTheta: ref.Theta}[a.K]
+		v := float64(sign) + s*map[string]float64{Links.KPhi: ref.Phi, Links.KTheta: ref.Theta}[a.K]
 		if typed != nil {
-			v = int(math.Round(*typed))
+			v = *typed
 		}
-		md.sendLink(ctx, a.Node, Links.SetRef{K: a.K, V: v})
+		md.sendLink(ctx, a.Node, Links.SetRef{K: a.K, V: v / s})
 	case Builder.OpConnect:
 		r, ok := m.Reports[a.Node]
 		if !ok {

@@ -61,10 +61,8 @@ func (p *Peer) setS(m SetS) []Envelope {
 	if m.V == p.S {
 		return nil
 	}
-	k := float64(m.V) / float64(p.S)
 	p.S = m.V
 	p.scales[p.ID] = m.V
-	p.scaleRef(k)
 	var out []Envelope
 	for _, to := range slices.Sorted(maps.Keys(p.out)) {
 		out = append(out, Envelope{To: to, Msg: SSet{From: p.ID, S: m.V}})

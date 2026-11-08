@@ -4,8 +4,6 @@ import "math"
 
 type Start struct{ Phi, Theta, R float64 }
 
-type Ticks struct{ Phi, Theta, R int }
-
 type Nums struct{ Phi, Theta, R float64 }
 
 type Lock struct{ Phi, Theta, R int }

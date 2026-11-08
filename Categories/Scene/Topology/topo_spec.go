@@ -24,7 +24,7 @@ type Node struct {
 	At *polarindex.Place
 	S  *int
 
-	RefPhi, RefTheta int
+	RefPhi, RefTheta float64
 
 	DragIndexPhi   *int
 	DragIndexTheta *int

@@ -8,9 +8,8 @@ import (
 
 type Turn struct{ Phi, Theta float64 }
 
-func RefTurn(s int, ref Ticks) Turn {
-	t := float64(TurnTicks * max(s, 1))
-	return Turn{Phi: float64(ref.Phi) / t, Theta: float64(ref.Theta) / t}
+func RefTurn(ref Nums) Turn {
+	return Turn{Phi: ref.Phi / TurnTicks, Theta: ref.Theta / TurnTicks}
 }
 
 func (r Turn) In(s int) Start {
@@ -41,7 +40,7 @@ func (l *Link) DirFrom(f Frame, ref Turn) Start {
 
 type SetRef struct {
 	K string
-	V int
+	V float64
 }
 
 type RefSet struct {
@@ -56,7 +55,7 @@ func (p *Peer) setRef(m SetRef) []Envelope {
 		p.Ref.Phi = m.V
 	}
 	p.Changed.Ref = true
-	p.refs[p.ID] = RefTurn(p.S, p.Ref)
+	p.refs[p.ID] = RefTurn(p.Ref)
 	var out []Envelope
 	for _, to := range slices.Sorted(maps.Keys(p.out)) {
 		out = append(out, Envelope{To: to, Msg: RefSet{From: p.ID, Ref: p.refs[p.ID]}})
@@ -79,11 +78,4 @@ func (p *Peer) RefOf(id string) Turn { return p.refs[id] }
 func (p *Peer) RefVecs() (phi, theta Vec3) {
 	r := p.refs[p.ID]
 	return r.Rotate(p.Frame.cart(p.S, 1, 0, 0)), r.Rotate(p.Frame.cart(p.S, 1, half(p.S)/2, 0))
-}
-
-func (p *Peer) scaleRef(k float64) {
-	p.Ref.Phi = int(math.Round(float64(p.Ref.Phi) * k))
-	p.Ref.Theta = int(math.Round(float64(p.Ref.Theta) * k))
-	p.refs[p.ID] = RefTurn(p.S, p.Ref)
-	p.Changed.Ref = true
 }
