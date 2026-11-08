@@ -119,7 +119,6 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) 
 }
 
 func (md *MoveDispatch) showStep(ctx context.Context, step int) {
-	md.UI.Builder.StepShown = step
 	md.syncStepPicks(ctx, step)
 	for e, l := range md.UI.Builder.StepLinks {
 		if e.Step == step {
@@ -138,11 +137,8 @@ func DrainLinkReports(md *MoveDispatch) {
 	for _, r := range rs {
 		m.Take(r)
 	}
-	if len(rs) > 0 && m.StepDir != "" {
-		seeded := m.SeedStepLinks()
-		if chained := m.ChainStep(); seeded || chained {
-			md.persistStep()
-		}
+	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {
+		md.persistStep()
 	}
 	before := m.TimeKey()
 	for _, t := range md.Links.TakeTimings() {
