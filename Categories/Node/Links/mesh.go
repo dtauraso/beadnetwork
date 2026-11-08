@@ -12,7 +12,7 @@ type Report struct {
 	S       int
 	SNote   string
 	At      Place
-	Ref     Ticks
+	Ref     Nums
 	Links   []Link
 	Refused string
 }

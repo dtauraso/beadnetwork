@@ -10,8 +10,8 @@ type Envelope struct {
 type SetLink struct {
 	From      string
 	Start     Start
-	Delta     Ticks
-	Increment Ticks
+	Delta     Nums
+	Increment Nums
 }
 
 type StepAll struct {
@@ -40,7 +40,15 @@ type SetIdx struct {
 	V float64
 }
 
-type SetS struct{ V int }
+type SetS struct {
+	V    int
+	Note string
+}
+
+type SSet struct {
+	From string
+	S    int
+}
 
 type SetTickMs struct{ V int }
 

@@ -61,8 +61,8 @@ func (m *Model) DropStepEdge(from, to string) error {
 	return nil
 }
 
-func (m Model) StepDeltas(step int) map[StepEdge]Links.Ticks {
-	out := map[StepEdge]Links.Ticks{}
+func (m Model) StepDeltas(step int) map[StepEdge]Links.Nums {
+	out := map[StepEdge]Links.Nums{}
 	for e, l := range m.StepLinks {
 		if e.Step == step {
 			out[e] = l.Delta
@@ -71,14 +71,13 @@ func (m Model) StepDeltas(step int) map[StepEdge]Links.Ticks {
 	return out
 }
 
-func (m Model) TurnFromDrawn(e StepEdge, was Links.Ticks) (Links.Start, bool) {
+func (m Model) TurnFromDrawn(e StepEdge, was Links.Nums) (Links.Start, bool) {
 	live, ok := m.Link(e.From, e.To)
 	if !ok {
 		return Links.Start{}, false
 	}
-	s := m.ScaleOf(e.To)
-	drawn := live.Dir(s)
-	return Links.Start{Phi: Links.Wrap(s, drawn.Phi-float64(was.Phi)), Theta: Links.Wrap(s, drawn.Theta-float64(was.Theta)), R: drawn.R - float64(was.R)}, true
+	drawn := live.Dir()
+	return Links.Start{Phi: Links.Wrap(1, drawn.Phi-was.Phi), Theta: Links.Wrap(1, drawn.Theta-was.Theta), R: drawn.R - was.R}, true
 }
 
 func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
@@ -86,43 +85,40 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 	if l == nil {
 		return fmt.Sprintf("step %d %s→%s: this step has no copy of the link yet, so nothing changed", a.I, a.Node, a.To)
 	}
-	s := m.ScaleOf(a.To)
+	per := float64(m.ScaleOf(a.Node))
+	if a.K == Links.KR {
+		per = 1
+	}
+	shown := l.Times(m.ScaleOf(a.Node))
 	name := fmt.Sprintf("step %d %s→%s", a.I, a.Node, a.To)
 	switch a.Op {
 	case OpLinkStart:
-		v := map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K] + float64(sign)
+		v := map[string]float64{Links.KPhi: shown.Start.Phi, Links.KTheta: shown.Start.Theta, Links.KR: shown.Start.R}[a.K] + float64(sign)
 		if typed != nil {
 			v = *typed
 		}
-		if a.K == Links.KR && (v < 0 || v+float64(l.Delta.R) < 0) {
+		if a.K == Links.KR && (v < 0 || v+l.Delta.R < 0) {
 			return fmt.Sprintf("%s r %v: neither r nor r + Δr can be negative, so r stays at %v", name, v, l.Start.R)
 		}
-		l.SetStart(s, a.K, v)
+		l.SetStart(a.K, v/per)
 	case OpLinkPress:
 		if sign == 0 {
 			sign = a.Sign
 		}
-		if a.K == Links.KR && l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0 {
-			return fmt.Sprintf("%s Δr: r + Δr would be below 0, so Δr stays at %d", name, l.Delta.R)
+		if a.K == Links.KR && l.Start.R+l.Delta.R+float64(sign)*l.Increment.R < 0 {
+			return fmt.Sprintf("%s Δr: r + Δr would be below 0, so Δr stays at %v", name, l.Delta.R)
 		}
-		l.Step(s, a.K, sign)
+		l.Step(a.K, sign)
 	case OpIncrement:
-		inc := map[string]int{Links.KPhi: l.Increment.Phi, Links.KTheta: l.Increment.Theta, Links.KR: l.Increment.R}[a.K]
-		v := float64(inc + sign)
+		inc := *shown.Increment.At(a.K)
+		v := inc + float64(sign)
 		if typed != nil {
 			v = *typed
 		}
 		if v != math.Trunc(v) || (a.K == Links.KR && v <= 0) {
-			return fmt.Sprintf("%s increment %v: not a whole number of ticks, so it stays at %d", name, v, inc)
+			return fmt.Sprintf("%s increment %v: not a whole number of ticks, so it stays at %v", name, v, inc)
 		}
-		switch a.K {
-		case Links.KTheta:
-			l.Increment.Theta = int(v)
-		case Links.KR:
-			l.Increment.R = int(v)
-		default:
-			l.Increment.Phi = int(v)
-		}
+		*l.Increment.At(a.K) = v / per
 	}
 	return ""
 }

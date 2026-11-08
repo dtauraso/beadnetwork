@@ -20,9 +20,10 @@ type Peer struct {
 	SNote string
 	At    Place
 	Frame Frame
-	Ref   Ticks
+	Ref   Nums
 
 	refs      map[string]Turn
+	scales    map[string]int
 	own       map[string]*Link
 	order     []string
 	out       map[string]bool
@@ -41,24 +42,25 @@ type Seed struct {
 	Frame  Frame
 	Places map[string]Place
 	Scales map[string]int
-	Refs   map[string]Ticks
+	Refs   map[string]Nums
 	Links  []Link
 	TickMs int
 }
 
 func NewPeer(id string, seed Seed) *Peer {
 	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame, placed: true,
-		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}}
+		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}, scales: map[string]int{}}
 	maps.Copy(p.places, seed.Places)
+	maps.Copy(p.scales, seed.Scales)
 	p.Ref, p.refs = seed.Refs[id], map[string]Turn{}
 	for n, r := range seed.Refs {
-		p.refs[n] = RefTurn(seed.Scales[n], r)
+		p.refs[n] = RefTurn(r)
 	}
 	for _, l := range seed.Links {
 		switch {
 		case l.To == id:
 			c := l
-			c.Start.Phi, c.Start.Theta = FromSigned(p.S, c.Start.Phi), FromSigned(p.S, c.Start.Theta)
+			c.Start.Phi, c.Start.Theta = FromSigned(1, c.Start.Phi), FromSigned(1, c.Start.Theta)
 			p.own[l.From] = &c
 			p.order = append(p.order, l.From)
 		case l.From == id:
@@ -114,7 +116,14 @@ func (p *Peer) Ready() bool {
 	return true
 }
 
-func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.LinkVec(p.S, *l, p.refs[l.From]) }
+func (p *Peer) SOf(id string) int {
+	if s := p.scales[id]; s > 0 {
+		return s
+	}
+	return p.S
+}
+
+func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.LinkVec(*l, p.refs[l.From]) }
 
 func (p *Peer) pickedIn() *Link {
 	for _, from := range p.order {
@@ -160,6 +169,8 @@ func (p *Peer) Handle(msg any) []Envelope {
 		return p.setIdx(m)
 	case SetS:
 		return p.setS(m)
+	case SSet:
+		p.sSet(m)
 	case SetRef:
 		return p.setRef(m)
 	case RefSet:

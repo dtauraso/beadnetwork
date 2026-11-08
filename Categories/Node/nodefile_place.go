@@ -26,7 +26,7 @@ func WriteNodeS(root, id string, s int) error {
 	return WriteAtomicIfChanged(filepath.Join(dragDir(root, id), FileS), s)
 }
 
-func WriteNodeRef(root, id string, phi, theta int) error {
+func WriteNodeRef(root, id string, phi, theta float64) error {
 	if err := WriteAtomicIfChanged(filepath.Join(dragDir(root, id), FileRefPhi), phi); err != nil {
 		return err
 	}

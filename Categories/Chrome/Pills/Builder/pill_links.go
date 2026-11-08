@@ -33,6 +33,10 @@ func (m Model) linksFrom(id string) []Links.Link {
 	return out
 }
 
+func (m Model) SetS(id string, v int) Links.SetS {
+	return Links.SetS{V: v}
+}
+
 type linkCol struct {
 	label  string
 	value  func(Links.Link) float64
@@ -43,14 +47,14 @@ type linkCol struct {
 
 var linkCols = []linkCol{
 	{"φ", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, false},
-	{"Δφ", func(l Links.Link) float64 { return float64(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false, true},
-	{"nΔφ", func(l Links.Link) float64 { return float64(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true},
+	{"Δφ", func(l Links.Link) float64 { return l.Delta.Phi }, OpLinkPress, Links.KPhi, false, true},
+	{"nΔφ", func(l Links.Link) float64 { return l.Increment.Phi }, OpIncrement, Links.KPhi, true, true},
 	{"θ", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, false},
-	{"Δθ", func(l Links.Link) float64 { return float64(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false, true},
-	{"nΔθ", func(l Links.Link) float64 { return float64(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true},
+	{"Δθ", func(l Links.Link) float64 { return l.Delta.Theta }, OpLinkPress, Links.KTheta, false, true},
+	{"nΔθ", func(l Links.Link) float64 { return l.Increment.Theta }, OpIncrement, Links.KTheta, true, true},
 	{"r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, false},
-	{"Δr", func(l Links.Link) float64 { return float64(l.Delta.R) }, OpLinkPress, Links.KR, false, false},
-	{"nΔr", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true, false},
+	{"Δr", func(l Links.Link) float64 { return l.Delta.R }, OpLinkPress, Links.KR, false, false},
+	{"nΔr", func(l Links.Link) float64 { return l.Increment.R }, OpIncrement, Links.KR, true, false},
 }
 
 func (c linkCol) head(m Model, id string, step int) Cell {
@@ -100,6 +104,7 @@ func nodeTables(m Model, step int) []Group {
 		}
 		var rows [][]Cell
 		for _, l := range m.stepLinksFrom(step, id) {
+			l = l.Times(m.ScaleOf(id))
 			act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 			picked := m.StepPicked(step, l)
 			row := []Cell{Text(l.Name()).Acting(act(OpStepPick, "")).Outline(picked)}
@@ -123,11 +128,12 @@ func nodeTables(m Model, step int) []Group {
 }
 
 func refRows(m Model, id, fit string) [][]Cell {
+	s := float64(m.ScaleOf(id))
 	ref := m.Reports[id].Ref
 	act := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
 	return [][]Cell{
-		{Text("reference"), Text("Δφ").AboveLastDigit(), Text("Δθ").AboveLastDigit()},
-		{Text("ref " + id).Outline(false), Field("", strconv.Itoa(ref.Phi), act(Links.KPhi), true, true).Fitting(fit).Outline(false), Field("", strconv.Itoa(ref.Theta), act(Links.KTheta), true, true).Fitting(fit).Outline(false)},
+		{Text("reference"), Text("Δφ").AboveLastDigit(), Text("Δθ").AboveLastDigit(), Text("s").AboveLastDigit()},
+		{Text("ref " + id).Outline(false), Field("", num1(ref.Phi*s), act(Links.KPhi), true, true).Fitting(fit).Outline(false), Field("", num1(ref.Theta*s), act(Links.KTheta), true, true).Fitting(fit).Outline(false), Field("", strconv.Itoa(m.ScaleOf(id)), Act{Op: OpNodeS, Node: id}, true, false).Fitting(fit).Outline(false)},
 	}
 }
 

@@ -28,7 +28,7 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		}
 	case Builder.OpNodeS:
 		if typed != nil && whole(*typed) && *typed >= 1 {
-			md.sendLink(ctx, a.Node, Links.SetS{V: int(math.Round(*typed))})
+			md.sendLink(ctx, a.Node, m.SetS(a.Node, int(math.Round(*typed))))
 		} else if typed != nil {
 			md.UI.Builder.Refused = fmt.Sprintf("%s's s %v: not a whole number of at least 1, so it stays at %d", a.Node, *typed, m.ScaleOf(a.Node))
 		}
@@ -40,12 +40,13 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		}
 		md.sendLink(ctx, a.Node, Links.SetIdx{K: a.K, V: v})
 	case Builder.OpNodeRef:
+		s := float64(m.ScaleOf(a.Node))
 		ref := m.Reports[a.Node].Ref
-		v := sign + map[string]int{Links.KPhi: ref.Phi, Links.KTheta: ref.Theta}[a.K]
+		v := float64(sign) + s*map[string]float64{Links.KPhi: ref.Phi, Links.KTheta: ref.Theta}[a.K]
 		if typed != nil {
-			v = int(math.Round(*typed))
+			v = *typed
 		}
-		md.sendLink(ctx, a.Node, Links.SetRef{K: a.K, V: v})
+		md.sendLink(ctx, a.Node, Links.SetRef{K: a.K, V: v / s})
 	case Builder.OpConnect:
 		r, ok := m.Reports[a.Node]
 		if !ok {

@@ -123,7 +123,7 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) 
 	}
 }
 
-func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge, was map[Builder.StepEdge]Links.Ticks, fromDrawn bool) {
+func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge, was map[Builder.StepEdge]Links.Nums, fromDrawn bool) {
 	m := &md.UI.Builder
 	l := m.StepLinks[e]
 	if l == nil {

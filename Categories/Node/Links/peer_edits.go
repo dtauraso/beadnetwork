@@ -1,6 +1,10 @@
 package Links
 
-import "fmt"
+import (
+	"fmt"
+	"maps"
+	"slices"
+)
 
 func (p *Peer) setLink(m SetLink) []Envelope {
 	l, ok := p.own[m.From]
@@ -52,42 +56,25 @@ func (p *Peer) setS(m SetS) []Envelope {
 	if m.V < 1 {
 		return nil
 	}
-	v, why := p.closestS(m.V)
-	p.SNote = why
+	p.SNote = m.Note
 	p.Changed.S = true
-	if v == p.S {
+	if m.V == p.S {
 		return nil
 	}
-	k := float64(v) / float64(p.S)
-	p.S = v
-	p.scaleRef(k)
-	for _, from := range p.order {
-		p.own[from].ScaleAngles(k)
-		p.touched(from)
+	p.S = m.V
+	p.scales[p.ID] = m.V
+	var out []Envelope
+	for _, to := range slices.Sorted(maps.Keys(p.out)) {
+		out = append(out, Envelope{To: to, Msg: SSet{From: p.ID, S: m.V}})
 	}
-	return nil
+	return out
 }
 
-func (p *Peer) closestS(v int) (int, string) {
-	step, by := 1, ""
-	for _, from := range p.order {
-		d := p.own[from].Delta
-		if n := p.S / gcd(p.S, gcd(d.Phi, d.Theta)); n > step {
-			step, by = n, fmt.Sprintf("%s→%s's Δ (%d, %d)", from, p.ID, d.Phi, d.Theta)
-		}
+func (p *Peer) sSet(m SSet) {
+	p.scales[m.From] = m.S
+	if _, ok := p.own[m.From]; ok {
+		p.touched(m.From)
 	}
-	c := max(step, (2*v+step)/(2*step)*step)
-	if c == v {
-		return v, ""
-	}
-	return c, fmt.Sprintf("s %d would put %s between ticks; it stays whole only for s a multiple of %d, so s is %d", v, by, step, c)
-}
-
-func gcd(a, b int) int {
-	for b != 0 {
-		a, b = b, a%b
-	}
-	return max(a, -a)
 }
 
 func (p *Peer) connect(m Connect) []Envelope {
@@ -98,7 +85,7 @@ func (p *Peer) connect(m Connect) []Envelope {
 	p.heard[m.From] = p.round
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
-	l.Start = Measure(p.Frame, p.S, l.Dir(p.S), p.posOf(m.From), p.Pos())
+	l.Start = Measure(p.Frame, l.Dir(), p.posOf(m.From), p.Pos())
 	p.own[m.From] = l
 	p.order = append(p.order, m.From)
 	p.touched(m.From)

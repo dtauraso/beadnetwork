@@ -16,11 +16,11 @@ func way(l *Link, all Lock, k string) int {
 }
 
 func (p *Peer) stepR(l *Link, sign int) {
-	if l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0 {
-		p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %d", l.From, p.ID, l.Delta.R)
+	if l.Start.R+l.Delta.R+float64(sign)*l.Increment.R < 0 {
+		p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %v", l.From, p.ID, l.Delta.R)
 		return
 	}
-	l.Step(p.S, KR, sign)
+	l.Step(KR, sign)
 }
 
 func (p *Peer) stepAll(m StepAll) []Envelope {
@@ -36,12 +36,12 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 			}
 		}
 		if fixed != "" && m.Sign != 0 && (m.K == KBoth || m.K == KR) {
-			p.Changed.Refused = fmt.Sprintf("%s→%s Δr: %s has more than one incoming link, so no radius it is part of can change; Δr stays at %d", l.From, p.ID, fixed, l.Delta.R)
+			p.Changed.Refused = fmt.Sprintf("%s→%s Δr: %s has more than one incoming link, so no radius it is part of can change; Δr stays at %v", l.From, p.ID, fixed, l.Delta.R)
 		}
 		switch m.K {
 		case KBoth:
-			l.Step(p.S, KPhi, m.Sign*way(l, m.LockAll, KPhi))
-			l.Step(p.S, KTheta, m.Sign*way(l, m.LockAll, KTheta))
+			l.Step(KPhi, m.Sign*way(l, m.LockAll, KPhi))
+			l.Step(KTheta, m.Sign*way(l, m.LockAll, KTheta))
 			if fixed == "" {
 				p.stepR(l, m.Sign*way(l, m.LockAll, KR))
 			}
@@ -50,7 +50,7 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 				p.stepR(l, m.Sign)
 			}
 		default:
-			l.Step(p.S, m.K, m.Sign)
+			l.Step(m.K, m.Sign)
 		}
 		p.touched(l.From)
 	}
@@ -101,7 +101,7 @@ func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
 		if from == keep || (keepPicked && l.Picked) {
 			continue
 		}
-		l.Remeasure(p.Frame, p.S, p.refs[from], p.posOf(from), p.Pos())
+		l.Remeasure(p.Frame, p.refs[from], p.posOf(from), p.Pos())
 		p.touched(from)
 	}
 	return p.movedTo(keepPicked)
@@ -119,7 +119,7 @@ func (p *Peer) moved(m Moved) {
 	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
 	if l, ok := p.own[m.ID]; ok && !(m.KeepPicked && l.Picked) {
-		l.Remeasure(p.Frame, p.S, p.refs[m.ID], p.posOf(m.ID), p.Pos())
+		l.Remeasure(p.Frame, p.refs[m.ID], p.posOf(m.ID), p.Pos())
 		p.touched(m.ID)
 	}
 }
