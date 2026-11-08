@@ -85,22 +85,17 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 	if l == nil {
 		return fmt.Sprintf("step %d %s→%s: this step has no copy of the link yet, so nothing changed", a.I, a.Node, a.To)
 	}
-	per := float64(m.ScaleOf(a.Node))
-	if a.K == Links.KR {
-		per = 1
-	}
-	shown := l.Times(m.ScaleOf(a.Node))
 	name := fmt.Sprintf("step %d %s→%s", a.I, a.Node, a.To)
 	switch a.Op {
 	case OpLinkStart:
-		v := map[string]float64{Links.KPhi: shown.Start.Phi, Links.KTheta: shown.Start.Theta, Links.KR: shown.Start.R}[a.K] + float64(sign)
+		v := map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K] + float64(sign)
 		if typed != nil {
 			v = *typed
 		}
 		if a.K == Links.KR && (v < 0 || v+l.Delta.R < 0) {
 			return fmt.Sprintf("%s r %v: neither r nor r + Δr can be negative, so r stays at %v", name, v, l.Start.R)
 		}
-		l.SetStart(a.K, v/per)
+		l.SetStart(a.K, v)
 	case OpLinkPress:
 		if sign == 0 {
 			sign = a.Sign
@@ -110,7 +105,7 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 		}
 		l.Step(a.K, sign)
 	case OpIncrement:
-		inc := *shown.Increment.At(a.K)
+		inc := *l.Increment.At(a.K)
 		v := inc + float64(sign)
 		if typed != nil {
 			v = *typed
@@ -118,7 +113,7 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 		if v != math.Trunc(v) || (a.K == Links.KR && v <= 0) {
 			return fmt.Sprintf("%s increment %v: not a whole number of ticks, so it stays at %v", name, v, inc)
 		}
-		*l.Increment.At(a.K) = v / per
+		*l.Increment.At(a.K) = v
 	}
 	return ""
 }

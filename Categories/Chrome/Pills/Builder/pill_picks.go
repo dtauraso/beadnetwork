@@ -18,4 +18,5 @@ const (
 	OpAllBoth  = "all-both"
 	OpAllLock  = "all-lock"
 	OpAllLocks = "all-locks"
+	OpAllInc   = "all-increment"
 )
