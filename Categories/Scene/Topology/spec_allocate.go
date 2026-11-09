@@ -1,7 +1,6 @@
 package Topology
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
@@ -49,24 +48,6 @@ func AllocateBeadLines(spec TopoSpec, nodeGeoms map[string]NodeBuf.NodeGeom) (
 		}
 	}
 	return destRun, edgeRun, edgeEndpoints
-}
-
-func AllocateVectorChannels(spec TopoSpec) (vectorOutByNode, vectorInByNode map[string]chan TiltPanel.TiltVectorMsg) {
-	kindByID := make(map[string]string, len(spec.Nodes))
-	for _, n := range spec.Nodes {
-		kindByID[n.ID] = n.Type
-	}
-	vectorOutByNode = map[string]chan TiltPanel.TiltVectorMsg{}
-	vectorInByNode = map[string]chan TiltPanel.TiltVectorMsg{}
-	for _, e := range spec.Edges {
-		if !TiltPanel.KindWantsVectorChannel(kindByID[e.Source]) || !TiltPanel.KindWantsVectorChannel(kindByID[e.Target]) {
-			continue
-		}
-		sourceToTargetVectorCh := make(chan TiltPanel.TiltVectorMsg, 1)
-		vectorOutByNode[e.Source] = sourceToTargetVectorCh
-		vectorInByNode[e.Target] = sourceToTargetVectorCh
-	}
-	return vectorOutByNode, vectorInByNode
 }
 
 func BuildEdgeMaps(spec TopoSpec, nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) (inbound map[string]map[string]string, outbound map[string]map[string][]string, outboundHandle map[string]map[string][]string) {

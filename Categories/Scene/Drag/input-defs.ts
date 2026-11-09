@@ -13,6 +13,6 @@ export const IN_COMMAND_KINDS = ["pointerdown", "pointerup", "delete", "key"] as
 export const IN_HIT_KINDS = ["port", "handhold", "node", "edge", "torus", "empty"] as const;
 
 // EDIT_UPDATE_KINDS_START
-export const IN_UPDATE_KINDS = ["overlays", "clock", "scene", "tiltVector", "panels", "node", "edge"] as const;
+export const IN_UPDATE_KINDS = ["overlays", "clock", "scene", "panels", "node", "edge"] as const;
 // EDIT_UPDATE_KINDS_END
 

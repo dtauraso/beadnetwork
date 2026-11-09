@@ -12,8 +12,8 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
-	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
 func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
@@ -144,9 +144,6 @@ func (md *MoveDispatch) updateOwners(speedSinks SliderPanel.Sinks) map[string]fu
 		},
 		"clock": func(_ context.Context, attr byte, payload []byte) {
 			SliderPanel.ApplyUpdate(attr, payload, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
-		},
-		"tiltVector": func(ctx context.Context, attr byte, payload []byte) {
-			applyUpdateTiltVector(ctx, attr, payload, md, speedSinks)
 		},
 		"scene": func(ctx context.Context, attr byte, payload []byte) {
 			applyUpdateScene(ctx, attr, payload, md, speedSinks)

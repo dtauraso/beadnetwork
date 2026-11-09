@@ -12,7 +12,6 @@ import (
 type deps interface {
 	LatticePointsSeed() int32
 	LatticeChan(name string) chan int32
-	TiltEditChan(name string) any
 	SelfDriveGeom(name string) any
 }
 

@@ -15,10 +15,6 @@ type ReceivedVectorPost struct {
 	Set   bool
 }
 
-type RoundsPost struct {
-	Rounds, Msgs int32
-}
-
 type PartnerVectorPost struct {
 	PartnerID string
 	Vec       polarindex.Offset
@@ -27,7 +23,6 @@ type PartnerVectorPost struct {
 type KindPost struct {
 	Tilt        *TiltIndexPost
 	Received    *ReceivedVectorPost
-	Rounds      *RoundsPost
 	Lattice     *int32
 	Ticks       *int32
 	Starts      *[]polar.Polar
@@ -89,10 +84,6 @@ func (k *KindPosts) PostTiltIndex(theta int32) {
 
 func (k *KindPosts) PostReceivedVector(theta int32, set bool) {
 	k.post(func(p *KindPost) { p.Received = &ReceivedVectorPost{Theta: theta, Set: set} })
-}
-
-func (k *KindPosts) PostRoundsToParallel(rounds, msgs int32) {
-	k.post(func(p *KindPost) { p.Rounds = &RoundsPost{Rounds: rounds, Msgs: msgs} })
 }
 
 func (k *KindPosts) PostLatticePoints(points int32) {

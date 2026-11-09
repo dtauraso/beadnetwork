@@ -15,14 +15,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
 
-func tiltVectorEdit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, row int32, attr string) {
-	tiltVectorEditFor(ctx, md, speedSinks, row, attr)
-}
-
-func adjustTiltPhi(ctx context.Context, md *MoveDispatch, row int32, up bool) {
-	adjustTiltPhiFor(ctx, md, row, up)
-}
-
 func setLatticePoints(md *MoveDispatch, points int32) {
 	md.UI.SetLatticePoints(points, md.UI.PersistLattice, md.Inboxes.BroadcastLatticePoints)
 }
@@ -72,28 +64,6 @@ func (md *MoveDispatch) persistSpeed(userSpeed float64) {
 }
 
 func (md *MoveDispatch) redraw() { md.UI.EmitViewFrame(nil) }
-
-func applyUpdateTiltVector(ctx context.Context, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	e, ok := Scene.DecodeUpdateTiltVector(payload, attr)
-	if !ok {
-		return
-	}
-	NodeKind.TiltEdit(ctx, e.Attr, e.Num, e.Flag == "up", &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
-}
-
-func (md *MoveDispatch) resumeSpeed(speedSinks SliderPanel.Sinks) func() {
-	return func() {
-		speedSinks.SendSpeed(SliderPanel.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
-	}
-}
-
-func tiltVectorEditFor(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, row int32, attr string) {
-	NodeKind.ApplyTiltEdit(ctx, row, attr, &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
-}
-
-func adjustTiltPhiFor(ctx context.Context, md *MoveDispatch, row int32, up bool) {
-	NodeKind.AdjustTiltPhi(ctx, row, up, &md.MR, &md.Inboxes)
-}
 
 func (md *MoveDispatch) HandleRawInput(ctx context.Context, ev Drag.RawInputMsg) {
 	Gesture.HandleRawInput(Gesture.Deps{MR: md.gestureMovers(), UI: &md.UI, Mover: &md.Mover, RT: &md.RT, Ctx: ctx}, ev)

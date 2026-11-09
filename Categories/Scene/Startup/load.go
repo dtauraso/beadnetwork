@@ -38,7 +38,6 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 
 	nodeGeoms, baseIndices, dragIndices := Topology.SeedGeometry(spec, Topology.Vec3(sphere.Center))
 	destRun, edgeRun, edgeEndpoints := Topology.AllocateBeadLines(spec, nodeGeoms)
-	vectorOut, vectorIn := Topology.AllocateVectorChannels(spec)
 
 	var speedSinks SliderPanel.Sinks
 	md, err := NewFromSpec(spec, sphere, hasScene, scenePath, clk, &speedSinks,
@@ -55,7 +54,7 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 		DestRun: destRun, EdgeRun: edgeRun,
 	}
 
-	nodes, outSink, err := BuildNodes(ctx, spec, md, lines, nodeGeoms, vectorOut, vectorIn, clk, &speedSinks)
+	nodes, outSink, err := BuildNodes(ctx, spec, md, lines, nodeGeoms, clk, &speedSinks)
 	if err != nil {
 		return Scene{}, err
 	}

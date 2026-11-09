@@ -1,10 +1,10 @@
 package TiltVectors
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Node/AngleArcs"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors/tiltring"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type Tilt struct {
@@ -48,14 +48,6 @@ func (t *Tilt) SetTopTiltVectorPhiIdx(idx int32) {
 	t.topTiltVectorPhiIdx = idx
 }
 
-func (t *Tilt) BumpTopTiltVectorPhiIdx(delta int32) {
-	t.topTiltVectorPhiIdx += delta
-}
-
-func (t *Tilt) ResetTopTiltVectorPhiIdx() {
-	t.topTiltVectorPhiIdx = 0
-}
-
 func (t *Tilt) TopTiltVectorPhiIdx() int32 { return t.topTiltVectorPhiIdx }
 
 func (t *Tilt) SetTiltIndex(topIdx int32) {
@@ -64,7 +56,7 @@ func (t *Tilt) SetTiltIndex(topIdx int32) {
 
 func (t *Tilt) points() int32 {
 	if t.latticePoints <= 0 {
-		return TiltPanel.FullTurnPhiIdx
+		return polarindex.FullTurnPhiIdx
 	}
 	return t.latticePoints
 }

@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 )
 
 func RulePanelNodes(spec TopoSpec, hasKindRule func(id string) bool) []PolarRulesPanel.Node {
@@ -55,26 +54,4 @@ func RulePanelNodes(spec TopoSpec, hasKindRule func(id string) bool) []PolarRule
 	sort.Slice(nodes, func(i, j int) bool { return nodes[i].Row < nodes[j].Row })
 
 	return nodes
-}
-
-func TiltPanelRows(spec TopoSpec) (rows []int32, labels []string) {
-	byRow := make([]string, spec.RowCount)
-	for _, n := range spec.Nodes {
-		id, err := strconv.Atoi(n.ID)
-		if err != nil || id-1 < 0 || id-1 >= spec.RowCount {
-			continue
-		}
-		if !TiltPanel.KindDrivenByTiltPanel(n.Type) {
-			continue
-		}
-		byRow[id-1] = n.ID
-	}
-	for row, label := range byRow {
-		if label == "" {
-			continue
-		}
-		rows = append(rows, int32(row))
-		labels = append(labels, label)
-	}
-	return rows, labels
 }

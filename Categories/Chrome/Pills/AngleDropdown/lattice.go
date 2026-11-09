@@ -1,11 +1,11 @@
 package AngleDropdown
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
-const DefaultLatticePoints int32 = TiltPanel.FullTurnPhiIdx
+const DefaultLatticePoints int32 = polarindex.FullTurnPhiIdx
 
 func WriteSceneLattice(latticePath string, points int32) error {
 	return WriteAtomic(latticePath, points)

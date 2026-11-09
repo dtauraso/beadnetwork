@@ -26,10 +26,6 @@ func (m *NodeGeometry) take(msg Msg) {
 		m.ui.SetHover(b.On, b.Port, b.IsInput)
 	case Latched:
 		m.ui.SetLatched(b.On)
-	case TiltVectorAngle:
-		m.handleTiltVectorAngle(b)
-	case TiltVectorReset:
-		m.handleTiltVectorReset()
 	default:
 		panic("Node.take: node " + m.id + " was handed a move body it has no case for. " +
 			"Every Body must be handled here; an unhandled one used to fall through to a " +
@@ -72,20 +68,4 @@ func (m *NodeGeometry) takeDragOfSelf(msg Drag) {
 		NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		X: newPos.X, Y: newPos.Y, Z: newPos.Z,
 	}})
-}
-
-func (m *NodeGeometry) handleTiltVectorAngle(msg TiltVectorAngle) {
-	delta := int32(-1)
-	if msg.Up {
-		delta = 1
-	}
-	m.tilt.BumpTopTiltVectorPhiIdx(delta)
-	m.persistTiltVectorAngle()
-	m.emitGeometry()
-}
-
-func (m *NodeGeometry) handleTiltVectorReset() {
-	m.tilt.ResetTopTiltVectorPhiIdx()
-	m.persistTiltVectorAngle()
-	m.emitGeometry()
 }

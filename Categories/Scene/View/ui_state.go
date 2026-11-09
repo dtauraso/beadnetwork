@@ -9,12 +9,11 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Tabs"
@@ -86,8 +85,6 @@ type UIState struct {
 	LatticePoints int32
 
 	NodeRowFor func(id string) (int32, bool)
-
-	Tilt TiltPanel.State
 
 	Sheet Sheet.State
 

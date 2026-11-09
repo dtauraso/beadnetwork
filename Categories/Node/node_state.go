@@ -35,8 +35,6 @@ type NodeState struct {
 
 	LatticePoints uint8
 
-	RoundsToParallel, MsgsToParallel int32
-
 	DragRLocked, DragPhiLocked uint8
 	DragThetaMax               float32
 	DragActive                 uint8

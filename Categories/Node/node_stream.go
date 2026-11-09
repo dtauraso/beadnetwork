@@ -33,7 +33,6 @@ func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 	coplanarEdges, upAxis := m.flags.Flags()
 	topIdx, bottomIdx, normalIdx, receivedIdx, receivedSet, latticePoints := m.tilt.FrameGeometryFields()
 	selected, hovered, latchedSel := m.ui.Flags()
-	roundsToParallel, msgsToParallel := m.readout.RoundsToParallel()
 	ruleGroupID, ruleGroupSize := m.RuleGroup()
 	startVectors, startPicked := m.tilt.StartVectors()
 
@@ -58,9 +57,6 @@ func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 		Selected:   selected,
 		Hovered:    hovered,
 		LatchedSel: latchedSel,
-
-		RoundsToParallel: roundsToParallel,
-		MsgsToParallel:   msgsToParallel,
 
 		DragRule: m.topo.DragRule(),
 		SelfRule: m.topo.SelfRule(),

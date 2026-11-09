@@ -7,12 +7,10 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 	Ports "github.com/dtauraso/beadnetwork/Categories/Node/Ports"
-	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 	"github.com/dtauraso/beadnetwork/Categories/NodeKinds"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
 )
@@ -23,7 +21,6 @@ func BuildNodes(
 	md *Dispatch.MoveDispatch,
 	lines Ports.EdgeLines,
 	nodeGeoms map[string]NodeBuf.NodeGeom,
-	vectorOut, vectorIn map[string]chan TiltPanel.TiltVectorMsg,
 	clk clock.Clock,
 	speedSinks *SliderPanel.Sinks,
 ) ([]BuiltNode, map[string]*beadanimation.Sender, error) {
@@ -34,15 +31,10 @@ func BuildNodes(
 			md.Inboxes.ClaimLatticeIn(name, sceneToNodeLatticeIn)
 			return sceneToNodeLatticeIn
 		},
-		ClaimTiltEditIn: func(name string) any {
-			panelToNodeTiltEditIn := make(chan TiltVectors.TiltEditMsg, Dispatch.InboxDepth)
-			md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
-			return panelToNodeTiltEditIn
-		},
 		ClaimLinkIn: func(name string) any { return md.Links.Claim(name) },
 		Mesh:        md.Links,
 		Seed:        Topology.LinkSeed(spec, md.UI.Builder.S, md.UI.Builder.TickMs),
-		loadShared: map[string]any{},
+		loadShared:  map[string]any{},
 		ClaimSelfDriveGeom: func(name string) any {
 			ng, ok := md.MR.NodeGeoms()[name]
 			if !ok {
@@ -68,8 +60,6 @@ func BuildNodes(
 		pb.SpeedSinks = speedSinks
 		pb.NodeRowOf = md.RT.NodeRowFor
 		pb.InteriorEmitters = md.Sw.InteriorEmittersPtr()
-		pb.VectorOut = vectorOut
-		pb.VectorIn = vectorIn
 		bp := bind.Ports()
 		declared := make([]Ports.PortSpec, len(bp))
 		for i, p := range bp {

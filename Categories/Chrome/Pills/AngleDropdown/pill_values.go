@@ -11,16 +11,12 @@ var PillValueNames = []string{
 	"open",
 	"popoverX", "popoverY", "popoverW", "popoverH",
 	"labelText",
-	"stepX", "stepY", "stepH",
+	"stepX", "stepY",
 	"stepNameText", "stepNameLen",
 	"stepShownText", "stepShownLen",
-	"stepValueRow", "stepDenom",
 	"stepUpX", "stepUpY", "stepUpW", "stepUpH",
 	"stepDownX", "stepDownY", "stepDownW", "stepDownH",
 	"stepUpOn", "stepDownOn",
-	"groupX", "groupY", "groupH",
-	"groupOpen",
-	"groupHeadText", "groupHeadLen",
 }
 
 func ValueRelPath() string { return ValueRelFile }

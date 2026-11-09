@@ -86,9 +86,6 @@ func (g *NodeGeometry) applyKindPosts() {
 	if p.Received != nil {
 		g.tilt.SetReceivedVector(p.Received.Theta, p.Received.Set)
 	}
-	if p.Rounds != nil {
-		g.readout.SetRoundsToParallel(p.Rounds.Rounds, p.Rounds.Msgs)
-	}
 	if p.Lattice != nil {
 		g.tilt.SetLatticePoints(*p.Lattice)
 	}

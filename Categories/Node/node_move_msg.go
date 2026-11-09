@@ -75,19 +75,3 @@ func (Hover) moveBody() {}
 type Latched struct{ On bool }
 
 func (Latched) moveBody() {}
-
-type TiltVectorAngle struct{ Up bool }
-
-func (TiltVectorAngle) moveBody() {}
-
-type TiltVectorReset struct{}
-
-func (TiltVectorReset) moveBody() {}
-
-type TiltEditMsg struct {
-	Up bool
-
-	Start bool
-
-	Reset bool
-}
