@@ -19,7 +19,8 @@ function drawPanelToggle(c: CanvasRenderingContext2D): void {
   const up = (stripBytes("panelUp")?.getUint8(0) ?? 0) !== 0;
   const inset = h * 0.22;
   const ix = x + inset, iy = y + inset, iw = w - 2 * inset, ih = h - 2 * inset;
-  const split = iy + ih * 0.68;
+  const lw = 1.5;
+  const split = iy - lw / 2 + (ih + lw) * 0.64 + lw / 2;
 
   roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, T.RADIUS_CHIP);
   c.fillStyle = T.CHIP;
@@ -34,7 +35,7 @@ function drawPanelToggle(c: CanvasRenderingContext2D): void {
   }
   roundRect(c, ix, iy, iw, ih, 2);
   c.strokeStyle = T.TEXT;
-  c.lineWidth = 1.5;
+  c.lineWidth = lw;
   c.stroke();
   c.beginPath();
   c.moveTo(ix, split);
