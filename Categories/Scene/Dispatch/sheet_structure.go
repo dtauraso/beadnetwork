@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
 
-func whole(v float64) bool { return math.Abs(v-math.Round(v)) < 1e-6 }
+func whole(v float64) bool { return v == math.Trunc(v) && !math.IsInf(v, 0) }
 
 func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) bool {
 	m := md.UI.Builder
@@ -28,7 +28,7 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		}
 	case Builder.OpNodeS:
 		if typed != nil && whole(*typed) && *typed >= 1 {
-			md.sendLink(ctx, a.Node, m.SetS(a.Node, int(math.Round(*typed))))
+			md.sendLink(ctx, a.Node, m.SetS(a.Node, int(*typed)))
 		} else if typed != nil {
 			md.UI.Builder.Refused = fmt.Sprintf("%s's s %v: not a whole number of at least 1, so it stays at %d", a.Node, *typed, m.ScaleOf(a.Node))
 		}
@@ -47,7 +47,7 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 				md.UI.Builder.Refused = fmt.Sprintf("ref %s %v: not a whole number, so it stays at %d", a.Node, *typed, v-sign)
 				break
 			}
-			v = int(math.Round(*typed))
+			v = int(*typed)
 		}
 		md.sendLink(ctx, a.Node, Links.SetRef{K: a.K, V: v})
 	case Builder.OpConnect:
@@ -79,9 +79,9 @@ func setFrame(md *MoveDispatch, k string, v float64) {
 	case Builder.FrameCr:
 		f.Cr = v
 	case Builder.FrameTphi:
-		f.Tphi, ok = int(math.Round(v)), ok && whole(v)
+		f.Tphi, ok = int(v), ok && whole(v)
 	case Builder.FrameTtheta:
-		f.Ttheta, ok = int(math.Round(v)), ok && whole(v)
+		f.Ttheta, ok = int(v), ok && whole(v)
 	}
 	if !ok {
 		m.Refused = fmt.Sprintf("%s %v: must be above 0 (and whole for T_φ and T_θ), so the frame stays as it is", k, v)
