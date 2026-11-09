@@ -47,7 +47,7 @@ func (m Model) headOf(step int, id string) Step {
 }
 
 func IsStepHead(a Act) bool {
-	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock || a.Op == OpAllInc)
+	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock || a.Op == OpAllInc || a.Op == OpAllOne)
 }
 
 func (m *Model) stepHeadIncrements(step int, from, k string, sign int) (string, []StepEdge) {
@@ -74,6 +74,28 @@ func (m *Model) stepHeadIncrements(step int, from, k string, sign int) (string, 
 	return refused, moved
 }
 
+func (m *Model) stepHeadOnes(step int, from, k string, sign int) (string, []StepEdge) {
+	if sign == 0 {
+		return "", nil
+	}
+	refused := ""
+	var moved []StepEdge
+	for _, n := range m.linksFrom(from) {
+		e := StepEdge{step, n.From, n.To}
+		l := m.StepLinks[e]
+		if l == nil {
+			continue
+		}
+		if k == Links.KR && l.Dir().R+float64(sign)/float64(Links.ShownS(l.Start.S)) < 0 {
+			refused = fmt.Sprintf("step %d %s→%s 1r: r + Δr would be below 0, so 1r stays at %d", step, n.From, n.To, l.Start.One.R)
+			continue
+		}
+		l.StepOne(k, sign)
+		moved = append(moved, e)
+	}
+	return refused, moved
+}
+
 func (m *Model) StepHeadEdit(a Act, sign int) (string, []StepEdge) {
 	st := m.StepHead(a.I, a.Node)
 	k := a.K
@@ -83,6 +105,8 @@ func (m *Model) StepHeadEdit(a Act, sign int) (string, []StepEdge) {
 		return "", nil
 	case OpAllInc:
 		return m.stepHeadIncrements(a.I, a.Node, k, sign)
+	case OpAllOne:
+		return m.stepHeadOnes(a.I, a.Node, k, sign)
 	case OpAllLock:
 		way, on := st.At(a.K)
 		switch {

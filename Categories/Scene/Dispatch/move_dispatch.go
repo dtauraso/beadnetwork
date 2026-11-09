@@ -120,7 +120,7 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) 
 		md.syncStepPicks(ctx, a.I)
 	}
 	for _, e := range moved {
-		md.sendStepLink(ctx, e, was, true)
+		md.sendStepLink(ctx, e, was, a.Op != Builder.OpAllOne)
 	}
 }
 

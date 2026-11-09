@@ -72,6 +72,9 @@ func (c linkCol) head(m Model, id string, step int) Cell {
 	if c.op == OpIncrement {
 		return Text(c.label).Stepping(Act{Op: OpAllInc, Node: id, K: c.k, I: step}, 0)
 	}
+	if c.op == OpLinkOne {
+		return Text(c.label).Stepping(Act{Op: OpAllOne, Node: id, K: c.k, I: step}, 0)
+	}
 	return Text(c.label).AboveLastDigit()
 }
 
