@@ -7,4 +7,3 @@ const values = makeLeafValues<FitChipValueName>(
 );
 
 export const chipF32 = values.f32;
-export const chipText = values.text;

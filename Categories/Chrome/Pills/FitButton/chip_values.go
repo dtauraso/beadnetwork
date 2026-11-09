@@ -10,7 +10,6 @@ const ValueRelFile = "view/chrome/fit-chip.bin"
 
 var ChipValueNames = []string{
 	"x", "y", "w", "h",
-	"labelText",
 }
 
 func ValueRelPath() string { return ValueRelFile }
