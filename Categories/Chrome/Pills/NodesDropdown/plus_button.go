@@ -25,7 +25,7 @@ func BuildPlus(viewW float32, strip Rect, kinds []Kind) Layout {
 	k := kinds[0]
 	a, _ := NodeBuf.AppearanceOf(k.Name)
 	return Layout{Plus: Plus{
-		Rect:   Rect{X: viewW - Panel.PillRight - size, Y: y, W: size, H: size},
+		Rect:   Rect{X: Panel.OriginX, Y: y, W: size, H: size},
 		KindID: k.KindID,
 		Fill:   a.Fill,
 		Stroke: a.Stroke,
