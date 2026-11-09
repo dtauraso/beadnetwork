@@ -39,6 +39,8 @@ type Layout struct {
 	Popover Rect
 
 	Rows []Row
+
+	Plus Plus
 }
 
 type Kind struct {
@@ -121,6 +123,7 @@ const (
 	HitNone HitKind = iota
 	HitPill
 	HitRow
+	HitPlus
 )
 
 type Hit struct {
@@ -131,6 +134,12 @@ type Hit struct {
 }
 
 func (l Layout) Hit(x, y float64) Hit {
+	if l.Plus.Rect.W > 0 && Panel.HitRect(l.Plus.Rect, x, y) {
+		return Hit{Kind: HitPlus, KindID: l.Plus.KindID, Rect: l.Plus.Rect}
+	}
+	if l.Pill.W <= 0 {
+		return Hit{}
+	}
 	if Panel.HitRect(l.Pill, x, y) {
 		return Hit{Kind: HitPill, Rect: l.Pill}
 	}

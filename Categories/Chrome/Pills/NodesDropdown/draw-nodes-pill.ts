@@ -2,6 +2,7 @@ import { canvasFont, roundRect } from "../../canvas-box";
 import { drawPill, drawPopoverBox, ROW_PAD_X } from "../pill";
 import { decodeAt } from "../../leaf-text";
 import * as T from "../../chrome-theme";
+import { drawPlusButton } from "./draw-plus-button";
 import {
   pillBytes, pillF32, pillU8, pillU32, pillU32Run, pillF32Run, pillText,
 } from "./pill-leaves";
@@ -29,10 +30,16 @@ export function nodesPillKey(): string {
     pillU8("open"), pillF32("popoverH"),
     rowOpen ? new Uint8Array(rowOpen.buffer, rowOpen.byteOffset, rowOpen.byteLength).join(".") : "",
     noticeShowing() ? `n${noticeUntil}` : "",
+    pillF32("plusX"), pillF32("plusY"), pillF32("plusW"),
   ].join(",");
 }
 
 export function drawNodesPill(c: CanvasRenderingContext2D): void {
+  if (pillF32("plusW") > 0) {
+    drawPlusButton(c);
+    if (noticeShowing()) drawNotice(c);
+    return;
+  }
   const labelText = pillText("labelText");
   const pw = pillF32("pillW");
   const ph = pillF32("pillH");

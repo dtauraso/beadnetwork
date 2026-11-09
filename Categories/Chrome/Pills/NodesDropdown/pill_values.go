@@ -20,6 +20,7 @@ var PillValueNames = []string{
 	"rowDescText", "rowDescLen",
 	"descX", "descY", "descW",
 	"refusedCount", "refusedX", "refusedY", "refusedW", "refusedH", "refusedText",
+	"plusX", "plusY", "plusW", "plusH", "plusFill", "plusStroke",
 }
 
 func ValueRelPath() string { return ValueRelFile }

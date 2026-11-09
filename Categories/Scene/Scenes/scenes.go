@@ -26,6 +26,8 @@ type Scene struct {
 	SpeedSlider bool
 
 	AnglesPill bool
+
+	PlusButton bool
 }
 
 var All = []Scene{
@@ -41,7 +43,7 @@ var All = []Scene{
 
 	{Name: "pair φ, θ 2", Dir: "topology-pair-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: false, Kinds: []string{"NodePhiTheta"}, PolarRules: true, SpeedSlider: true, AnglesPill: true},
 
-	{Name: "pair φ, θ 3", Dir: "topology-pair-phi-theta-3", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: false, Kinds: []string{"NodePhiTheta3"}},
+	{Name: "pair φ, θ 3", Dir: "topology-pair-phi-theta-3", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: false, Kinds: []string{"NodePhiTheta3"}, PlusButton: true},
 }
 
 var Unlisted = Scene{ClockDivisor: 1, PolarRules: true, SpeedSlider: true, AnglesPill: true}

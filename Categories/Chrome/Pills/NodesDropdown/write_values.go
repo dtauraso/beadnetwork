@@ -40,16 +40,24 @@ func (s *State) Write(lay Layout, refusedCount uint32) {
 
 	noticeW := Panel.TextWidth(refusedNotice, Panel.PillFontPx) + 16
 	noticeH := Panel.LineHeight(Panel.PillFontPx) + 8
-	noticeY := lay.Pill.Y + lay.Pill.H + Panel.PillGap
+	anchor := lay.Pill
+	if lay.Plus.Rect.W > 0 {
+		anchor = lay.Plus.Rect
+	}
+	noticeY := anchor.Y + anchor.H + Panel.PillGap
 	if lay.Open {
 		noticeY = lay.Popover.Y + lay.Popover.H + Panel.PillGap
 	}
 	w.U32("refusedCount", refusedCount)
-	w.F32("refusedX", lay.Pill.X+lay.Pill.W-noticeW)
+	w.F32("refusedX", anchor.X+anchor.W-noticeW)
 	w.F32("refusedY", noticeY)
 	w.F32("refusedW", noticeW)
 	w.F32("refusedH", noticeH)
 	w.Text("refusedText", refusedNotice)
+
+	w.Rect("plusX", "plusY", "plusW", "plusH", lay.Plus.Rect)
+	w.Text("plusFill", lay.Plus.Fill)
+	w.Text("plusStroke", lay.Plus.Stroke)
 
 	if err := w.Flush(); err != nil {
 		fmt.Fprintf(os.Stderr, "nodes_pill_values: %v\n", err)

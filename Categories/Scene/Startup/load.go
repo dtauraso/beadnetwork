@@ -81,6 +81,7 @@ func LoadSceneState(scenePath string, md *Dispatch.MoveDispatch, speedSinks Slid
 	md.UI.ScenePolarRules = s.PolarRules
 	md.UI.SceneSpeedSlider = s.SpeedSlider
 	md.UI.SceneAnglesPill = s.AnglesPill
+	md.UI.ScenePlusButton = s.PlusButton
 	md.UI.SceneKinds = SceneKindMask(s)
 
 	InstallOverlays(&md.UI, scenePath)
