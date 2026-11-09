@@ -3,7 +3,6 @@ package Dispatch
 import (
 	"context"
 	"fmt"
-	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
@@ -149,7 +148,7 @@ func setTickMs(ctx context.Context, md *MoveDispatch, sign int, typed *float64) 
 			m.Refused = fmt.Sprintf("Δt %v: not a whole number of milliseconds of at least 1, so it stays at %d", *typed, m.TickMs)
 			return
 		}
-		v = int(math.Round(*typed))
+		v = int(*typed)
 	}
 	if v < 1 {
 		return
@@ -169,7 +168,7 @@ func setSceneS(ctx context.Context, md *MoveDispatch, v float64) {
 		m.Refused = fmt.Sprintf("s %v: not a whole number of at least 1, so it stays at %d", v, m.S)
 		return
 	}
-	m.S = int(math.Round(v))
+	m.S = int(v)
 	if root := md.Scenes.TreeRoot; root != "" {
 		if err := Sheet.WriteScalar(Scenes.SFilePath(root), int32(m.S)); err != nil {
 			m.Refused = fmt.Sprintf("could not write s: %v", err)
