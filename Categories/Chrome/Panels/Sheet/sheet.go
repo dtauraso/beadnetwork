@@ -102,8 +102,15 @@ type Group struct {
 	Fold   Act
 	Rows   [][]Cell
 	Slides bool
+	Table  string
 	Wraps  bool
 	Indent bool
+}
+
+type SlideBox struct {
+	Table string
+	Rect  Rect
+	Max   float32
 }
 
 type Pill struct {
@@ -114,17 +121,17 @@ type Pill struct {
 }
 
 type PillBox struct {
-	Label      string
-	Left       bool
-	Pill       Rect
-	Open       bool
-	Popover    Rect
-	Grab       Rect
-	Bar        bool
-	Tabs       []DockTab
-	MaxScroll  float32
-	Slide      Rect
-	MaxScrollX float32
+	Label     string
+	Left      bool
+	Pill      Rect
+	Open      bool
+	Popover   Rect
+	Grab      Rect
+	Bar       bool
+	Tabs      []DockTab
+	MaxScroll float32
+	Slide     Rect
+	Slides    []SlideBox
 }
 
 type DockTab struct {

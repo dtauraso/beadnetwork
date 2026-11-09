@@ -1,6 +1,8 @@
 package Sheet
 
 import (
+	"strconv"
+
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 )
 
@@ -154,15 +156,20 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 		}
 		pb.Popover, pb.MaxScroll = popover, maxScroll
 		lay.Pills = append(lay.Pills, pb)
-		for _, g := range p.Groups {
+		for gi, g := range p.Groups {
 			dx := float32(0)
 			in := indentOf(g)
 			if g.Slides {
 				vis := slideW(g, room-in)
 				pb := &lay.Pills[box]
 				pb.Slide = Rect{X: x, Y: popover.Y, W: max(pb.Slide.W, in+vis), H: popover.H}
-				pb.MaxScrollX = max(pb.MaxScrollX, colsW(g)-vis)
-				dx = max(0, min(st.ScrollX[p.Label], pb.MaxScrollX))
+				table := g.Table
+				if table == "" {
+					table = strconv.Itoa(gi)
+				}
+				most := max(0, colsW(g)-vis)
+				pb.Slides = append(pb.Slides, SlideBox{Table: table, Rect: Rect{X: x, Y: y, W: in + vis, H: groupH(g)}, Max: most})
+				dx = max(0, min(st.ScrollX[slideKey(p.Label, table)], most))
 			}
 			lay.place(box, g, x+in, y, dx)
 			y += groupH(g) + Panel.Gap
