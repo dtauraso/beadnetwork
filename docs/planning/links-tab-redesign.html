@@ -102,6 +102,7 @@
     <div class="bar">
       <span class="label">step</span>
       <span class="seg" id="steps"></span>
+      <span class="arrows" title="next / previous step"><i id="stepUp">▲</i><i id="stepDown">▼</i></span>
     </div>
     <div id="nodes"></div>
   </div>
@@ -198,6 +199,8 @@
       el.closest(".card").classList.toggle("picked");
     });
   }
+  document.getElementById("stepUp").onclick = () => { step = Math.min(2, step + 1); render(); };
+  document.getElementById("stepDown").onclick = () => { step = Math.max(1, step - 1); render(); };
   render();
 </script>
 </body>
