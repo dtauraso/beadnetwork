@@ -28,6 +28,8 @@ type Layout struct {
 
 	Panel   Rect
 	PanelUp bool
+
+	Fit Rect
 }
 
 const PanelGap = 6
@@ -38,6 +40,7 @@ func Build(viewW float32, names []string, selected int, panelUp bool) Layout {
 		s := lay.Strip
 		lay.Panel = Rect{X: s.X + s.W + PanelGap, Y: s.Y, W: s.H, H: s.H}
 		lay.PanelUp = panelUp
+		lay.Fit = Rect{X: lay.Panel.X + lay.Panel.W + PanelGap, Y: s.Y, W: s.H, H: s.H}
 	}
 	return lay
 }

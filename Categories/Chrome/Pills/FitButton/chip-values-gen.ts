@@ -10,7 +10,6 @@ export const FIT_CHIP_VALUE_NAMES = [
   "y",
   "w",
   "h",
-  "labelText",
 ] as const;
 
 export type FitChipValueName = (typeof FIT_CHIP_VALUE_NAMES)[number];
