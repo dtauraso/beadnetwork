@@ -48,17 +48,17 @@ type linkCol struct {
 
 var linkCols = []linkCol{
 	{"φ", func(l Links.Link) string { return num1(l.Start.Phi) }, OpLinkStart, Links.KPhi, true, false},
-	{"1φ", func(l Links.Link) string { return strconv.Itoa(l.Start.One.Phi) }, OpLinkOne, Links.KPhi, false, false},
 	{"Δφ", func(l Links.Link) string { return strconv.Itoa(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false, true},
 	{"nΔφ", func(l Links.Link) string { return strconv.Itoa(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true},
+	{"1φ", func(l Links.Link) string { return strconv.Itoa(l.Start.One.Phi) }, OpLinkOne, Links.KPhi, false, false},
 	{"θ", func(l Links.Link) string { return num1(l.Start.Theta) }, OpLinkStart, Links.KTheta, true, false},
-	{"1θ", func(l Links.Link) string { return strconv.Itoa(l.Start.One.Theta) }, OpLinkOne, Links.KTheta, false, false},
 	{"Δθ", func(l Links.Link) string { return strconv.Itoa(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false, true},
 	{"nΔθ", func(l Links.Link) string { return strconv.Itoa(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true},
+	{"1θ", func(l Links.Link) string { return strconv.Itoa(l.Start.One.Theta) }, OpLinkOne, Links.KTheta, false, false},
 	{"r", func(l Links.Link) string { return num1(l.Start.R) }, OpLinkStart, Links.KR, true, false},
-	{"1r", func(l Links.Link) string { return strconv.Itoa(l.Start.One.R) }, OpLinkOne, Links.KR, false, false},
 	{"Δr", func(l Links.Link) string { return strconv.Itoa(l.Delta.R) }, OpLinkPress, Links.KR, false, false},
 	{"nΔr", func(l Links.Link) string { return strconv.Itoa(l.Increment.R) }, OpIncrement, Links.KR, true, false},
+	{"1r", func(l Links.Link) string { return strconv.Itoa(l.Start.One.R) }, OpLinkOne, Links.KR, false, false},
 }
 
 func (c linkCol) head(m Model, id string, step int) Cell {
