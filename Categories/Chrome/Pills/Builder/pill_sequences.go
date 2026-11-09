@@ -1,5 +1,7 @@
 package Builder
 
+import "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+
 const (
 	OpSeqOpen = "seq-open"
 	OpSeqAdd  = "seq-add"
@@ -12,22 +14,35 @@ type Seq struct {
 	Name string
 }
 
-func sequenceGroup(m Model) Group {
-	g := Group{Title: foldTitle(m.SeqFolded, "sequence"), Fold: Act{Op: OpSeqFold}}
-	if m.SeqFolded {
-		return g
-	}
+func sequenceGroups(m Model) []Group {
+	shown := "sequence"
 	for _, q := range m.Seqs {
-		label := q.Name
 		if q.K == m.OpenSeq {
-			label += "  (open)"
+			shown = q.Name
 		}
-		g.Rows = append(g.Rows, []Cell{Button(label, Act{Op: OpSeqOpen, I: q.K}, q.K == m.OpenSeq)})
 	}
-	buttons := []Cell{Button("+ new sequence", Act{Op: OpSeqAdd}, false)}
+	caret := " ▾"
+	if m.SeqListOpen {
+		caret = " ▴"
+	}
+	row := []Cell{Text("sequence"), Button(shown+caret, Act{Op: OpSeqFold}, m.SeqListOpen), Button("+", Act{Op: OpSeqAdd}, false)}
 	if len(m.Seqs) > 1 {
-		buttons = append(buttons, Button("delete sequence", Act{Op: OpSeqDrop}, false))
+		row = append(row, Button("−", Act{Op: OpSeqDrop}, false))
 	}
-	g.Rows = append(g.Rows, buttons)
-	return g
+	return []Group{{Rows: [][]Cell{row}}}
+}
+
+func sequenceList(m Model, at int) []Group {
+	if !m.SeqListOpen || len(m.Seqs) == 0 {
+		return nil
+	}
+	list := Group{Card: true, Pop: &Sheet.Anchor{Group: at, Col: 1}}
+	for _, q := range m.Seqs {
+		mark := "   "
+		if q.K == m.OpenSeq {
+			mark = "✓ "
+		}
+		list.Rows = append(list.Rows, []Cell{Button(mark+q.Name, Act{Op: OpSeqOpen, I: q.K}, q.K == m.OpenSeq)})
+	}
+	return []Group{list}
 }

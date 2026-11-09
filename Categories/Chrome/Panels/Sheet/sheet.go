@@ -105,6 +105,12 @@ type Group struct {
 	Table  string
 	Wraps  bool
 	Indent bool
+	Card   bool
+	Pop    *Anchor
+}
+
+type Anchor struct {
+	Group, Col int
 }
 
 type SlideBox struct {
@@ -160,4 +166,5 @@ type Layout struct {
 	Pills []PillBox
 	Heads []HeadBox
 	Cells []CellBox
+	Cards []CardBox
 }

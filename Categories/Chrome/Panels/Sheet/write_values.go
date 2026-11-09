@@ -70,6 +70,13 @@ func (s *State) Write(lay Layout) {
 		}
 	}
 
+	for _, c := range lay.Cards {
+		w.U32("cardBox", uint32(c.Box))
+		w.Rect("cardX", "cardY", "cardW", "cardH", c.Rect)
+		w.U8("cardPop", flag(c.Pop))
+		w.U32("cardCell", uint32(c.Cell))
+	}
+
 	if err := w.Flush(); err != nil {
 		fmt.Fprintf(os.Stderr, "sheet_values: %v\n", err)
 	}

@@ -26,6 +26,7 @@ var SheetValueNames = []string{
 	"slideX", "slideW", "cellSlides", "upSlides",
 	"upLit", "downLit", "upDim",
 	"cellDim",
+	"cardBox", "cardX", "cardY", "cardW", "cardH", "cardPop", "cardCell",
 }
 
 func ValueRelPath() string { return ValueRelFile }
