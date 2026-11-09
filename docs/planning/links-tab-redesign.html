@@ -1,0 +1,198 @@
+<!doctype html>
+<!-- branch: task/links-tab-mockup -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links Tab Redesign</title>
+<style>
+  :root {
+    --page: #c9c9c9;
+    --panel: #e3e3e3;
+    --cell: #ececec;
+    --line: #c4c4c4;
+    --text: #1d1d1f;
+    --dim: #8a8a8a;
+    --pick: #1f4fbf;
+    --open: #1f45b0;
+    --note: #9a3b12;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px 48px; background: var(--page); color: var(--text);
+    font: 14px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .lede { margin: 0 0 20px; color: #333; max-width: 70ch; }
+  .panel {
+    background: var(--panel); border-radius: 10px; padding: 14px 16px 18px;
+    max-width: 1150px; box-shadow: 0 1px 0 rgba(0,0,0,.08);
+  }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .bar .label { font-weight: 600; margin-right: 2px; }
+  .seg { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+  .btn {
+    min-width: 28px; padding: 3px 9px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--cell); font: inherit; color: inherit; cursor: pointer; text-align: center;
+  }
+  .btn.on { background: var(--open); border-color: var(--open); color: #fff; font-weight: 600; }
+  .spacer { flex: 1; }
+
+  .node { margin-top: 12px; }
+  .nodeline {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; cursor: default;
+  }
+  .nodeline .name { font-weight: 700; font-size: 15px; cursor: pointer; user-select: none; min-width: 74px; }
+  .kv { display: inline-flex; align-items: center; gap: 4px; color: #333; }
+  .kv b { font-weight: 500; color: var(--dim); }
+  .num {
+    display: inline-block; min-width: 34px; padding: 3px 7px; border: 1px solid var(--line);
+    border-radius: 6px; background: var(--cell); text-align: center; font-variant-numeric: tabular-nums;
+  }
+  .arrows { display: inline-flex; flex-direction: column; gap: 1px; vertical-align: middle; }
+  .arrows i {
+    display: block; width: 14px; height: 10px; border: 1px solid var(--line); border-radius: 3px;
+    background: var(--cell); font-style: normal; font-size: 7px; line-height: 8px; text-align: center; cursor: pointer;
+  }
+  .arrows i:hover { background: #d6d6d6; }
+  .summary { color: var(--dim); }
+
+  .cards { display: flex; flex-wrap: wrap; gap: 12px; margin: 10px 0 4px 24px; }
+  .card {
+    border: 1px solid var(--line); border-radius: 8px; background: #e9e9e9; padding: 8px 10px 10px;
+    min-width: 290px;
+  }
+  .card.picked { border: 2px solid var(--pick); padding: 7px 9px 9px; }
+  .card header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .card header .link { font-weight: 700; cursor: pointer; }
+  .card header .x { margin-left: auto; }
+  .grid { display: grid; grid-template-columns: 44px repeat(4, minmax(52px, 1fr)); gap: 4px 6px; align-items: center; }
+  .grid .h { color: #444; font-size: 13px; text-align: center; display: inline-flex; justify-content: center; align-items: center; gap: 4px; }
+  .grid .ax { font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .grid .num { width: 100%; }
+  .num.dim { color: var(--dim); }
+  .refusal { margin-top: 8px; color: var(--note); font-size: 12.5px; }
+  .linkto { margin: 6px 0 0 24px; display: flex; align-items: center; gap: 6px; }
+
+  .notes { margin-top: 22px; max-width: 1150px; }
+  .notes h2 { font-size: 15px; margin: 0 0 6px; }
+  .notes ul { margin: 0; padding-left: 20px; }
+  .notes li { margin: 3px 0; }
+  .hidden { display: none; }
+  @media (max-width: 640px) {
+    .cards { margin-left: 0; }
+    .card { min-width: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+  <h1>Links tab — proposed layout</h1>
+  <p class="lede">A mock-up to look at, not the editor. Sequence and step are one line each; each node is one line; each link is a card with φ, θ, r as rows and at, Δ, nΔ, 1 as columns. Click a sequence, a step, a node name or a link name to see it react.</p>
+
+  <div class="panel">
+    <div class="bar">
+      <span class="label">sequence</span>
+      <span class="seg" id="seqs"></span>
+      <button class="btn">+</button>
+      <button class="btn">−</button>
+      <span class="spacer"></span>
+      <span class="label">step</span>
+      <span class="seg" id="steps"></span>
+    </div>
+    <div id="nodes"></div>
+  </div>
+
+  <div class="notes">
+    <h2>What changed from the tab today</h2>
+    <ul>
+      <li>The nine stacked sequence buttons become one row of numbers; + and − replace “new sequence” and “delete sequence”.</li>
+      <li>Steps 1 and 2 no longer stack; the step buttons pick which one shows.</li>
+      <li>A node’s s, its reference Δφ/Δθ, the φ+θ+r lock and “link to” share the node’s line, so a folded node is one line and the “ref 1” box is gone.</li>
+      <li>Each link is a card 4 columns wide instead of a 13-column row, so θ’s 1 column and all of r are no longer off the edge, and cards sit side by side.</li>
+      <li>Arrows sit on the column heads (Δ⬍ steps that column for this link) and on the axis labels (φ⬍ steps φ’s Δ), not on every number; a number is typed by clicking it.</li>
+      <li>A picked link is one thick border around its card instead of outlines on its name, Δ and nΔ cells.</li>
+      <li>A refused press shows its message under the card it came from.</li>
+    </ul>
+  </div>
+
+<script>
+  const data = {
+    1: [
+      { id: "1", s: 1, ref: [0, 0], links: [
+        { to: "2", picked: true, phi: [2, 0, 1, 0], theta: [0, 0, 1, 0], r: [1, 0, 1, 0] },
+        { to: "3", picked: true, phi: [3.5, 0, 1, 0], theta: [0, 0, 1, 0], r: [1, 0, 1, 0],
+          refusal: "1→3 1r: r + Δr would be below 0, so 1r stays at 0" },
+      ], linkTo: [] },
+      { id: "2", s: 1, ref: [0, 0], links: [
+        { to: "3", picked: true, phi: [5, 0, 1, 0], theta: [0, 0, 1, 0], r: [1, 0, 1, 0] },
+      ], linkTo: ["1"] },
+      { id: "3", s: 1, ref: [0, 0], links: [], linkTo: ["1", "2"] },
+    ],
+  };
+  data[2] = data[1].map(n => ({ ...n, links: n.links.map(l => ({ ...l, refusal: undefined, phi: [l.phi[0], 1, 1, 0] })) }));
+
+  let seq = 1, step = 1;
+  const open = { 1: { 1: true }, 2: { 2: true } };
+
+  const arrows = () => '<span class="arrows"><i>▲</i><i>▼</i></span>';
+  const num = (v, dim) => `<span class="num${dim ? " dim" : ""}">${v}</span>`;
+
+  function seg(el, n, on, pick, suffix) {
+    el.innerHTML = "";
+    for (let i = 1; i <= n; i++) {
+      const b = document.createElement("button");
+      b.className = "btn" + (i === on ? " on" : "");
+      b.textContent = i + (suffix && i === on ? suffix : "");
+      b.onclick = () => pick(i);
+      el.appendChild(b);
+    }
+  }
+
+  function card(from, l) {
+    const row = (ax, vals, dim) =>
+      `<span class="ax">${ax}${arrows()}</span>` + vals.map(v => num(v, dim)).join("");
+    return `<div class="card${l.picked ? " picked" : ""}">
+      <header><span class="link" data-pick>${from}→${l.to}</span><button class="btn x">x</button></header>
+      <div class="grid">
+        <span></span><span class="h">at</span><span class="h">Δ${arrows()}</span><span class="h">nΔ${arrows()}</span><span class="h">1${arrows()}</span>
+        ${row("φ", l.phi)}${row("θ", l.theta)}${row("r", l.r, from === "1")}
+      </div>
+      ${l.refusal ? `<div class="refusal">${l.refusal}</div>` : ""}
+    </div>`;
+  }
+
+  function render() {
+    seg(document.getElementById("seqs"), 9, seq, i => { seq = i; render(); });
+    seg(document.getElementById("steps"), 2, step, i => { step = i; render(); });
+    const nodes = data[step];
+    const isOpen = id => !!(open[step] && open[step][id]);
+    document.getElementById("nodes").innerHTML = nodes.map(n => {
+      const o = isOpen(n.id);
+      const count = n.links.length === 0 ? "no links" : n.links.length === 1 ? "1 link" : n.links.length + " links";
+      const linkTo = n.linkTo.length ? `<span class="kv"><b>link to</b>${n.linkTo.map(t => `<button class="btn">${t}</button>`).join("")}</span>` : "";
+      return `<div class="node">
+        <div class="nodeline">
+          <span class="name" data-node="${n.id}">${o ? "▾" : "▸"} node ${n.id}</span>
+          <span class="kv"><b>s</b>${num(n.s)}</span>
+          ${o ? `<span class="kv"><b>ref Δφ</b>${num(n.ref[0])}${arrows()}</span>
+                 <span class="kv"><b>Δθ</b>${num(n.ref[1])}${arrows()}</span>
+                 <span class="kv"><button class="btn">φ+θ+r</button>${arrows()}</span>
+                 ${linkTo}` : `<span class="summary">${count}</span>`}
+        </div>
+        ${o && n.links.length ? `<div class="cards">${n.links.map(l => card(n.id, l)).join("")}</div>` : ""}
+      </div>`;
+    }).join("");
+    document.querySelectorAll("[data-node]").forEach(el => el.onclick = () => {
+      const id = el.dataset.node;
+      open[step] = open[step] || {};
+      open[step][id] = !open[step][id];
+      render();
+    });
+    document.querySelectorAll("[data-pick]").forEach(el => el.onclick = () => {
+      el.closest(".card").classList.toggle("picked");
+    });
+  }
+  render();
+</script>
+</body>
+</html>
