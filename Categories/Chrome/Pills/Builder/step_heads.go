@@ -169,7 +169,9 @@ func (m *Model) stepHeadLinks(step int, from, k string, sign int, locks Links.Lo
 }
 
 func wayOf(l *Links.Link, all Links.Lock, k string) int {
-	at := func(x Links.Lock) int { return map[string]int{Links.KPhi: x.Phi, Links.KTheta: x.Theta, Links.KR: x.R}[k] }
+	at := func(x Links.Lock) int {
+		return map[string]int{Links.KPhi: x.Phi, Links.KTheta: x.Theta, Links.KR: x.R}[k]
+	}
 	if v := at(l.Lock); v != 0 {
 		return v
 	}

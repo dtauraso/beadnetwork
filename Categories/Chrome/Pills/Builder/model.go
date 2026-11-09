@@ -40,9 +40,10 @@ type Model struct {
 	StepHeads map[StepNode]*Step
 	StepFolds map[StepNode]bool
 
-	Seqs      []Seq
-	OpenSeq   int
-	SeqFolded bool
+	Seqs        []Seq
+	OpenSeq     int
+	SeqListOpen bool
+	ShownStep   int
 
 	Cards    Cards
 	CardsDir string

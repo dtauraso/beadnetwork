@@ -64,6 +64,9 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.runStepHead(ctx, a, sign)
 		return
 	}
+	if a.Op == Builder.OpSeqOpen {
+		md.UI.Builder.SeqListOpen = false
+	}
 	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) {
 		return
 	}
@@ -76,7 +79,9 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpStepFold:
 		md.UI.Builder.ToggleStepFold(a.I, a.Node)
 	case Builder.OpSeqFold:
-		md.UI.Builder.SeqFolded = !md.UI.Builder.SeqFolded
+		md.UI.Builder.SeqListOpen = !md.UI.Builder.SeqListOpen
+	case Builder.OpStepShow:
+		md.UI.Builder.ShowStep(a, sign)
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)
 	}
