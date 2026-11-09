@@ -86,7 +86,7 @@ func (m *Model) stepHeadOnes(step int, from, k string, sign int) (string, []Step
 		if l == nil {
 			continue
 		}
-		if k == Links.KR && l.Dir().R+float64(sign)/float64(Links.ShownS(l.Start.S)) < 0 {
+		if k == Links.KR && l.Dir().R+float64(l.OneCarry(k, sign)) < 0 {
 			refused = fmt.Sprintf("step %d %s→%s 1r: r + Δr would be below 0, so 1r stays at %d", step, n.From, n.To, l.Start.One.R)
 			continue
 		}

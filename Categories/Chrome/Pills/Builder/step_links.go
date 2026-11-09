@@ -83,8 +83,7 @@ func (m Model) TurnFromDrawn(e StepEdge, was Links.Ints) (Links.Start, bool) {
 		return Links.Start{}, false
 	}
 	drawn := live.Dir()
-	one := Links.Start{S: live.Start.S, One: live.Start.One}.Stepped()
-	return Links.Start{Phi: Links.Wrap(1, drawn.Phi-float64(was.Phi)-one.Phi), Theta: Links.Wrap(1, drawn.Theta-float64(was.Theta)-one.Theta), R: drawn.R - float64(was.R) - one.R, S: live.Start.S, One: live.Start.One}, true
+	return Links.Start{Phi: Links.Wrap(1, drawn.Phi-float64(was.Phi)), Theta: Links.Wrap(1, drawn.Theta-float64(was.Theta)), R: drawn.R - float64(was.R), S: live.Start.S, One: live.Start.One}, true
 }
 
 func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
@@ -107,7 +106,7 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 		if sign == 0 {
 			return ""
 		}
-		if a.K == Links.KR && l.Dir().R+float64(sign)/float64(Links.ShownS(l.Start.S)) < 0 {
+		if a.K == Links.KR && l.Dir().R+float64(l.OneCarry(a.K, sign)) < 0 {
 			return fmt.Sprintf("%s 1r: r + Δr would be below 0, so 1r stays at %d", name, l.Start.One.R)
 		}
 		l.StepOne(a.K, sign)
