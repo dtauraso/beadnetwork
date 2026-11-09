@@ -170,6 +170,9 @@ type Hit struct {
 }
 
 func (l Layout) Hit(x, y float64) Hit {
+	if l.Pill.W <= 0 {
+		return Hit{}
+	}
 	if Panel.HitRect(l.Pill, x, y) {
 		return Hit{Kind: HitPill, Rect: l.Pill}
 	}
