@@ -38,6 +38,7 @@ type Of struct {
 	PolarRules    bool
 	SpeedSlider   bool
 	AnglesPill    bool
+	PlusButton    bool
 	LatticePoints int32
 
 	Overlays *Flags.OverlayState
@@ -89,7 +90,12 @@ func LayoutOf(in Of) Layout {
 	if in.AnglesPill {
 		lay.Angle = AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints, nodes)
 	}
-	lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen))
+	kinds := NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen)
+	if in.PlusButton {
+		lay.Nodes = NodesDropdown.BuildPlus(float32(in.ViewW), tabs.Strip, kinds)
+	} else {
+		lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, kinds)
+	}
 	if in.Sheet != nil {
 		left := Panel.NewLeftPillStack(float32(in.ViewW), float32(in.ViewH), st.Next(), nil)
 		lay.Sheet = Sheet.Build(pills, left, Builder.Pills(in.Builder), in.Sheet)

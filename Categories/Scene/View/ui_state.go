@@ -41,6 +41,8 @@ type UIState struct {
 
 	SceneAnglesPill bool
 
+	ScenePlusButton bool
+
 	SceneKinds uint32
 
 	SceneSphere polar.SceneSphere
