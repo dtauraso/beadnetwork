@@ -63,21 +63,20 @@ func nodeLine(m Model, step int, id string) []Cell {
 	return row
 }
 
-func allLinksLine(m Model, id string, step int) []Cell {
-	row := []Cell{
+func allLinksLines(m Model, id string, step int) [][]Cell {
+	deltas := []Cell{
 		Text("every link"),
 		Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id, I: step}).Outline(m.headOf(step, id).Both).Stepping(Act{Op: OpAllBoth, Node: id, I: step}, 0),
 	}
+	rest := []Cell{Text(""), Text("")}
 	for _, a := range axes {
-		row = append(row, lockHead(m, id, step, a))
+		deltas = append(deltas, lockHead(m, id, step, a))
+		rest = append(rest, Text("nΔ"+a.label).Stepping(Act{Op: OpAllInc, Node: id, K: a.k, I: step}, 0))
 	}
 	for _, a := range axes {
-		row = append(row, Text("nΔ"+a.label).Stepping(Act{Op: OpAllInc, Node: id, K: a.k, I: step}, 0))
+		rest = append(rest, Text("1"+a.label).Stepping(Act{Op: OpAllOne, Node: id, K: a.k, I: step}, 0))
 	}
-	for _, a := range axes {
-		row = append(row, Text("1"+a.label).Stepping(Act{Op: OpAllOne, Node: id, K: a.k, I: step}, 0))
-	}
-	return row
+	return [][]Cell{deltas, rest}
 }
 
 func nodeGroups(m Model, step int, id string) []Group {
@@ -86,7 +85,7 @@ func nodeGroups(m Model, step int, id string) []Group {
 	if m.StepFolded(step, id) || len(links) == 0 {
 		return groups
 	}
-	groups = append(groups, Group{Rows: [][]Cell{allLinksLine(m, id, step)}, Indent: true})
+	groups = append(groups, Group{Rows: allLinksLines(m, id, step), Indent: true})
 	for _, l := range links {
 		groups = append(groups, linkCard(m, step, l))
 	}
