@@ -23,7 +23,7 @@
 
   <section class="prose">
     <h2>The rules</h2>
-    <p class="muted">Each rule is followed by where the editor's Go does it, under <code>Categories/Node/Links/</code>, and then, folded away, the JavaScript this page uses to check it. Click a Go function to open its file as a tab in VS Code, at the function. Which file each function is in comes from <code>go run ./scripts/readscene -source Categories/Node/Links</code>, kept in <code>data/go-source.js</code>. The click works in Live Preview with the topology extension running: the extension listens on localhost and writes its address to <code>docs/pair-node/port.js</code>, as for the docs pages.</p>
+    <p class="muted">Each rule is followed by where the editor's Go does it, under <code>Categories/Node/Links/</code>, and then, folded away, the JavaScript this page uses to check it. Click a Go function to open its file as a tab in VS Code, at the function. Which file each function is in comes from <code>go run ./scripts/readscene -source Categories/Node/Links</code>, kept in <code>data/go-source.js</code>. The click works in Live Preview with the topology extension running: the extension listens on localhost and writes its address to <code>port.js</code> beside this page.</p>
     <p>For a link, <i>s</i> is the s of the node it goes to, and one turn is <i>T</i> = 12·<i>s</i> ticks.</p>
     <ol class="rules">
       <li><b>Where a link points.</b> φ = start φ + Δφ and θ = start θ + Δθ, each wrapped into 0 ≤ angle &lt; T. r = start r + Δr.
@@ -96,7 +96,7 @@ z = r·ρ·sin a(φ)·sin a(θ)</span>
 <script src="data/scene-steps.js"></script>
 <script src="data/scene-orders.js"></script>
 <script src="data/go-source.js"></script>
-<script src="../../../docs/pair-node/port.js"></script>
+<script src="port.js"></script>
 <script src="rules/numbers.js"></script>
 <script src="rules/one-state.js"></script>
 <script src="rules/press.js"></script>

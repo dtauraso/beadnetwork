@@ -1,7 +1,7 @@
 const goData = window.GO_SOURCE || { root: "", functions: [] };
 const goSource = {};
 for (const f of goData.functions) goSource[f.name] = f;
-const portFile = "../../../docs/pair-node/port.js";
+const portFile = "port.js";
 let goAsk = window.BEADNETWORK_DOCS_OPEN;
 
 function rereadPort() {

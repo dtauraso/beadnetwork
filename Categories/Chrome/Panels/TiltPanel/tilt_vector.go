@@ -29,9 +29,7 @@ func (m TiltMachine) String() string {
 	return "none"
 }
 
-var vectorCapableKinds = map[string]bool{
-	"NodePhiTheta": true,
-}
+var vectorCapableKinds = map[string]bool{}
 
 func KindWantsVectorChannel(kind string) bool {
 	return vectorCapableKinds[kind]
