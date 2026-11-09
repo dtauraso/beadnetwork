@@ -53,6 +53,13 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 }
 
 func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, sheet *Sheet.State, x, y, deltaX, deltaY float64, redraw func()) bool {
+	if label, most, ok := pl.Sheet.PopAt(x, y); ok {
+		v := sheet.PopScrollOf(label)
+		return scrollBy(v, most, deltaY, func() {
+			sheet.SetPopScroll(label, *v)
+			redraw()
+		})
+	}
 	if label, table, maxScroll, maxScrollX, ok := pl.Sheet.Covers(x, y); ok {
 		if math.Abs(deltaX) > math.Abs(deltaY) {
 			v := sheet.ScrollXOf(label, table)

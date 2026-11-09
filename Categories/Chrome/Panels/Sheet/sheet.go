@@ -98,15 +98,16 @@ func Field(key, value string, act Act, typed, steps bool) Cell {
 }
 
 type Group struct {
-	Title  string
-	Fold   Act
-	Rows   [][]Cell
-	Slides bool
-	Table  string
-	Wraps  bool
-	Indent bool
-	Card   bool
-	Pop    *Anchor
+	Title   string
+	Fold    Act
+	Rows    [][]Cell
+	Slides  bool
+	Table   string
+	Wraps   bool
+	Indent  bool
+	Card    bool
+	Pop     *Anchor
+	MaxRows int
 }
 
 type Anchor struct {

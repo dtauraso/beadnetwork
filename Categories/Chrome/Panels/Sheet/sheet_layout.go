@@ -133,8 +133,9 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			room = stack.DockRoomW()
 		}
 		groups := make([]Group, len(p.Groups))
+		popMax := make([]float32, len(p.Groups))
 		for i, g := range p.Groups {
-			groups[i] = wrapped(g, room)
+			groups[i], popMax[i] = popWindow(wrapped(g, room), st.PopScroll[p.Label])
 		}
 		p.Groups = groups
 		spots, contentW, contentH := flow(p.Groups, room)
@@ -167,7 +168,7 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 				dx = max(0, min(st.ScrollX[slideKey(p.Label, table)], most))
 			}
 			if g.Card {
-				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: Rect{X: x + in, Y: y, W: outerW(g, room) - in, H: outerH(g)}, Pop: g.Pop != nil, Cell: len(lay.Cells)})
+				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: Rect{X: x + in, Y: y, W: outerW(g, room) - in, H: outerH(g)}, Pop: g.Pop != nil, Cell: len(lay.Cells), Max: popMax[gi]})
 				x, y = x+CardPad, y+CardPad
 			}
 			lay.place(box, g, x+in, y, dx)
