@@ -28,7 +28,9 @@
     background: var(--panel); border-radius: 10px; padding: 14px 16px 18px;
     max-width: 1150px; box-shadow: 0 1px 0 rgba(0,0,0,.08);
   }
-  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-bottom: 8px; }
+  .bar + .bar { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .bar .label { min-width: 70px; }
   .bar .label { font-weight: 600; margin-right: 2px; }
   .seg { display: inline-flex; gap: 4px; flex-wrap: wrap; }
   .btn {
@@ -88,7 +90,7 @@
 </head>
 <body>
   <h1>Links tab — proposed layout</h1>
-  <p class="lede">A mock-up to look at, not the editor. A dropdown picks the sequence and buttons pick the step, on one line; each node is one line; each link is a card with φ, θ, r as rows and at, Δ, nΔ, 1 as columns. Click a sequence, a step, a node name or a link name to see it react.</p>
+  <p class="lede">A mock-up to look at, not the editor. A dropdown picks the sequence, and buttons on the line below pick the step; each node is one line; each link is a card with φ, θ, r as rows and at, Δ, nΔ, 1 as columns. Click a sequence, a step, a node name or a link name to see it react.</p>
 
   <div class="panel">
     <div class="bar">
@@ -96,7 +98,8 @@
       <select class="btn pickseq" id="seqs" aria-label="sequence"></select>
       <button class="btn">+</button>
       <button class="btn">−</button>
-      <span class="spacer"></span>
+    </div>
+    <div class="bar">
       <span class="label">step</span>
       <span class="seg" id="steps"></span>
     </div>
