@@ -56,19 +56,21 @@ func nodeLine(m Model, step int, id string) []Cell {
 		Field("", strconv.Itoa(ref.Phi), refAct(Links.KPhi), true, true).Fitting(cardFit).Outline(false),
 		Text("Δθ"),
 		Field("", strconv.Itoa(ref.Theta), refAct(Links.KTheta), true, true).Fitting(cardFit).Outline(false),
-		Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id, I: step}).Outline(m.headOf(step, id).Both).Stepping(Act{Op: OpAllBoth, Node: id, I: step}, 0),
 	)
-	for _, a := range axes {
-		row = append(row, lockHead(m, id, step, a))
-	}
 	if to := connectRow(m, id, "link to"); to != nil {
 		row = append(row, to...)
 	}
 	return row
 }
 
-func allLinksLine(id string, step int) []Cell {
-	row := []Cell{Text("every link")}
+func allLinksLine(m Model, id string, step int) []Cell {
+	row := []Cell{
+		Text("every link"),
+		Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id, I: step}).Outline(m.headOf(step, id).Both).Stepping(Act{Op: OpAllBoth, Node: id, I: step}, 0),
+	}
+	for _, a := range axes {
+		row = append(row, lockHead(m, id, step, a))
+	}
 	for _, a := range axes {
 		row = append(row, Text("nΔ"+a.label).Stepping(Act{Op: OpAllInc, Node: id, K: a.k, I: step}, 0))
 	}
@@ -84,7 +86,7 @@ func nodeGroups(m Model, step int, id string) []Group {
 	if m.StepFolded(step, id) || len(links) == 0 {
 		return groups
 	}
-	groups = append(groups, Group{Rows: [][]Cell{allLinksLine(id, step)}, Indent: true})
+	groups = append(groups, Group{Rows: [][]Cell{allLinksLine(m, id, step)}, Indent: true})
 	for _, l := range links {
 		groups = append(groups, linkCard(m, step, l))
 	}
