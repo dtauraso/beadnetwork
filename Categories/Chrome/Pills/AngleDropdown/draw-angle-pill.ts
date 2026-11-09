@@ -1,22 +1,14 @@
-import { nodeBytes } from "../../../Node/node-leaves";
 import { canvasFont, roundRect } from "../../canvas-box";
-import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../pill";
+import { drawPill, drawPopoverBox, ROW_PAD_X } from "../pill";
 import { decodeAt } from "../../leaf-text";
 import * as T from "../../chrome-theme";
 import {
-  anglePillBytes, anglePillF32, anglePillU8, anglePillF32Run, anglePillI32Run,
+  anglePillBytes, anglePillF32, anglePillU8, anglePillF32Run,
   anglePillU32Run, anglePillText,
 } from "./pill-leaves";
 
 const ROW_GAP = 2;
 const ARROW_PAD = 2;
-
-function stepperValue(shown: string, valueRow: number): string {
-  if (valueRow < 0) return shown;
-  const text = nodeBytes(valueRow, "topTiltVectorText");
-  if (!text) return shown;
-  return decodeAt(new Uint8Array(text.buffer, text.byteOffset, text.byteLength), 0, text.byteLength);
-}
 
 function drawArrow(
   c: CanvasRenderingContext2D,
@@ -38,25 +30,11 @@ function drawArrow(
 
 export function anglePillKey(): string {
   const open = anglePillU8("open");
-  const rows = anglePillI32Run("stepValueRow");
-  const denom = anglePillI32Run("stepDenom");
   const shownText = anglePillText("stepShownText");
-  const shownLen = anglePillU32Run("stepShownLen");
-  const values: string[] = [];
-  if (rows && denom && shownText && shownLen) {
-    let off = 0;
-    for (let i = 0; i < rows.length; i++) {
-      const shown = decodeAt(shownText, off, shownLen[i]!);
-      off += shownLen[i]!;
-      values.push(stepperValue(shown, rows[i]!));
-    }
-  }
-  const groupOpen = anglePillBytes("groupOpen");
   return [
     anglePillF32("pillX"), anglePillF32("pillY"),
     anglePillF32("popoverH"), open,
-    groupOpen ? new Uint8Array(groupOpen.buffer, groupOpen.byteOffset, groupOpen.byteLength).join(".") : "",
-    values.join("."),
+    shownText ? decodeAt(shownText, 0, shownText.length) : "",
   ].join(",");
 }
 
@@ -79,44 +57,16 @@ export function drawAnglePill(c: CanvasRenderingContext2D): void {
     anglePillF32("popoverW"), anglePillF32("popoverH"),
   );
 
-  drawGroups(c);
   drawSteppers(c);
-}
-
-function drawGroups(c: CanvasRenderingContext2D): void {
-  const x = anglePillF32Run("groupX");
-  const y = anglePillF32Run("groupY");
-  const h = anglePillF32Run("groupH");
-  const openRun = anglePillBytes("groupOpen");
-  const headText = anglePillText("groupHeadText");
-  const headLen = anglePillU32Run("groupHeadLen");
-  if (!x || !y || !h || !openRun || !headText || !headLen) return;
-
-  let off = 0;
-  for (let i = 0; i < x.length; i++) {
-    const head = decodeAt(headText, off, headLen[i]!);
-    off += headLen[i]!;
-    const mid = y[i]! + h[i]! / 2;
-
-    c.fillStyle = T.TEXT;
-    c.textBaseline = "middle";
-    c.textAlign = "left";
-    c.font = canvasFont(8);
-    c.fillText(openRun.getUint8(i) !== 0 ? "▼" : "▶", x[i]! + ROW_PAD_X, mid);
-    drawHeadingText(c, head, x[i]! + ROW_PAD_X + 13, mid);
-  }
 }
 
 function drawSteppers(c: CanvasRenderingContext2D): void {
   const x = anglePillF32Run("stepX");
   const y = anglePillF32Run("stepY");
-  const h = anglePillF32Run("stepH");
   const nameText = anglePillText("stepNameText");
   const nameLen = anglePillU32Run("stepNameLen");
   const shownText = anglePillText("stepShownText");
   const shownLen = anglePillU32Run("stepShownLen");
-  const valueRow = anglePillI32Run("stepValueRow");
-  const denom = anglePillI32Run("stepDenom");
   const ux = anglePillF32Run("stepUpX");
   const uy = anglePillF32Run("stepUpY");
   const uw = anglePillF32Run("stepUpW");
@@ -127,8 +77,8 @@ function drawSteppers(c: CanvasRenderingContext2D): void {
   const dh = anglePillF32Run("stepDownH");
   const upOn = anglePillBytes("stepUpOn");
   const downOn = anglePillBytes("stepDownOn");
-  if (!x || !y || !h || !nameText || !nameLen || !shownText || !shownLen) return;
-  if (!valueRow || !denom || !ux || !uy || !uw || !uh || !dx || !dy || !dw || !dh) return;
+  if (!x || !y || !nameText || !nameLen || !shownText || !shownLen) return;
+  if (!ux || !uy || !uw || !uh || !dx || !dy || !dw || !dh) return;
   if (!upOn || !downOn) return;
 
   let nameOff = 0;
@@ -145,11 +95,7 @@ function drawSteppers(c: CanvasRenderingContext2D): void {
     c.textBaseline = "top";
     const lineH = T.FONT_SIZE * 1.2;
     c.fillText(name, x[i]! + ROW_PAD_X, y[i]! + ARROW_PAD * 2);
-    c.fillText(
-      stepperValue(shown, valueRow[i]!),
-      x[i]! + ROW_PAD_X,
-      y[i]! + ARROW_PAD * 2 + lineH + ROW_GAP,
-    );
+    c.fillText(shown, x[i]! + ROW_PAD_X, y[i]! + ARROW_PAD * 2 + lineH + ROW_GAP);
 
     drawArrow(c, ux[i]!, uy[i]!, uw[i]!, uh[i]!, "▲", upOn.getUint8(i) !== 0);
     drawArrow(c, dx[i]!, dy[i]!, dw[i]!, dh[i]!, "▼", downOn.getUint8(i) !== 0);

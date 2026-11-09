@@ -14,7 +14,6 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	ui.Angle.Arm(sceneRoot)
 	ui.TabStrip.Arm(sceneRoot)
 	ui.Fit.Arm(sceneRoot)
-	ui.Tilt.Arm(sceneRoot)
 	ui.Sheet.Arm(sceneRoot)
 	ui.OverlaysPill.Arm(sceneRoot)
 	ui.NodeRingPoints.Arm(sceneRoot)

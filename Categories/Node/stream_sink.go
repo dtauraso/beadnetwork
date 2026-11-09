@@ -73,8 +73,6 @@ func nodeStateFrom(f NodeFrameInput) NodeState {
 		Hovered:          f.Hovered,
 		LatchedSel:       f.LatchedSel,
 		LatticePoints:    f.LatticePoints,
-		RoundsToParallel: f.RoundsToParallel,
-		MsgsToParallel:   f.MsgsToParallel,
 		DragRLocked:      f.DragRLocked,
 		DragPhiLocked:    f.DragPhiLocked,
 		DragThetaMax:     f.DragThetaMax,

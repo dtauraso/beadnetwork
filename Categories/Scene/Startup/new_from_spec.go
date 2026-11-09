@@ -11,11 +11,11 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
@@ -70,7 +70,6 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		}
 	}
 
-	md.UI.Tilt.Rows, md.UI.Tilt.Labels = Topology.TiltPanelRows(spec)
 	md.Links = Links.NewMesh()
 	md.UI.Builder.S = Sheet.LoadScalar(Scenes.SFilePath(scenePath), 1, 1)
 	md.UI.Builder.TickMs = Sheet.LoadScalar(Scenes.TickMsFilePath(scenePath), clock.MsPerTick, 1)

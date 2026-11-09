@@ -1,7 +1,6 @@
 package Node
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
@@ -33,8 +32,6 @@ type NodeGeometry struct {
 	tilt TiltVectors.Tilt
 
 	channels ChannelVectors.PeerCenters
-
-	readout Readout
 
 	outTargets []string
 
@@ -69,7 +66,7 @@ func NewNodeGeometry(id string, geom NodeGeom, clockSrc clock.Clock, constants p
 		topo:      NewTopology(),
 		deltas:    NewDeltas(),
 		clocks:    NewClocks(clockSrc),
-		tilt:      TiltVectors.NewTilt(TiltPanel.FullTurnPhiIdx),
+		tilt:      TiltVectors.NewTilt(polarindex.FullTurnPhiIdx),
 		anim:      anim,
 		kindPosts: NewKindPosts(),
 	}

@@ -32,22 +32,3 @@ export function encodeSceneViewport(width: number, height: number): ArrayBuffer 
   w.f32(height);
   return w.toArrayBuffer();
 }
-
-export function encodeTiltVectorAdjust(nodeRow: number, dir: "up" | "down"): ArrayBuffer {
-  const w = editUpdate("tiltVector", "phi");
-  w.u8(nodeRow);
-  w.u8(dir === "up" ? 1 : 0);
-  return w.toArrayBuffer();
-}
-
-export function encodeTiltVectorReset(nodeRow: number): ArrayBuffer {
-  const w = editUpdate("tiltVector", "reset");
-  w.u8(nodeRow);
-  return w.toArrayBuffer();
-}
-
-export function encodeTiltVectorStart(nodeRow: number): ArrayBuffer {
-  const w = editUpdate("tiltVector", "start");
-  w.u8(nodeRow);
-  return w.toArrayBuffer();
-}

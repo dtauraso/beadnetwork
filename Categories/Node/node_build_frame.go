@@ -2,10 +2,10 @@ package Node
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Node/AngleArcs"
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 	"math"
 )
 
@@ -30,9 +30,6 @@ type FrameInputs struct {
 	Selected   uint8
 	Hovered    uint8
 	LatchedSel uint8
-
-	RoundsToParallel int32
-	MsgsToParallel   int32
 
 	DragRule *PolarRulesPanel.DragRule
 	SelfRule *PolarRulesPanel.DragRule
@@ -66,7 +63,7 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		ReceivedVectorPhiIdx: in.ReceivedVectorPhiIdx,
 		ReceivedVectorSet:    in.ReceivedVectorSet,
 		LatticePoints:        in.LatticePoints,
-		DefaultLatticePoints: TiltPanel.FullTurnPhiIdx,
+		DefaultLatticePoints: polarindex.FullTurnPhiIdx,
 	})
 
 	composedIdx := ComposedIndexOf(in.Geom)
@@ -111,8 +108,6 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		Hovered:          in.Hovered,
 		LatchedSel:       in.LatchedSel,
 		LatticePoints:    uint8(fg.LatticePoints),
-		RoundsToParallel: in.RoundsToParallel,
-		MsgsToParallel:   in.MsgsToParallel,
 		HasKindRule:      boolU8(in.HasKindRule),
 		KindRuleActive:   boolU8(in.KindRuleActive),
 		SelfRLocked:      selfRLocked,

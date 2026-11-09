@@ -18,7 +18,6 @@ func (ui *UIState) PanelLayout() Chrome.Layout {
 		LatticePoints: ui.LatticePoints,
 		Overlays:      &ui.OV,
 		Panels:        &ui.PN,
-		Tilt:          ui.Tilt,
 		Sheet:         &ui.Sheet,
 		Builder:       ui.Builder,
 		Angle:         ui.Angle,

@@ -18,13 +18,10 @@ export const ANGLE_PILL_VALUE_NAMES = [
   "labelText",
   "stepX",
   "stepY",
-  "stepH",
   "stepNameText",
   "stepNameLen",
   "stepShownText",
   "stepShownLen",
-  "stepValueRow",
-  "stepDenom",
   "stepUpX",
   "stepUpY",
   "stepUpW",
@@ -35,12 +32,6 @@ export const ANGLE_PILL_VALUE_NAMES = [
   "stepDownH",
   "stepUpOn",
   "stepDownOn",
-  "groupX",
-  "groupY",
-  "groupH",
-  "groupOpen",
-  "groupHeadText",
-  "groupHeadLen",
 ] as const;
 
 export type AnglePillValueName = (typeof ANGLE_PILL_VALUE_NAMES)[number];

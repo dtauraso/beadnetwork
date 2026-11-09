@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { drawSpeedPanel, speedPanelKey } from "./SliderPanel/draw-speed-panel";
-import { drawTiltPanel, tiltPanelKey } from "./TiltPanel/draw-tilt-panel";
 import { drawSheets, sheetKey } from "./Sheet/draw-sheet";
 import { drawAnglePill, anglePillKey } from "../Pills/AngleDropdown/draw-angle-pill";
 import { drawNodesPill, nodesPillKey } from "../Pills/NodesDropdown/draw-nodes-pill";
@@ -134,7 +133,7 @@ export function ChromeCanvas() {
       });
     }
 
-    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${sheetKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}|${bootKey()}`;
+    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${sheetKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}|${bootKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
       if (canvas.width !== bw || canvas.height !== bh) {
@@ -149,7 +148,6 @@ export function ChromeCanvas() {
         drawLabels(c);
         drawPointerHighlight(c);
         drawSpeedPanel(c);
-        drawTiltPanel(c);
         drawSheets(c);
         drawAnglePill(c);
         drawNodesPill(c);

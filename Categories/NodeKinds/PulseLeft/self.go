@@ -10,7 +10,6 @@ import (
 
 type Self struct {
 	geom *NodeCat.NodeGeometry
-
 }
 
 func NewSelf(geom *NodeCat.NodeGeometry) *Self {
@@ -39,7 +38,6 @@ func (p *Self) Breadcrumb(label, value string) {
 	}})
 }
 
-
 func (p *Self) Step(ctx context.Context, tick int64) {
 	if p == nil || p.geom == nil {
 		return
@@ -61,13 +59,6 @@ func (p *Self) SetTiltIndex(theta int32) {
 		return
 	}
 	p.geom.KindPosts().PostTiltIndex(theta)
-}
-
-func (p *Self) SetRoundsToParallel(rounds, msgs int32) {
-	if p == nil || p.geom == nil {
-		return
-	}
-	p.geom.KindPosts().PostRoundsToParallel(rounds, msgs)
 }
 
 func (p *Self) SetReceivedVector(theta int32, set bool) {

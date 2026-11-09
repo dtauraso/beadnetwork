@@ -3,8 +3,6 @@ package Node
 import (
 	"fmt"
 	"path/filepath"
-
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 const ValueRelTemplate = "view/nodes/{row}/node.bin"
@@ -25,9 +23,7 @@ func buildNodeValueNames() []string {
 		names = append(names, fmt.Sprintf("bodyM%d", m))
 	}
 	return append(names,
-		"topTiltVectorText",
 		"selected", "kindId", "label", "hovered", "latchedSel",
-		"roundsToParallel", "msgsToParallel",
 		"dragRLocked", "dragPhiLocked", "dragThetaMax", "dragActive", "kindRuleActive",
 		"selfRLocked", "selfPhiLocked", "selfThetaMax", "selfActive",
 		"ruleGroupId", "ruleGroupSize",
@@ -77,16 +73,11 @@ func WriteNodeValues(w *ValueWriter, f NodeState) {
 		w.F32(BodyName(m), f.BodyMatrix[m])
 	}
 
-	w.Text("topTiltVectorText", polarindex.AngleText(f.TopTiltVectorIdx, int32(f.LatticePoints)))
-
 	w.U8("selected", f.Selected)
 	w.U8("kindId", f.KindID)
 	w.Text("label", f.Label)
 	w.U8("hovered", f.Hovered)
 	w.U8("latchedSel", f.LatchedSel)
-
-	w.I32("roundsToParallel", f.RoundsToParallel)
-	w.I32("msgsToParallel", f.MsgsToParallel)
 
 	w.U8("dragRLocked", f.DragRLocked)
 	w.U8("dragPhiLocked", f.DragPhiLocked)

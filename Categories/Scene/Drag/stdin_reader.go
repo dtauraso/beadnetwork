@@ -137,7 +137,6 @@ var UpdateKinds = []string{
 	"overlays",
 	"clock",
 	"scene",
-	"tiltVector",
 	"panels",
 	"node",
 	"edge",

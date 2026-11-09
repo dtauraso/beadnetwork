@@ -6,12 +6,6 @@ type Edit struct {
 	X, Y float64
 }
 
-type TiltEdit struct {
-	Attr string
-	Num  int
-	Flag string
-}
-
 func DecodeUpdateScene(payload []byte, attr byte) (Edit, bool) {
 	r := NewReader(payload, 0)
 	switch attr {
@@ -67,44 +61,4 @@ func DecodeUpdateScene(payload []byte, attr byte) (Edit, bool) {
 		return Edit{Attr: "viewport", X: float64(w), Y: float64(h)}, true
 	}
 	return Edit{}, false
-}
-
-func DecodeUpdateTiltVector(payload []byte, attr byte) (TiltEdit, bool) {
-	r := NewReader(payload, 0)
-	switch attr {
-	case attrTiltVectorPhi:
-
-		row, errR := r.U8()
-		if errR != nil {
-			return TiltEdit{}, false
-		}
-		dirUp, errD := r.U8()
-		if errD != nil {
-			return TiltEdit{}, false
-		}
-		dir := dirWord(dirUp)
-		return TiltEdit{Attr: "phi", Num: int(row), Flag: dir}, true
-	case attrTiltVectorRst:
-
-		row, errR := r.U8()
-		if errR != nil {
-			return TiltEdit{}, false
-		}
-		return TiltEdit{Attr: "reset", Num: int(row)}, true
-	case attrTiltVectorStrt:
-
-		row, errR := r.U8()
-		if errR != nil {
-			return TiltEdit{}, false
-		}
-		return TiltEdit{Attr: "start", Num: int(row)}, true
-	}
-	return TiltEdit{}, false
-}
-
-func dirWord(dirUp byte) string {
-	if dirUp != 0 {
-		return "up"
-	}
-	return "down"
 }

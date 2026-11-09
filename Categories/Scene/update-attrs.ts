@@ -3,4 +3,4 @@
 // address are Drag's, and are imported from Scene/Drag/input-defs.ts.
 // Regenerate with: go generate ./...
 
-export const IN_UPDATE_ATTRS = ["selected", "phi", "reset", "start", "latticePoints", "create", "delete", "viewport"] as const;
+export const IN_UPDATE_ATTRS = ["selected", "latticePoints", "create", "delete", "viewport"] as const;

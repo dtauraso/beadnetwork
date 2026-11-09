@@ -2,9 +2,6 @@ package Scene
 
 var UpdateAttrs = []string{
 	"selected",
-	"phi",
-	"reset",
-	"start",
 	"latticePoints",
 	"create",
 	"delete",

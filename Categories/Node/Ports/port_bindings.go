@@ -2,7 +2,6 @@ package Ports
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
@@ -21,9 +20,6 @@ type PortBindings struct {
 	NodeRowOf func(id string) (int32, bool)
 
 	InteriorEmitters *map[string]*interior.Emitter
-
-	VectorOut map[string]chan TiltPanel.TiltVectorMsg
-	VectorIn  map[string]chan TiltPanel.TiltVectorMsg
 }
 
 type singleBinding struct {
@@ -90,17 +86,3 @@ func (pb PortBindings) InteriorEmitterOf(name string) *interior.Emitter {
 func (pb PortBindings) ClockOf() clock.Clock { return pb.Clock }
 
 func (pb PortBindings) SpeedSinksOf() *SliderPanel.Sinks { return pb.SpeedSinks }
-
-func (pb PortBindings) VectorOutOf(name string) chan<- TiltPanel.TiltVectorMsg {
-	if pb.VectorOut == nil {
-		return nil
-	}
-	return pb.VectorOut[name]
-}
-
-func (pb PortBindings) VectorInOf(name string) <-chan TiltPanel.TiltVectorMsg {
-	if pb.VectorIn == nil {
-		return nil
-	}
-	return pb.VectorIn[name]
-}

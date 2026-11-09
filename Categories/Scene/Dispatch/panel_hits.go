@@ -11,14 +11,13 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
-	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
 func panelTookPointerDown(
@@ -94,18 +93,6 @@ func panelTookPointerDown(
 		applyAngleHit(ctx, md, speedSinks, h)
 		return true
 	}
-	switch pl.Tilt.Hit(ev.X, ev.Y) {
-	case TiltPanel.ButtonStart:
-		for _, col := range pl.Tilt.Columns {
-			tiltVectorEdit(ctx, md, speedSinks, col.NodeRow, "start")
-		}
-		return true
-	case TiltPanel.ButtonReset:
-		for _, col := range pl.Tilt.Columns {
-			tiltVectorEdit(ctx, md, speedSinks, col.NodeRow, "reset")
-		}
-		return true
-	}
 	return false
 }
 
@@ -142,19 +129,10 @@ func applyAngleHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 	switch h.Kind {
 	case AngleDropdown.HitPill:
 		md.UI.Angle.Open = !md.UI.Angle.Open
-	case AngleDropdown.HitGroup:
-		if md.UI.Angle.GroupOpen == nil {
-			md.UI.Angle.GroupOpen = map[int32]bool{}
-		}
-		md.UI.Angle.GroupOpen[h.NodeRow] = !md.UI.Angle.GroupOpen[h.NodeRow]
 	case AngleDropdown.HitLatticeUp:
 		setLatticePoints(md, md.UI.LatticePoints+AngleDropdown.LatticePointsStep)
 	case AngleDropdown.HitLatticeDown:
 		setLatticePoints(md, md.UI.LatticePoints-AngleDropdown.LatticePointsStep)
-	case AngleDropdown.HitPhiUp:
-		adjustTiltPhi(ctx, md, h.NodeRow, true)
-	case AngleDropdown.HitPhiDown:
-		adjustTiltPhi(ctx, md, h.NodeRow, false)
 	}
 	md.UI.EmitViewFrame(nil)
 }
