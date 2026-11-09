@@ -31,6 +31,9 @@ type Hit struct {
 }
 
 func (l Layout) Hit(x, y float64) Hit {
+	if l.Toggle.W == 0 {
+		return Hit{}
+	}
 	if Panel.HitRect(l.Toggle, x, y) {
 		return Hit{Kind: HitToggle, Rect: l.Toggle}
 	}

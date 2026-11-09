@@ -63,7 +63,7 @@ func (md *MoveDispatch) bindUIClosures() {
 	md.UI.NodeRowFor = md.RT.NodeRowFor
 }
 
-func NewMoveDispatch(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *SliderPanel.Sinks, rowCount int, constants polarindex.SceneConstants) (*MoveDispatch, error) {
+func NewMoveDispatch(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *SliderPanel.Sinks, rowCount int, constants polarindex.SceneConstants, polarRules bool) (*MoveDispatch, error) {
 	nodeOrder, edgeOrder = resolveSeedOrders(geoms, edgeEndpoints, nodeOrder, edgeOrder)
 
 	md := &MoveDispatch{}
@@ -74,7 +74,9 @@ func NewMoveDispatch(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]ed
 		return nil, err
 	}
 	md.buildNodeMovers(geoms, clk, constants)
-	md.wireRuleMesh()
+	if polarRules {
+		md.wireRuleMesh()
+	}
 	md.wireMutualPairs(edgeEndpoints)
 	md.buildEdgeTable(edgeEndpoints)
 	md.wireNodeEdgeIDs()

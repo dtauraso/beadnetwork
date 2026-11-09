@@ -78,6 +78,7 @@ func LoadSceneState(scenePath string, md *Dispatch.MoveDispatch, speedSinks Slid
 	s := Scenes.For(scenePath)
 	md.UI.SceneEditable = s.Editable
 	md.UI.SceneNodesDraggable = s.NodesDraggable
+	md.UI.ScenePolarRules = s.PolarRules
 	md.UI.SceneKinds = SceneKindMask(s)
 
 	InstallOverlays(&md.UI, scenePath)

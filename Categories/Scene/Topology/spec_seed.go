@@ -11,7 +11,16 @@ import (
 func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {
 	m.SetSelfKind(n.Type)
 
-	rn := m.RuleNode()
+	if rn := m.RuleNode(); rn != nil {
+		seedRules(m, rn, n, sceneRoot)
+	}
+
+	if n.TopTiltVectorPhiIdx != nil {
+		m.Tilt().SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
+	}
+}
+
+func seedRules(m *NodeBuf.NodeGeometry, rn *NodeBuf.RuleNode, n Node, sceneRoot string) {
 	rn.SetPersist(NodeBuf.Persist{
 		Rule:       func(r *PolarRulesPanel.DragRule) error { return NodeBuf.WriteDragRule(sceneRoot, n.ID, r) },
 		SelfRule:   func(r *PolarRulesPanel.DragRule) error { return NodeBuf.WriteSelfDragRule(sceneRoot, n.ID, r) },
@@ -33,10 +42,6 @@ func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {
 	m.Topo().SetSelfRule(n.SelfDrag)
 	m.Topo().SetSelfRuleActive(selfActive)
 	rn.SeedSelfRule(n.SelfDrag, selfActive)
-
-	if n.TopTiltVectorPhiIdx != nil {
-		m.Tilt().SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
-	}
 }
 
 func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind string, otherRest polarindex.Place, sceneRoot string) {
@@ -46,7 +51,9 @@ func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind string, other
 	}
 
 	m.Deltas().SetRestOf(other, otherRest)
-	m.RuleNode().SeedEdgeActive(other, NodeBuf.LoadEdgeRuleActive(sceneRoot, e.Source, e.Target))
+	if rn := m.RuleNode(); rn != nil {
+		rn.SeedEdgeActive(other, NodeBuf.LoadEdgeRuleActive(sceneRoot, e.Source, e.Target))
+	}
 	m.Topo().AddNeighborKind(other, otherKind)
 	if src {
 		m.AddOutTarget(e.Target)
