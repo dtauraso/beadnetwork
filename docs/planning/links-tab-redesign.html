@@ -37,6 +37,7 @@
   }
   .btn.on { background: var(--open); border-color: var(--open); color: #fff; font-weight: 600; }
   .spacer { flex: 1; }
+  .pickseq { min-width: 170px; padding: 4px 8px; text-align: left; font-weight: 600; }
 
   .node { margin-top: 12px; }
   .nodeline {
@@ -87,12 +88,12 @@
 </head>
 <body>
   <h1>Links tab — proposed layout</h1>
-  <p class="lede">A mock-up to look at, not the editor. Sequence and step are one line each; each node is one line; each link is a card with φ, θ, r as rows and at, Δ, nΔ, 1 as columns. Click a sequence, a step, a node name or a link name to see it react.</p>
+  <p class="lede">A mock-up to look at, not the editor. A dropdown picks the sequence and buttons pick the step, on one line; each node is one line; each link is a card with φ, θ, r as rows and at, Δ, nΔ, 1 as columns. Click a sequence, a step, a node name or a link name to see it react.</p>
 
   <div class="panel">
     <div class="bar">
       <span class="label">sequence</span>
-      <span class="seg" id="seqs"></span>
+      <select class="btn pickseq" id="seqs" aria-label="sequence"></select>
       <button class="btn">+</button>
       <button class="btn">−</button>
       <span class="spacer"></span>
@@ -105,7 +106,7 @@
   <div class="notes">
     <h2>What changed from the tab today</h2>
     <ul>
-      <li>The nine stacked sequence buttons become one row of numbers; + and − replace “new sequence” and “delete sequence”.</li>
+      <li>The nine stacked sequence buttons become one dropdown; + and − beside it replace “new sequence” and “delete sequence”.</li>
       <li>Steps 1 and 2 no longer stack; the step buttons pick which one shows.</li>
       <li>A node’s s, its reference Δφ/Δθ, the φ+θ+r lock and “link to” share the node’s line, so a folded node is one line and the “ref 1” box is gone.</li>
       <li>Each link is a card 4 columns wide instead of a 13-column row, so θ’s 1 column and all of r are no longer off the edge, and cards sit side by side.</li>
@@ -162,7 +163,9 @@
   }
 
   function render() {
-    seg(document.getElementById("seqs"), 9, seq, i => { seq = i; render(); });
+    const sel = document.getElementById("seqs");
+    sel.innerHTML = Array.from({ length: 9 }, (_, i) => `<option value="${i + 1}"${i + 1 === seq ? " selected" : ""}>sequence ${i + 1}${i + 1 === seq ? "  (open)" : ""}</option>`).join("");
+    sel.onchange = () => { seq = +sel.value; render(); };
     seg(document.getElementById("steps"), 2, step, i => { step = i; render(); });
     const nodes = data[step];
     const isOpen = id => !!(open[step] && open[step][id]);
