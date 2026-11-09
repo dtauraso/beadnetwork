@@ -7,15 +7,8 @@
 <title>Links Tab Redesign</title>
 <style>
   :root {
-    --page: #c9c9c9;
-    --panel: #e3e3e3;
-    --cell: #ececec;
-    --line: #c4c4c4;
-    --text: #1d1d1f;
-    --dim: #8a8a8a;
-    --pick: #1f4fbf;
-    --open: #1f45b0;
-    --note: #9a3b12;
+    --page: #c9c9c9; --panel: #e3e3e3; --cell: #ececec; --line: #c4c4c4; --text: #1d1d1f;
+    --dim: #8a8a8a; --pick: #1f4fbf; --open: #1f45b0; --note: #9a3b12;
   }
   * { box-sizing: border-box; }
   body {
@@ -67,6 +60,8 @@
   }
   .card header .link { padding: 2px 10px; border: 2px solid var(--line); border-radius: 6px; background: var(--cell); }
   .card.picked header .link { border-color: var(--pick); }
+  .btn.lock { border-width: 2px; padding: 2px 8px; }
+  .btn.lock.on-lock { border-color: var(--pick); }
   .card header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .card header .link { font-weight: 700; cursor: pointer; }
   .card header .x { margin-left: auto; }
@@ -113,7 +108,7 @@
     <ul>
       <li>The nine stacked sequence buttons become one dropdown; + and − beside it replace “new sequence” and “delete sequence”.</li>
       <li>Steps 1 and 2 no longer stack; the step buttons pick which one shows.</li>
-      <li>A node’s s, its reference Δφ/Δθ, the φ+θ+r lock and “link to” share the node’s line, so a folded node is one line and the “ref 1” box is gone.</li>
+      <li>A node’s s, its reference Δφ/Δθ, the φ+θ+r, Δφ, Δθ and Δr locks (outlined in blue when on, as the Δ headers are today) and “link to” share the node’s line, so a folded node is one line and the “ref 1” box is gone.</li>
       <li>Each link is a card 4 columns wide instead of a 13-column row, so θ’s 1 column and all of r are no longer off the edge, and cards sit side by side.</li>
       <li>Arrows sit on the column heads (Δ⬍ steps that column for this link) and on the axis labels (φ⬍ steps φ’s Δ), not on every number; a number is typed by clicking it.</li>
       <li>A picked link outlines its name in blue; its Δ and nΔ cells are no longer outlined, and the card’s border does not change.</li>
@@ -135,7 +130,8 @@
       { id: "3", s: 1, ref: [0, 0], links: [], linkTo: ["1", "2"] },
     ],
   };
-  data[2] = data[1].map(n => ({ ...n, links: n.links.map(l => ({ ...l, refusal: undefined, phi: [l.phi[0], 1, 1, 0] })) }));
+  data[1].forEach(n => { n.locks = { all: false, "φ": true, "θ": true, r: false }; });
+  data[2] = data[1].map(n => ({ ...n, locks: { ...n.locks }, links: n.links.map(l => ({ ...l, refusal: undefined, phi: [l.phi[0], 1, 1, 0] })) }));
 
   let seq = 1, step = 1;
   const open = { 1: { 1: true }, 2: { 2: true } };
@@ -184,7 +180,8 @@
           <span class="kv"><b>s</b>${num(n.s)}</span>
           ${o ? `<span class="kv"><b>ref Δφ</b>${num(n.ref[0])}${arrows()}</span>
                  <span class="kv"><b>Δθ</b>${num(n.ref[1])}${arrows()}</span>
-                 <span class="kv"><button class="btn">φ+θ+r</button>${arrows()}</span>
+                 <span class="kv"><button class="btn lock${n.locks.all ? " on-lock" : ""}" data-lock="${n.id} all">φ+θ+r</button>${arrows()}</span>
+                 ${["φ", "θ", "r"].map(k => `<span class="kv"><button class="btn lock${n.locks[k] ? " on-lock" : ""}" data-lock="${n.id} ${k}">Δ${k}</button>${arrows()}</span>`).join("")}
                  ${linkTo}` : `<span class="summary">${count}</span>`}
         </div>
         ${o && n.links.length ? `<div class="cards">${n.links.map(l => card(n.id, l)).join("")}</div>` : ""}
@@ -194,6 +191,12 @@
       const id = el.dataset.node;
       open[step] = open[step] || {};
       open[step][id] = !open[step][id];
+      render();
+    });
+    document.querySelectorAll("[data-lock]").forEach(el => el.onclick = () => {
+      const [id, k] = el.dataset.lock.split(" ");
+      const locks = nodes.find(n => n.id === id).locks;
+      locks[k] = !locks[k];
       render();
     });
     document.querySelectorAll("[data-pick]").forEach(el => el.onclick = () => {
