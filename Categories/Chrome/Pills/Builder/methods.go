@@ -44,7 +44,6 @@ func placeText(i Links.Place) string {
 
 type row struct {
 	from string
-	s    int
 	t    Links.Start
 	d    Links.Vec3
 	at   Links.Place
@@ -58,13 +57,11 @@ func rowsInto(m Model, item string) []row {
 		if l.To != item {
 			continue
 		}
-		s := m.ScaleOf(l.From)
 		t := l.DirFrom(m.Frame, m.RefOf(l.From))
-		t.Phi, t.Theta = t.Phi*float64(s), t.Theta*float64(s)
 		at := m.Reports[l.From].At
 		c := m.Frame.At(at)
 		d := m.Frame.LinkVec(l, m.RefOf(l.From))
-		out = append(out, row{from: l.From, s: s, t: t, d: d, at: at, c: c, b: c.Add(d)})
+		out = append(out, row{from: l.From, t: t, d: d, at: at, c: c, b: c.Add(d)})
 	}
 	return out
 }
@@ -72,9 +69,9 @@ func rowsInto(m Model, item string) []row {
 func vectorStep(rows []row, item string) CardStep {
 	st := CardStep{Title: "local: each row's start as a vector", Note: "from the row's start ticks alone; a vector, not yet a place", OK: len(rows) > 0}
 	for _, r := range rows {
-		st.Lines = append(st.Lines, fmt.Sprintf("φ %s, θ %s on 0..12s_%s", Num(r.t.Phi), Num(r.t.Theta), item),
-			fmt.Sprintf("d_%s%s = polar_to_cart(%s·ρ, %s·2π/12s_%s, %s·2π/12s_%s) = %s",
-				r.from, item, Num(r.t.R), Num(r.t.Phi), item, Num(r.t.Theta), item, pt(r.d)))
+		st.Lines = append(st.Lines, fmt.Sprintf("φ %s, θ %s on 0..12", Num(r.t.Phi), Num(r.t.Theta)),
+			fmt.Sprintf("d_%s%s = polar_to_cart(%s·ρ, %s·2π/12, %s·2π/12) = %s",
+				r.from, item, Num(r.t.R), Num(r.t.Phi), Num(r.t.Theta), pt(r.d)))
 	}
 	if len(rows) == 0 {
 		st.Lines = []string{item + "'s table has no rows"}

@@ -43,14 +43,6 @@ func (l *Link) Dir() Start {
 
 func ShownS(s int) int { return max(1, s) }
 
-func (l Link) Shown() Link {
-	k := float64(ShownS(l.Start.S))
-	l.Start.Phi, l.Start.Theta = l.Start.Phi*k, l.Start.Theta*k
-	d := ShownS(l.Delta.S)
-	l.Delta.Phi, l.Delta.Theta = l.Delta.Phi*d, l.Delta.Theta*d
-	return l
-}
-
 func (l *Link) SetS(s int) { l.Start.S, l.Delta.S, l.Increment.S = s, s, s }
 
 func (a *Ints) At(k string) *int {
