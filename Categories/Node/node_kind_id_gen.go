@@ -21,7 +21,6 @@ var kindIDMap = map[string]uint8{
 	"PulseLeft":     8,
 	"PulseRight":    9,
 	"TimeStart":     10,
-	"NodePhi":       11,
 	"NodePhiTheta":  12,
 	"NodePhiTheta3": 13,
 }
@@ -57,7 +56,6 @@ var kindAppearance = map[string]KindAppearance{
 	"PulseLeft":     {Fill: "#e1f5fe", Stroke: "#90caf9", Desc: "Holds and drives a value like Pulse, feeding the LEFT input of a select gate."},
 	"PulseRight":    {Fill: "#e1f5fe", Stroke: "#01579b", Desc: "Holds and drives a value like Pulse, feeding the RIGHT input of a select gate."},
 	"TimeStart":     {Fill: "#fff3e0", Stroke: "#ffc400", Desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once."},
-	"NodePhi":       {Fill: "#fff8e1", Stroke: "#f9a825", Desc: "One half of a pair: turns its own tilt vector toward rest by exchanging directions with its partner, one step per arrival."},
 	"NodePhiTheta":  {Fill: "#e8f5e9", Stroke: "#2e7d32", Desc: "One half of a φ, θ pair: adds each angle's offset to that angle of its center, moving by one until that angle locks on its own quarter turn, and sends the stepped center on as the partner's next arrival."},
 	"NodePhiTheta3": {Fill: "#e3f2fd", Stroke: "#1565c0", Desc: "A node of the pair φ, θ 3 tab: holds its own place and the links into it, and recovers its own point from its picked link in when that link's source sends its point."},
 }

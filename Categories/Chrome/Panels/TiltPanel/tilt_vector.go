@@ -30,7 +30,6 @@ func (m TiltMachine) String() string {
 }
 
 var vectorCapableKinds = map[string]bool{
-	"NodePhi":      true,
 	"NodePhiTheta": true,
 }
 
@@ -38,9 +37,7 @@ func KindWantsVectorChannel(kind string) bool {
 	return vectorCapableKinds[kind]
 }
 
-var tiltPanelKinds = map[string]bool{
-	"NodePhi": true,
-}
+var tiltPanelKinds = map[string]bool{}
 
 func KindDrivenByTiltPanel(kind string) bool {
 	return tiltPanelKinds[kind]
