@@ -13,9 +13,12 @@ var dockRows = []struct {
 	Name  string
 	Flags []string
 }{
-	{"node", []string{"nodeBody", "nodeRing", "ringPick", "selectionRing", "hoverRing"}},
-	{"poles", []string{"nodePoles", "nodePoleSphere", "scenePoles", "allPoleSpheres"}},
-	{"guides", []string{"tori", "handholds", "sceneVectors", "edgeVectors", "ruleChannels"}},
+	{"node", []string{"nodeBody", "nodeRing", "ringPick"}},
+	{"state", []string{"selectionRing", "hoverRing"}},
+	{"node poles", []string{"nodePoles", "nodePoleSphere"}},
+	{"scene poles", []string{"scenePoles", "allPoleSpheres"}},
+	{"guides", []string{"tori", "handholds"}},
+	{"vectors", []string{"sceneVectors", "edgeVectors", "ruleChannels"}},
 	{"labels", []string{"labelsGlobal"}},
 }
 
