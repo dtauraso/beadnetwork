@@ -28,6 +28,9 @@ const (
 	FileStartS     = "start-s.bin"
 	FileDeltaS     = "delta-s.bin"
 	FileIncS       = "increment-s.bin"
+	FileOnePhi     = "one-phi.bin"
+	FileOneTheta   = "one-theta.bin"
+	FileOneR       = "one-r.bin"
 )
 
 func BaseLinksDir(nodeDir string) string { return filepath.Join(nodeDir, DirLinks) }
@@ -78,6 +81,9 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 		ReadIfExists(filepath.Join(dir, FileStartS), &l.Start.S)
 		ReadIfExists(filepath.Join(dir, FileDeltaS), &l.Delta.S)
 		ReadIfExists(filepath.Join(dir, FileIncS), &l.Increment.S)
+		ReadIfExists(filepath.Join(dir, FileOnePhi), &l.Start.One.Phi)
+		ReadIfExists(filepath.Join(dir, FileOneTheta), &l.Start.One.Theta)
+		ReadIfExists(filepath.Join(dir, FileOneR), &l.Start.One.R)
 		mustBeCounts(dir, l)
 		all = append(all, l)
 	}
@@ -87,7 +93,7 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 
 func mustBeCounts(dir string, l Link) {
 	const most = 1 << 40
-	for _, v := range []int{l.Delta.Phi, l.Delta.Theta, l.Delta.R, l.Increment.Phi, l.Increment.Theta, l.Increment.R, l.Start.S, l.Delta.S, l.Increment.S} {
+	for _, v := range []int{l.Delta.Phi, l.Delta.Theta, l.Delta.R, l.Increment.Phi, l.Increment.Theta, l.Increment.R, l.Start.S, l.Delta.S, l.Increment.S, l.Start.One.Phi, l.Start.One.Theta, l.Start.One.R} {
 		if v > most || v < -most {
 			panic(fmt.Sprintf("Links.readLinksIn: %s holds %d in a Δ, nΔ or s file, which is a float64 read as an int64 — Δ and nΔ are whole numbers stored as int64, so this file was written before they were, or by something writing floats into them", dir, v))
 		}
@@ -137,6 +143,7 @@ func writeLinksIn(linksDir string, links []Link) error {
 			FileLockPhi: l.Lock.Phi, FileLockTheta: l.Lock.Theta,
 			FilePicked: l.Picked,
 			FileStartS: l.Start.S, FileDeltaS: l.Delta.S, FileIncS: l.Increment.S,
+			FileOnePhi: l.Start.One.Phi, FileOneTheta: l.Start.One.Theta, FileOneR: l.Start.One.R,
 		} {
 			if err := WriteAtomicIfChanged(filepath.Join(dir, file), v); err != nil {
 				return err
