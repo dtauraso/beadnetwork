@@ -59,8 +59,8 @@ export function sheetKey(): string {
   ].join(",");
 }
 
-function rects(x: "pillX" | "tabX" | "boxX" | "cellX" | "upX" | "downX", y: "pillY" | "tabY" | "boxY" | "cellY" | "upY" | "downY",
-  w: "pillW" | "tabW" | "boxW" | "cellW" | "upW" | "downW", h: "pillH" | "tabH" | "boxH" | "cellH" | "upH" | "downH"): R[] {
+function rects(x: "pillX" | "tabX" | "boxX" | "cellX" | "upX" | "downX" | "cardX", y: "pillY" | "tabY" | "boxY" | "cellY" | "upY" | "downY" | "cardY",
+  w: "pillW" | "tabW" | "boxW" | "cellW" | "upW" | "downW" | "cardW", h: "pillH" | "tabH" | "boxH" | "cellH" | "upH" | "downH" | "cardH"): R[] {
   const xs = sheetF32Run(x), ys = sheetF32Run(y), ws = sheetF32Run(w), hs = sheetF32Run(h);
   const out: R[] = [];
   if (!xs || !ys || !ws || !hs) return out;
@@ -131,6 +131,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const slideX = sheetF32Run("slideX"), slideW = sheetF32Run("slideW");
   const cellSlides = bytesOf("cellSlides"), upSlides = bytesOf("upSlides");
   const upLit = bytesOf("upLit"), downLit = bytesOf("downLit"), upDim = bytesOf("upDim");
+  const cardBox = sheetU32Run("cardBox"), cards = rects("cardX", "cardY", "cardW", "cardH");
 
   boxes.forEach((b, bi) => {
     if (b.w <= 0 || b.h <= 0) return;
@@ -141,6 +142,13 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
     c.clip();
     const sx = slideX?.[bi] ?? 0, sw = slideW?.[bi] ?? 0;
     try {
+      cards.forEach((r, i) => {
+        if (cardBox?.[i] !== bi) return;
+        roundRect(c, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, T.RADIUS_CHIP);
+        c.strokeStyle = T.BORDER;
+        c.lineWidth = 1;
+        c.stroke();
+      });
       if (headBox && headX && headY && headH) {
         for (let i = 0; i < headBox.length; i++) {
           if (headBox[i] !== bi) continue;

@@ -137,14 +137,7 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			groups[i] = wrapped(g, room)
 		}
 		p.Groups = groups
-		var contentW, contentH float32
-		for i, g := range p.Groups {
-			contentW = max(contentW, shownW(g, room))
-			if i > 0 {
-				contentH += Panel.Gap
-			}
-			contentH += groupH(g)
-		}
+		spots, contentW, contentH := flow(p.Groups, room)
 		var popover, bar Rect
 		var x, y, maxScroll float32
 		if p.Bottom {
@@ -156,7 +149,9 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 		}
 		pb.Popover, pb.MaxScroll = popover, maxScroll
 		lay.Pills = append(lay.Pills, pb)
+		top := y
 		for gi, g := range p.Groups {
+			x, y := x+spots[gi].X, top+spots[gi].Y
 			dx := float32(0)
 			in := indentOf(g)
 			if g.Slides {
@@ -171,8 +166,11 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 				pb.Slides = append(pb.Slides, SlideBox{Table: table, Rect: Rect{X: x, Y: y, W: in + vis, H: groupH(g)}, Max: most})
 				dx = max(0, min(st.ScrollX[slideKey(p.Label, table)], most))
 			}
+			if g.Card {
+				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: Rect{X: x + in, Y: y, W: outerW(g, room) - in, H: outerH(g)}})
+				x, y = x+CardPad, y+CardPad
+			}
 			lay.place(box, g, x+in, y, dx)
-			y += groupH(g) + Panel.Gap
 		}
 		if p.Bottom {
 			lay.addBar(docked, on, bar, st.Folded[DockKey])
