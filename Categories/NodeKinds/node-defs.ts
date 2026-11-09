@@ -1,6 +1,5 @@
 
 import type { NodeDef } from "./node-def";
-import * as NodePhi from "./NodePhi/node-def-gen";
 import * as NodePhiTheta from "./NodePhiTheta/node-def-gen";
 import * as NodePhiTheta3 from "./NodePhiTheta3/node-def-gen";
 import * as PulseLeft from "./PulseLeft/node-def-gen";
@@ -23,7 +22,6 @@ interface KindFragment {
 
 const KIND_FRAGMENTS: readonly KindFragment[] = [
   Input,
-  NodePhi,
   NodePhiTheta,
   NodePhiTheta3,
   Pulse,

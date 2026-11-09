@@ -42,7 +42,7 @@ open/closed state is not an overlay visibility flag, even though the two are per
 streamed, and edited the same way.
 
 **`topology/` is one of several sibling SCENES**, not the only tree. `Categories/Scene/Scenes/scenes.go`'s
-`Scenes` names each sibling directory (today: `topology/`, `topology-pair/`) resolved
+`Scenes` names each sibling directory (today: `topology/`, `topology-pair-phi-theta/`, `topology-pair-phi-theta-3/`) resolved
 relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
 the fixed anchor, and which sibling directory actually loads is resolved from it
 (`ResolveScenePath`). Each sibling is a COMPLETE, independently loadable tree with its own
@@ -137,13 +137,10 @@ Consequences to keep in mind:
   appears on the first LOCAL drag write), and loads a complete, self-consistent scene from
   them with zero deltas.
 - Nothing promotes a drag's accumulated delta back into the base for a future clone; that
-  would need a deliberate migration and commit (see the migration note below). Whatever is
+  would need a deliberate migration and commit. Whatever is
   on disk right now under `base/`/`<label>/` is the base the NEXT clone gets.
 - There is no more `*.geom.bin` to skip when scanning `nodes/*/edges/*.bin` — every file
   under an `edges/` dir is a real edge (`loadNodeEdges`, `check-no-fan-in.sh`).
-- The existing `topology/`/`topology-pair/` trees were migrated by treating their
-  already-committed values AS the base and starting with empty `drag/` dirs (zero deltas) —
-  no attempt was made to reconstruct a pre-drag historical base, since none is recoverable.
 
 ## The owner writes, and owns the path
 

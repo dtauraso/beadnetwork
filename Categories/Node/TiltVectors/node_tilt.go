@@ -3,7 +3,7 @@ package TiltVectors
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Node/AngleArcs"
-	"github.com/dtauraso/beadnetwork/Categories/NodeKinds/NodePhi/tiltring"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors/tiltring"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 )
 
