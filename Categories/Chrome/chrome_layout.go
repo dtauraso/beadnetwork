@@ -36,6 +36,7 @@ type Of struct {
 	SceneEditable bool
 	SceneKinds    uint32
 	PolarRules    bool
+	SpeedSlider   bool
 	LatticePoints int32
 
 	Overlays *Flags.OverlayState
@@ -73,12 +74,11 @@ func LayoutOf(in Of) Layout {
 	}
 	st := Panel.NewAt(top, float32(in.ViewH))
 
-	lay := Layout{
-		Fit:   fit,
-		Tabs:  tabs,
-		Speed: SliderPanel.Build(st),
-		Tilt:  TiltPanel.Build(st, in.Tilt.Rows, in.Tilt.Labels),
+	lay := Layout{Fit: fit, Tabs: tabs}
+	if in.SpeedSlider {
+		lay.Speed = SliderPanel.Build(st)
 	}
+	lay.Tilt = TiltPanel.Build(st, in.Tilt.Rows, in.Tilt.Labels)
 	if in.PolarRules {
 		lay.Rules = PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules)
 	}
