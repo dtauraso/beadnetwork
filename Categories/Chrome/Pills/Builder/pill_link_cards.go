@@ -43,7 +43,8 @@ func nodeLine(m Model, step int, id string) []Cell {
 	links := m.stepLinksFrom(step, id)
 	row := []Cell{
 		Text(foldTitle(folded, "node "+id)).Acting(Act{Op: OpStepFold, Node: id, I: step}),
-		Field("s", strconv.Itoa(m.ScaleOf(id)), Act{Op: OpNodeS, Node: id}, true, false).Fitting(cardFit),
+		Text("s"),
+		Field("", strconv.Itoa(m.ScaleOf(id)), Act{Op: OpNodeS, Node: id}, true, false).Fitting(cardFit).Outline(false),
 	}
 	if folded {
 		return append(row, Text(linkCount(len(links))))
@@ -51,8 +52,10 @@ func nodeLine(m Model, step int, id string) []Cell {
 	ref := m.Reports[id].Ref
 	refAct := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
 	row = append(row,
-		Field("ref Δφ", strconv.Itoa(ref.Phi), refAct(Links.KPhi), true, true).Fitting(cardFit),
-		Field("Δθ", strconv.Itoa(ref.Theta), refAct(Links.KTheta), true, true).Fitting(cardFit),
+		Text("ref Δφ"),
+		Field("", strconv.Itoa(ref.Phi), refAct(Links.KPhi), true, true).Fitting(cardFit).Outline(false),
+		Text("Δθ"),
+		Field("", strconv.Itoa(ref.Theta), refAct(Links.KTheta), true, true).Fitting(cardFit).Outline(false),
 		Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id, I: step}).Outline(m.headOf(step, id).Both).Stepping(Act{Op: OpAllBoth, Node: id, I: step}, 0),
 	)
 	for _, a := range axes {
