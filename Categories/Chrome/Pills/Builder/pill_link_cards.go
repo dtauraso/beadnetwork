@@ -68,15 +68,14 @@ func allLinksLines(m Model, id string, step int) [][]Cell {
 		Text("every link"),
 		Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id, I: step}).Outline(m.headOf(step, id).Both).Stepping(Act{Op: OpAllBoth, Node: id, I: step}, 0),
 	}
-	rest := []Cell{Text(""), Text("")}
+	times := []Cell{Text(""), Text("")}
+	ones := []Cell{Text(""), Text("")}
 	for _, a := range axes {
 		deltas = append(deltas, lockHead(m, id, step, a))
-		rest = append(rest, Text("nΔ"+a.label).Stepping(Act{Op: OpAllInc, Node: id, K: a.k, I: step}, 0))
+		times = append(times, Text("nΔ"+a.label).Stepping(Act{Op: OpAllInc, Node: id, K: a.k, I: step}, 0))
+		ones = append(ones, Text("1"+a.label).Stepping(Act{Op: OpAllOne, Node: id, K: a.k, I: step}, 0))
 	}
-	for _, a := range axes {
-		rest = append(rest, Text("1"+a.label).Stepping(Act{Op: OpAllOne, Node: id, K: a.k, I: step}, 0))
-	}
-	return [][]Cell{deltas, rest}
+	return [][]Cell{deltas, times, ones}
 }
 
 func nodeGroups(m Model, step int, id string) []Group {
