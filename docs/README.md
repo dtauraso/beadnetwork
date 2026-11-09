@@ -38,12 +38,6 @@ An untagged doc there escaped a merge — delete it.
 |---|---|
 | [pole-singularity/index.html](polar-geometry/pole-singularity/index.html) | The layout pole singularity — φ grid vs great-circle bearing. |
 
-## Pair node
-
-| Doc | What it covers |
-|---|---|
-| [phi-theta-2/index.html](pair-node/phi-theta-2/index.html) | pair φ, θ 2: the two-node sphere card. |
-
 ## Process
 
 | Doc | What it covers |

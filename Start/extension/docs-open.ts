@@ -39,7 +39,7 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
   if (!folder || folder.uri.scheme !== "file") return;
   const root = resolveRepoRoot(folder.uri.fsPath);
   if (!root) return;
-  const docsDir = path.join(root, "docs", "pair-node");
+  const docsDir = path.join(root, "scripts", "readscene", "rules-check");
   if (!fs.existsSync(docsDir)) return;      
   const portFile = path.join(docsDir, "port.js");
 
