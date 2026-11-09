@@ -147,11 +147,8 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
     try {
       const drawCards = (pop: boolean) => cards.forEach((r, i) => {
         if (cardBox?.[i] !== bi || (cardPop[i] !== 0) !== pop) return;
+        if (pop) return drawBox(c, r.x, r.y, r.w, r.h);
         roundRect(c, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, T.RADIUS_CHIP);
-        if (pop) {
-          c.fillStyle = T.SURFACE;
-          c.fill();
-        }
         c.strokeStyle = T.BORDER;
         c.lineWidth = 1;
         c.stroke();
