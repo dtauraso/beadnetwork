@@ -37,6 +37,8 @@ type UIState struct {
 
 	ScenePolarRules bool
 
+	SceneSpeedSlider bool
+
 	SceneKinds uint32
 
 	SceneSphere polar.SceneSphere

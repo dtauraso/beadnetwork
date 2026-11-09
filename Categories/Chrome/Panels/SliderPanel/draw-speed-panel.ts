@@ -40,6 +40,7 @@ export function drawSpeedPanel(c: CanvasRenderingContext2D): void {
   const denText = sliderText("denText");
   const denLen = sliderU32Run("denLen");
   if (!x || !y || !w || !h || !sel || !numText || !numLen || !denText || !denLen) return;
+  if (sliderF32("boxW") <= 0) return;
 
   drawBox(
     c,
