@@ -13,6 +13,8 @@ func (ui *UIState) PanelLayout() Chrome.Layout {
 		SpeedSlider:   ui.SceneSpeedSlider,
 		AnglesPill:    ui.SceneAnglesPill,
 		PlusButton:    ui.ScenePlusButton,
+		OverlaysDock:  ui.SceneOverlaysDock,
+		HiddenFlags:   ui.SceneHiddenOverlays,
 		LatticePoints: ui.LatticePoints,
 		Overlays:      &ui.OV,
 		Panels:        &ui.PN,
