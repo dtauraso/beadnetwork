@@ -8,6 +8,7 @@ import (
 
 	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
 
+	Panels "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
@@ -56,7 +57,9 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	}
 	if ev.Kind == "pointerup" && md.UI.PlacingPending {
 		md.UI.PlacingPending = false
-		placeNodeAt(md, &ev)
+		if Chrome.TargetAt(md.UI.PanelLayout(), ev.X, ev.Y).Kind == Panels.PointerNothing {
+			placeNodeAt(md, &ev)
+		}
 		return
 	}
 	if ev.Kind == "pointermove" {
