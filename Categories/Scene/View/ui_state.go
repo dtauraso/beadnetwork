@@ -43,6 +43,10 @@ type UIState struct {
 
 	ScenePlusButton bool
 
+	SceneOverlaysDock bool
+
+	SceneHiddenOverlays []string
+
 	SceneKinds uint32
 
 	SceneSphere polar.SceneSphere

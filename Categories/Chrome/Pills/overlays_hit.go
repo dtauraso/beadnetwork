@@ -27,6 +27,9 @@ type Hit struct {
 }
 
 func (l Layout) Hit(x, y float64) Hit {
+	if l.Pill.W <= 0 {
+		return Hit{}
+	}
 	if Panel.HitRect(l.Pill, x, y) {
 		caret := Rect{X: l.Pill.X + l.Pill.W - Panel.CaretW, Y: l.Pill.Y, W: Panel.CaretW, H: l.Pill.H}
 		if Panel.HitRect(caret, x, y) {

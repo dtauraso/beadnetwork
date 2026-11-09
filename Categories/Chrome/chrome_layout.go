@@ -39,6 +39,8 @@ type Of struct {
 	SpeedSlider   bool
 	AnglesPill    bool
 	PlusButton    bool
+	OverlaysDock  bool
+	HiddenFlags   []string
 	LatticePoints int32
 
 	Overlays *Flags.OverlayState
@@ -98,8 +100,14 @@ func LayoutOf(in Of) Layout {
 	}
 	if in.Sheet != nil {
 		left := Panel.NewLeftPillStack(float32(in.ViewW), float32(in.ViewH), st.Next(), nil)
-		lay.Sheet = Sheet.Build(pills, left, Builder.Pills(in.Builder), in.Sheet)
+		dock := Builder.Pills(in.Builder)
+		if in.OverlaysDock {
+			dock = append(dock, Pills.DockPill(in.Overlays, in.HiddenFlags))
+		}
+		lay.Sheet = Sheet.Build(pills, left, dock, in.Sheet)
 	}
-	lay.Overlays = Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll)
+	if !in.OverlaysDock {
+		lay.Overlays = Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll)
+	}
 	return lay
 }

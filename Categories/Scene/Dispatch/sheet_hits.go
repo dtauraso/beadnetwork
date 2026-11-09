@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
 func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
@@ -87,6 +89,9 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.ShowStep(a, sign)
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)
+	case Pills.OpOverlay:
+		Flags.ToggleFlag(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, a.K)
+		md.UI.PersistOverlays(md.UI.OV)
 	}
 }
 
