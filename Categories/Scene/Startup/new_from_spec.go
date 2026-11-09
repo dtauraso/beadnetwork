@@ -33,7 +33,8 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	for i, e := range spec.Edges {
 		edgeOrder[i] = e.Label
 	}
-	md, err := Dispatch.NewMoveDispatch(nodeGeoms, edgeEndpoints, nodeOrder, edgeOrder, clk, speedSinks, spec.RowCount, spec.Constants)
+	s := Scenes.For(scenePath)
+	md, err := Dispatch.NewMoveDispatch(nodeGeoms, edgeEndpoints, nodeOrder, edgeOrder, clk, speedSinks, spec.RowCount, spec.Constants, s.PolarRules)
 	if err != nil {
 		return nil, fmt.Errorf("Dispatch.NewFromSpec: %w", err)
 	}
@@ -44,8 +45,6 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		md.UI.SceneSphere = sphere
 	}
 	md.UI.Constants = spec.Constants
-
-	s := Scenes.For(scenePath)
 
 	coplanarEdges := s.CoplanarEdges
 	upAxis := s.UpAxis
@@ -82,10 +81,12 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.UI.Builder.CardsDir = Builder.CardsDir(Scenes.NodesRoot(scenePath))
 	md.UI.Builder.Cards = Builder.ReadCards(md.UI.Builder.CardsDir)
 
-	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
-		ng, ok := md.MR.NodeGeoms()[id]
-		return ok && ng.HasKindRule()
-	})
+	if s.PolarRules {
+		md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
+			ng, ok := md.MR.NodeGeoms()[id]
+			return ok && ng.HasKindRule()
+		})
+	}
 	md.UI.Rules.SharedRow = -1
 
 	kindByID := make(map[string]string, len(spec.Nodes))
@@ -112,14 +113,16 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	for row, label := range md.RT.EdgeRowTable {
 		src, okS := md.MR.NodeGeoms()[sourceByLabel[label]]
 		target, okT := targetByLabel[label], true
-		if !okS || !okT {
+		if !okS || !okT || src.RuleNode() == nil {
 			continue
 		}
 		md.Rules.TogglesByEdgeRow[row] = src.RuleNode().EdgeToggleChannel(target)
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {
-		nm.RuleNode().BroadcastSelf()
+		if rn := nm.RuleNode(); rn != nil {
+			rn.BroadcastSelf()
+		}
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {

@@ -20,25 +20,27 @@ type Scene struct {
 	NodesDraggable bool
 
 	Kinds []string
+
+	PolarRules bool
 }
 
 var All = []Scene{
 
-	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, Editable: true, NodesDraggable: true,
+	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, Editable: true, NodesDraggable: true, PolarRules: true,
 		Kinds: []string{
 			"Input", "Time", "TimeStart", "TimeEnd",
 			"Pulse", "PulseLeft", "PulseRight",
 			"SelectLeft", "SelectRight",
 		}},
 
-	{Name: "pair φ 2", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, NodesDraggable: true, Kinds: []string{"NodePhi"}},
+	{Name: "pair φ 2", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, NodesDraggable: true, Kinds: []string{"NodePhi"}, PolarRules: true},
 
-	{Name: "pair φ, θ 2", Dir: "topology-pair-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: false, Kinds: []string{"NodePhiTheta"}},
+	{Name: "pair φ, θ 2", Dir: "topology-pair-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: false, Kinds: []string{"NodePhiTheta"}, PolarRules: true},
 
 	{Name: "pair φ, θ 3", Dir: "topology-pair-phi-theta-3", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: false, Kinds: []string{"NodePhiTheta3"}},
 }
 
-var Unlisted = Scene{ClockDivisor: 1}
+var Unlisted = Scene{ClockDivisor: 1, PolarRules: true}
 
 func Declared(path string) (Scene, bool) {
 	base := filepath.Base(filepath.Clean(path))

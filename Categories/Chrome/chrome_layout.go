@@ -35,6 +35,7 @@ type Of struct {
 
 	SceneEditable bool
 	SceneKinds    uint32
+	PolarRules    bool
 	LatticePoints int32
 
 	Overlays *Flags.OverlayState
@@ -77,7 +78,9 @@ func LayoutOf(in Of) Layout {
 		Tabs:  tabs,
 		Speed: SliderPanel.Build(st),
 		Tilt:  TiltPanel.Build(st, in.Tilt.Rows, in.Tilt.Labels),
-		Rules: PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules),
+	}
+	if in.PolarRules {
+		lay.Rules = PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules)
 	}
 	lay.Angle = AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints, nodes)
 	lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen))

@@ -62,7 +62,7 @@ func (md *MoveDispatch) wireRuleEditRows() {
 	md.Rules.SizeByNodeRows(len(md.RT.NodeRowTable))
 	for row, id := range md.RT.NodeRowTable {
 		nm, ok := geoms[id]
-		if !ok {
+		if !ok || nm.RuleNode() == nil {
 			continue
 		}
 		md.Rules.EditsByNodeRow[row] = nm.RuleNode().Edits()
