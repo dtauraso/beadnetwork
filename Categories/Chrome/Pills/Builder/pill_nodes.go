@@ -40,21 +40,7 @@ func NodesPill(m Model) Pill {
 	rows = append(rows, []Cell{Button("+ add node", Act{Op: OpAddNode}, false)})
 	return Pill{Label: NodesLabel, Bottom: true, Groups: []Group{
 		{Title: "nodes — s (ticks a twelfth of a turn) and the place I, an index on the frame", Rows: rows},
-		connectGroup(m),
 	}}
-}
-
-func connectGroup(m Model) Group {
-	var rows [][]Cell
-	for _, from := range m.Nodes {
-		if row := connectRow(m, from, from+" →"); row != nil {
-			rows = append(rows, row)
-		}
-	}
-	if len(rows) == 0 {
-		rows = [][]Cell{{Text("no edge left to add")}}
-	}
-	return Group{Title: "+ add edge — its start is measured from where the two nodes are", Rows: rows}
 }
 
 func connectRow(m Model, from, label string) []Cell {
