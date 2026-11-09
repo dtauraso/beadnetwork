@@ -92,10 +92,7 @@ func TreePill(m Model) Pill {
 		box(3, "method cards", kv("item", m.Item(), true), kv("methods", names(methods), false), kv("card step", strconv.Itoa(m.CardShown()), false)),
 	}
 	for _, l := range all {
-		s := float64(Links.ShownS(l.Start.S))
 		d := l.DirFrom(m.Frame, m.RefOf(l.From))
-		d.Phi, d.Theta = d.Phi*s, d.Theta*s
-		l = l.Shown()
 		groups = append(groups, box(3, "edge "+l.Name(), kv("from", l.From, true), kv("to", l.To, true),
 			kv("start", ang(l.Start.Phi, l.Start.Theta, &l.Start.R), false), kv("Δ", ticks(l.Delta), false),
 			kv("increment", ticks(l.Increment), false), kv("lock", lockText(l.Lock), false),
