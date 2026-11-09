@@ -12,6 +12,9 @@ import (
 
 func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 	sh := &md.UI.Sheet
+	if op := h.Cell.Act.Op; h.Part != Sheet.PartBody || op != Builder.OpSeqFold && op != Builder.OpSeqOpen {
+		md.UI.Builder.SeqListOpen = false
+	}
 	switch h.Part {
 	case Sheet.PartPill:
 		sh.Toggle(h.Label)

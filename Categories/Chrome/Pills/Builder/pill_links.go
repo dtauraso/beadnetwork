@@ -87,6 +87,7 @@ func LinksPill(m Model) Pill {
 	if refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(refused)}}, Wraps: true})
 	}
+	groups = append(groups, sequenceList(m, 0)...)
 	return Pill{Label: LinksLabel, Bottom: true, Groups: groups}
 }
 

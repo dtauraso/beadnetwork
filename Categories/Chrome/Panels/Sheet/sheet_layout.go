@@ -167,7 +167,7 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 				dx = max(0, min(st.ScrollX[slideKey(p.Label, table)], most))
 			}
 			if g.Card {
-				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: Rect{X: x + in, Y: y, W: outerW(g, room) - in, H: outerH(g)}})
+				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: Rect{X: x + in, Y: y, W: outerW(g, room) - in, H: outerH(g)}, Pop: g.Pop != nil, Cell: len(lay.Cells)})
 				x, y = x+CardPad, y+CardPad
 			}
 			lay.place(box, g, x+in, y, dx)

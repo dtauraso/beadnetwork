@@ -106,6 +106,11 @@ type Group struct {
 	Wraps  bool
 	Indent bool
 	Card   bool
+	Pop    *Anchor
+}
+
+type Anchor struct {
+	Group, Col int
 }
 
 type SlideBox struct {

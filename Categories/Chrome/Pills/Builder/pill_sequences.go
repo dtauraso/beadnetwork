@@ -1,5 +1,7 @@
 package Builder
 
+import "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+
 const (
 	OpSeqOpen = "seq-open"
 	OpSeqAdd  = "seq-add"
@@ -27,17 +29,20 @@ func sequenceGroups(m Model) []Group {
 	if len(m.Seqs) > 1 {
 		row = append(row, Button("−", Act{Op: OpSeqDrop}, false))
 	}
-	groups := []Group{{Rows: [][]Cell{row}}}
-	if !m.SeqListOpen {
-		return groups
+	return []Group{{Rows: [][]Cell{row}}}
+}
+
+func sequenceList(m Model, at int) []Group {
+	if !m.SeqListOpen || len(m.Seqs) == 0 {
+		return nil
 	}
-	list := Group{Indent: true}
+	list := Group{Card: true, Pop: &Sheet.Anchor{Group: at, Col: 1}}
 	for _, q := range m.Seqs {
-		label := q.Name
+		mark := "   "
 		if q.K == m.OpenSeq {
-			label += "  (open)"
+			mark = "✓ "
 		}
-		list.Rows = append(list.Rows, []Cell{Button(label, Act{Op: OpSeqOpen, I: q.K}, q.K == m.OpenSeq)})
+		list.Rows = append(list.Rows, []Cell{Button(mark+q.Name, Act{Op: OpSeqOpen, I: q.K}, q.K == m.OpenSeq)})
 	}
-	return append(groups, list)
+	return []Group{list}
 }

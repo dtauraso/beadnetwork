@@ -8,7 +8,7 @@ import { sheetBytes, sheetF32Run, sheetU32Run, sheetText } from "./sheet-leaves"
 const TITLE_FONT_PX = 12;
 const TITLE_INK = "#222";
 
-function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "pillBar" | "tabOn" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "upDim" | "cellDim" | "pillOpen"): number[] {
+function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "pillBar" | "tabOn" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "upDim" | "cellDim" | "pillOpen" | "cardPop"): number[] {
   const v = sheetBytes(name);
   const out: number[] = [];
   if (v) for (let i = 0; i < v.byteLength; i++) out.push(v.getUint8(i));
@@ -132,6 +132,9 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const cellSlides = bytesOf("cellSlides"), upSlides = bytesOf("upSlides");
   const upLit = bytesOf("upLit"), downLit = bytesOf("downLit"), upDim = bytesOf("upDim");
   const cardBox = sheetU32Run("cardBox"), cards = rects("cardX", "cardY", "cardW", "cardH");
+  const cardPop = bytesOf("cardPop"), cardCell = sheetU32Run("cardCell");
+  let popFrom = cells.length;
+  cards.forEach((_, i) => { if (cardPop[i]) popFrom = Math.min(popFrom, cardCell?.[i] ?? popFrom); });
 
   boxes.forEach((b, bi) => {
     if (b.w <= 0 || b.h <= 0) return;
@@ -142,13 +145,26 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
     c.clip();
     const sx = slideX?.[bi] ?? 0, sw = slideW?.[bi] ?? 0;
     try {
-      cards.forEach((r, i) => {
-        if (cardBox?.[i] !== bi) return;
+      const drawCards = (pop: boolean) => cards.forEach((r, i) => {
+        if (cardBox?.[i] !== bi || (cardPop[i] !== 0) !== pop) return;
         roundRect(c, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, T.RADIUS_CHIP);
+        if (pop) {
+          c.fillStyle = T.SURFACE;
+          c.fill();
+        }
         c.strokeStyle = T.BORDER;
         c.lineWidth = 1;
         c.stroke();
       });
+      const drawCells = (from: number, to: number) => cells.forEach((r, i) => {
+        if (i < from || i >= to || cellBox?.[i] !== bi || r.w <= 0) return;
+        const isEditing = editing[i] !== 0;
+        slid(c, b, sx, sw, (cellSlides[i] ?? 0) !== 0, () => drawCell(c, r, {
+          kind: kinds[i] ?? 0, key: keys[i] ?? "", value: isEditing ? `${draft}_` : vals[i] ?? "", editing: isEditing,
+          outlined: (outlined[i] ?? 0) !== 0, boxed: (boxed[i] ?? 0) !== 0, lit: (lit[i] ?? 0) !== 0, dim: (dimCell[i] ?? 0) !== 0,
+        }));
+      });
+      drawCards(false);
       if (headBox && headX && headY && headH) {
         for (let i = 0; i < headBox.length; i++) {
           if (headBox[i] !== bi) continue;
@@ -159,16 +175,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
           c.fillText(titles[i] ?? "", headX[i]!, headY[i]! + headH[i]! / 2);
         }
       }
-      if (cellBox) {
-        cells.forEach((r, i) => {
-          if (cellBox[i] !== bi || r.w <= 0) return;
-          const isEditing = editing[i] !== 0;
-          slid(c, b, sx, sw, (cellSlides[i] ?? 0) !== 0, () => drawCell(c, r, {
-            kind: kinds[i] ?? 0, key: keys[i] ?? "", value: isEditing ? `${draft}_` : vals[i] ?? "", editing: isEditing,
-            outlined: (outlined[i] ?? 0) !== 0, boxed: (boxed[i] ?? 0) !== 0, lit: (lit[i] ?? 0) !== 0, dim: (dimCell[i] ?? 0) !== 0,
-          }));
-        });
-      }
+      drawCells(0, popFrom);
       if (upBox) {
         ups.forEach((r, i) => {
           if (upBox[i] !== bi) return;
@@ -180,6 +187,8 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
           });
         });
       }
+      drawCards(true);
+      drawCells(popFrom, cells.length);
     } finally {
       c.restore();
     }
