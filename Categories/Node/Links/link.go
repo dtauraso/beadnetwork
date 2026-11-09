@@ -5,6 +5,24 @@ import "math"
 type Start struct {
 	Phi, Theta, R float64
 	S             int
+	One           Ones
+}
+
+type Ones struct{ Phi, Theta, R int }
+
+func (o *Ones) At(k string) *int {
+	if k == KR {
+		return &o.R
+	}
+	if k == KTheta {
+		return &o.Theta
+	}
+	return &o.Phi
+}
+
+func (s Start) Stepped() Start {
+	k := float64(ShownS(s.S))
+	return Start{Phi: s.Phi + float64(s.One.Phi)/k, Theta: s.Theta + float64(s.One.Theta)/k, R: s.R + float64(s.One.R)/k}
 }
 
 type Ints struct{ Phi, Theta, R, S int }
@@ -38,7 +56,25 @@ func NewLink(from, to string) *Link {
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
 func (l *Link) Dir() Start {
-	return Start{Phi: Wrap(1, l.Start.Phi+float64(l.Delta.Phi)), Theta: Wrap(1, l.Start.Theta+float64(l.Delta.Theta)), R: l.Start.R + float64(l.Delta.R)}
+	at := l.Start.Stepped()
+	return Start{Phi: Wrap(1, at.Phi+float64(l.Delta.Phi)), Theta: Wrap(1, at.Theta+float64(l.Delta.Theta)), R: at.R + float64(l.Delta.R)}
+}
+
+func (l *Link) StepOne(k string, sign int) {
+	s := ShownS(l.Start.S)
+	o := l.Start.One.At(k)
+	*o += sign
+	carry := 0
+	if *o >= s {
+		carry = 1
+	} else if *o < 0 {
+		carry = -1
+	}
+	*o -= carry * s
+	if carry != 0 {
+		v := map[string]float64{KPhi: l.Start.Phi, KTheta: l.Start.Theta, KR: l.Start.R}[k]
+		l.SetStart(k, v+float64(carry))
+	}
 }
 
 func ShownS(s int) int { return max(1, s) }
@@ -113,5 +149,6 @@ func Measure(f Frame, was Start, p, t Vec3) Start {
 
 func (l *Link) Remeasure(f Frame, ref Turn, p, t Vec3) {
 	v := Measure(f, l.Dir(), Vec3{}, ref.Unrotate(t.Sub(p)))
-	l.Start = Start{Phi: Wrap(1, v.Phi-float64(l.Delta.Phi)), Theta: Wrap(1, v.Theta-float64(l.Delta.Theta)), R: v.R - float64(l.Delta.R), S: l.Start.S}
+	one := Start{S: l.Start.S, One: l.Start.One}.Stepped()
+	l.Start = Start{Phi: Wrap(1, v.Phi-float64(l.Delta.Phi)-one.Phi), Theta: Wrap(1, v.Theta-float64(l.Delta.Theta)-one.Theta), R: v.R - float64(l.Delta.R) - one.R, S: l.Start.S, One: l.Start.One}
 }
