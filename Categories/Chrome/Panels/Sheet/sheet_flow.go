@@ -9,6 +9,7 @@ type CardBox struct {
 	Rect Rect
 	Pop  bool
 	Cell int
+	Max  float32
 }
 
 type spot struct{ X, Y float32 }

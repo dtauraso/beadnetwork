@@ -9,6 +9,8 @@ const (
 	OpSeqFold = "seq-fold"
 )
 
+const seqListRows = 6
+
 type Seq struct {
 	K    int
 	Name string
@@ -36,7 +38,7 @@ func sequenceList(m Model, at int) []Group {
 	if !m.SeqListOpen || len(m.Seqs) == 0 {
 		return nil
 	}
-	list := Group{Card: true, Pop: &Sheet.Anchor{Group: at, Col: 1}}
+	list := Group{Card: true, Pop: &Sheet.Anchor{Group: at, Col: 1}, MaxRows: seqListRows}
 	for _, q := range m.Seqs {
 		mark := "   "
 		if q.K == m.OpenSeq {

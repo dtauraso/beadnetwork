@@ -39,6 +39,9 @@ func (s *State) load(sceneRoot string) {
 			s.SetScroll(label, float32(v))
 		}
 		s.loadScrollX(label)
+		if v := LoadScalar(s.file(label, popScrollFile), 0, 0); v > 0 {
+			s.SetPopScroll(label, float32(v))
+		}
 		if v := LoadScalar(s.file(label, "height"), 0, 0); float32(v) >= 2*barH() {
 			if s.Height == nil {
 				s.Height = map[string]float32{}

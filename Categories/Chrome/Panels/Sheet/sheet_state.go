@@ -4,10 +4,11 @@ type State struct {
 	w   *ValueWriter
 	dir string
 
-	Edit    Edit
-	Open    map[string]bool
-	Scroll  map[string]float32
-	ScrollX map[string]float32
+	Edit      Edit
+	Open      map[string]bool
+	Scroll    map[string]float32
+	ScrollX   map[string]float32
+	PopScroll map[string]float32
 
 	Tab      int
 	Order    []string
