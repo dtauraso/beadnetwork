@@ -1,6 +1,7 @@
 package Builder
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 
@@ -128,7 +129,7 @@ func nodeTables(m Model, step int) []Group {
 		} else if len(rows) == 0 {
 			rows = [][]Cell{{Text("no links")}}
 		}
-		groups = append(groups, Group{Title: foldTitle(false, "node "+id), Fold: fold}, Group{Rows: refRows(m, id, fit), Slides: true}, Group{Rows: rows, Slides: true})
+		groups = append(groups, Group{Title: foldTitle(false, "node "+id), Fold: fold}, Group{Rows: refRows(m, id, fit), Slides: true, Table: fmt.Sprintf("step %d node %s ref", step, id)}, Group{Rows: rows, Slides: true, Table: fmt.Sprintf("step %d node %s", step, id)})
 	}
 	return groups
 }

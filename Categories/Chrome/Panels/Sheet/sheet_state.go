@@ -54,15 +54,19 @@ func (s *State) SetScroll(label string, v float32) {
 	s.save(label, "scroll", px(v))
 }
 
-func (s *State) ScrollXOf(label string) *float32 {
-	v := s.ScrollX[label]
+const scrollXFile = "scroll-x "
+
+func slideKey(label, table string) string { return label + "\x1f" + table }
+
+func (s *State) ScrollXOf(label, table string) *float32 {
+	v := s.ScrollX[slideKey(label, table)]
 	return &v
 }
 
-func (s *State) SetScrollX(label string, v float32) {
+func (s *State) SetScrollX(label, table string, v float32) {
 	if s.ScrollX == nil {
 		s.ScrollX = map[string]float32{}
 	}
-	s.ScrollX[label] = v
-	s.save(label, "scroll-x", px(v))
+	s.ScrollX[slideKey(label, table)] = v
+	s.save(label, scrollXFile+table, px(v))
 }

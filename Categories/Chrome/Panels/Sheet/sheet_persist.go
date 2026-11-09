@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 )
 
 const stateRelDir = "view/chrome/sheet-state"
@@ -37,9 +38,7 @@ func (s *State) load(sceneRoot string) {
 		if v := LoadScalar(s.file(label, "scroll"), 0, 0); v > 0 {
 			s.SetScroll(label, float32(v))
 		}
-		if v := LoadScalar(s.file(label, "scroll-x"), 0, 0); v > 0 {
-			s.SetScrollX(label, float32(v))
-		}
+		s.loadScrollX(label)
 		if v := LoadScalar(s.file(label, "height"), 0, 0); float32(v) >= 2*barH() {
 			if s.Height == nil {
 				s.Height = map[string]float32{}
@@ -54,6 +53,22 @@ func (s *State) load(sceneRoot string) {
 				s.Folded = map[string]bool{}
 			}
 			s.Folded[label] = true
+		}
+	}
+}
+
+func (s *State) loadScrollX(label string) {
+	files, _ := os.ReadDir(filepath.Join(s.dir, label))
+	for _, f := range files {
+		table, ok := strings.CutPrefix(strings.TrimSuffix(f.Name(), ".bin"), scrollXFile)
+		if !ok {
+			continue
+		}
+		if v := LoadScalar(s.file(label, scrollXFile+table), 0, 0); v > 0 {
+			if s.ScrollX == nil {
+				s.ScrollX = map[string]float32{}
+			}
+			s.ScrollX[slideKey(label, table)] = float32(v)
 		}
 	}
 }

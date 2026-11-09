@@ -88,10 +88,12 @@ func (l Layout) covering(x, y float64) (PillBox, bool) {
 	return PillBox{}, false
 }
 
-func (l Layout) Covers(x, y float64) (label string, maxScroll, maxScrollX float32, ok bool) {
+func (l Layout) Covers(x, y float64) (label, table string, maxScroll, maxScrollX float32, ok bool) {
 	p, ok := l.covering(x, y)
-	if !Panel.HitRect(p.Slide, x, y) {
-		p.MaxScrollX = 0
+	for _, s := range p.Slides {
+		if Panel.HitRect(s.Rect, x, y) {
+			table, maxScrollX = s.Table, s.Max
+		}
 	}
-	return p.Label, p.MaxScroll, p.MaxScrollX, ok
+	return p.Label, table, p.MaxScroll, maxScrollX, ok
 }
