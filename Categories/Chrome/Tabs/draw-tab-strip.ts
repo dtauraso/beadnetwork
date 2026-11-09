@@ -19,7 +19,7 @@ function drawPanelToggle(c: CanvasRenderingContext2D): void {
   const up = (stripBytes("panelUp")?.getUint8(0) ?? 0) !== 0;
   const inset = h * 0.22;
   const ix = x + inset, iy = y + inset, iw = w - 2 * inset, ih = h - 2 * inset;
-  const split = iy + ih * 0.55;
+  const split = iy + ih * 0.63;
   const r = Math.min(iw, ih) * 0.22;
 
   roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, T.RADIUS_CHIP);
