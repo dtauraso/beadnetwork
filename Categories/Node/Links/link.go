@@ -6,6 +6,35 @@ type Start struct {
 	Phi, Theta, R float64
 	S             int
 	One           Ones
+	Tick          Ticks
+}
+
+type Ticks struct{ Phi, Theta int }
+
+func Digits(s int) int {
+	d := 0
+	for p := 1; p < s; p *= 10 {
+		d++
+	}
+	return d
+}
+
+func TenTo(s int) int {
+	p := 1
+	for range Digits(s) {
+		p *= 10
+	}
+	return p
+}
+
+func (s Start) Pulled() Start {
+	p := float64(TenTo(s.S))
+	s.Tick = Ticks{int(math.Floor(s.Phi*p + 1e-9)), int(math.Floor(s.Theta*p + 1e-9))}
+	return s
+}
+
+func (s Start) FromTick(n int) float64 {
+	return float64(n) * math.Pow10(-Digits(s.S))
 }
 
 type Ones struct{ Phi, Theta, R int }
@@ -78,7 +107,38 @@ func (l *Link) StepOne(k string, sign int) {
 
 func ShownS(s int) int { return max(1, s) }
 
-func (l *Link) SetS(s int) { l.Start.S, l.Delta.S, l.Increment.S = s, s, s }
+func (l *Link) SetS(s int) {
+	l.Start.S, l.Delta.S, l.Increment.S = s, s, s
+	l.Start = l.Start.Pulled()
+}
+
+func (l *Link) Drawn() (int, Start) {
+	p := TenTo(l.Start.S)
+	t := l.Start.Tick
+	return p, Start{Phi: float64(t.Phi + l.Delta.Phi*p), Theta: float64(t.Theta + l.Delta.Theta*p), R: l.Start.R + float64(l.Delta.R)}
+}
+
+func Tenths(v float64) int { return int(math.Floor(v*10 + 1e-6)) }
+
+func (s Start) Tenth() Ones { return Ones{Tenths(s.Phi), Tenths(s.Theta), Tenths(s.R)} }
+
+func gcd(a, b int) int {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return max(a, -a)
+}
+
+func Lcm(a, b int) int { return a / gcd(a, b) * b }
+
+func (s Start) TicksNeeded() int {
+	t := s.Tenth()
+	need := 1
+	for _, n := range []int{t.Phi, t.Theta, t.R} {
+		need = Lcm(need, 10/gcd(n, 10))
+	}
+	return need
+}
 
 func (a *Ints) At(k string) *int {
 	if k == KR {
@@ -109,6 +169,7 @@ func (l *Link) SetStart(k string, v float64) {
 	default:
 		l.Start.Phi = Wrap(1, v)
 	}
+	l.Start = l.Start.Pulled()
 }
 
 func (l *Link) Step(k string, sign int) {
@@ -148,5 +209,5 @@ func Measure(f Frame, was Start, p, t Vec3) Start {
 
 func (l *Link) Remeasure(f Frame, ref Turn, p, t Vec3) {
 	v := Measure(f, l.Dir(), Vec3{}, ref.Unrotate(t.Sub(p)))
-	l.Start = Start{Phi: Wrap(1, v.Phi-float64(l.Delta.Phi)), Theta: Wrap(1, v.Theta-float64(l.Delta.Theta)), R: v.R - float64(l.Delta.R), S: l.Start.S, One: l.Start.One}
+	l.Start = Start{Phi: Wrap(1, v.Phi-float64(l.Delta.Phi)), Theta: Wrap(1, v.Theta-float64(l.Delta.Theta)), R: v.R - float64(l.Delta.R), S: l.Start.S, One: l.Start.One}.Pulled()
 }

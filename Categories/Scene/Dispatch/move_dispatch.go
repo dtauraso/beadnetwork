@@ -112,6 +112,16 @@ func (md *MoveDispatch) syncStepPicks(ctx context.Context, step int) {
 	}
 }
 
+func (md *MoveDispatch) sFitsStarts(ctx context.Context) {
+	m := &md.UI.Builder
+	for _, id := range m.Nodes {
+		was := m.ScaleOf(id)
+		if want := Links.Lcm(was, m.SNeeded(id)); want != was {
+			md.sendLink(ctx, id, Links.SetS{V: want, Note: fmt.Sprintf("s rose from %d so every start's first decimal is a whole number of ticks", was)})
+		}
+	}
+}
+
 func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) {
 	m := &md.UI.Builder
 	was := m.StepDeltas(a.I)
@@ -124,6 +134,7 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) 
 	for _, e := range moved {
 		md.sendStepLink(ctx, e, was, a.Op != Builder.OpAllOne)
 	}
+	md.sFitsStarts(ctx)
 }
 
 func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge, was map[Builder.StepEdge]Links.Ints, fromDrawn bool) {
@@ -169,6 +180,7 @@ func DrainLinkReports(md *MoveDispatch) {
 	}
 	if len(rs) > 0 {
 		frameSIsLargestNodeS(md)
+		md.sFitsStarts(context.TODO())
 	}
 	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {
 		md.persistStep()

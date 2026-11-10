@@ -2,7 +2,6 @@ package Builder
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 
@@ -89,12 +88,4 @@ func LinksPill(m Model) Pill {
 	}
 	groups = append(groups, sequenceList(m, 0)...)
 	return Pill{Label: LinksLabel, Bottom: true, Groups: groups}
-}
-
-func num1(v float64) string {
-	v = math.Round(v*10) / 10
-	if v == math.Trunc(v) {
-		return strconv.Itoa(int(v))
-	}
-	return strconv.FormatFloat(v, 'f', 1, 64)
 }

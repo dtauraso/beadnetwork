@@ -62,6 +62,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if md.UI.Builder.Refused == "" {
 			md.syncStepPicks(ctx, a.I)
 			md.sendStepLink(ctx, Builder.StepEdge{Step: a.I, From: a.Node, To: a.To}, was, a.Op != Builder.OpLinkStart && a.Op != Builder.OpLinkOne)
+			md.sFitsStarts(ctx)
 		}
 		return
 	}

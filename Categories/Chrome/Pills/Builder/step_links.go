@@ -43,7 +43,7 @@ func (m *Model) SeedStepLinks() bool {
 				continue
 			}
 			if c.Delta.S != l.Delta.S || c.Start.S != l.Start.S || c.Increment.S != l.Increment.S {
-				c.Start.S, c.Delta.S, c.Increment.S = l.Start.S, l.Delta.S, l.Increment.S
+				c.SetS(l.Start.S)
 				seeded = true
 			}
 		}
@@ -83,7 +83,7 @@ func (m Model) TurnFromDrawn(e StepEdge, was Links.Ints) (Links.Start, bool) {
 		return Links.Start{}, false
 	}
 	drawn := live.Dir()
-	return Links.Start{Phi: Links.Wrap(1, drawn.Phi-float64(was.Phi)), Theta: Links.Wrap(1, drawn.Theta-float64(was.Theta)), R: drawn.R - float64(was.R), S: live.Start.S, One: live.Start.One}, true
+	return Links.Start{Phi: Links.Wrap(1, drawn.Phi-float64(was.Phi)), Theta: Links.Wrap(1, drawn.Theta-float64(was.Theta)), R: drawn.R - float64(was.R), S: live.Start.S, One: live.Start.One}.Pulled(), true
 }
 
 func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
@@ -95,8 +95,10 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 	switch a.Op {
 	case OpLinkStart:
 		v := map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K] + float64(sign)
-		if typed != nil {
+		if typed != nil && a.K == Links.KR {
 			v = *typed
+		} else if typed != nil {
+			v = l.Start.FromTick(int(math.Floor(*typed)))
 		}
 		if a.K == Links.KR && (v < 0 || v+float64(l.Delta.R) < 0) {
 			return fmt.Sprintf("%s r %v: neither r nor r + Δr can be negative, so r stays at %v", name, v, l.Start.R)
@@ -133,6 +135,22 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 		*l.Increment.At(a.K) = v
 	}
 	return ""
+}
+
+func (m Model) SNeeded(id string) int {
+	need := 1
+	for _, l := range m.allLinks() {
+		if l.From != id && l.To != id {
+			continue
+		}
+		need = Links.Lcm(need, l.Start.TicksNeeded())
+		for _, step := range StepNumbers {
+			if c := m.StepLinks[StepEdge{step, l.From, l.To}]; c != nil {
+				need = Links.Lcm(need, c.Start.TicksNeeded())
+			}
+		}
+	}
+	return need
 }
 
 func IsStepEdit(a Act) bool {
