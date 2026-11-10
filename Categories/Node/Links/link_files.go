@@ -47,6 +47,10 @@ func ReadLinks(nodeDir, to string) ([]Link, error) {
 	return readLinksIn(dir, to)
 }
 
+func ReadBaseLinks(nodeDir, to string) ([]Link, error) { return readLinksIn(BaseLinksDir(nodeDir), to) }
+
+func ReadDragLinks(nodeDir, to string) ([]Link, error) { return readLinksIn(DragLinksDir(nodeDir), to) }
+
 func readLinksIn(linksDir, to string) ([]Link, error) {
 	entries, err := os.ReadDir(linksDir)
 	if os.IsNotExist(err) {
@@ -85,6 +89,7 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 		ReadIfExists(filepath.Join(dir, FileOneTheta), &l.Start.One.Theta)
 		ReadIfExists(filepath.Join(dir, FileOneR), &l.Start.One.R)
 		mustBeCounts(dir, l)
+		l.Start = l.Start.Pulled()
 		all = append(all, l)
 	}
 	SortLinks(all)

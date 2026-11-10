@@ -10,8 +10,10 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
+func NodesDir(root string) string { return filepath.Join(root, "nodes") }
+
 func nodeDirPath(root, id string) string {
-	return filepath.Join(root, "nodes", id)
+	return filepath.Join(NodesDir(root), id)
 }
 
 func nodeBaseDir(root, id string) string {

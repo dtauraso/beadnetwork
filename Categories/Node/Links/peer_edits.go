@@ -91,8 +91,8 @@ func (p *Peer) connect(m Connect) []Envelope {
 	p.heard[m.From] = p.round
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
-	l.SetS(p.SOf(m.From))
 	l.Start = Measure(p.Frame, l.Dir(), p.posOf(m.From), p.Pos())
+	l.SetS(p.SOf(m.From))
 	p.own[m.From] = l
 	p.order = append(p.order, m.From)
 	p.touched(m.From)

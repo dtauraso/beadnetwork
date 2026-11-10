@@ -41,7 +41,10 @@ func (r Turn) Unrotate(v Vec3) Vec3 {
 	return Vec3{X: x*cb + v.Z*sb, Y: y, Z: v.Z*cb - x*sb}
 }
 
-func (f Frame) LinkVec(l Link, ref Turn) Vec3 { return ref.Rotate(f.Vec(1, l.Dir())) }
+func (f Frame) LinkVec(l Link, ref Turn) Vec3 {
+	p, d := l.Drawn()
+	return ref.Rotate(f.Vec(p, d))
+}
 
 func (l *Link) DirFrom(f Frame, ref Turn) Start {
 	d, a := l.Dir(), ref.In(1)

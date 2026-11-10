@@ -11,14 +11,14 @@ const cardFit = "0.0"
 
 type axis struct {
 	label, k          string
-	at                func(Links.Link) float64
+	at                func(Links.Link) string
 	delta, times, one func(Links.Link) int
 }
 
 var axes = []axis{
-	{"φ", Links.KPhi, func(l Links.Link) float64 { return l.Start.Phi }, func(l Links.Link) int { return l.Delta.Phi }, func(l Links.Link) int { return l.Increment.Phi }, func(l Links.Link) int { return l.Start.One.Phi }},
-	{"θ", Links.KTheta, func(l Links.Link) float64 { return l.Start.Theta }, func(l Links.Link) int { return l.Delta.Theta }, func(l Links.Link) int { return l.Increment.Theta }, func(l Links.Link) int { return l.Start.One.Theta }},
-	{"r", Links.KR, func(l Links.Link) float64 { return l.Start.R }, func(l Links.Link) int { return l.Delta.R }, func(l Links.Link) int { return l.Increment.R }, func(l Links.Link) int { return l.Start.One.R }},
+	{"φ", Links.KPhi, func(l Links.Link) string { return strconv.Itoa(l.Start.Tick.Phi) }, func(l Links.Link) int { return l.Delta.Phi }, func(l Links.Link) int { return l.Increment.Phi }, func(l Links.Link) int { return l.Start.One.Phi }},
+	{"θ", Links.KTheta, func(l Links.Link) string { return strconv.Itoa(l.Start.Tick.Theta) }, func(l Links.Link) int { return l.Delta.Theta }, func(l Links.Link) int { return l.Increment.Theta }, func(l Links.Link) int { return l.Start.One.Theta }},
+	{"r", Links.KR, func(l Links.Link) string { return strconv.FormatFloat(l.Start.R, 'f', -1, 64) }, func(l Links.Link) int { return l.Delta.R }, func(l Links.Link) int { return l.Increment.R }, func(l Links.Link) int { return l.Start.One.R }},
 }
 
 func lockHead(m Model, step int, a axis) Cell {
@@ -104,7 +104,7 @@ func linkCard(m Model, step int, l Links.Link) Group {
 		}
 		rows = append(rows, []Cell{
 			Text(a.label),
-			field(num1(a.at(l)), OpLinkStart, true).Dimmed(dim),
+			field(a.at(l), OpLinkStart, true).Dimmed(dim),
 			field(strconv.Itoa(a.delta(l)), OpLinkPress, false).Dimmed(dim),
 			field(strconv.Itoa(a.times(l)), OpIncrement, true),
 			field(strconv.Itoa(a.one(l)), OpLinkOne, false).Dimmed(dim),
