@@ -43,7 +43,7 @@ var All = []Scene{
 			"SelectLeft", "SelectRight",
 		}},
 
-	{Name: "pair φ, θ 3", Dir: "topology-pair-phi-theta-3", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: false, Kinds: []string{"NodePhiTheta3"}, PlusButton: true,
+	{Name: "pair φ, θ 3", Dir: "topology-pair-phi-theta-3", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: true, Kinds: []string{"NodePhiTheta3"}, PlusButton: true,
 		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors", "ruleChannels"}},
 }
 
