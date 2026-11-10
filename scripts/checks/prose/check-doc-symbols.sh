@@ -15,7 +15,7 @@ HISTORY_RE='(gone|removed|retired|deleted|erased|obsolete|legacy|superseded|repl
 
 DOC_HISTORICAL_RE='<meta[[:space:]]+name="doc-status"[[:space:]]+content="historical"'
 
-TMP=$(mktemp -d)
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/doc-symbols.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
 git ls-files -z '*.go' '*.ts' '*.tsx' '*.js' '*.sh' 2>/dev/null \

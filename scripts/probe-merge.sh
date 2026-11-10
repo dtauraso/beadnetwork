@@ -14,7 +14,7 @@ while IFS= read -r f; do
 done < <(find "$REPO_ROOT"/topology*/view -name 'trace.bin' -o -name '*-trace.bin' 2>/dev/null | sort)
 
 if (( ${#TRACE_BINS[@]} > 0 )); then
-  DECODED_DIR="$(mktemp -d)"
+  DECODED_DIR="$(mktemp -d "${TMPDIR:-/tmp}/probe-merge.XXXXXX")"
   trap 'rm -rf "$DECODED_DIR"' EXIT
   for f in "${TRACE_BINS[@]}"; do
     rel="${f#"$REPO_ROOT"/}"

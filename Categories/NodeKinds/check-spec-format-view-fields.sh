@@ -19,7 +19,7 @@ if [[ ! -f "$DOC" ]]; then
   exit 1
 fi
 
-TMP=$(mktemp -d)
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/spec-view-fields.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
 grep -rhoE 'vmap\["[A-Za-z0-9_]+"\]' "$GEN_DIR" --include="*.go" \

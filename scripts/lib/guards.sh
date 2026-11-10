@@ -42,7 +42,7 @@ run_guards() {
     guard_selected+=("$chk_path")
   done
 
-  GDIR=$(mktemp -d)
+  GDIR=$(mktemp -d "${TMPDIR:-/tmp}/guards.XXXXXX")
   trap 'rm -rf "$GDIR"' EXIT
 
   for chk_path in "${guard_selected[@]}"; do
