@@ -8,9 +8,12 @@ guard_slug() {
 export -f guard_slug 2>/dev/null || true
 
 run_one_guard() {
-  local gp="$1" gs go grc
+  local gp="$1" gs go grc t0=$SECONDS
   gs=$(guard_slug "$gp")
   go=$(bash "$gp" 2>&1); grc=$?
+  if [ "${MODE:-}" = "cli" ] && [ $((SECONDS - t0)) -ge 2 ]; then
+    printf 'stop-checks:   %s %ss\n' "$(basename "$gp" .sh)" "$((SECONDS - t0))" >&2
+  fi
   printf '%s' "$go" > "$GDIR/$gs.out"
   printf '%s' "$grc" > "$GDIR/$gs.rc"
 }
@@ -45,15 +48,19 @@ run_guards() {
   GDIR=$(mktemp -d "${TMPDIR:-/tmp}/guards.XXXXXX")
   trap 'rm -rf "$GDIR"' EXIT
 
+  phase_start "serial guards"
   for chk_path in "${guard_selected[@]}"; do
     chk=$(basename "$chk_path" .sh)
     echo "$chk" | grep -qE "^($GUARD_SERIAL)$" || continue
     run_one_guard "$chk_path"
   done
+  phase_end
 
+  phase_start "parallel guards (${#guard_selected[@]}, those over 2s named)"
   printf '%s\n' "${guard_selected[@]}" \
     | grep -vE "/($GUARD_SERIAL)\.sh$" \
-    | GDIR="$GDIR" xargs -P "$JOBS" -I@ bash -c 'run_one_guard "@"'
+    | MODE="$MODE" GDIR="$GDIR" xargs -P "$JOBS" -I@ bash -c 'run_one_guard "@"'
+  phase_end
 
   local grc chk_out gs
   for chk_path in "${guard_selected[@]}"; do

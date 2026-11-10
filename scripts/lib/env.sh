@@ -35,3 +35,15 @@ cd_to_root_or_die() {
     exit 1
   }
 }
+
+phase_start() {
+  PHASE_NAME="$1"
+  PHASE_T0=$SECONDS
+  [ "$MODE" = "cli" ] && printf 'stop-checks: %s ...\n' "$PHASE_NAME" >&2
+  return 0
+}
+
+phase_end() {
+  [ "$MODE" = "cli" ] && printf 'stop-checks: %s %ss\n' "$PHASE_NAME" "$((SECONDS - PHASE_T0))" >&2
+  return 0
+}

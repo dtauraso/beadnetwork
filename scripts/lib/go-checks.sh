@@ -6,19 +6,25 @@
 run_go_checks() {
   [ -z "$go_changed" ] && return
 
+  phase_start "go build"
   if ! go_out=$(go build ./... 2>&1); then
     out+="go build failed:\n$go_out\n\n"
     fail=1
   fi
+  phase_end
 
+  phase_start "go test"
   if ! gotest_out=$(go test ./... 2>&1); then
     out+="go test failed:\n$gotest_out\n\n"
     fail=1
   fi
+  phase_end
   # go vet + staticcheck. staticcheck COMPILES the whole module, so it is
 
+  phase_start "staticcheck"
   if ! sc_out=$(bash scripts/checks/lang/check-staticcheck.sh 2>&1); then
     out+="check-staticcheck failed:\n$sc_out\n\n"
     fail=1
   fi
+  phase_end
 }
