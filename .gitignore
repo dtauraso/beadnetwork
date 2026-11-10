@@ -241,6 +241,11 @@ topology-pair-phi-theta-3/sequences/*
 # copies of the links): set from the Links pill while the editor is used, kept local.
 topology*/sequences/*/step/
 
+# Link files the editor adds to the tracked seed sequences (a link drawn while using it, or a
+# field a link gains, such as one-*.bin): written from editor use, kept local. The seeds'
+# tracked link files stay tracked — an ignore rule never untracks a file.
+topology*/sequences/*/nodes/*/links/
+
 # Where the running extension listens for "open this file as a tab", and that
 # session's token. Written on activation, removed on shutdown.
 scripts/readscene/rules-check/port.js
