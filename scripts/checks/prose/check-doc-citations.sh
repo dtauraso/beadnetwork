@@ -15,7 +15,7 @@ source "$REPO_ROOT/scripts/lib/docs/citations-match.sh"
 
 require_docs_present
 
-TMP=$(mktemp -d)
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/doc-citations.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
 write_normalized_docs

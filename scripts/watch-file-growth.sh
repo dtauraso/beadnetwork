@@ -22,7 +22,7 @@ mkdir -p .probe
 printf '=== watch-file-growth  scene=%s  interval=%ss  started=%s\n' \
   "$SCENE" "$INTERVAL" "$(date '+%H:%M:%S')" >>"$LOG"
 
-PREV="$(mktemp)"
+PREV="$(mktemp "${TMPDIR:-/tmp}/watch-growth.XXXXXX")"
 trap 'rm -f "$PREV"' EXIT
 : >"$PREV"
 
@@ -30,7 +30,7 @@ while :; do
   now="$(date '+%H:%M:%S')"
   total=0
   grown=""
-  CUR="$(mktemp)"
+  CUR="$(mktemp "${TMPDIR:-/tmp}/watch-growth.XXXXXX")"
 
   while IFS= read -r f; do
     sz="$(size_of "$f")"

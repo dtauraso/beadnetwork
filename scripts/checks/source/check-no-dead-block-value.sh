@@ -31,7 +31,7 @@ strip_ts_comments() {
   perl -0777pe 's{/\*.*?\*/}{}gs; s{//[^\n]*}{}g' "$@" 2>/dev/null
 }
 
-CODE_ONLY_CORPUS="$(mktemp)"
+CODE_ONLY_CORPUS="$(mktemp "${TMPDIR:-/tmp}/dead-block-code.XXXXXX")"
 trap 'rm -f "$CODE_ONLY_CORPUS"' EXIT
 if [[ ${#prod_files[@]} -gt 0 ]]; then
   strip_ts_comments "${prod_files[@]}" | grep -ohE '[A-Za-z0-9_]+' | sort -u > "$CODE_ONLY_CORPUS"
@@ -59,7 +59,7 @@ readonly DERIVED_FAMILIES=(
   '^channelHeadM[0-9]+$:VECTOR_HEAD_NAMES'
 )
 
-VALUE_CORPUS="$(mktemp)"
+VALUE_CORPUS="$(mktemp "${TMPDIR:-/tmp}/dead-block-value.XXXXXX")"
 trap 'rm -f "$CODE_ONLY_CORPUS" "$VALUE_CORPUS"' EXIT
 value_consumers=()
 for f in "${prod_files[@]}"; do
