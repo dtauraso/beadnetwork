@@ -21,10 +21,10 @@ var axes = []axis{
 	{"r", Links.KR, func(l Links.Link) float64 { return l.Start.R }, func(l Links.Link) int { return l.Delta.R }, func(l Links.Link) int { return l.Increment.R }, func(l Links.Link) int { return l.Start.One.R }},
 }
 
-func lockHead(m Model, id string, step int, a axis) Cell {
-	st := m.headOf(step, id)
+func lockHead(m Model, step int, a axis) Cell {
+	st := m.headOf(step)
 	way, on := st.At(a.k)
-	lock := Act{Op: OpAllLock, Node: id, K: a.k, I: step}
+	lock := Act{Op: OpAllLock, K: a.k, I: step}
 	return Text("Δ"+a.label).Acting(lock).Outline(*on).Stepping(lock, *way).LockedOn(*on)
 }
 
@@ -63,19 +63,19 @@ func nodeLine(m Model, step int, id string) []Cell {
 	return row
 }
 
-func allLinksLines(m Model, id string, step int) [][]Cell {
+func activeLinksGroup(m Model, step int) Group {
 	deltas := []Cell{
-		Text("every link"),
-		Text("φ+θ+r").Acting(Act{Op: OpAllLocks, Node: id, I: step}).Outline(m.headOf(step, id).Both).Stepping(Act{Op: OpAllBoth, Node: id, I: step}, 0),
+		Text("active links"),
+		Text("φ+θ+r").Acting(Act{Op: OpAllLocks, I: step}).Outline(m.headOf(step).Both).Stepping(Act{Op: OpAllBoth, I: step}, 0),
 	}
 	times := []Cell{Text(""), Text("")}
 	ones := []Cell{Text(""), Text("")}
 	for _, a := range axes {
-		deltas = append(deltas, lockHead(m, id, step, a))
-		times = append(times, Text("nΔ"+a.label).Stepping(Act{Op: OpAllInc, Node: id, K: a.k, I: step}, 0))
-		ones = append(ones, Text("1"+a.label).Stepping(Act{Op: OpAllOne, Node: id, K: a.k, I: step}, 0))
+		deltas = append(deltas, lockHead(m, step, a))
+		times = append(times, Text("nΔ"+a.label).Stepping(Act{Op: OpAllInc, K: a.k, I: step}, 0))
+		ones = append(ones, Text("1"+a.label).Stepping(Act{Op: OpAllOne, K: a.k, I: step}, 0))
 	}
-	return [][]Cell{deltas, times, ones}
+	return Group{Rows: [][]Cell{deltas, times, ones}}
 }
 
 func nodeGroups(m Model, step int, id string) []Group {
@@ -84,7 +84,6 @@ func nodeGroups(m Model, step int, id string) []Group {
 	if m.StepFolded(step, id) || len(links) == 0 {
 		return groups
 	}
-	groups = append(groups, Group{Rows: allLinksLines(m, id, step), Indent: true})
 	for _, l := range links {
 		groups = append(groups, linkCard(m, step, l))
 	}

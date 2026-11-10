@@ -68,8 +68,8 @@ func LinksPill(m Model) Pill {
 	if len(m.Seqs) > 0 {
 		groups = append(groups, sequenceGroups(m)...)
 	}
-	groups = append(groups, stepGroup(m))
 	step := m.StepShown()
+	groups = append(groups, stepGroup(m), activeLinksGroup(m, step))
 	refused := m.Refused
 	for _, id := range m.Nodes {
 		groups = append(groups, nodeGroups(m, step, id)...)

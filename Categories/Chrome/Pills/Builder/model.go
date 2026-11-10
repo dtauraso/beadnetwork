@@ -37,7 +37,7 @@ type Model struct {
 
 	StepPicks map[StepEdge]bool
 	StepLinks map[StepEdge]*Links.Link
-	StepHeads map[StepNode]*Step
+	StepHeads map[int]*Step
 	StepFolds map[StepNode]bool
 
 	Seqs        []Seq
