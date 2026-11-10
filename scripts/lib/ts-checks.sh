@@ -22,24 +22,34 @@ webview_bundle_stale() {
 }
 
 run_ts_checks() {
+  phase_start "webview stale check"
   if webview_bundle_stale; then
+    phase_end
+    phase_start "npm build"
     if ! build_out=$(npm run --silent build 2>&1); then
       out+="webview build failed:\n$build_out\n\n"
       fail=1
     fi
   fi
+  phase_end
 
   if [ -z "$ts_changed" ] && [ -z "$css_changed" ]; then
     return
   fi
 
-  if [ -n "$ts_changed" ] && ! tsc_out=$(npx --no-install tsc --noEmit --incremental --tsBuildInfoFile .beadnetwork-cache/tsc.tsbuildinfo 2>&1); then
-    out+="tsc --noEmit failed:\n$tsc_out\n\n"
-    fail=1
+  if [ -n "$ts_changed" ]; then
+    phase_start "tsc"
+    if ! tsc_out=$(npx --no-install tsc --noEmit --incremental --tsBuildInfoFile .beadnetwork-cache/tsc.tsbuildinfo 2>&1); then
+      out+="tsc --noEmit failed:\n$tsc_out\n\n"
+      fail=1
+    fi
+    phase_end
   fi
 
+  phase_start "eslint"
   if ! eslint_out=$(bash scripts/checks/lang/check-eslint.sh 2>&1); then
     out+="check-eslint failed:\n$eslint_out\n\n"
     fail=1
   fi
+  phase_end
 }

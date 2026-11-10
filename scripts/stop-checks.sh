@@ -44,6 +44,7 @@ css_changed=$(echo "$changed" | grep -E '\.' | grep -E '\.css$' || true)
 
 fail=0
 out=""
+TOTAL_T0=$SECONDS
 
 run_go_checks
 run_ts_checks
@@ -72,6 +73,6 @@ nudge_branch_name
 
 if [ "$MODE" = "cli" ]; then
   mark_tree_verified
-  echo "stop-checks: clean" >&2
+  echo "stop-checks: clean in $((SECONDS - TOTAL_T0))s" >&2
 fi
 exit 0
