@@ -10,6 +10,7 @@ const (
 	arrowShaftRadiusFrac = 0.035
 	arrowHeadLenFrac     = 0.22
 	arrowHeadRadiusFrac  = 0.09
+	pickedWiden          = 1.5
 )
 
 const ArrowRingDiskTheta = 0
@@ -85,15 +86,19 @@ func arrowAlong(center, axis Vec3, length, size float64, kind uint8) TiltArrow {
 	up := Vec3{X: 0, Y: 1, Z: 0}
 	bx, by, bz := axisBasisFrom(up, axis)
 
+	widen := 1.0
+	if kind == ArrowStart {
+		widen = pickedWiden
+	}
 	headLen := min(size*arrowHeadLenFrac, length)
 	shaftLen := length - headLen
 	shaftCenter := center.Add(axis.Scale(shaftLen / 2))
-	shaft := composeColumnMajor(bx, by, bz, shaftCenter,
-		size*arrowShaftRadiusFrac, shaftLen, size*arrowShaftRadiusFrac)
+	shaftR := size * arrowShaftRadiusFrac * widen
+	shaft := composeColumnMajor(bx, by, bz, shaftCenter, shaftR, shaftLen, shaftR)
 
 	headCenter := center.Add(axis.Scale(length - headLen/2))
-	head := composeColumnMajor(bx, by, bz, headCenter,
-		size*arrowHeadRadiusFrac, headLen, size*arrowHeadRadiusFrac)
+	headR := size * arrowHeadRadiusFrac * widen
+	head := composeColumnMajor(bx, by, bz, headCenter, headR, headLen, headR)
 
 	return TiltArrow{Received: kind, Shaft: shaft, Head: head}
 }
