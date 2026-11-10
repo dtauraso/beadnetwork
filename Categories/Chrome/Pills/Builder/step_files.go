@@ -95,9 +95,7 @@ func (m *Model) ReadNodeSteps() {
 	if m.StepDir != "" {
 		m.readStepLinks()
 		for _, step := range StepNumbers {
-			for _, id := range m.Nodes {
-				m.StepHead(step, id)
-			}
+			m.StepHead(step)
 		}
 	}
 }
