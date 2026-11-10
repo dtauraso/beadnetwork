@@ -5,4 +5,4 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
-npx --no-install eslint .
+npx --no-install eslint --cache --cache-location .beadnetwork-cache/eslint/ .

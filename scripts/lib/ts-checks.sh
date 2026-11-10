@@ -33,7 +33,7 @@ run_ts_checks() {
     return
   fi
 
-  if [ -n "$ts_changed" ] && ! tsc_out=$(npx --no-install tsc --noEmit 2>&1); then
+  if [ -n "$ts_changed" ] && ! tsc_out=$(npx --no-install tsc --noEmit --incremental --tsBuildInfoFile .beadnetwork-cache/tsc.tsbuildinfo 2>&1); then
     out+="tsc --noEmit failed:\n$tsc_out\n\n"
     fail=1
   fi
