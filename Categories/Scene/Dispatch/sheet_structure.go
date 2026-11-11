@@ -89,7 +89,7 @@ func setFrame(md *MoveDispatch, k string, v float64) {
 		m.Refused = fmt.Sprintf("could not write the frame: %v", err)
 		return
 	}
-	if err := Sheet.WriteScalar(Scenes.SFilePath(root), int32(s)); err != nil {
+	if err := Sheet.WriteScalar(Scenes.OpenSFilePath(root), int32(s)); err != nil {
 		m.Refused = fmt.Sprintf("could not write s: %v", err)
 		return
 	}

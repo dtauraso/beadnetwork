@@ -69,22 +69,20 @@ func main() {
 		fmt.Fprintf(os.Stderr, "readscene: %v\n", err)
 		os.Exit(1)
 	}
-	sceneS := Sheet.LoadScalar(Scenes.SFilePath(root), 1, 1)
-
 	if asJSON {
-		os.Exit(dumpJSON(root, seqs, constants, sceneS))
+		os.Exit(dumpJSON(root, seqs, constants))
 	}
 	if asSteps {
-		os.Exit(dumpRuns(root, seqs, constants, sceneS, singlePresses()))
+		os.Exit(dumpRuns(root, seqs, constants, singlePresses()))
 	}
 	if asOrders {
-		os.Exit(dumpRuns(root, seqs, constants, sceneS, orders))
+		os.Exit(dumpRuns(root, seqs, constants, orders))
 	}
 
 	out := bufio.NewWriter(os.Stdout)
 	status := 0
 	for _, k := range seqs {
-		if err := dumpSequence(out, root, k, constants, sceneS); err != nil {
+		if err := dumpSequence(out, root, k, constants); err != nil {
 			fmt.Fprintf(os.Stderr, "readscene: sequence %d: %v\n", k, err)
 			status = 1
 		}
@@ -144,12 +142,16 @@ func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topo
 	return spec, nil
 }
 
-func dumpSequence(out *bufio.Writer, root string, k int, constants polarindex.SceneConstants, sceneS int) error {
+func sequenceS(root string, k int) int {
+	return Sheet.LoadScalar(Scenes.SFilePath(Scenes.SequenceDir(root, k)), 1, 1)
+}
+
+func dumpSequence(out *bufio.Writer, root string, k int, constants polarindex.SceneConstants) error {
 	spec, err := loadSequence(root, k, constants)
 	if err != nil {
 		return err
 	}
-	seed := Topology.LinkSeed(spec, sceneS, 0)
+	seed := Topology.LinkSeed(spec, sequenceS(root, k), 0)
 	f := seed.Frame
 
 	fmt.Fprintf(out, "sequence %d  %q\n", k, Scenes.SequenceName(root, k))

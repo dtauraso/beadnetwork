@@ -61,6 +61,8 @@ func NodesRoot(scenePath string) string {
 	return scenePath
 }
 
+func OpenSFilePath(scenePath string) string { return SFilePath(NodesRoot(scenePath)) }
+
 func SequenceName(scenePath string, k int) string {
 	name := "sequence " + strconv.Itoa(k)
 	ReadIfExists(filepath.Join(SequenceDir(scenePath, k), FileSeqName), &name)

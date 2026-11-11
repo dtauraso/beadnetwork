@@ -180,7 +180,7 @@ func setAllS(ctx context.Context, md *MoveDispatch, v int) {
 	m := &md.UI.Builder
 	m.S = v
 	if root := md.Scenes.TreeRoot; root != "" {
-		if err := Sheet.WriteScalar(Scenes.SFilePath(root), int32(v)); err != nil {
+		if err := Sheet.WriteScalar(Scenes.OpenSFilePath(root), int32(v)); err != nil {
 			m.Refused = fmt.Sprintf("could not write s: %v", err)
 		}
 	}
