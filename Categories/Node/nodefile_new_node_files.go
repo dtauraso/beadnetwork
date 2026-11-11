@@ -105,9 +105,9 @@ func LoadDragActive(root, id string) bool {
 	return readActive(ruleActiveFilePath(root, id, FileDragActive))
 }
 
-func WriteNewPlaceNode(root, id, kind string, p polarindex.Place, s int) error {
+func WriteNewPlaceNode(root, id, kind string, p polarindex.Place) error {
 	base := nodeBaseDir(root, id)
-	for name, v := range map[string]any{FileType: kind, FileAtR: p.R, FileAtPhi: p.Phi, FileAtTheta: p.Theta, FileS: s} {
+	for name, v := range map[string]any{FileType: kind, FileAtR: p.R, FileAtPhi: p.Phi, FileAtTheta: p.Theta} {
 		if err := WriteAtomic(filepath.Join(base, name), v); err != nil {
 			return err
 		}

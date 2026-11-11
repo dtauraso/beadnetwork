@@ -114,11 +114,10 @@ func (md *MoveDispatch) syncStepPicks(ctx context.Context, step int) {
 
 func (md *MoveDispatch) sFitsStarts(ctx context.Context) {
 	m := &md.UI.Builder
-	for _, id := range m.Nodes {
-		was := m.ScaleOf(id)
-		if want := Links.Lcm(was, m.SNeeded(id)); want != was {
-			md.sendLink(ctx, id, Links.SetS{V: want, Note: fmt.Sprintf("s rose from %d so every start's first decimal is a whole number of ticks", was)})
-		}
+	was := m.SceneS()
+	if want := Links.Lcm(was, m.SNeeded()); want != was {
+		m.SNote = fmt.Sprintf("s rose from %d to %d so every start's first decimal is a whole number of ticks", was, want)
+		setAllS(ctx, md, want)
 	}
 }
 
@@ -152,23 +151,6 @@ func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge, wa
 	md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: start, Delta: l.Delta, Increment: l.Increment})
 }
 
-func frameSIsLargestNodeS(md *MoveDispatch) {
-	m := &md.UI.Builder
-	top := 0
-	for _, id := range m.Nodes {
-		top = max(top, m.Reports[id].S)
-	}
-	if top < 1 || top == m.S {
-		return
-	}
-	m.S = top
-	if root := md.Scenes.TreeRoot; root != "" {
-		if err := Sheet.WriteScalar(Scenes.SFilePath(root), int32(top)); err != nil {
-			m.Refused = fmt.Sprintf("could not write s: %v", err)
-		}
-	}
-}
-
 func DrainLinkReports(md *MoveDispatch) {
 	if md == nil || md.Links == nil {
 		return
@@ -179,7 +161,6 @@ func DrainLinkReports(md *MoveDispatch) {
 		m.Take(r)
 	}
 	if len(rs) > 0 {
-		frameSIsLargestNodeS(md)
 		md.sFitsStarts(context.TODO())
 	}
 	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {

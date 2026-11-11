@@ -71,7 +71,7 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	}
 
 	md.Links = Links.NewMesh()
-	md.UI.Builder.S = Sheet.LoadScalar(Scenes.SFilePath(scenePath), 1, 1)
+	md.UI.Builder.S = Sheet.LoadScalar(Scenes.OpenSFilePath(scenePath), 1, 1)
 	md.UI.Builder.TickMs = Sheet.LoadScalar(Scenes.TickMsFilePath(scenePath), clock.MsPerTick, 1)
 	md.UI.Builder.Frame = Topology.LinkFrame(spec)
 	md.UI.Builder.StepDir = Builder.StepDir(Scenes.NodesRoot(scenePath))

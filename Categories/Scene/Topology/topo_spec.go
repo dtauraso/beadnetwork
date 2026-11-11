@@ -22,7 +22,6 @@ type Node struct {
 	IndexR     *int
 
 	At *polarindex.Place
-	S  *int
 
 	RefPhi, RefTheta, RefS int
 

@@ -107,9 +107,6 @@ func (n *NodePhiTheta3) apply() {
 		n.breadcrumb("sat", fmt.Sprintf("at=%+v", n.peer.At))
 	}
 	if c.S {
-		if err := NodeCat.WriteNodeS(root, id, n.peer.S); err != nil {
-			n.breadcrumb("s-persist", err.Error())
-		}
 		n.postTicks()
 	}
 	if c.Ref {
@@ -129,7 +126,7 @@ func (n *NodePhiTheta3) publish() { n.publishWith("") }
 
 func (n *NodePhiTheta3) publishWith(refused string) {
 	n.postVectors()
-	n.mesh.Report(Links.Report{ID: n.peer.ID, S: n.peer.S, SNote: n.peer.SNote, At: n.peer.At, Ref: n.peer.Ref, Links: n.peer.Links(), Refused: refused})
+	n.mesh.Report(Links.Report{ID: n.peer.ID, At: n.peer.At, Ref: n.peer.Ref, Links: n.peer.Links(), Refused: refused})
 }
 
 func (a BuildArgs) Geom() *NodeCat.NodeGeometry {

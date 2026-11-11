@@ -178,10 +178,6 @@ func loadNodeBase(nodesDir, nodeID string) (Node, error) {
 	if at := readOptPlace(drag); at != nil {
 		sn.At = at
 	}
-	sn.S = readOptInt(filepath.Join(baseDir, NodeBuf.FileS))
-	if s := readOptInt(filepath.Join(drag, NodeBuf.FileS)); s != nil {
-		sn.S = s
-	}
 	readLeaf(filepath.Join(drag, NodeBuf.FileRefPhi), &sn.RefPhi)
 	readLeaf(filepath.Join(drag, NodeBuf.FileRefTheta), &sn.RefTheta)
 	readLeaf(filepath.Join(drag, NodeBuf.FileRefS), &sn.RefS)

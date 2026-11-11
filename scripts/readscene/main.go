@@ -69,22 +69,20 @@ func main() {
 		fmt.Fprintf(os.Stderr, "readscene: %v\n", err)
 		os.Exit(1)
 	}
-	sceneS := Sheet.LoadScalar(Scenes.SFilePath(root), 1, 1)
-
 	if asJSON {
-		os.Exit(dumpJSON(root, seqs, constants, sceneS))
+		os.Exit(dumpJSON(root, seqs, constants))
 	}
 	if asSteps {
-		os.Exit(dumpRuns(root, seqs, constants, sceneS, singlePresses()))
+		os.Exit(dumpRuns(root, seqs, constants, singlePresses()))
 	}
 	if asOrders {
-		os.Exit(dumpRuns(root, seqs, constants, sceneS, orders))
+		os.Exit(dumpRuns(root, seqs, constants, orders))
 	}
 
 	out := bufio.NewWriter(os.Stdout)
 	status := 0
 	for _, k := range seqs {
-		if err := dumpSequence(out, root, k, constants, sceneS); err != nil {
+		if err := dumpSequence(out, root, k, constants); err != nil {
 			fmt.Fprintf(os.Stderr, "readscene: sequence %d: %v\n", k, err)
 			status = 1
 		}
@@ -104,14 +102,6 @@ func readPlace(dir string) *polarindex.Place {
 		return nil
 	}
 	return &p
-}
-
-func readInt(path string) *int {
-	var v int
-	if !Links.ReadIfExists(path, &v) {
-		return nil
-	}
-	return &v
 }
 
 func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topology.TopoSpec, error) {
@@ -142,10 +132,6 @@ func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topo
 		if at := readPlace(drag); at != nil {
 			n.At = at
 		}
-		n.S = readInt(filepath.Join(base, NodeBuf.FileS))
-		if s := readInt(filepath.Join(drag, NodeBuf.FileS)); s != nil {
-			n.S = s
-		}
 		spec.Nodes = append(spec.Nodes, n)
 		links, err := Links.ReadLinks(nodeDir, id)
 		if err != nil {
@@ -156,27 +142,31 @@ func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topo
 	return spec, nil
 }
 
-func dumpSequence(out *bufio.Writer, root string, k int, constants polarindex.SceneConstants, sceneS int) error {
+func sequenceS(root string, k int) int {
+	return Sheet.LoadScalar(Scenes.SFilePath(Scenes.SequenceDir(root, k)), 1, 1)
+}
+
+func dumpSequence(out *bufio.Writer, root string, k int, constants polarindex.SceneConstants) error {
 	spec, err := loadSequence(root, k, constants)
 	if err != nil {
 		return err
 	}
-	seed := Topology.LinkSeed(spec, sceneS, 0)
+	seed := Topology.LinkSeed(spec, sequenceS(root, k), 0)
 	f := seed.Frame
 
 	fmt.Fprintf(out, "sequence %d  %q\n", k, Scenes.SequenceName(root, k))
-	fmt.Fprintf(out, "  frame  rho=%s  constant-r=%s  max-index-phi=%d  max-index-theta=%d  turn=12·s ticks\n",
-		num(f.Rho), num(f.Cr), f.Tphi, f.Ttheta)
+	fmt.Fprintf(out, "  frame  rho=%s  constant-r=%s  max-index-phi=%d  max-index-theta=%d  s=%d  turn=12·s ticks\n",
+		num(f.Rho), num(f.Cr), f.Tphi, f.Ttheta, seed.S)
 
 	for _, n := range spec.Nodes {
 		p, placed := seed.Places[n.ID]
 		if !placed {
-			fmt.Fprintf(out, "  node %-3s s=%d  (no place)\n", n.ID, seed.Scales[n.ID])
+			fmt.Fprintf(out, "  node %-3s (no place)\n", n.ID)
 			continue
 		}
 		v := f.At(p)
-		fmt.Fprintf(out, "  node %-3s s=%d  place φ=%s θ=%s r=%s   x=%s y=%s z=%s\n",
-			n.ID, seed.Scales[n.ID], num(p.Phi), num(p.Theta), num(p.R), num(v.X), num(v.Y), num(v.Z))
+		fmt.Fprintf(out, "  node %-3s place φ=%s θ=%s r=%s   x=%s y=%s z=%s\n",
+			n.ID, num(p.Phi), num(p.Theta), num(p.R), num(v.X), num(v.Y), num(v.Z))
 	}
 
 	for _, l := range spec.Links {

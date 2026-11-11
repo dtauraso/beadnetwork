@@ -26,12 +26,6 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		} else if typed != nil {
 			setFrame(md, a.K, *typed)
 		}
-	case Builder.OpNodeS:
-		if typed != nil && whole(*typed) && *typed >= 1 {
-			md.sendLink(ctx, a.Node, m.SetS(a.Node, int(*typed)))
-		} else if typed != nil {
-			md.UI.Builder.Refused = fmt.Sprintf("%s's s %v: not a whole number of at least 1, so it stays at %d", a.Node, *typed, m.ScaleOf(a.Node))
-		}
 	case Builder.OpNodeIdx:
 		at := m.Reports[a.Node].At
 		v := float64(sign) + map[string]float64{Links.KR: at.R, Links.KPhi: at.Phi, Links.KTheta: at.Theta}[a.K]
@@ -95,7 +89,7 @@ func setFrame(md *MoveDispatch, k string, v float64) {
 		m.Refused = fmt.Sprintf("could not write the frame: %v", err)
 		return
 	}
-	if err := Sheet.WriteScalar(Scenes.SFilePath(root), int32(s)); err != nil {
+	if err := Sheet.WriteScalar(Scenes.OpenSFilePath(root), int32(s)); err != nil {
 		m.Refused = fmt.Sprintf("could not write s: %v", err)
 		return
 	}
@@ -112,7 +106,7 @@ func addLinkNodeAt(md *MoveDispatch, at Links.Place) {
 	}
 	kind := md.MR.NodeGeoms()[m.Nodes[0]].Kind()
 	id := newNodeID(root)
-	if err := NodeBuf.WriteNewPlaceNode(root, id, kind, at, m.S); err != nil {
+	if err := NodeBuf.WriteNewPlaceNode(root, id, kind, at); err != nil {
 		m.Refused = fmt.Sprintf("could not write node %s: %v", id, err)
 		return
 	}

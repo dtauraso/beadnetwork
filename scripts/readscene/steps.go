@@ -78,7 +78,7 @@ func run(seed Links.Seed, ids []string, presses []jsonButton) (Links.Seed, []str
 }
 
 func collect(seed Links.Seed, ids []string, peers map[string]*Links.Peer) (Links.Seed, []string) {
-	after := Links.Seed{Frame: seed.Frame, Places: map[string]Links.Place{}, Scales: map[string]int{}}
+	after := Links.Seed{Frame: seed.Frame, Places: map[string]Links.Place{}, S: seed.S}
 	refused := []string{}
 	for _, id := range ids {
 		p := peers[id]
@@ -89,7 +89,7 @@ func collect(seed Links.Seed, ids []string, peers map[string]*Links.Peer) (Links
 		if _, had := seed.Places[id]; had || c.Place {
 			after.Places[id] = p.At
 		}
-		after.Scales[id] = p.S
+		after.S = p.S
 	}
 	for _, l := range seed.Links {
 		if p, ok := peers[l.To]; ok {
@@ -104,7 +104,7 @@ func collect(seed Links.Seed, ids []string, peers map[string]*Links.Peer) (Links
 	return after, refused
 }
 
-func dumpRuns(root string, seqs []int, constants polarindex.SceneConstants, sceneS int, lists [][]jsonButton) int {
+func dumpRuns(root string, seqs []int, constants polarindex.SceneConstants, lists [][]jsonButton) int {
 	status := 0
 	all := []jsonRun{}
 	for _, k := range seqs {
@@ -114,7 +114,7 @@ func dumpRuns(root string, seqs []int, constants polarindex.SceneConstants, scen
 			status = 1
 			continue
 		}
-		seed := Topology.LinkSeed(spec, sceneS, 0)
+		seed := Topology.LinkSeed(spec, sequenceS(root, k), 0)
 		var ids []string
 		for _, n := range spec.Nodes {
 			ids = append(ids, n.ID)

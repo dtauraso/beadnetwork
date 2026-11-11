@@ -29,6 +29,7 @@ type Model struct {
 	Reports map[string]Links.Report
 	Frame   Links.Frame
 	S       int
+	SNote   string
 	Refused string
 
 	Step    Step
@@ -96,12 +97,7 @@ func (m Model) Link(from, to string) (Links.Link, bool) {
 
 func (m Model) RefOf(id string) Links.Turn { return Links.RefTurn(m.Reports[id].Ref) }
 
-func (m Model) ScaleOf(id string) int {
-	if s := m.Reports[id].S; s > 0 {
-		return s
-	}
-	return max(1, m.S)
-}
+func (m Model) SceneS() int { return max(1, m.S) }
 
 func Pills(m Model) []Pill {
 	if !m.On() {

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -69,7 +70,7 @@ func fitS(root string) error {
 		}
 	}
 	var layers []*linkLayer
-	need := map[string]int{}
+	need := 1
 	for _, d := range dirs {
 		ls, err := readLayers(d[0], d[1])
 		if err != nil {
@@ -77,54 +78,47 @@ func fitS(root string) error {
 		}
 		for _, ly := range ls {
 			for _, l := range ly.links {
-				for _, id := range []string{l.From, l.To} {
-					need[id] = Links.Lcm(max(1, need[id]), l.Start.TicksNeeded())
-				}
+				need = Links.Lcm(need, l.Start.TicksNeeded())
 			}
 		}
 		layers = append(layers, ls...)
 	}
-	raised, err := raiseS(root, ids, need)
-	if err != nil {
-		return err
+	sPath := Scenes.SFilePath(root)
+	was := Sheet.LoadScalar(sPath, 1, 1)
+	want := Links.Lcm(max(was, dropNodeS(root, ids)), need)
+	if want != was {
+		if err := Sheet.WriteScalar(sPath, int32(want)); err != nil {
+			return err
+		}
 	}
 	for _, ly := range layers {
-		if err := ly.fit(raised); err != nil {
+		if err := ly.fit(want); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func raiseS(root string, ids []string, need map[string]int) (map[string]int, error) {
-	raised := map[string]int{}
+func dropNodeS(root string, ids []string) int {
+	top := 1
 	for _, id := range ids {
-		if need[id] <= 1 {
-			continue
-		}
 		drag, base := NodeBuf.PlaceDirs(NodeBuf.NodeDir(root, id))
 		for _, path := range []string{filepath.Join(drag, NodeBuf.FileS), filepath.Join(base, NodeBuf.FileS)} {
 			s := 1
-			if !NodeBuf.ReadIfExists(path, &s) {
-				continue
-			}
-			want := Links.Lcm(Links.ShownS(s), need[id])
-			if _, seen := raised[id]; !seen {
-				raised[id] = want
-			}
-			if err := NodeBuf.WriteAtomicIfChanged(path, want); err != nil {
-				return nil, err
+			if NodeBuf.ReadIfExists(path, &s) {
+				top = max(top, Links.ShownS(s))
+				_ = os.Remove(path)
 			}
 		}
 	}
-	return raised, nil
+	return top
 }
 
-func (ly *linkLayer) fit(raised map[string]int) error {
+func (ly *linkLayer) fit(want int) error {
 	changed := false
 	for i := range ly.links {
 		l := &ly.links[i]
-		if want, ok := raised[l.From]; ok && l.Start.S != want {
+		if l.Start.S != want {
 			l.SetS(want)
 			changed = true
 		}

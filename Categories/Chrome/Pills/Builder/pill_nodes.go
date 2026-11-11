@@ -1,15 +1,12 @@
 package Builder
 
 import (
-	"strconv"
-
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
 const NodesLabel = "Node places"
 
 const (
-	OpNodeS      = "node-s"
 	OpNodeIdx    = "node-idx"
 	OpNodeRef    = "node-ref"
 	OpAddNode    = "add-node"
@@ -26,20 +23,16 @@ func NodesPill(m Model) Pill {
 		c := m.Frame.At(r.At)
 		rows = append(rows, []Cell{
 			Text(id),
-			Field("s", strconv.Itoa(m.ScaleOf(id)), act(OpNodeS, ""), true, false),
 			Field("I_r", Num(r.At.R), act(OpNodeIdx, Links.KR), true, true),
 			Field("I_φ", Num(r.At.Phi), act(OpNodeIdx, Links.KPhi), true, true),
 			Field("I_θ", Num(r.At.Theta), act(OpNodeIdx, Links.KTheta), true, true), Text("C x " + Num(c.X) + " y " + Num(c.Y) + " z " + Num(c.Z)),
 			Text("n " + m.NOf(id)),
 			Button("remove", act(OpRemoveNode, ""), false),
 		})
-		if r.SNote != "" {
-			rows = append(rows, []Cell{Text(""), Text(r.SNote)})
-		}
 	}
 	rows = append(rows, []Cell{Button("+ add node", Act{Op: OpAddNode}, false)})
 	return Pill{Label: NodesLabel, Bottom: true, Groups: []Group{
-		{Title: "nodes — s (ticks a twelfth of a turn) and the place I, an index on the frame", Rows: rows},
+		{Title: "nodes — the place I, an index on the frame", Rows: rows},
 	}}
 }
 

@@ -110,7 +110,7 @@ func TreePill(m Model) Pill {
 			}
 		}
 		c := f.At(r.At)
-		groups = append(groups, box(4, "node "+id, kv("s", n3(float64(m.ScaleOf(id))), false),
+		groups = append(groups, box(4, "node "+id,
 			kv("at on O's grid", "r "+n3(r.At.R)+" | φ "+n3(r.At.Phi)+" | θ "+n3(r.At.Theta), false),
 			kv("out", names(out), true), kv("in", names(in), true),
 			kv("all lock", lockText(m.StepOf(id).Locks()), false), notStored(),

@@ -9,8 +9,6 @@ const InboxDepth = 1024
 
 type Report struct {
 	ID      string
-	S       int
-	SNote   string
 	At      Place
 	Ref     Ref
 	Links   []Link

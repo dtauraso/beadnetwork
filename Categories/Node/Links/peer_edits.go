@@ -1,10 +1,6 @@
 package Links
 
-import (
-	"fmt"
-	"maps"
-	"slices"
-)
+import "fmt"
 
 func (p *Peer) setLink(m SetLink) []Envelope {
 	l, ok := p.own[m.From]
@@ -12,7 +8,7 @@ func (p *Peer) setLink(m SetLink) []Envelope {
 		return nil
 	}
 	l.Start, l.Delta, l.Increment = m.Start, m.Delta, m.Increment
-	l.SetS(p.SOf(m.From))
+	l.SetS(p.S)
 	p.touched(m.From)
 	return p.take(l)
 }
@@ -57,7 +53,6 @@ func (p *Peer) setS(m SetS) []Envelope {
 	if m.V < 1 {
 		return nil
 	}
-	p.SNote = m.Note
 	p.Changed.S = true
 	if p.Ref.S != m.V {
 		p.Ref.S = m.V
@@ -67,20 +62,11 @@ func (p *Peer) setS(m SetS) []Envelope {
 		return nil
 	}
 	p.S = m.V
-	p.scales[p.ID] = m.V
-	var out []Envelope
-	for _, to := range slices.Sorted(maps.Keys(p.out)) {
-		out = append(out, Envelope{To: to, Msg: SSet{From: p.ID, S: m.V}})
+	for _, from := range p.order {
+		p.own[from].SetS(m.V)
+		p.touched(from)
 	}
-	return out
-}
-
-func (p *Peer) sSet(m SSet) {
-	p.scales[m.From] = m.S
-	if l, ok := p.own[m.From]; ok {
-		l.SetS(m.S)
-		p.touched(m.From)
-	}
+	return nil
 }
 
 func (p *Peer) connect(m Connect) []Envelope {
@@ -92,7 +78,7 @@ func (p *Peer) connect(m Connect) []Envelope {
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
 	l.Start = Measure(p.Frame, l.Dir(), p.posOf(m.From), p.Pos())
-	l.SetS(p.SOf(m.From))
+	l.SetS(p.S)
 	p.own[m.From] = l
 	p.order = append(p.order, m.From)
 	p.touched(m.From)

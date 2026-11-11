@@ -67,7 +67,7 @@ func sequenceJSON(root string, k int, spec Topology.TopoSpec, seed Links.Seed) j
 		Frame: jsonFrame{Rho: f.Rho, ConstantR: f.Cr, MaxIndexPhi: f.Tphi, MaxIndexTheta: f.Ttheta},
 		Nodes: []jsonNode{}, Links: []jsonLink{}}
 	for _, n := range spec.Nodes {
-		jn := jsonNode{ID: n.ID, S: seed.Scales[n.ID]}
+		jn := jsonNode{ID: n.ID, S: seed.S}
 		if p, ok := seed.Places[n.ID]; ok {
 			jn.Place = &jsonAngles{Phi: p.Phi, Theta: p.Theta, R: p.R}
 		}
@@ -84,7 +84,7 @@ func sequenceJSON(root string, k int, spec Topology.TopoSpec, seed Links.Seed) j
 	return js
 }
 
-func dumpJSON(root string, seqs []int, constants polarindex.SceneConstants, sceneS int) int {
+func dumpJSON(root string, seqs []int, constants polarindex.SceneConstants) int {
 	status := 0
 	all := []jsonSequence{}
 	for _, k := range seqs {
@@ -94,7 +94,7 @@ func dumpJSON(root string, seqs []int, constants polarindex.SceneConstants, scen
 			status = 1
 			continue
 		}
-		all = append(all, sequenceJSON(root, k, spec, Topology.LinkSeed(spec, sceneS, 0)))
+		all = append(all, sequenceJSON(root, k, spec, Topology.LinkSeed(spec, sequenceS(root, k), 0)))
 	}
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")

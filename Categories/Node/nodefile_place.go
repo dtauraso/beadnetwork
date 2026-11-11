@@ -22,10 +22,6 @@ func WritePlace(root, id string, p polarindex.Place) error {
 	return nil
 }
 
-func WriteNodeS(root, id string, s int) error {
-	return WriteAtomicIfChanged(filepath.Join(dragDir(root, id), FileS), s)
-}
-
 func WriteNodeRef(root, id string, phi, theta, s int) error {
 	for _, f := range []struct {
 		name string

@@ -24,7 +24,8 @@ func FramePill(m Model) Pill {
 			{Field("T_φ", strconv.Itoa(f.Tphi), act(FrameTphi), true, false), Text("index steps a turn in φ")},
 			{Field("T_θ", strconv.Itoa(f.Ttheta), act(FrameTtheta), true, false), Text("index steps a turn in θ")},
 			{Field("c_r", Num(f.Cr), act(FrameCr), true, false), Text("length of one radial index step")},
-			{Field("s", strconv.Itoa(m.S), act(FrameS), true, false), Text("the largest node s — typing it sets every node's s")},
+			{Field("s", strconv.Itoa(m.SceneS()), act(FrameS), true, false), Text("ticks a twelfth of a turn, one s every node uses — it rises when a start needs more")},
+			{Text(""), Text(m.SNote)},
 		}},
 		{Title: "time — each node loops at machine speed; its machine ticks become one human tick", Rows: [][]Cell{
 			{Field("Δt", strconv.Itoa(m.TickMs), Act{Op: OpTickMs}, true, true), Text("ms one human tick lasts")},
