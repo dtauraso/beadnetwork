@@ -137,12 +137,9 @@ func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 	return ""
 }
 
-func (m Model) SNeeded(id string) int {
+func (m Model) SNeeded() int {
 	need := 1
 	for _, l := range m.allLinks() {
-		if l.From != id && l.To != id {
-			continue
-		}
 		need = Links.Lcm(need, l.Start.TicksNeeded())
 		for _, step := range StepNumbers {
 			if c := m.StepLinks[StepEdge{step, l.From, l.To}]; c != nil {

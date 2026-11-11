@@ -56,8 +56,6 @@ func nodeLine(m Model, step int, id string) []Cell {
 	links := m.stepLinksFrom(step, id)
 	row := []Cell{
 		Text(foldTitle(folded, "node "+id)).Acting(Act{Op: OpStepFold, Node: id, I: step}),
-		Text("s"),
-		Field("", strconv.Itoa(m.ScaleOf(id)), Act{Op: OpNodeS, Node: id}, true, false).Fitting(cardFit).Outline(false),
 	}
 	if folded {
 		return append(row, Text(linkCount(len(links))))

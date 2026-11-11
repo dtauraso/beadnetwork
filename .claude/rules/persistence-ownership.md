@@ -22,11 +22,12 @@ topology/
 ├── nodes/<id>/
 │   ├── base/                               one value per file: type/gate/index + drag-rule/ and self-rule/ — TRACKED
 │   ├── drag/                               index-phi/-theta/-r — the node's position DELTA — GITIGNORED
-│   ├── data/ links/<from>To<to>/           data: init/<n>, repeat, state/<k>, send-rules/<port>; links: a links node's OUTGOING links (start, Δ, increment, lock, pick) — both TRACKED; a links node's edits write the whole link set to the GITIGNORED drag/links/, which REPLACES links/ at load, as drag/at-*.bin and drag/s.bin replace base/'s (Links/link_files.go, nodefile_place.go)
+│   ├── data/ links/<from>To<to>/           data: init/<n>, repeat, state/<k>, send-rules/<port>; links: a links node's OUTGOING links (start, Δ, increment, lock, pick) — both TRACKED; a links node's edits write the whole link set to the GITIGNORED drag/links/, which REPLACES links/ at load, as drag/at-*.bin replace base/'s (Links/link_files.go, nodefile_place.go). A node stores NO s: every node and link in a sequence uses view/s.bin
 │   ├── edges/<label>/                     OUTGOING only, one value per file: wiring + delta — TRACKED
 │   └── drag/edges/<label>/                that edge's accumulated geometry DELTA — GITIGNORED
 └── view/
-    └── camera/ overlays/ panels/ sphere/ scene/ speed.bin — one value per file
+    ├── camera/ overlays/ panels/ sphere/ scene/ speed.bin — one value per file
+    └── s.bin                               the ONE s (ticks a twelfth of a turn) of this sequence — every node uses it, and it rises to the lcm every start needs (Startup/fit_s.go at load, Dispatch's sFitsStarts on an edit); TRACKED in a seed sequence
 ```
 
 **One primitive per file, and the DIRECTORY HIERARCHY IS THE NESTED DICT.** A directory is an

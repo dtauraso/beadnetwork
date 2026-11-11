@@ -67,7 +67,7 @@ func sequenceJSON(root string, k int, spec Topology.TopoSpec, seed Links.Seed) j
 		Frame: jsonFrame{Rho: f.Rho, ConstantR: f.Cr, MaxIndexPhi: f.Tphi, MaxIndexTheta: f.Ttheta},
 		Nodes: []jsonNode{}, Links: []jsonLink{}}
 	for _, n := range spec.Nodes {
-		jn := jsonNode{ID: n.ID, S: seed.Scales[n.ID]}
+		jn := jsonNode{ID: n.ID, S: seed.S}
 		if p, ok := seed.Places[n.ID]; ok {
 			jn.Place = &jsonAngles{Phi: p.Phi, Theta: p.Theta, R: p.R}
 		}

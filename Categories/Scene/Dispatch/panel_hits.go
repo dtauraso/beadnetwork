@@ -168,13 +168,23 @@ func setSceneS(ctx context.Context, md *MoveDispatch, v float64) {
 		m.Refused = fmt.Sprintf("s %v: not a whole number of at least 1, so it stays at %d", v, m.S)
 		return
 	}
-	m.S = int(v)
+	want := Links.Lcm(int(v), m.SNeeded())
+	m.SNote = ""
+	if want != int(v) {
+		m.SNote = fmt.Sprintf("s %d rose to %d so every start's first decimal is a whole number of ticks", int(v), want)
+	}
+	setAllS(ctx, md, want)
+}
+
+func setAllS(ctx context.Context, md *MoveDispatch, v int) {
+	m := &md.UI.Builder
+	m.S = v
 	if root := md.Scenes.TreeRoot; root != "" {
-		if err := Sheet.WriteScalar(Scenes.SFilePath(root), int32(m.S)); err != nil {
+		if err := Sheet.WriteScalar(Scenes.SFilePath(root), int32(v)); err != nil {
 			m.Refused = fmt.Sprintf("could not write s: %v", err)
 		}
 	}
 	for _, id := range m.Nodes {
-		md.sendLink(ctx, id, m.SetS(id, m.S))
+		md.sendLink(ctx, id, Links.SetS{V: v})
 	}
 }

@@ -12,7 +12,7 @@ change to one node reaches another only as a message between them. The node's lo
 | T_φ, T_θ | `constants/max-index-phi.bin`, `max-index-theta.bin`: index steps a turn |
 | c_r | `constants/constant-r.bin`: the length of one radial index step |
 | ρ | `constants/rho.bin`: the length of one unit of a link's `r` (the node radius when absent) |
-| s | `view/s.bin`: ticks a twelfth of a turn, for a node with no `s` of its own |
+| s | `view/s.bin`: ticks a twelfth of a turn — the ONE `s` of the sequence, used by every node and link; it rises to the lcm of what every start needs, so every node gets the same number of ticks |
 | Δt | `view/tick-ms.bin`: ms one human tick lasts (default 16); a change reaches every node as `SetTickMs`, with no reload |
 
 A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_r, I_φ·2π/T_φ, I_θ·2π/T_θ)`.
@@ -22,9 +22,8 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 | Name | File |
 |------|------|
 | place `at` | `base/at-{r,phi,theta}.bin` (f64), replaced by `drag/at-*.bin` once the node has moved |
-| `s` | `base/s.bin`, replaced by `drag/s.bin` |
 | the links into it | `links/<j>To<me>/` (`source.bin` names `j`), replaced as a whole by `drag/links/` once one is edited |
-| reference Δφ, Δθ and its `s` | `drag/ref-phi.bin`, `ref-theta.bin`, `ref-s.bin` (int64): whole numbers in base `s = 1`, shown as `number × s`; the `s` is the node's last `s` edit (node or frame). Typing or pressing sets the number itself; a float file is refused loudly at load |
+| reference Δφ, Δθ and its `s` | `drag/ref-phi.bin`, `ref-theta.bin`, `ref-s.bin` (int64): whole numbers in base `s = 1`, shown as `number × s`; the `s` is the sequence's `s`. Typing or pressing sets the number itself; a float file is refused loudly at load |
 
 ## A link a→b — its angles stored at b
 
@@ -39,8 +38,7 @@ is. r + Δr is never below 0, and Δr has no lock and is not stepped by StepAll.
 **Each of start, Δ and increment holds two values: a number and an `s`.** Δ and increment
 numbers are integers (`int64` files `delta-*.bin`, `increment-*.bin`); start is measured and real.
 The number's base is `s = 1`: a number `k` is `k/12` of a turn, whatever the `s`. The `s` is the
-last `s` edited for the link's source node — a node `s` edit, or a frame `s` edit, which sets
-every node's `s` — and is stored beside the numbers (`start-s.bin`, `delta-s.bin`,
+sequence's `s` — the same for every link — and is stored beside the numbers (`start-s.bin`, `delta-s.bin`,
 `increment-s.bin`). The links table shows `number × s` for start and Δ, and the number itself for
 the increment (nΔ). Typing or pressing sets the number
 itself; nothing divides by `s`, and changing `s` never changes a number. A Δ or increment file
@@ -85,9 +83,10 @@ the start part and the end of the Δ part, each only when that part covers some 
   its place, so a draws it and tells b when it moves.
 - **Edits** (a step's start, Δ and increment for the link — UI → b): b changes the angles it holds and places
   itself at `GridAt(C_a + d)`.
-- **S** (UI → b): b's new `s`, a whole number of at least 1, is sent to every node b links to as
-  **SSet**; each stores it as the `s` of start, Δ and increment on its link from b. No number
-  changes, so no direction changes, and the shown `number × s` is whole for every `s`.
+- **SetS** (UI → every node): the sequence's new `s`, a whole number of at least 1 — a frame `s`
+  edit, or a start that needs more ticks raising it to the lcm every start needs. Each node stores
+  it as the `s` of start, Δ and increment on every link it holds. No number changes, so no
+  direction changes, and the shown `number × s` is whole for every `s`.
 - **Pick** (UI → b, b → a): b grants a pick only if no other link into b is picked, and tells a
   with **PickSet**, so a knows to send b its point.
 - **StepAll** (UI → every node, numbered): every node first steps Δ on the one picked link it

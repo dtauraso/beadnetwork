@@ -36,9 +36,6 @@ func (m Model) linksFrom(id string) []Links.Link {
 	return out
 }
 
-func (m Model) SetS(id string, v int) Links.SetS {
-	return Links.SetS{V: v}
-}
 
 func (m Model) StepShown() int {
 	return min(max(m.ShownStep, StepNumbers[0]), StepNumbers[len(StepNumbers)-1])

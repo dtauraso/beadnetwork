@@ -17,13 +17,11 @@ type Changes struct {
 type Peer struct {
 	ID    string
 	S     int
-	SNote string
 	At    Place
 	Frame Frame
 	Ref   Ref
 
 	refs      map[string]Turn
-	scales    map[string]int
 	own       map[string]*Link
 	order     []string
 	out       map[string]bool
@@ -41,21 +39,18 @@ type Peer struct {
 type Seed struct {
 	Frame  Frame
 	Places map[string]Place
-	Scales map[string]int
+	S      int
 	Refs   map[string]Ref
 	Links  []Link
 	TickMs int
 }
 
 func NewPeer(id string, seed Seed) *Peer {
-	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame, placed: true,
-		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}, scales: map[string]int{}}
+	p := &Peer{ID: id, S: ShownS(seed.S), At: seed.Places[id], Frame: seed.Frame, placed: true,
+		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}}
 	maps.Copy(p.places, seed.Places)
-	maps.Copy(p.scales, seed.Scales)
 	p.Ref, p.refs = seed.Refs[id], map[string]Turn{}
-	if p.Ref.S < 1 {
-		p.Ref.S = ShownS(p.S)
-	}
+	p.Ref.S = p.S
 	for n, r := range seed.Refs {
 		p.refs[n] = RefTurn(r)
 	}
@@ -65,9 +60,7 @@ func NewPeer(id string, seed Seed) *Peer {
 			c := l
 			c.Start.Phi, c.Start.Theta = FromSigned(1, c.Start.Phi), FromSigned(1, c.Start.Theta)
 			c.Start = c.Start.Pulled()
-			if c.Delta.S < 1 {
-				c.SetS(ShownS(seed.Scales[l.From]))
-			}
+			c.SetS(p.S)
 			p.own[l.From] = &c
 			p.order = append(p.order, l.From)
 		case l.From == id:
@@ -123,13 +116,6 @@ func (p *Peer) Ready() bool {
 	return true
 }
 
-func (p *Peer) SOf(id string) int {
-	if s := p.scales[id]; s > 0 {
-		return s
-	}
-	return p.S
-}
-
 func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.LinkVec(*l, p.refs[l.From]) }
 
 func (p *Peer) pickedIn() *Link {
@@ -176,8 +162,6 @@ func (p *Peer) Handle(msg any) []Envelope {
 		return p.setIdx(m)
 	case SetS:
 		return p.setS(m)
-	case SSet:
-		p.sSet(m)
 	case SetRef:
 		return p.setRef(m)
 	case RefSet:
