@@ -135,30 +135,34 @@ func nodeGrid(m Model, id string) Group {
 		if len(links) > 1 {
 			rows = append(rows, []Cell{Text(l.Name()).Inked(inkStrong)})
 		}
-		for _, a := range axes {
-			for _, v := range []struct {
-				name string
-				of   func(Links.Link) string
-			}{
-				{"start", a.at},
-				{"Δ", func(l Links.Link) string { return strconv.Itoa(a.delta(l)) }},
-				{"nΔ", func(l Links.Link) string { return strconv.Itoa(a.times(l)) }},
-				{"1 step", func(l Links.Link) string { return strconv.Itoa(a.one(l)) }},
-			} {
-				row := []Cell{Text(a.label + " " + v.name).Dimmed(true)}
-				for _, n := range ns {
-					c := l
-					if s := m.StepLinks[StepEdge{n, l.From, l.To}]; s != nil {
-						c = *s
-					}
-					cell := Text(v.of(c)).Outline(false)
-					if m.StepPicked(n, l) {
-						cell = cell.Inked(inkStrong)
-					}
-					row = append(row, cell)
+		per := func(name string, of func(Links.Link) string) []Cell {
+			row := []Cell{Text(name).Dimmed(true)}
+			for _, n := range ns {
+				c := l
+				if s := m.StepLinks[StepEdge{n, l.From, l.To}]; s != nil {
+					c = *s
 				}
-				rows = append(rows, row)
+				cell := Text(of(c)).Outline(false)
+				if m.StepPicked(n, l) {
+					cell = cell.Inked(inkStrong)
+				}
+				row = append(row, cell)
 			}
+			return row
+		}
+		for _, a := range axes {
+			rows = append(rows,
+				per(a.label+" start", a.at),
+				per(a.label+" Δ", func(l Links.Link) string { return strconv.Itoa(a.delta(l)) }),
+				per(a.label+" nΔ", func(l Links.Link) string { return strconv.Itoa(a.times(l)) }),
+				per(a.label+" 1 step", func(l Links.Link) string { return strconv.Itoa(a.one(l)) }),
+			)
+		}
+		for _, a := range axes {
+			rows = append(rows, per(a.label+" sum", func(l Links.Link) string {
+				d := l.DirFrom(m.Frame, m.RefOf(l.From))
+				return n3(map[string]float64{Links.KPhi: d.Phi, Links.KTheta: d.Theta, Links.KR: d.R}[a.k])
+			}))
 		}
 	}
 	rows = append(rows, same("s", m.SceneS()))
