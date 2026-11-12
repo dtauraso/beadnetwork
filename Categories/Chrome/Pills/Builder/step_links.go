@@ -1,6 +1,8 @@
 package Builder
 
 import (
+	"slices"
+
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -22,6 +24,44 @@ func (m Model) gridLink(e StepEdge) (Links.Link, bool) {
 	}
 	in, ok := c.InFrom(e.From)
 	return in.Link, ok
+}
+
+type Walk struct {
+	Steps []int
+	I     int
+	Round int
+	From  []int
+	Then  []Links.Envelope
+}
+
+func (m Model) Walking() bool { return m.Walk.I < len(m.Walk.Steps) }
+
+func (m *Model) StartWalk() {
+	ns, target := m.stepNums(), m.StepShown()
+	at := slices.Index(ns, target)
+	from := 0
+	if m.StepFrom == nil && m.Walked.Level == m.Level && slices.Contains(ns, m.Walked.Step) {
+		from = min(at, slices.Index(ns, m.Walked.Step)+1)
+	}
+	m.Walk = Walk{Steps: ns[from : at+1], From: m.StepFrom, Then: m.Walk.Then}
+	m.StepFrom, m.Walked = nil, levelStep{Level: m.Level, Step: target}
+}
+
+func (m *Model) WalkShow() Links.ShowStep {
+	s := Links.ShowStep{Level: m.Level, Step: m.Walk.Steps[m.Walk.I], Steps: m.stepNums()}
+	if m.Walk.I == 0 {
+		s.From = m.Walk.From
+	}
+	return s
+}
+
+func (m Model) WalkSettled() bool {
+	for _, id := range m.Nodes {
+		if m.Rounds[id] < m.Walk.Round {
+			return false
+		}
+	}
+	return true
 }
 
 func (m Model) SNeeded() int {

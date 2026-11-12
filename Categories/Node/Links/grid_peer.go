@@ -65,6 +65,8 @@ func (p *Peer) Grid() Grid { return p.grid.Clone() }
 
 func (p *Peer) Level() string { return p.grid.Level }
 
+func (p *Peer) Round() int { return p.round }
+
 func (p *Peer) Snap() []Envelope {
 	c := p.grid.at(p.grid.Shown)
 	if c == nil {
@@ -187,6 +189,9 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 		}
 	}
 	p.At = c.At
+	if i := slices.IndexFunc(p.grid.Cols, func(x Col) bool { return x.Step == m.Step }); i > 0 {
+		p.At = p.grid.Cols[i-1].At
+	}
 	p.places[p.ID] = p.At
 	p.Changed.Place = true
 	for _, from := range p.order {

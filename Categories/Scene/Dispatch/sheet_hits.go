@@ -113,7 +113,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	md.UI.Builder.Refused = ""
 	if Builder.IsStepEdit(a) {
 		md.showFor(ctx, a.I)
-		md.sendLink(ctx, a.To, Builder.StepEditOf(a, sign, typed))
+		md.sendAfterWalk(ctx, a.To, Builder.StepEditOf(a, sign, typed))
 		return
 	}
 	if Builder.IsStepHead(a) {

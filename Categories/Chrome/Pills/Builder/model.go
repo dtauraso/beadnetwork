@@ -44,6 +44,9 @@ type Model struct {
 	StepNames map[int]string
 
 	StepFrom  []int
+	Walk      Walk
+	Walked    levelStep
+	Rounds    map[string]int
 	StepHeads map[int]*Step
 	StepFolds map[StepNode]bool
 
@@ -98,6 +101,10 @@ func (m *Model) Take(r Links.Report) {
 		m.Grids = map[string]Links.Grid{}
 	}
 	m.Grids[r.ID] = r.Grid
+	if m.Rounds == nil {
+		m.Rounds = map[string]int{}
+	}
+	m.Rounds[r.ID] = r.Round
 	if r.Refused != "" {
 		m.Refused = r.Refused
 	}
@@ -106,12 +113,6 @@ func (m *Model) Take(r Links.Report) {
 func (m Model) Col(id string) Links.Col { return m.Grids[id].ShownCol() }
 
 func (m Model) StepCol(step int, id string) (Links.Col, bool) { return m.Grids[id].Col(step) }
-
-func (m *Model) ShowMsg() Links.ShowStep {
-	s := Links.ShowStep{Level: m.Level, Step: m.StepShown(), Steps: m.stepNums(), From: m.StepFrom}
-	m.StepFrom = nil
-	return s
-}
 
 func (m Model) SumOf(l Links.Link) Links.Start {
 	in, _ := m.Col(l.To).InFrom(l.From)

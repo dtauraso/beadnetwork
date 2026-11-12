@@ -102,11 +102,34 @@ func (md *MoveDispatch) persistStep() {
 }
 
 func (md *MoveDispatch) ShowStep(ctx context.Context) {
-	s := md.UI.Builder.ShowMsg()
-	for _, id := range md.UI.Builder.Nodes {
+	md.UI.Builder.StartWalk()
+	md.walkNext(ctx)
+}
+
+func (md *MoveDispatch) walkNext(ctx context.Context) {
+	m := &md.UI.Builder
+	if !m.Walking() {
+		for _, e := range m.Walk.Then {
+			md.sendLink(ctx, e.To, e.Msg)
+		}
+		m.Walk.Then = nil
+		return
+	}
+	s := m.WalkShow()
+	for _, id := range m.Nodes {
 		md.sendLink(ctx, id, s)
 	}
 	md.Settle(ctx)
+	m.Walk.Round = m.Step.Round
+}
+
+func (md *MoveDispatch) sendAfterWalk(ctx context.Context, to string, msg any) {
+	m := &md.UI.Builder
+	if m.Walking() {
+		m.Walk.Then = append(m.Walk.Then, Links.Envelope{To: to, Msg: msg})
+		return
+	}
+	md.sendLink(ctx, to, msg)
 }
 
 func (md *MoveDispatch) showFor(ctx context.Context, step int) {
@@ -134,7 +157,7 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) 
 		md.showFor(ctx, a.I)
 	}
 	for _, e := range edits {
-		md.sendLink(ctx, e.To, e.Edit)
+		md.sendAfterWalk(ctx, e.To, e.Edit)
 	}
 }
 
@@ -149,6 +172,10 @@ func DrainLinkReports(md *MoveDispatch) {
 	}
 	if len(rs) > 0 {
 		md.sFitsStarts(context.TODO())
+	}
+	if m.Walking() && m.WalkSettled() {
+		m.Walk.I++
+		md.walkNext(context.TODO())
 	}
 	before := m.TimeKey()
 	for _, t := range md.Links.TakeTimings() {

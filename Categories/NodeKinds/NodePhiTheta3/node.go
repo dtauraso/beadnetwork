@@ -138,7 +138,7 @@ func (n *NodePhiTheta3) publishWith(refused string) {
 	n.send(n.peer.Snap())
 	n.writeGrid()
 	n.postVectors()
-	n.mesh.Report(Links.Report{ID: n.peer.ID, Grid: n.peer.Grid(), Refused: refused})
+	n.mesh.Report(Links.Report{ID: n.peer.ID, Grid: n.peer.Grid(), Round: n.peer.Round(), Refused: refused})
 }
 
 func (a BuildArgs) Geom() *NodeCat.NodeGeometry {
