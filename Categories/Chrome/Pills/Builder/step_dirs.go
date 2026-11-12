@@ -26,7 +26,7 @@ func (m Model) swapSteps(ns []int, n, by int) (int, string, error) {
 		return n, fmt.Sprintf("step %d is already the %s step, so it stays", n, map[int]string{-1: "first", 1: "last"}[by]), nil
 	}
 	k := ns[i]
-	a, b := stepDir(m.Root, n), stepDir(m.Root, k)
+	a, b := stepDir(m.lvl(), n), stepDir(m.lvl(), k)
 	swap := a + ".swap"
 	if err := os.Rename(a, swap); err != nil {
 		return n, "", err
@@ -44,7 +44,7 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 	if err := m.WriteSteps(); err != nil {
 		return "", err
 	}
-	ns := ReadStepNumbers(m.Root)
+	ns := ReadStepNumbers(m.lvl())
 	n := a.I
 	if !slices.Contains(ns, n) {
 		return fmt.Sprintf("step %d: there is no steps/%d folder, so nothing changed", n, n), nil
@@ -53,19 +53,19 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 	switch a.Op {
 	case OpStepAdd:
 		if err = m.shiftSteps(ns, n, 1); err == nil {
-			err = os.MkdirAll(stepDir(m.Root, n+1), 0o755)
+			err = os.MkdirAll(stepDir(m.lvl(), n+1), 0o755)
 		}
 		m.ShownStep = n + 1
 	case OpStepCopy:
 		if err = m.shiftSteps(ns, n, 1); err == nil {
-			err = os.CopyFS(stepDir(m.Root, n+1), os.DirFS(stepDir(m.Root, n)))
+			err = os.CopyFS(stepDir(m.lvl(), n+1), os.DirFS(stepDir(m.lvl(), n)))
 		}
 		m.ShownStep = n + 1
 	case OpStepDrop:
 		if len(ns) == 1 {
 			return fmt.Sprintf("step %d is the only step, so it stays", n), nil
 		}
-		if err = os.RemoveAll(stepDir(m.Root, n)); err == nil {
+		if err = os.RemoveAll(stepDir(m.lvl(), n)); err == nil {
 			err = m.shiftSteps(ns, n, -1)
 		}
 		m.ShownStep = n
@@ -92,7 +92,7 @@ func (m *Model) MoveStep(from, to int) (string, error) {
 	if err := m.WriteSteps(); err != nil {
 		return "", err
 	}
-	ns := ReadStepNumbers(m.Root)
+	ns := ReadStepNumbers(m.lvl())
 	if !slices.Contains(ns, from) || !slices.Contains(ns, to) {
 		return fmt.Sprintf("step %d or step %d has no folder, so nothing moved", from, to), nil
 	}
@@ -122,7 +122,7 @@ func (m Model) shiftSteps(ns []int, after, by int) error {
 		slices.Reverse(later)
 	}
 	for _, k := range later {
-		if err := os.Rename(stepDir(m.Root, k), stepDir(m.Root, k+by)); err != nil {
+		if err := os.Rename(stepDir(m.lvl(), k), stepDir(m.lvl(), k+by)); err != nil {
 			return err
 		}
 	}

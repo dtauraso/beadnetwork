@@ -74,15 +74,6 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	}
 	if ok && act.Op == Builder.OpStepName {
 		md.UI.Builder.Refused = md.UI.Builder.NameStep(act.I, t.Text)
-	} else if ok && act.Op == Builder.OpFolderNew {
-		refused, err := md.UI.Builder.NewFolder(act.Node, t.Text)
-		md.UI.Builder.Refused = refused
-		if err != nil {
-			View.LogPersistErr("sheet_folder_new", act.Node, err)
-		}
-		if md.Scenes.TreeRoot != "" {
-			LoadSequences(md, md.Scenes.TreeRoot)
-		}
 	} else if ok {
 		runSheetAct(ctx, md, act, 0, &t.V)
 	}
@@ -114,6 +105,12 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 		return
 	}
+	if Builder.IsLevelOp(a) {
+		if err := md.UI.Builder.LevelOp(a); err != nil {
+			View.LogPersistErr("sheet_step_level", md.UI.Builder.Root, err)
+		}
+		return
+	}
 	if a.Op == Builder.OpSeqOpen {
 		md.UI.Builder.SeqListOpen = false
 	}
@@ -132,10 +129,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.SeqListOpen = !md.UI.Builder.SeqListOpen
 	case Builder.OpStepShow:
 		md.UI.Builder.ShowStep(a, sign)
-	case Builder.OpFolderFold:
-		md.UI.Builder.ToggleFolder(a.Node)
-	case Builder.OpFolderGo:
-		md.UI.Builder.GoFolder(a.Node)
 	case Builder.OpNetFold:
 		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:

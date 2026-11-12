@@ -108,6 +108,7 @@ func stepRow(m Model, n int) Group {
 	return Group{Rows: [][]Cell{{
 		Text(foldTitle(!m.stepOpen(n), "step "+strconv.Itoa(n))).Acting(Act{Op: OpStepShow, I: n}),
 		stepNameCell(m, n),
+		subStepsCell(m, n),
 		Button("+", Act{Op: OpStepAdd, I: n}, false).Tipped("add a step after this one"),
 		Button("⧉", Act{Op: OpStepCopy, I: n}, false).Tipped("duplicate this step"),
 		Button("×", Act{Op: OpStepDrop, I: n}, false).Tipped("delete this step"),
@@ -143,12 +144,8 @@ func breadcrumb(m Model) Group {
 			trail += " › " + t.From + "→" + t.To
 		}
 	}
-	for _, q := range m.Seqs {
-		if q.K == m.OpenSeq {
-			trail = q.Name + " › " + trail
-		}
-	}
-	return Group{Rows: [][]Cell{{Text(trail).Outline(true)}}, Wraps: true}
+	row := append(trailCells(m), Text("›").Dimmed(true), Text(trail).Outline(true))
+	return Group{Rows: [][]Cell{row}, Slides: true, Table: "where you are"}
 }
 
 func LinksPill(m Model) Pill {

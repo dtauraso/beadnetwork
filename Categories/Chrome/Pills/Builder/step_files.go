@@ -68,6 +68,8 @@ func nodePressDir(root, id string) string { return filepath.Join(root, DirNodes,
 
 func StepsDir(root string) string { return filepath.Join(root, DirSteps) }
 
+func (m Model) lvl() string { return filepath.Join(m.Root, m.Level) }
+
 func stepDir(root string, step int) string { return filepath.Join(StepsDir(root), strconv.Itoa(step)) }
 
 func stepNodeDir(root string, step int, id string) string {
@@ -125,9 +127,10 @@ func (m *Model) ReadNodeSteps() {
 		m.NodeStep(id)
 	}
 	if m.Root != "" {
-		m.StepNums = ReadStepNumbers(m.Root)
+		m.StepNums = ReadStepNumbers(m.lvl())
 		m.readStepLinks()
 		m.readStepNames()
+		m.readLevels()
 		for _, step := range m.stepNums() {
 			m.StepHead(step)
 		}

@@ -49,7 +49,7 @@ func (m *Model) DropStepEdge(from, to string) error {
 	for _, step := range m.stepNums() {
 		delete(m.StepLinks, StepEdge{step, from, to})
 		if m.Root != "" {
-			if err := Links.RemoveLinksTo(stepNodeDir(m.Root, step, to), from, to); err != nil {
+			if err := Links.RemoveLinksTo(stepNodeDir(m.lvl(), step, to), from, to); err != nil {
 				return err
 			}
 		}
@@ -126,7 +126,7 @@ func IsStepEdit(a Act) bool {
 func (m *Model) readStepLinks() {
 	m.StepLinks = map[StepEdge]*Links.Link{}
 	for _, step := range m.stepNums() {
-		dir := filepath.Join(stepDir(m.Root, step), DirNodes)
+		dir := filepath.Join(stepDir(m.lvl(), step), DirNodes)
 		entries, err := os.ReadDir(dir)
 		if err != nil {
 			continue
@@ -157,7 +157,7 @@ func (m Model) writeStepLinks() error {
 	}
 	for step, tos := range byTo {
 		for to, ls := range tos {
-			if err := Links.WriteBaseLinks(stepNodeDir(m.Root, step, to), ls); err != nil {
+			if err := Links.WriteBaseLinks(stepNodeDir(m.lvl(), step, to), ls); err != nil {
 				return err
 			}
 		}

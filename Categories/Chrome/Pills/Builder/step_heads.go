@@ -19,7 +19,7 @@ func (m *Model) StepHead(step int) *Step {
 	if m.StepHeads[step] == nil {
 		s := Step{}
 		if m.Root != "" {
-			s = ReadStep(stepDir(m.Root, step))
+			s = ReadStep(stepDir(m.lvl(), step))
 		}
 		m.StepHeads[step] = &s
 	}
@@ -169,7 +169,7 @@ func wayOf(l *Links.Link, all Links.Lock, k string) int {
 
 func (m Model) writeStepHeads() error {
 	for step, s := range m.StepHeads {
-		if err := WriteStep(stepDir(m.Root, step), *s); err != nil {
+		if err := WriteStep(stepDir(m.lvl(), step), *s); err != nil {
 			return err
 		}
 	}

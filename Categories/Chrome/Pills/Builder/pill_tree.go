@@ -88,7 +88,7 @@ func TreePill(m Model) Pill {
 			kv("T_θ", n3(float64(f.Ttheta)), false), kv("c_r", n3(f.Cr), false), kv("sequences", names(seqNames), false), kv("open", open, true)),
 	}
 	if m.Root != "" {
-		groups = append(groups, folderBrowser(m)...)
+		groups = append(groups, stepTree(m))
 	}
 	groups = append(groups,
 		box(1, "what runs now", kv("edges", names(linkNames(all)), true), kv("nodes", names(m.Nodes), true),

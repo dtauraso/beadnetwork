@@ -19,7 +19,7 @@ func (m *Model) readStepNames() {
 	m.StepNames = map[int]string{}
 	for _, n := range m.stepNums() {
 		var name string
-		if Links.ReadIfExists(filepath.Join(stepDir(m.Root, n), FileStepName), &name) && name != "" {
+		if Links.ReadIfExists(filepath.Join(stepDir(m.lvl(), n), FileStepName), &name) && name != "" {
 			m.StepNames[n] = name
 		}
 	}
@@ -37,7 +37,7 @@ func (m *Model) NameStep(n int, name string) string {
 	if m.Root == "" {
 		return "steps are kept in the scene's steps/ folder, and this scene has none, so the name was not kept"
 	}
-	path := filepath.Join(stepDir(m.Root, n), FileStepName)
+	path := filepath.Join(stepDir(m.lvl(), n), FileStepName)
 	var err error
 	if name == "" {
 		err = os.Remove(path)
@@ -54,6 +54,7 @@ func (m *Model) NameStep(n int, name string) string {
 		m.StepNames = map[int]string{}
 	}
 	m.StepNames[n] = name
+	m.readLevels()
 	return ""
 }
 
