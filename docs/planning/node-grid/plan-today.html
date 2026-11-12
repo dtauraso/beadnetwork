@@ -9,7 +9,7 @@
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute"><defs>
-  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ar" d="M0,0 L10,5 L0,10 z"/></marker>
+  <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="aw" d="M0,0 L10,5 L0,10 z"/></marker>
 </defs></svg>
 <header>
   <h1><b>Node grid</b> · each node's data lives in its grid; everything reads the grids</h1>
@@ -20,46 +20,43 @@
 </header>
 <main>
 <div class="key">
-  <span><i style="background:#1c2433;border-color:#5b7bb5"></i>a node's grid</span>
-  <span><i style="background:#1f2a22;border-color:#5f9a6c"></i>reads a grid</span>
-  <span><i style="background:#2a1f22;border-color:#9a5f66"></i>goes away</span>
-  <span style="color:#cfe0fa">━ reads</span>
+  <span><i style="background:#2a1f22;border-color:#9a5f66"></i>today</span>
+  <span><i style="background:#1c2433;border-color:#5b7bb5"></i>rows in grid.bin</span>
+  <span><i style="background:#1e1e24;border-color:#3a3a44"></i>stays as it is</span>
+  <span style="color:#e0b45b">━ moves to</span>
 </div>
-<svg viewBox="0 0 900 470">
-  <text class="h" x="20" y="24">today: the same values in 8 places (drag files untouched)</text>
+<svg viewBox="0 0 900 520">
+  <text class="h" x="20" y="24">today</text>
+  <text class="h" x="520" y="24">after</text>
+  <text class="m" x="520" y="44">sequences/k/nodes/&lt;id&gt;/grid.bin</text>
+  <rect class="box" x="510" y="52" width="380" height="358" rx="8"/>
   <g>
-    <rect class="old" x="20" y="44" width="300" height="34" rx="6"/><text class="m" x="30" y="66">nodes/&lt;id&gt;/links/1To2/*.bin</text>
-    <rect class="old" x="20" y="86" width="300" height="34" rx="6"/><text class="m" x="30" y="108">steps/&lt;n&gt;/nodes/&lt;id&gt;/links/…</text>
-    <rect class="old" x="20" y="128" width="300" height="34" rx="6"/><text class="m" x="30" y="150">nodes/&lt;id&gt;/base  (place, ref)</text>
-    <rect class="old" x="20" y="170" width="300" height="34" rx="6"/><text class="m" x="30" y="192">Builder.StepLinks  (memory)</text>
-    <rect class="old" x="20" y="212" width="300" height="34" rx="6"/><text class="m" x="30" y="234">Builder.Reports  (memory)</text>
-    <rect class="old" x="20" y="254" width="300" height="34" rx="6"/><text class="m" x="30" y="276">view/nodes/&lt;row&gt;/node.bin  place · label anchor</text>
-    <rect class="old" x="20" y="296" width="300" height="34" rx="6"/><text class="m" x="30" y="318">view/edges/&lt;n&gt;/edge.bin  sx…ez</text>
-    <rect class="old" x="20" y="338" width="300" height="34" rx="6" stroke-dasharray="4 3"/><text class="m" x="30" y="360">angle sums: not stored, DirFrom each draw</text>
+    <rect class="old" x="20" y="60" width="300" height="34" rx="6"/><text class="m" x="30" y="82">nodes/&lt;id&gt;/links/1To2/*.bin</text>
+    <rect class="old" x="20" y="104" width="300" height="34" rx="6"/><text class="m" x="30" y="126">steps/&lt;n&gt;/nodes/&lt;id&gt;/links/…</text>
+    <rect class="old" x="20" y="148" width="300" height="34" rx="6"/><text class="m" x="30" y="170">nodes/&lt;id&gt;/base  (place, ref)</text>
+    <rect class="old" x="20" y="192" width="300" height="34" rx="6"/><text class="m" x="30" y="214">Builder.StepLinks  (memory)</text>
+    <rect class="old" x="20" y="236" width="300" height="34" rx="6"/><text class="m" x="30" y="258">Builder.Reports  (memory)</text>
+    <rect class="old" x="20" y="280" width="300" height="34" rx="6"/><text class="m" x="30" y="302">view/nodes/&lt;row&gt;/node.bin  place · label anchor</text>
+    <rect class="old" x="20" y="324" width="300" height="34" rx="6"/><text class="m" x="30" y="346">view/edges/&lt;n&gt;/edge.bin  sx…ez</text>
+    <rect class="old" x="20" y="368" width="300" height="34" rx="6" stroke-dasharray="4 3"/><text class="m" x="30" y="390">angle sums: not stored, DirFrom each draw</text>
   </g>
-  <rect class="read" x="380" y="80" width="150" height="40" rx="6"/><text class="t" x="455" y="105" text-anchor="middle">Links tab</text>
-  <rect class="read" x="380" y="170" width="150" height="40" rx="6"/><text class="t" x="455" y="195" text-anchor="middle">Node grid tab</text>
-  <rect class="read" x="380" y="260" width="150" height="40" rx="6"/><text class="t" x="455" y="285" text-anchor="middle">Tree tab</text>
-  <rect class="read" x="380" y="350" width="150" height="40" rx="6"/><text class="t" x="455" y="375" text-anchor="middle">diagram</text>
-  <g class="x">
-    <path d="M320,103 L380,100"/><path d="M320,187 L380,104"/><path d="M320,229 L380,108"/>
-    <path d="M320,187 L380,186"/><path d="M320,355 L380,194"/>
-    <path d="M320,229 L380,280"/><path d="M320,355 L380,286"/>
-    <path d="M320,271 L380,366"/><path d="M320,313 L380,374"/>
+  <g>
+    <rect class="grid" x="520" y="60" width="360" height="34" rx="6"/><text class="m" x="530" y="82">link band: φ θ r start · Δ · nΔ · 1</text>
+    <rect class="grid" x="520" y="104" width="360" height="34" rx="6"/><text class="m" x="530" y="126">same rows, one column per step</text>
+    <rect class="grid" x="520" y="148" width="360" height="34" rx="6"/><text class="m" x="530" y="170">node rows: ref Δφ Δθ · place</text>
+    <rect class="box" x="520" y="192" width="360" height="34" rx="6" stroke-dasharray="4 3"/><text class="d" x="530" y="214">nothing: the tabs read the grid</text>
+    <rect class="grid" x="520" y="236" width="360" height="34" rx="6"/><text class="m" x="530" y="258">node rows: ref Δφ Δθ</text>
+    <rect class="ref" x="520" y="280" width="360" height="34" rx="6"/><text class="m" x="530" y="302">node rows: place x y z · label anchor</text>
+    <rect class="ref" x="520" y="324" width="360" height="34" rx="6"/><text class="m" x="530" y="346">out band: edge start x y z · end x y z</text>
+    <rect class="ref" x="520" y="368" width="360" height="34" rx="6"/><text class="m" x="530" y="390">link bands: φ θ r sum</text>
   </g>
-  <line x1="590" y1="40" x2="590" y2="440" stroke="var(--line)"/>
-  <text class="h" x="620" y="24">after: one place per node</text>
-  <text class="d" x="620" y="400">stay as they are:</text>
-  <text class="m" x="620" y="418">node.bin  selected · hovered</text>
-  <text class="m" x="620" y="436">drag files</text>
-  <rect class="grid" x="620" y="140" width="110" height="34" rx="6"/><text class="m" x="632" y="162">node 1 grid</text>
-  <rect class="grid" x="620" y="200" width="110" height="34" rx="6"/><text class="m" x="632" y="222">node 2 grid</text>
-  <rect class="grid" x="620" y="260" width="110" height="34" rx="6"/><text class="m" x="632" y="282">node 3 grid</text>
-  <rect class="read" x="770" y="80" width="120" height="36" rx="6"/><text class="t" x="830" y="103" text-anchor="middle">Links tab</text>
-  <rect class="read" x="770" y="160" width="120" height="36" rx="6"/><text class="t" x="830" y="183" text-anchor="middle">Node grid tab</text>
-  <rect class="read" x="770" y="240" width="120" height="36" rx="6"/><text class="t" x="830" y="263" text-anchor="middle">Tree tab</text>
-  <rect class="read" x="770" y="320" width="120" height="36" rx="6"/><text class="t" x="830" y="343" text-anchor="middle">diagram</text>
-  <g class="a"><path d="M730,200 L766,100"/><path d="M730,212 L766,178"/><path d="M730,222 L766,256"/><path d="M730,232 L766,336"/></g>
+  <g class="w">
+    <path d="M320,77 L516,77"/><path d="M320,121 L516,121"/><path d="M320,165 L516,165"/><path d="M320,209 L516,209"/>
+    <path d="M320,253 L516,253"/><path d="M320,297 L516,297"/><path d="M320,341 L516,341"/><path d="M320,385 L516,385"/>
+  </g>
+  <text class="h" x="20" y="450">stays as it is</text>
+  <rect class="box" x="20" y="462" width="300" height="34" rx="6"/><text class="m" x="30" y="484">view/nodes/&lt;row&gt;/node.bin  selected · hovered</text>
+  <rect class="box" x="340" y="462" width="300" height="34" rx="6"/><text class="m" x="350" y="484">nodes/&lt;id&gt;/drag/…  drag files</text>
 </svg>
 </main>
 </body>
