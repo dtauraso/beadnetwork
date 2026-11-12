@@ -53,7 +53,7 @@ func linkCount(n int) string {
 
 func nodeLine(m Model, step int, id string) []Cell {
 	folded := m.StepFolded(step, id)
-	links := m.stepLinksFrom(step, id)
+	links := m.stepLinksTo(step, id)
 	row := []Cell{
 		Text(foldTitle(folded, "node "+id)).Acting(Act{Op: OpStepFold, Node: id, I: step}),
 	}
@@ -91,7 +91,7 @@ func activeLinksGroup(m Model, step int) Group {
 
 func nodeGroups(m Model, step int, id string) []Group {
 	groups := []Group{{Rows: [][]Cell{nodeLine(m, step, id)}, Slides: true, Table: fmt.Sprintf("step %d node %s", step, id)}}
-	links := m.stepLinksFrom(step, id)
+	links := m.stepLinksTo(step, id)
 	if m.StepFolded(step, id) || len(links) == 0 {
 		return groups
 	}

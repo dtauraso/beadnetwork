@@ -9,9 +9,9 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
-func (m Model) stepLinksFrom(step int, id string) []Links.Link {
+func (m Model) stepLinksTo(step int, id string) []Links.Link {
 	var out []Links.Link
-	for _, l := range m.linksFrom(id) {
+	for _, l := range m.linksTo(id) {
 		if c := m.StepLinks[StepEdge{step, l.From, l.To}]; c != nil {
 			l = *c
 		}

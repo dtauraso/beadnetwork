@@ -27,10 +27,10 @@ func (m Model) allLinks() []Links.Link {
 	return out
 }
 
-func (m Model) linksFrom(id string) []Links.Link {
+func (m Model) linksTo(id string) []Links.Link {
 	var out []Links.Link
 	for _, l := range m.allLinks() {
-		if l.From == id {
+		if l.To == id {
 			out = append(out, l)
 		}
 	}
@@ -107,7 +107,7 @@ func stepBody(m Model, step int, refused string) ([]Group, string) {
 		if m.StepFolded(step, id) || refused == "" {
 			continue
 		}
-		for _, l := range m.stepLinksFrom(step, id) {
+		for _, l := range m.stepLinksTo(step, id) {
 			if strings.HasPrefix(refused, fmt.Sprintf("step %d %s ", step, l.Name())) {
 				groups = append(groups, Group{Rows: [][]Cell{{Text(refused)}}, Wraps: true, Indent: true})
 				refused = ""

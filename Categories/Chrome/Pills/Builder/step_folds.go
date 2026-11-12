@@ -6,7 +6,7 @@ func (m Model) StepFolded(step int, id string) bool {
 	if f, ok := m.StepFolds[StepNode{step, id}]; ok {
 		return f
 	}
-	for _, l := range m.stepLinksFrom(step, id) {
+	for _, l := range m.stepLinksTo(step, id) {
 		if m.StepPicked(step, l) {
 			return false
 		}
