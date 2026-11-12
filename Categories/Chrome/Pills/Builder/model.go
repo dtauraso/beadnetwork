@@ -48,6 +48,7 @@ type Model struct {
 	ShownStep   int
 	StepClosed  bool
 	NetworkOpen bool
+	Touched     StepEdge
 
 	Cards    Cards
 	CardsDir string

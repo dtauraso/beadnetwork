@@ -75,6 +75,12 @@ func networkGroup(m Model) Group {
 	return g
 }
 
+func (m *Model) Touch(a Act) {
+	if a.Node != "" && a.To != "" && a.I > 0 {
+		m.Touched = StepEdge{Step: a.I, From: a.Node, To: a.To}
+	}
+}
+
 func (m Model) stepOpen(n int) bool { return n == m.StepShown() && !m.StepClosed }
 
 func stepTitle(m Model, n int) Group {
@@ -115,7 +121,11 @@ func stepBody(m Model, step int, refused string) ([]Group, string) {
 func breadcrumb(m Model) Group {
 	trail := "network only, no step open"
 	if !m.StepClosed {
-		trail = "editing step " + m.StepLabel(m.StepShown())
+		step := m.StepShown()
+		trail = "editing step " + m.StepLabel(step)
+		if t := m.Touched; t.Step == step && t.From != "" {
+			trail += " › " + t.From + "→" + t.To
+		}
 	}
 	for _, q := range m.Seqs {
 		if q.K == m.OpenSeq {

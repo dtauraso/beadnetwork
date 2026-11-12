@@ -17,6 +17,9 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 	if op := h.Cell.Act.Op; h.Part != Sheet.PartBody || op != Builder.OpSeqFold && op != Builder.OpSeqOpen {
 		md.UI.Builder.SeqListOpen = false
 	}
+	if h.Part == Sheet.PartBody || h.Part == Sheet.PartUp || h.Part == Sheet.PartDown {
+		md.UI.Builder.Touch(h.Cell.ArrowAct())
+	}
 	switch h.Part {
 	case Sheet.PartPill:
 		sh.Toggle(h.Label)
