@@ -237,9 +237,12 @@ topology-pair-phi-theta-3/sequences/*
 !topology-pair-phi-theta-3/sequences/3/
 !topology-pair-phi-theta-3/sequences/4/
 
-# A sequence's step state (its locks, each node's and each step's, picks, and the steps'
-# copies of the links): set from the Links pill while the editor is used, kept local.
-topology*/sequences/*/step/
+# A sequence's step state (the press locks in press/ and nodes/<id>/press/, and each step's
+# directory under steps/: its head locks and its copies of the links, each with its pick):
+# set from the Links pill while the editor is used, kept local.
+topology*/sequences/*/press/
+topology*/sequences/*/nodes/*/press/
+topology*/sequences/*/steps/
 
 # Link files the editor adds to the tracked seed sequences (a link drawn while using it, or a
 # field a link gains, such as one-*.bin): written from editor use, kept local. The seeds'
