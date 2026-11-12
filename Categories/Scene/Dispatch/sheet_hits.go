@@ -112,7 +112,9 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
 	md.UI.Builder.Refused = ""
 	if Builder.IsStepEdit(a) {
-		md.showFor(ctx, a.I)
+		if !Builder.IsStartEdit(a) {
+			md.showFor(ctx, a.I)
+		}
 		md.sendAfterWalk(ctx, a.To, Builder.StepEditOf(a, sign, typed))
 		return
 	}
@@ -161,6 +163,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 	case Builder.OpNetFold:
 		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
+	case Builder.OpStartFold:
+		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)
 	case Pills.OpOverlay:

@@ -1,6 +1,7 @@
 package Links
 
 import (
+	"fmt"
 	"maps"
 	"slices"
 )
@@ -60,10 +61,6 @@ func baseOf(start Start, total Ints) Base {
 	return Base{Origin: o.Pulled(), Total: total}
 }
 
-func sameStart(a, b Start) bool {
-	return a.Phi == b.Phi && a.Theta == b.Theta && a.R == b.R && a.One == b.One
-}
-
 func (p *Peer) fitBase() {
 	if p.grid.Base == nil {
 		p.grid.Base = map[string]Base{}
@@ -75,36 +72,52 @@ func (p *Peer) fitBase() {
 		}
 	}
 	for _, from := range p.order {
-		if _, ok := p.grid.Base[from]; ok {
-			continue
+		b, ok := p.grid.Base[from]
+		if !ok {
+			start := p.own[from].Start
+			if in, ok := shown.InFrom(from); ok {
+				start = in.Link.Start
+			}
+			b = baseOf(start, Ints{})
 		}
-		start := p.own[from].Start
-		if in, ok := shown.InFrom(from); ok {
-			start = in.Link.Start
-		}
-		p.grid.Base[from] = baseOf(start, Ints{})
+		b.Origin.S = p.S
+		p.grid.Base[from] = Base{Origin: b.Origin.Pulled(), Total: b.Total}
 	}
 }
 
 func (p *Peer) deriveStarts() {
 	p.fitBase()
 	shown := p.grid.ShownCol()
-	for _, l := range p.Links() {
-		if b := p.grid.Base[l.From]; !sameStart(b.Plus(Ints{}), l.Start) {
-			p.grid.Base[l.From] = baseOf(l.Start, b.Total)
-		}
-	}
 	for i := range p.grid.Cols {
 		c := &p.grid.Cols[i]
-		if c.Step == shown.Step {
-			continue
-		}
 		for j := range c.In {
 			from := c.In[j].Link.From
-			was, _ := shown.InFrom(from)
-			c.In[j].Link.Start = p.grid.Base[from].Plus(was.Link.Delta)
+			var d Ints
+			if c.Step != shown.Step {
+				was, _ := shown.InFrom(from)
+				d = was.Link.Delta
+			}
+			c.In[j].Link.Start = p.grid.Base[from].Plus(d)
 		}
 	}
+}
+
+func (p *Peer) originEdit(l *Link, m StepEdit) []Envelope {
+	p.fitBase()
+	b := p.grid.Base[m.From]
+	t := *l
+	t.Start = b.Origin
+	t.SetS(p.S)
+	if refused := editLink(&t, m, fmt.Sprintf("start %s→%s", m.From, p.ID)); refused != "" {
+		p.Changed.Refused = refused
+		return nil
+	}
+	b.Origin = t.Start
+	p.grid.Base[m.From] = b
+	l.Start = b.Plus(Ints{})
+	l.SetS(p.S)
+	p.touched(m.From)
+	return p.take(l)
 }
 
 type GridGeom struct {

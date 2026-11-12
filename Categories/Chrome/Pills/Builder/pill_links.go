@@ -192,6 +192,7 @@ func linksTree(m Model) tree {
 		seqRows(&t, m)
 	} else {
 		networkRows(&t, m)
+		startRows(&t, m)
 		refused = stepRows(&t, m, refused)
 		ns := m.stepNums()
 		t.put(Group{Rows: [][]Cell{{Text("+  add step").Acting(Act{Op: OpStepAdd, I: ns[len(ns)-1]}).Dimmed(true).Tipped("add a step after the last one")}}})
