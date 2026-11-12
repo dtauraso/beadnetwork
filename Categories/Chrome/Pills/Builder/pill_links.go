@@ -70,10 +70,11 @@ func networkRows(t *tree, m Model) {
 			continue
 		}
 		for _, l := range m.linksTo(id) {
-			lr := linkRowOf(l, l.Picked, Act{}, 2)
+			e := StepEdge{0, l.From, l.To}
+			lr := m.cardRow(linkRowOf(l, l.Picked, Act{}, 2), e, l.Picked)
 			lr.acts = []Cell{Button("×", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false).Tipped("remove this link")}
 			t.add(lr)
-			if l.Picked {
+			if m.CardOpen(e, l.Picked) {
 				t.put(netCard(l, 3))
 			}
 		}
@@ -144,8 +145,9 @@ func stepBody(t *tree, m Model, step int, refused string) string {
 		}
 		for _, l := range links {
 			picked := m.StepPicked(step, l)
-			t.add(linkRowOf(l, picked, Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}, 2))
-			if picked {
+			e := StepEdge{step, l.From, l.To}
+			t.add(m.cardRow(linkRowOf(l, picked, Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}, 2), e, picked))
+			if m.CardOpen(e, picked) {
 				t.put(linkCard(m, step, l, 3))
 			}
 			if refused != "" && strings.HasPrefix(refused, fmt.Sprintf("step %d %s ", step, l.Name())) {

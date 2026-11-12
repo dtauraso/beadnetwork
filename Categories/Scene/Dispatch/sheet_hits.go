@@ -140,6 +140,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		return
 	}
 	switch a.Op {
+	case Builder.OpCardFold:
+		md.UI.Builder.ToggleCard(a)
 	case Builder.OpStepFold:
 		md.UI.Builder.ToggleStepFold(a.I, a.Node)
 	case Builder.OpSeqs:

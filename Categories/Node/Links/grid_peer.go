@@ -190,7 +190,15 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 	}
 	p.At = c.At
 	if i := slices.IndexFunc(p.grid.Cols, func(x Col) bool { return x.Step == m.Step }); i > 0 {
-		p.At = p.grid.Cols[i-1].At
+		prev := p.grid.Cols[i-1]
+		p.At = prev.At
+		for from, l := range p.own {
+			if was, ok := prev.InFrom(from); ok {
+				d := was.Link.Dir()
+				l.Start.Phi, l.Start.Theta, l.Start.R = d.Phi, d.Theta, d.R
+				l.Start = l.Start.Pulled()
+			}
+		}
 	}
 	p.places[p.ID] = p.At
 	p.Changed.Place = true

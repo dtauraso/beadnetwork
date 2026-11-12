@@ -49,6 +49,7 @@ type Model struct {
 	Rounds    map[string]int
 	StepHeads map[int]*Step
 	StepFolds map[StepNode]bool
+	CardsOpen map[StepEdge]bool
 
 	Seqs        []Seq
 	OpenSeq     int
