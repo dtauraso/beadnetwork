@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="440" viewBox="0 0 780 440" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12">
+  <rect width="780" height="440" rx="10" fill="#1e1e24"/>
+  <text x="24" y="30" fill="#e7e7ea" font-size="14" font-weight="600">Proposed: a step is one folder, shaped like the network</text>
+
+  <!-- sequence -->
+  <rect x="20" y="46" width="740" height="380" rx="10" fill="none" stroke="#3a3a44"/>
+  <text x="34" y="66" fill="#9a9aa6" font-family="SF Mono,Menlo,monospace">sequences/8/</text>
+
+  <!-- network -->
+  <rect x="36" y="80" width="210" height="190" rx="8" fill="#2f2f37" stroke="#5cc98b"/>
+  <text x="50" y="102" fill="#5cc98b" font-weight="600">nodes/  ·  the network</text>
+  <g font-family="SF Mono,Menlo,monospace" font-size="11" fill="#e7e7ea">
+    <rect x="50" y="114" width="182" height="40" rx="5" fill="#34343d"/>
+    <text x="60" y="131">2/</text><text x="60" y="146" fill="#9a9aa6">drag/ref-*.bin</text>
+    <rect x="50" y="162" width="182" height="58" rx="5" fill="#34343d"/>
+    <text x="60" y="179">3/links/2To3/</text><text x="60" y="194" fill="#9a9aa6">start-* delta-*</text><text x="60" y="209" fill="#9a9aa6">picked.bin</text>
+  </g>
+  <text x="50" y="248" fill="#9a9aa6" font-size="11">what runs right now</text>
+
+  <!-- press -->
+  <rect x="36" y="286" width="210" height="120" rx="8" fill="none" stroke="#9a9aa6" stroke-dasharray="5 4"/>
+  <text x="50" y="308" fill="#e7e7ea" font-weight="600">press/   <tspan fill="#f0a050" font-weight="400">(name open)</tspan></text>
+  <text x="50" y="330" fill="#9a9aa6" font-size="11">network-wide step-press locks</text>
+  <text x="50" y="352" fill="#9a9aa6" font-size="11">was step/lock-*.bin</text>
+  <text x="50" y="380" fill="#9a9aa6" font-size="11">per node → nodes/&lt;id&gt;/press/</text>
+  <text x="50" y="396" fill="#9a9aa6" font-size="11">was step/&lt;id&gt;/</text>
+
+  <!-- steps -->
+  <rect x="262" y="80" width="482" height="326" rx="8" fill="none" stroke="#4ea1ff"/>
+  <text x="276" y="102" fill="#4ea1ff" font-weight="600">steps/  ·  the folders ARE the list</text>
+
+  <g>
+    <rect x="276" y="114" width="220" height="280" rx="8" fill="#2f2f37" stroke="#3a3a44"/>
+    <text x="290" y="136" fill="#e7e7ea" font-weight="600" font-size="13">1/</text>
+    <text x="316" y="136" fill="#9a9aa6">"lift 3"</text>
+    <g font-family="SF Mono,Menlo,monospace" font-size="11">
+      <rect x="290" y="148" width="192" height="26" rx="5" fill="#34343d"/>
+      <text x="300" y="165" fill="#e7e7ea">name.bin</text>
+      <rect x="290" y="180" width="192" height="26" rx="5" fill="#34343d"/>
+      <text x="300" y="197" fill="#e7e7ea">lock-*.bin</text><text x="400" y="197" fill="#9a9aa6">head row</text>
+      <rect x="290" y="212" width="192" height="26" rx="5" fill="#34343d"/>
+      <text x="300" y="229" fill="#e7e7ea">nodes/2/lock-*</text><text x="420" y="229" fill="#9a9aa6">head</text>
+      <rect x="290" y="244" width="192" height="138" rx="5" fill="#34343d" stroke="#4ea1ff" stroke-opacity="0.5"/>
+      <text x="300" y="262" fill="#e7e7ea">nodes/3/links/2To3/</text>
+      <text x="310" y="282" fill="#9a9aa6">start-φ θ r s</text>
+      <text x="310" y="300" fill="#9a9aa6">delta-φ θ r s</text>
+      <text x="310" y="318" fill="#9a9aa6">increment-*</text>
+      <text x="310" y="336" fill="#9a9aa6">one-*</text>
+      <rect x="306" y="346" width="96" height="22" rx="11" fill="#4ea1ff"/>
+      <text x="318" y="361" fill="#04101f" font-weight="600">picked.bin</text>
+    </g>
+  </g>
+
+  <g>
+    <rect x="510" y="114" width="220" height="280" rx="8" fill="#2f2f37" stroke="#3a3a44"/>
+    <text x="524" y="136" fill="#e7e7ea" font-weight="600" font-size="13">2/</text>
+    <text x="550" y="136" fill="#9a9aa6">"drop 3"</text>
+    <g font-family="SF Mono,Menlo,monospace" font-size="11">
+      <rect x="524" y="148" width="192" height="26" rx="5" fill="#34343d"/><text x="534" y="165" fill="#e7e7ea">name.bin</text>
+      <rect x="524" y="180" width="192" height="26" rx="5" fill="#34343d"/><text x="534" y="197" fill="#e7e7ea">lock-*.bin</text>
+      <rect x="524" y="212" width="192" height="26" rx="5" fill="#34343d"/><text x="534" y="229" fill="#e7e7ea">nodes/2/lock-*</text>
+      <rect x="524" y="244" width="192" height="138" rx="5" fill="#34343d"/><text x="534" y="262" fill="#e7e7ea">nodes/3/links/2To3/</text>
+      <text x="544" y="282" fill="#9a9aa6">…same shape</text>
+    </g>
+  </g>
+
+</svg>
