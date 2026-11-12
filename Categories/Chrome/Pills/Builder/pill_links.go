@@ -81,19 +81,21 @@ func stepTitle(m Model, n int) Group {
 	return Group{Title: foldTitle(!m.stepOpen(n), "step "+m.StepLabel(n)), Fold: Act{Op: OpStepShow, I: n}}
 }
 
-func stepActions(m Model, n int) Group {
-	return Group{Rows: [][]Cell{{
-		Button("+ add step", Act{Op: OpStepAdd, I: n}, false),
-		Button("⧉ duplicate", Act{Op: OpStepCopy, I: n}, false),
-		Button("× delete", Act{Op: OpStepDrop, I: n}, false),
-		Button("↑ earlier", Act{Op: OpStepUp, I: n}, false),
-		Button("↓ later", Act{Op: OpStepDown, I: n}, false),
-		stepNameCell(m, n),
-	}}, Indent: true}
+func stepActions(m Model, n int) []Group {
+	rows := [][]Cell{
+		{Button("+ add step", Act{Op: OpStepAdd, I: n}, false), Button("⧉ duplicate", Act{Op: OpStepCopy, I: n}, false), Button("× delete", Act{Op: OpStepDrop, I: n}, false)},
+		{Button("↑ earlier", Act{Op: OpStepUp, I: n}, false), Button("↓ later", Act{Op: OpStepDown, I: n}, false)},
+		{stepNameCell(m, n)},
+	}
+	var out []Group
+	for _, r := range rows {
+		out = append(out, Group{Rows: [][]Cell{r}, Indent: true})
+	}
+	return out
 }
 
 func stepBody(m Model, step int, refused string) ([]Group, string) {
-	groups := []Group{stepActions(m, step), activeLinksGroup(m, step)}
+	groups := append(stepActions(m, step), activeLinksGroup(m, step))
 	for _, id := range m.Nodes {
 		groups = append(groups, nodeGroups(m, step, id)...)
 		if m.StepFolded(step, id) || refused == "" {
