@@ -108,12 +108,25 @@ func stepBody(m Model, step int, refused string) ([]Group, string) {
 	return groups, refused
 }
 
+func breadcrumb(m Model) Group {
+	trail := "network only, no step open"
+	if !m.StepClosed {
+		trail = "editing step " + m.StepLabel(m.StepShown())
+	}
+	for _, q := range m.Seqs {
+		if q.K == m.OpenSeq {
+			trail = q.Name + " › " + trail
+		}
+	}
+	return Group{Rows: [][]Cell{{Text(trail).Dimmed(true)}}, Wraps: true}
+}
+
 func LinksPill(m Model) Pill {
 	var groups []Group
 	if len(m.Seqs) > 0 {
 		groups = append(groups, sequenceGroups(m)...)
 	}
-	groups = append(groups, networkGroup(m))
+	groups = append(groups, breadcrumb(m), networkGroup(m))
 	refused := m.Refused
 	for _, n := range m.stepNums() {
 		groups = append(groups, stepTitle(m, n))
