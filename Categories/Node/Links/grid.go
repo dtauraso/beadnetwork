@@ -1,6 +1,9 @@
 package Links
 
-import "slices"
+import (
+	"maps"
+	"slices"
+)
 
 type InCell struct {
 	Link Link
@@ -28,6 +31,80 @@ type Grid struct {
 	Level string
 	Shown int
 	Cols  []Col
+	Base  map[string]Base
+}
+
+type Base struct {
+	Origin Start
+	Total  Ints
+}
+
+func (b Base) Plus(d Ints) Start {
+	s := b.Origin
+	s.Phi = Wrap(1, s.Phi+float64(b.Total.Phi+d.Phi))
+	s.Theta = Wrap(1, s.Theta+float64(b.Total.Theta+d.Theta))
+	s.R += float64(b.Total.R + d.R)
+	return s.Pulled()
+}
+
+func (b Base) Add(d Ints) Base {
+	b.Total.Phi, b.Total.Theta, b.Total.R = b.Total.Phi+d.Phi, b.Total.Theta+d.Theta, b.Total.R+d.R
+	return b
+}
+
+func baseOf(start Start, total Ints) Base {
+	o := start
+	o.Phi = Wrap(1, o.Phi-float64(total.Phi))
+	o.Theta = Wrap(1, o.Theta-float64(total.Theta))
+	o.R -= float64(total.R)
+	return Base{Origin: o.Pulled(), Total: total}
+}
+
+func sameStart(a, b Start) bool {
+	return a.Phi == b.Phi && a.Theta == b.Theta && a.R == b.R && a.One == b.One
+}
+
+func (p *Peer) fitBase() {
+	if p.grid.Base == nil {
+		p.grid.Base = map[string]Base{}
+	}
+	shown := p.grid.ShownCol()
+	for from := range p.grid.Base {
+		if _, ok := p.own[from]; !ok {
+			delete(p.grid.Base, from)
+		}
+	}
+	for _, from := range p.order {
+		if _, ok := p.grid.Base[from]; ok {
+			continue
+		}
+		start := p.own[from].Start
+		if in, ok := shown.InFrom(from); ok {
+			start = in.Link.Start
+		}
+		p.grid.Base[from] = baseOf(start, Ints{})
+	}
+}
+
+func (p *Peer) deriveStarts() {
+	p.fitBase()
+	shown := p.grid.ShownCol()
+	for _, l := range p.Links() {
+		if b := p.grid.Base[l.From]; !sameStart(b.Plus(Ints{}), l.Start) {
+			p.grid.Base[l.From] = baseOf(l.Start, b.Total)
+		}
+	}
+	for i := range p.grid.Cols {
+		c := &p.grid.Cols[i]
+		if c.Step == shown.Step {
+			continue
+		}
+		for j := range c.In {
+			from := c.In[j].Link.From
+			was, _ := shown.InFrom(from)
+			c.In[j].Link.Start = p.grid.Base[from].Plus(was.Link.Delta)
+		}
+	}
 }
 
 type GridGeom struct {
@@ -75,6 +152,7 @@ func (g Grid) Clone() Grid {
 		cols[i] = c.clone()
 	}
 	g.Cols = cols
+	g.Base = maps.Clone(g.Base)
 	return g
 }
 

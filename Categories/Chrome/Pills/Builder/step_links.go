@@ -1,10 +1,6 @@
 package Builder
 
-import (
-	"slices"
-
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
-)
+import "github.com/dtauraso/beadnetwork/Categories/Node/Links"
 
 func (m Model) gridLinks(step int, id string) []Links.Link {
 	if step == 0 {
@@ -37,14 +33,8 @@ type Walk struct {
 func (m Model) Walking() bool { return m.Walk.I < len(m.Walk.Steps) }
 
 func (m *Model) StartWalk() {
-	ns, target := m.stepNums(), m.StepShown()
-	at := slices.Index(ns, target)
-	from := 0
-	if m.StepFrom == nil && m.Walked.Level == m.Level && slices.Contains(ns, m.Walked.Step) {
-		from = min(at, slices.Index(ns, m.Walked.Step)+1)
-	}
-	m.Walk = Walk{Steps: ns[from : at+1], From: m.StepFrom, Then: m.Walk.Then}
-	m.StepFrom, m.Walked = nil, levelStep{Level: m.Level, Step: target}
+	m.Walk = Walk{Steps: []int{m.StepShown()}, From: m.StepFrom, Then: m.Walk.Then}
+	m.StepFrom = nil
 }
 
 func (m *Model) WalkShow() Links.ShowStep {

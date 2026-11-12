@@ -35,6 +35,26 @@ func freshCol(step int, live []Link, at Place, ref Ref) Col {
 	return c
 }
 
+func (p *Peer) remap(steps, from []int) {
+	old := p.grid
+	var cols []Col
+	for i, n := range steps {
+		src := n
+		if from != nil {
+			src = from[i]
+		}
+		if c := old.at(src); src != 0 && c != nil {
+			nc := c.clone()
+			nc.Step = n
+			cols = append(cols, nc)
+			continue
+		}
+		cols = append(cols, freshCol(n, p.Links(), p.At, p.Ref))
+	}
+	p.grid.Cols = cols
+	p.sent = map[sentKey]OutLink{}
+}
+
 func ConvertGrid(level, id string, stepNodeDirs map[int]string, live []Link, at Place, ref Ref, s int) (Grid, error) {
 	g := Grid{ID: id, Level: level}
 	for n := range stepNodeDirs {

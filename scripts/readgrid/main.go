@@ -62,5 +62,13 @@ func dump(path string) error {
 		}
 		fmt.Fprintln(w, strings.Join(cells, "\t"))
 	}
+	band = ""
+	for _, r := range h.Base {
+		if r.Band != band {
+			band = r.Band
+			fmt.Fprintln(w, "[sequence "+band+"]")
+		}
+		fmt.Fprintln(w, r.Name+"\t"+num(r.V[0]))
+	}
 	return w.Flush()
 }

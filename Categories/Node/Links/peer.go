@@ -35,6 +35,7 @@ type Peer struct {
 	grid      Grid
 	geom      GridGeom
 	sent      map[sentKey]OutLink
+	fresh     bool
 
 	Changed Changes
 }

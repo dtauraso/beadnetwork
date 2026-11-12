@@ -40,6 +40,8 @@ func (p *Peer) SetGrid(g Grid, geom GridGeom) {
 	for i := range p.grid.Cols {
 		p.fitLinks(&p.grid.Cols[i])
 	}
+	p.fitBase()
+	p.fresh = true
 }
 
 func (p *Peer) fitLinks(c *Col) {
@@ -85,6 +87,7 @@ func (p *Peer) Snap() []Envelope {
 		outs = append(outs, o)
 	}
 	c.Out = outs
+	p.deriveStarts()
 	for i := range p.grid.Cols {
 		p.compute(&p.grid.Cols[i])
 	}
@@ -149,31 +152,14 @@ func (p *Peer) wantOut(m WantOut) {
 	}
 }
 
-func (p *Peer) remap(steps, from []int) {
-	old := p.grid
-	var cols []Col
-	for i, n := range steps {
-		src := n
-		if from != nil {
-			src = from[i]
-		}
-		if c := old.at(src); src != 0 && c != nil {
-			nc := c.clone()
-			nc.Step = n
-			cols = append(cols, nc)
-			continue
-		}
-		cols = append(cols, freshCol(n, p.Links(), p.At, p.Ref))
-	}
-	p.grid.Cols = cols
-	p.sent = map[sentKey]OutLink{}
-}
-
 func (p *Peer) showStep(m ShowStep) []Envelope {
 	var out []Envelope
-	if m.Level == p.grid.Level {
+	fresh := p.fresh
+	p.fresh = false
+	if m.Level == p.grid.Level && !fresh {
 		out = p.Snap()
 	}
+	was := p.grid.ShownCol()
 	if m.Steps != nil {
 		p.remap(m.Steps, m.From)
 	}
@@ -181,23 +167,21 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 	if c == nil {
 		return out
 	}
+	if fresh || m.From != nil || m.Step == was.Step {
+		p.At = c.At
+	} else {
+		for from, b := range p.grid.Base {
+			if in, ok := was.InFrom(from); ok {
+				p.grid.Base[from] = b.Add(in.Link.Delta)
+			}
+		}
+	}
 	p.grid.Shown = m.Step
 	for _, in := range c.In {
 		if l, ok := p.own[in.Link.From]; ok {
 			*l = in.Link
+			l.Start = p.grid.Base[l.From].Plus(Ints{})
 			l.SetS(p.S)
-		}
-	}
-	p.At = c.At
-	if i := slices.IndexFunc(p.grid.Cols, func(x Col) bool { return x.Step == m.Step }); i > 0 {
-		prev := p.grid.Cols[i-1]
-		p.At = prev.At
-		for from, l := range p.own {
-			if was, ok := prev.InFrom(from); ok {
-				d := was.Link.Dir()
-				l.Start.Phi, l.Start.Theta, l.Start.R = d.Phi, d.Theta, d.R
-				l.Start = l.Start.Pulled()
-			}
 		}
 	}
 	p.places[p.ID] = p.At

@@ -14,7 +14,7 @@ import (
 const (
 	FileGrid    = "grid.bin"
 	gridMagic   = "GRID"
-	gridVersion = 1
+	gridVersion = 2
 	BandNode    = "node"
 	BandIn      = "in "
 	BandOut     = "out "
@@ -110,6 +110,7 @@ func WriteGrid(path string, g Grid) error {
 		putStr(&b, r.Name)
 		_ = binary.Write(&b, le, r.V)
 	}
+	writeBase(&b, g.Base)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
@@ -127,6 +128,7 @@ type GridHead struct {
 	ID, Level string
 	Shown     int
 	Steps     []int
+	Base      []GridRow
 }
 
 func getStr(r io.Reader) (string, error) {
@@ -152,8 +154,8 @@ func ReadGridRows(path string) (GridHead, []GridRow, error) {
 	var ver, ncols, nrows uint32
 	var shown int64
 	_ = binary.Read(r, le, &ver)
-	if ver != gridVersion {
-		return h, nil, fmt.Errorf("Links.ReadGridRows: %s is grid version %d, and this build reads version %d", path, ver, gridVersion)
+	if ver != 1 && ver != gridVersion {
+		return h, nil, fmt.Errorf("Links.ReadGridRows: %s is grid version %d, and this build reads versions 1 and %d", path, ver, gridVersion)
 	}
 	h.ID, _ = getStr(r)
 	h.Level, _ = getStr(r)
@@ -177,7 +179,12 @@ func ReadGridRows(path string) (GridHead, []GridRow, error) {
 			return h, nil, fmt.Errorf("Links.ReadGridRows: %s ends inside row %d (%s %s): %w", path, i, rows[i].Band, rows[i].Name, err)
 		}
 	}
-	for _, v := range rows {
+	if ver >= 2 {
+		if h.Base, err = readBase(r); err != nil {
+			return h, nil, fmt.Errorf("Links.ReadGridRows: %s ends inside its running totals: %w", path, err)
+		}
+	}
+	for _, v := range append(rows, h.Base...) {
 		for _, x := range v.V {
 			if math.IsNaN(x) {
 				return h, nil, fmt.Errorf("Links.ReadGridRows: %s row %s %s holds NaN — every cell is a number the node wrote", path, v.Band, v.Name)

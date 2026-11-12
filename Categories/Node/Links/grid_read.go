@@ -1,10 +1,44 @@
 package Links
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
+	"io"
 	"io/fs"
+	"maps"
+	"slices"
 	"strings"
 )
+
+func writeBase(b *bytes.Buffer, base map[string]Base) {
+	le := binary.LittleEndian
+	_ = binary.Write(b, le, uint32(len(base)*len(baseRows)))
+	for _, from := range slices.Sorted(maps.Keys(base)) {
+		for _, r := range baseRows {
+			putStr(b, BandIn+from)
+			putStr(b, r.name)
+			_ = binary.Write(b, le, r.get(base[from]))
+		}
+	}
+}
+
+func readBase(r io.Reader) ([]GridRow, error) {
+	var n uint32
+	if err := binary.Read(r, binary.LittleEndian, &n); err != nil {
+		return nil, err
+	}
+	out := make([]GridRow, n)
+	for i := range out {
+		out[i].Band, _ = getStr(r)
+		out[i].Name, _ = getStr(r)
+		out[i].V = make([]float64, 1)
+		if err := binary.Read(r, binary.LittleEndian, out[i].V); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}
 
 func ReadGrid(path string) (Grid, bool, error) {
 	h, rows, err := ReadGridRows(path)
@@ -17,6 +51,18 @@ func ReadGrid(path string) (Grid, bool, error) {
 	g := Grid{ID: h.ID, Level: h.Level, Shown: h.Shown, Cols: make([]Col, len(h.Steps))}
 	for i, s := range h.Steps {
 		g.Cols[i].Step = s
+	}
+	g.Base = map[string]Base{}
+	for _, r := range h.Base {
+		from := strings.TrimPrefix(r.Band, BandIn)
+		b := g.Base[from]
+		for _, br := range baseRows {
+			if br.name == r.Name {
+				br.set(&b, r.V[0])
+			}
+		}
+		b.Origin = b.Origin.Pulled()
+		g.Base[from] = b
 	}
 	byBand := map[string]map[string][]float64{}
 	var bands []string

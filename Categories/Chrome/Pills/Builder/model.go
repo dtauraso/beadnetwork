@@ -45,7 +45,6 @@ type Model struct {
 
 	StepFrom  []int
 	Walk      Walk
-	Walked    levelStep
 	Rounds    map[string]int
 	StepHeads map[int]*Step
 	StepFolds map[StepNode]bool
@@ -55,7 +54,7 @@ type Model struct {
 	OpenSeq     int
 	AtSeqs      bool
 	SeqFind     string
-	Sel        Act
+	Sel         Act
 	ClickRow    Act
 	ClickAt     int64
 	ShownStep   int
