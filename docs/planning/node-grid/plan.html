@@ -7,158 +7,304 @@
 <title>Node Grid Plan</title>
 <style>
   :root { --bg:#15151a; --panel:#1e1e24; --line:#3a3a44; --soft:#2a2a32; --ink:#e7e7ea; --dim:#9a9aa6; --body:#c9c9d0; --mark:#cfe0fa; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
   header { position:sticky; top:0; background:var(--bg); border-bottom:1px solid var(--line); padding:14px 24px 0; z-index:1; }
   h1 { margin:0 0 10px; font-size:15px; font-weight:600; color:var(--dim); } h1 b { color:var(--ink); }
   nav { display:flex; flex-wrap:wrap; gap:2px; }
   nav button { background:none; border:0; border-bottom:2px solid transparent; color:var(--dim); font:inherit; padding:6px 12px; cursor:pointer; }
   nav button[aria-selected="true"] { color:var(--ink); border-bottom-color:var(--mark); }
-  main { max-width:900px; margin:0 auto; padding:24px 16px 60px; }
+  main { max-width:920px; margin:0 auto; padding:20px 16px 60px; }
   section { display:none; } section.on { display:block; }
-  h2 { font-size:15px; margin:26px 0 8px; } h2:first-child { margin-top:0; }
-  p, li { color:var(--body); } p { margin:0 0 10px; } ul, ol { margin:0 0 12px; padding-left:22px; }
-  table { width:100%; border-collapse:collapse; font-size:13px; margin:0 0 14px; }
-  th { text-align:left; color:var(--dim); font-weight:600; padding:6px 8px; border-bottom:1px solid var(--line); }
-  td { padding:6px 8px; border-bottom:1px solid var(--soft); vertical-align:top; }
-  td:first-child { white-space:nowrap; font-weight:600; }
-  code { font:12px "SF Mono",Menlo,monospace; background:var(--soft); border-radius:4px; padding:1px 5px; }
-  .grid td, .grid th { text-align:right; font-variant-numeric:tabular-nums; } .grid td:first-child, .grid th:first-child { text-align:left; }
-  .grid tr.band td { background:var(--panel); color:var(--dim); font-weight:600; text-align:left; }
-  .kbd { color:var(--dim); font-size:12px; }
+  p { margin:0 0 10px; color:var(--body); }
+  svg { width:100%; height:auto; display:block; margin:0 0 18px; }
+  svg text { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  svg .t { fill:var(--ink); font-size:13px; } svg .d { fill:var(--dim); font-size:12px; } svg .h { fill:var(--ink); font-size:14px; font-weight:600; }
+  svg .m { font-family:"SF Mono",Menlo,monospace; font-size:11px; fill:var(--body); }
+  svg .box { fill:var(--panel); stroke:var(--line); } svg .grid { fill:#1c2433; stroke:#5b7bb5; } svg .read { fill:#1f2a22; stroke:#5f9a6c; }
+  svg .old { fill:#2a1f22; stroke:#9a5f66; } svg .q { fill:#2a2618; stroke:#b59a4f; }
+  svg .a { stroke:var(--mark); stroke-width:1.6; fill:none; marker-end:url(#ar); } svg .ar { fill:var(--mark); }
+  svg .w { stroke:#e0b45b; stroke-width:1.8; fill:none; marker-end:url(#aw); } svg .aw { fill:#e0b45b; }
+  svg .x { stroke:#9a5f66; stroke-width:1.2; fill:none; stroke-dasharray:4 3; }
+  svg .band { fill:var(--soft); } svg .cell { fill:var(--bg); stroke:var(--soft); } svg .ref { fill:#1c2433; stroke:#5b7bb5; }
+  .key { display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--dim); margin:0 0 14px; }
+  .key i { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-2px; margin-right:5px; border:1px solid; }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ar" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="aw" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+</svg>
 <header>
-  <h1><b>Node grid</b> · each node's data lives in that node's grid, and everything else reads it</h1>
+  <h1><b>Node grid</b> · each node's data lives in its grid; everything reads the grids</h1>
   <nav role="tablist">
     <button role="tab" aria-selected="true" data-t="model">1 · Model</button>
-    <button role="tab" data-t="today">2 · Today</button>
+    <button role="tab" data-t="today">2 · Today → after</button>
     <button role="tab" data-t="grid">3 · The grid</button>
-    <button role="tab" data-t="who">4 · Writers and readers</button>
-    <button role="tab" data-t="order">5 · Order and checks</button>
+    <button role="tab" data-t="who">4 · Edit and read</button>
+    <button role="tab" data-t="order">5 · Order</button>
     <button role="tab" data-t="open">6 · Open questions</button>
   </nav>
 </header>
 <main>
 
+<div class="key">
+  <span><i style="background:#1c2433;border-color:#5b7bb5"></i>a node's grid</span>
+  <span><i style="background:#1f2a22;border-color:#5f9a6c"></i>reads a grid</span>
+  <span><i style="background:#2a1f22;border-color:#9a5f66"></i>goes away</span>
+  <span style="color:#e0b45b">━ writes</span>
+  <span style="color:#cfe0fa">━ reads</span>
+</div>
+
+<!-- 1 MODEL -->
 <section id="model" class="on">
-<h2>The model</h2>
-<p><b>One grid per node.</b> A node's grid holds <b>all of that node's data</b>: one column per step of the open sequence, one row per value.
-Nothing about the node is kept anywhere else.</p>
-<ul>
-  <li>Everything that is <b>typed</b>: each link's start, Δ, nΔ, 1 step for φ, θ and r, its lock, whether it is picked; the node's ref Δφ, Δθ; the sequence's s.</li>
-  <li><b>Every link</b>: the links into the node <i>and</i> the links out of it.</li>
-  <li>Everything <b>computed</b>: the angle sums (start + Δ turned by the ref), the node's place (polar index and x, y, z), each out-edge's start and end points and its step count.</li>
-</ul>
-<p><b>Everything reads the grid.</b> The diagram, the Node grid tab, the Links tab and the Tree tab all get their values from the grids.
-None of them keeps its own copy, and none recomputes a value the grid already has.</p>
-<p><b>A computed cell is a reference, not a second value.</b> A sum cell is worked out from the grid's own start, Δ and ref cells,
-and stored back in the same grid, so the grid, the tabs and the diagram can never disagree.</p>
-<h2>The one repo rule it has to meet</h2>
-<p>CLAUDE.md: <b>one writer per file</b>, written by atomic rename, and the TS side only draws what Go wrote.
-So each grid file has exactly one writer, the node it belongs to, and the diagram reads values Go has already computed.</p>
+<svg viewBox="0 0 900 420">
+  <!-- edit -->
+  <rect class="box" x="20" y="180" width="130" height="56" rx="8"/>
+  <text class="t" x="85" y="204" text-anchor="middle">an edit</text>
+  <text class="d" x="85" y="222" text-anchor="middle">typed in a tab</text>
+  <!-- nodes with grids -->
+  <g>
+    <rect class="box" x="200" y="40" width="300" height="104" rx="10"/>
+    <text class="h" x="216" y="62">node 1</text>
+    <rect class="grid" x="216" y="72" width="268" height="60" rx="6"/>
+    <text class="t" x="228" y="92">grid · all of node 1's data</text>
+    <text class="d" x="228" y="112">typed · links in + out · computed · place · edges</text>
+  </g>
+  <g>
+    <rect class="box" x="200" y="160" width="300" height="104" rx="10"/>
+    <text class="h" x="216" y="182">node 2</text>
+    <rect class="grid" x="216" y="192" width="268" height="60" rx="6"/>
+    <text class="t" x="228" y="212">grid · all of node 2's data</text>
+    <text class="d" x="228" y="232">typed · links in + out · computed · place · edges</text>
+  </g>
+  <g>
+    <rect class="box" x="200" y="280" width="300" height="104" rx="10"/>
+    <text class="h" x="216" y="302">node 3</text>
+    <rect class="grid" x="216" y="312" width="268" height="60" rx="6"/>
+    <text class="t" x="228" y="332">grid · all of node 3's data</text>
+    <text class="d" x="228" y="352">typed · links in + out · computed · place · edges</text>
+  </g>
+  <path class="w" d="M150,200 C175,200 175,100 214,100"/>
+  <path class="w" d="M150,208 L214,220"/>
+  <path class="w" d="M150,216 C175,216 175,340 214,340"/>
+  <text class="d" x="160" y="150" fill="#e0b45b">node writes its own grid</text>
+  <!-- readers -->
+  <rect class="read" x="660" y="40" width="210" height="60" rx="8"/><text class="t" x="765" y="76" text-anchor="middle">diagram</text>
+  <rect class="read" x="660" y="130" width="210" height="60" rx="8"/><text class="t" x="765" y="166" text-anchor="middle">Node grid tab</text>
+  <rect class="read" x="660" y="220" width="210" height="60" rx="8"/><text class="t" x="765" y="256" text-anchor="middle">Links tab</text>
+  <rect class="read" x="660" y="310" width="210" height="60" rx="8"/><text class="t" x="765" y="346" text-anchor="middle">Tree tab</text>
+  <!-- reads fan -->
+  <g class="a">
+    <path d="M500,92 C580,92 580,70 656,70"/><path d="M500,100 C580,100 580,160 656,160"/><path d="M500,108 C580,108 580,250 656,250"/><path d="M500,116 C580,116 580,340 656,340"/>
+    <path d="M500,212 C580,212 580,76 656,76"/><path d="M500,220 L656,166"/><path d="M500,228 L656,256"/><path d="M500,236 C580,236 580,346 656,346"/>
+    <path d="M500,332 C580,332 580,82 656,82"/><path d="M500,340 C580,340 580,172 656,172"/><path d="M500,348 L656,262"/><path d="M500,356 L656,352"/>
+  </g>
+  <text class="d" x="525" y="30">every view reads the grids, keeps no copy</text>
+</svg>
+<svg viewBox="0 0 900 150">
+  <text class="h" x="20" y="24">a computed cell is a reference</text>
+  <rect class="cell" x="20" y="46" width="120" height="40" rx="4"/><text class="t" x="80" y="71" text-anchor="middle">φ start  2</text>
+  <rect class="cell" x="160" y="46" width="120" height="40" rx="4"/><text class="t" x="220" y="71" text-anchor="middle">φ Δ  1</text>
+  <rect class="cell" x="300" y="46" width="150" height="40" rx="4"/><text class="t" x="375" y="71" text-anchor="middle">ref Δφ (sender)  0</text>
+  <rect class="ref" x="600" y="46" width="160" height="40" rx="4"/><text class="t" x="680" y="71" text-anchor="middle">φ sum  3</text>
+  <path class="a" d="M80,88 C80,120 640,120 660,90"/><path class="a" d="M220,88 C220,116 650,116 672,90"/><path class="a" d="M375,88 C375,110 660,110 684,90"/>
+  <text class="d" x="470" y="70">same grid, same step →</text>
+  <text class="d" x="600" y="140">never stale: re-derived when an input changes</text>
+</svg>
 </section>
 
+<!-- 2 TODAY -> AFTER -->
 <section id="today">
-<h2>Where a node's data is today</h2>
-<p>The same values are spread over several places, and each reader gets them a different way. The grid replaces all of these.</p>
-<table>
-<tr><th>Place</th><th>What it holds</th><th>Who reads it</th></tr>
-<tr><td><code>sequences/k/nodes/&lt;id&gt;/links/&lt;from&gt;To&lt;to&gt;/</code></td><td>each link into the node: start, delta, increment, one, lock, picked, order, source (one <code>.bin</code> per value)</td><td>loaded into the node at start</td></tr>
-<tr><td><code>sequences/k/nodes/&lt;id&gt;/drag/links/…</code></td><td>the same link values again, as the live (dragged) copy, plus <code>left-φ/θ</code></td><td>the node while running</td></tr>
-<tr><td><code>sequences/k/steps/&lt;n&gt;/nodes/&lt;id&gt;/links/…</code></td><td>the same link values a third time, once per step</td><td>Builder, into <code>StepLinks</code></td></tr>
-<tr><td><code>sequences/k/nodes/&lt;id&gt;/drag/</code>, <code>base/</code></td><td>place <code>at-r/φ/θ</code>, <code>index-*</code>, ref <code>ref-φ/θ/s</code></td><td>the node</td></tr>
-<tr><td><code>Builder.Model.StepLinks</code></td><td>an in-memory copy of every link for every step</td><td>Links tab, Node grid tab, edits</td></tr>
-<tr><td><code>Builder.Model.Reports</code></td><td>what each node last reported: its links, place, ref</td><td>Links tab network rows, Tree tab, Node places tab</td></tr>
-<tr><td><code>view/nodes/&lt;row&gt;/node.bin</code></td><td>what the diagram draws for a node (radius, pole and label anchors, selection, …)</td><td>the diagram</td></tr>
-<tr><td><code>view/edges/&lt;n&gt;/edge.bin</code></td><td>an edge's drawn start <code>sx sy sz</code> and end <code>ex ey ez</code>, its rows, <code>deltaR</code></td><td>the diagram</td></tr>
-<tr><td>not stored at all</td><td>the angle sums: computed by <code>Links.DirFrom</code> each time a tab draws</td><td>Tree tab, Node grid tab (on <code>task/grid-sums</code>)</td></tr>
-</table>
+<svg viewBox="0 0 900 470">
+  <text class="h" x="20" y="24">today: the same values in 9 places</text>
+  <g>
+    <rect class="old" x="20" y="44" width="300" height="34" rx="6"/><text class="m" x="30" y="66">nodes/&lt;id&gt;/links/1To2/*.bin</text>
+    <rect class="old" x="20" y="86" width="300" height="34" rx="6"/><text class="m" x="30" y="108">nodes/&lt;id&gt;/drag/links/1To2/*.bin</text>
+    <rect class="old" x="20" y="128" width="300" height="34" rx="6"/><text class="m" x="30" y="150">steps/&lt;n&gt;/nodes/&lt;id&gt;/links/…</text>
+    <rect class="old" x="20" y="170" width="300" height="34" rx="6"/><text class="m" x="30" y="192">nodes/&lt;id&gt;/drag · base  (place, ref)</text>
+    <rect class="old" x="20" y="212" width="300" height="34" rx="6"/><text class="m" x="30" y="234">Builder.StepLinks  (memory)</text>
+    <rect class="old" x="20" y="254" width="300" height="34" rx="6"/><text class="m" x="30" y="276">Builder.Reports  (memory)</text>
+    <rect class="old" x="20" y="296" width="300" height="34" rx="6"/><text class="m" x="30" y="318">view/nodes/&lt;row&gt;/node.bin  positions</text>
+    <rect class="old" x="20" y="338" width="300" height="34" rx="6"/><text class="m" x="30" y="360">view/edges/&lt;n&gt;/edge.bin  sx…ez</text>
+    <rect class="old" x="20" y="380" width="300" height="34" rx="6" stroke-dasharray="4 3"/><text class="m" x="30" y="402">angle sums: not stored, DirFrom each draw</text>
+  </g>
+  <rect class="read" x="380" y="80" width="150" height="40" rx="6"/><text class="t" x="455" y="105" text-anchor="middle">Links tab</text>
+  <rect class="read" x="380" y="170" width="150" height="40" rx="6"/><text class="t" x="455" y="195" text-anchor="middle">Node grid tab</text>
+  <rect class="read" x="380" y="260" width="150" height="40" rx="6"/><text class="t" x="455" y="285" text-anchor="middle">Tree tab</text>
+  <rect class="read" x="380" y="350" width="150" height="40" rx="6"/><text class="t" x="455" y="375" text-anchor="middle">diagram</text>
+  <g class="x">
+    <path d="M320,145 L380,100"/><path d="M320,229 L380,104"/><path d="M320,271 L380,108"/>
+    <path d="M320,229 L380,186"/><path d="M320,397 L380,194"/>
+    <path d="M320,271 L380,280"/><path d="M320,397 L380,286"/>
+    <path d="M320,313 L380,366"/><path d="M320,355 L380,374"/>
+  </g>
+  <!-- after -->
+  <line x1="590" y1="40" x2="590" y2="440" stroke="var(--line)"/>
+  <text class="h" x="620" y="24">after: one place per node</text>
+  <rect class="grid" x="620" y="140" width="110" height="34" rx="6"/><text class="m" x="632" y="162">node 1 grid</text>
+  <rect class="grid" x="620" y="200" width="110" height="34" rx="6"/><text class="m" x="632" y="222">node 2 grid</text>
+  <rect class="grid" x="620" y="260" width="110" height="34" rx="6"/><text class="m" x="632" y="282">node 3 grid</text>
+  <rect class="read" x="770" y="80" width="120" height="36" rx="6"/><text class="t" x="830" y="103" text-anchor="middle">Links tab</text>
+  <rect class="read" x="770" y="160" width="120" height="36" rx="6"/><text class="t" x="830" y="183" text-anchor="middle">Node grid tab</text>
+  <rect class="read" x="770" y="240" width="120" height="36" rx="6"/><text class="t" x="830" y="263" text-anchor="middle">Tree tab</text>
+  <rect class="read" x="770" y="320" width="120" height="36" rx="6"/><text class="t" x="830" y="343" text-anchor="middle">diagram</text>
+  <g class="a"><path d="M730,200 L766,100"/><path d="M730,212 L766,178"/><path d="M730,222 L766,256"/><path d="M730,232 L766,336"/></g>
+</svg>
 </section>
 
+<!-- 3 THE GRID -->
 <section id="grid">
-<h2>One node's grid</h2>
-<p>Columns are the steps of the open sequence. Rows are grouped: the node itself, then one band per link (in and out), then what is computed.
-Example for node 2 with one link in (1→2) and one out (2→3):</p>
-<table class="grid">
-<tr><th></th><th>step 1</th><th>step 2</th><th>step 3</th></tr>
-<tr class="band"><td colspan="4">node 2</td></tr>
-<tr><td>ref Δφ, ref Δθ</td><td>0, 0</td><td>0, 0</td><td>1, 0</td></tr>
-<tr><td>place r, φ, θ</td><td>1, 2, 0</td><td>1, 3, 0</td><td>1, 3, 1</td></tr>
-<tr><td>place x, y, z</td><td>…</td><td>…</td><td>…</td></tr>
-<tr><td>s</td><td>10</td><td>10</td><td>10</td></tr>
-<tr class="band"><td colspan="4">link 1→2 (in)</td></tr>
-<tr><td>φ start, Δ, nΔ, 1 step</td><td>2, 1, 1, 1</td><td>…</td><td>…</td></tr>
-<tr><td>θ … , r …</td><td>…</td><td>…</td><td>…</td></tr>
-<tr><td>lock, picked</td><td>…</td><td>…</td><td>…</td></tr>
-<tr><td>φ, θ, r sum</td><td>= start + Δ, turned by node 1's ref</td><td>…</td><td>…</td></tr>
-<tr class="band"><td colspan="4">link 2→3 (out)</td></tr>
-<tr><td>the same typed rows</td><td>…</td><td>…</td><td>…</td></tr>
-<tr><td>edge start x, y, z · end x, y, z</td><td>…</td><td>…</td><td>…</td></tr>
-<tr><td>step count of the line</td><td>…</td><td>…</td><td>…</td></tr>
-</table>
-<p>A link is in two grids: the out band of its source node and the in band of its target node.</p>
-
-<h2>On disk</h2>
-<ul>
-  <li>One file per node per sequence: <code>sequences/k/nodes/&lt;id&gt;/grid.bin</code>, written by atomic rename like every other value file.</li>
-  <li>Laid out the way block files already are: the <code>layout</code> generator names the rows, and each row is a <b>run</b> over the steps
-      (the <code>f32Run</code>/<code>i32Run</code> the angle pill already uses), so adding a step widens every run and adding a link adds a band.</li>
-  <li>A small header gives the step numbers and, per band, the link name and direction, so a reader knows which run is which without guessing.</li>
-</ul>
+<svg viewBox="0 0 900 520">
+  <text class="h" x="20" y="24">node 2's grid · in: 1→2 · out: 2→3</text>
+  <g>
+    <text class="d" x="300" y="52" text-anchor="middle">step 1</text><text class="d" x="420" y="52" text-anchor="middle">step 2</text><text class="d" x="540" y="52" text-anchor="middle">step 3</text><text class="d" x="640" y="52">…</text>
+    <path class="a" d="M250,36 L600,36"/><text class="d" x="610" y="40">columns = steps</text>
+  </g>
+  <!-- bands -->
+  <rect class="band" x="20" y="62" width="620" height="22" rx="3"/><text class="t" x="28" y="78">node 2</text>
+  <g class="m">
+    <text x="28" y="104">ref Δφ · Δθ</text><text x="28" y="126">place r φ θ</text><text x="28" y="148">place x y z</text><text x="28" y="170">s</text>
+  </g>
+  <rect class="band" x="20" y="182" width="620" height="22" rx="3"/><text class="t" x="28" y="198">link 1→2 · in</text>
+  <g class="m">
+    <text x="28" y="224">φ start Δ nΔ 1</text><text x="28" y="246">θ start Δ nΔ 1</text><text x="28" y="268">r start Δ nΔ 1</text><text x="28" y="290">lock · picked</text><text x="28" y="312">φ θ r sum</text>
+  </g>
+  <rect class="band" x="20" y="324" width="620" height="22" rx="3"/><text class="t" x="28" y="340">link 2→3 · out</text>
+  <g class="m">
+    <text x="28" y="366">typed rows (as above)</text><text x="28" y="388">φ θ r sum</text><text x="28" y="410">edge start x y z</text><text x="28" y="432">edge end x y z</text><text x="28" y="454">line step count</text>
+  </g>
+  <!-- cells -->
+  <g id="cells">
+    <g transform="translate(250,90)">
+      <rect class="cell" x="0" y="0" width="100" height="18"/><rect class="cell" x="120" y="0" width="100" height="18"/><rect class="cell" x="240" y="0" width="100" height="18"/>
+      <rect class="ref" x="0" y="22" width="100" height="18"/><rect class="ref" x="120" y="22" width="100" height="18"/><rect class="ref" x="240" y="22" width="100" height="18"/>
+      <rect class="ref" x="0" y="44" width="100" height="18"/><rect class="ref" x="120" y="44" width="100" height="18"/><rect class="ref" x="240" y="44" width="100" height="18"/>
+      <rect class="cell" x="0" y="66" width="100" height="18"/><rect class="cell" x="120" y="66" width="100" height="18"/><rect class="cell" x="240" y="66" width="100" height="18"/>
+    </g>
+    <g transform="translate(250,210)">
+      <rect class="cell" x="0" y="0" width="100" height="18"/><rect class="cell" x="120" y="0" width="100" height="18"/><rect class="cell" x="240" y="0" width="100" height="18"/>
+      <rect class="cell" x="0" y="22" width="100" height="18"/><rect class="cell" x="120" y="22" width="100" height="18"/><rect class="cell" x="240" y="22" width="100" height="18"/>
+      <rect class="cell" x="0" y="44" width="100" height="18"/><rect class="cell" x="120" y="44" width="100" height="18"/><rect class="cell" x="240" y="44" width="100" height="18"/>
+      <rect class="cell" x="0" y="66" width="100" height="18"/><rect class="cell" x="120" y="66" width="100" height="18"/><rect class="cell" x="240" y="66" width="100" height="18"/>
+      <rect class="ref" x="0" y="88" width="100" height="18"/><rect class="ref" x="120" y="88" width="100" height="18"/><rect class="ref" x="240" y="88" width="100" height="18"/>
+    </g>
+    <g transform="translate(250,352)">
+      <rect class="cell" x="0" y="0" width="100" height="18"/><rect class="cell" x="120" y="0" width="100" height="18"/><rect class="cell" x="240" y="0" width="100" height="18"/>
+      <rect class="ref" x="0" y="22" width="100" height="18"/><rect class="ref" x="120" y="22" width="100" height="18"/><rect class="ref" x="240" y="22" width="100" height="18"/>
+      <rect class="ref" x="0" y="44" width="100" height="18"/><rect class="ref" x="120" y="44" width="100" height="18"/><rect class="ref" x="240" y="44" width="100" height="18"/>
+      <rect class="ref" x="0" y="66" width="100" height="18"/><rect class="ref" x="120" y="66" width="100" height="18"/><rect class="ref" x="240" y="66" width="100" height="18"/>
+      <rect class="ref" x="0" y="88" width="100" height="18"/><rect class="ref" x="120" y="88" width="100" height="18"/><rect class="ref" x="240" y="88" width="100" height="18"/>
+    </g>
+  </g>
+  <rect class="cell" x="680" y="100" width="16" height="12"/><text class="d" x="702" y="111">typed</text>
+  <rect class="ref" x="680" y="122" width="16" height="12"/><text class="d" x="702" y="133">computed (reference)</text>
+  <!-- link in two grids -->
+  <text class="h" x="660" y="200">a link is in two grids</text>
+  <rect class="grid" x="660" y="216" width="100" height="44" rx="6"/><text class="t" x="710" y="236" text-anchor="middle">node 1</text><text class="d" x="710" y="252" text-anchor="middle">out band</text>
+  <rect class="grid" x="790" y="216" width="100" height="44" rx="6"/><text class="t" x="840" y="236" text-anchor="middle">node 2</text><text class="d" x="840" y="252" text-anchor="middle">in band</text>
+  <path class="a" d="M760,238 L786,238"/><text class="m" x="756" y="282">link 1→2</text>
+  <!-- on disk -->
+  <text class="h" x="660" y="330">on disk</text>
+  <text class="m" x="660" y="352">sequences/k/nodes/&lt;id&gt;/grid.bin</text>
+  <rect class="box" x="660" y="364" width="230" height="26" rx="4"/><text class="d" x="670" y="382">header: steps · band names · in/out</text>
+  <rect class="ref" x="660" y="396" width="230" height="20" rx="3"/><text class="m" x="670" y="410">row run: one value per step</text>
+  <rect class="ref" x="660" y="420" width="230" height="20" rx="3"/><text class="m" x="670" y="434">row run …</text>
+  <text class="d" x="660" y="462">one writer · atomic rename</text>
+</svg>
 </section>
 
+<!-- 4 EDIT AND READ -->
 <section id="who">
-<h2>Who writes</h2>
-<table>
-<tr><th>Writer</th><th>Writes</th></tr>
-<tr><td>the node</td><td>its own <code>grid.bin</code>, every row in it, typed and computed. It is the only writer of that file.</td></tr>
-</table>
-<p><b>Edits.</b> When a value is typed in the Links tab or the Node grid tab, the edit goes to the node(s) whose grid has that cell, the way
-<code>SetLink</code> already goes to a node. The node sets the cell, recomputes the cells that refer to it (the sums, its place, its edge ends),
-and writes its grid. An edit to a link goes to both of its nodes, since both grids have it.</p>
-
-<h2>Who reads</h2>
-<table>
-<tr><th>Reader</th><th>Reads</th><th>Replaces</th></tr>
-<tr><td>Node grid tab</td><td>each node's grid, whole</td><td><code>StepLinks</code>, <code>Links.DirFrom</code> in the tab</td></tr>
-<tr><td>Links tab</td><td>the grids: a step's column for the cards, the link bands for the rows</td><td><code>StepLinks</code>, <code>stepLinksTo</code>, <code>linksTo</code>, <code>Reports[…].Links</code></td></tr>
-<tr><td>Tree tab</td><td>the grids</td><td><code>Links.DirFrom</code>, <code>Reports</code></td></tr>
-<tr><td>Diagram</td><td>each node's grid, the column of the step being shown: place x, y, z and each out-edge's start and end</td><td>the position values in <code>node.bin</code> and <code>edge.bin</code></td></tr>
-</table>
-<p>The step files under <code>steps/&lt;n&gt;/nodes/</code> and the link folders under <code>nodes/&lt;id&gt;/links</code> and <code>drag/links</code>
-stop being read once the grid holds their values, and are deleted at the end (tab 5, step 6).</p>
+<svg viewBox="0 0 900 360">
+  <text class="h" x="20" y="24">an edit to link 1→2, step 2, φ start</text>
+  <rect class="box" x="20" y="140" width="150" height="56" rx="8"/><text class="t" x="95" y="164" text-anchor="middle">Links tab or</text><text class="t" x="95" y="182" text-anchor="middle">Node grid tab</text>
+  <rect class="box" x="250" y="60" width="150" height="56" rx="8"/><text class="h" x="325" y="94" text-anchor="middle">node 1</text>
+  <rect class="box" x="250" y="220" width="150" height="56" rx="8"/><text class="h" x="325" y="254" text-anchor="middle">node 2</text>
+  <path class="w" d="M170,160 C210,160 210,88 246,88"/><path class="w" d="M170,176 C210,176 210,248 246,248"/>
+  <text class="d" x="180" y="130">to both grids holding it</text>
+  <!-- node work -->
+  <rect class="grid" x="470" y="50" width="200" height="76" rx="8"/>
+  <text class="t" x="482" y="72">1 set the cell</text><text class="t" x="482" y="92">2 recompute its references</text><text class="t" x="482" y="112">3 write grid.bin</text>
+  <rect class="grid" x="470" y="210" width="200" height="76" rx="8"/>
+  <text class="t" x="482" y="232">1 set the cell</text><text class="t" x="482" y="252">2 recompute its references</text><text class="t" x="482" y="272">3 write grid.bin</text>
+  <path class="w" d="M400,88 L466,88"/><path class="w" d="M400,248 L466,248"/>
+  <rect class="read" x="740" y="40" width="140" height="36" rx="6"/><text class="t" x="810" y="63" text-anchor="middle">diagram</text>
+  <rect class="read" x="740" y="110" width="140" height="36" rx="6"/><text class="t" x="810" y="133" text-anchor="middle">Node grid tab</text>
+  <rect class="read" x="740" y="180" width="140" height="36" rx="6"/><text class="t" x="810" y="203" text-anchor="middle">Links tab</text>
+  <rect class="read" x="740" y="250" width="140" height="36" rx="6"/><text class="t" x="810" y="273" text-anchor="middle">Tree tab</text>
+  <g class="a"><path d="M670,80 L736,58"/><path d="M670,90 L736,128"/><path d="M670,100 L736,196"/><path d="M670,110 L736,262"/>
+  <path d="M670,232 L736,62"/><path d="M670,242 L736,132"/><path d="M670,252 L736,200"/><path d="M670,262 L736,268"/></g>
+  <text class="d" x="740" y="320">diagram: the shown step's column</text>
+  <text class="d" x="740" y="338">tabs: whole grids</text>
+</svg>
 </section>
 
+<!-- 5 ORDER -->
 <section id="order">
-<h2>Order</h2>
-<p>Each step leaves the editor working, and is checked in the editor before the next one starts.</p>
-<ol>
-  <li><b>The grid file.</b> Its layout (rows, runs over steps, header) and the node writing it from the values it has now: typed rows from its links and ref, computed rows from its own math.
-      <br><span class="kbd">Check: dump a node's grid.bin; its numbers match the Tree tab and the Node grid tab today.</span></li>
-  <li><b>Node grid tab reads the grids.</b> The tab draws each node's grid file as is, every row, every link in and out.
-      <br><span class="kbd">Check: the tab shows the same numbers as before, plus the out-links and the positions.</span></li>
-  <li><b>Edits go to the grid.</b> Typing in the Links tab or the Node grid tab sends the edit to the node(s) owning the cell; the node writes its grid.
-      <br><span class="kbd">Check: change a start in the Links tab, see the sum and the edge move in the grid tab and the diagram.</span></li>
-  <li><b>Links tab and Tree tab read the grids.</b> <code>StepLinks</code>, <code>stepLinksTo</code> and <code>DirFrom</code> in Builder are deleted.
-      <br><span class="kbd">Check: every Links tab action from the UI standard still works.</span></li>
-  <li><b>The diagram reads the grids.</b> Node place and edge ends come from the shown step's column; those values leave <code>node.bin</code> and <code>edge.bin</code>.
-      <br><span class="kbd">Check: drag a node and step through steps; the diagram and the grid tab show the same place.</span></li>
-  <li><b>Old files go.</b> Existing scenes are converted once into grid files; the per-step link files and the link folders are deleted.
-      <br><span class="kbd">Check: <code>topology-pair-phi-theta-3</code> opens with every sequence and step as before.</span></li>
-</ol>
-<h2>When it lands</h2>
-<p>MODEL.md and CLAUDE.md gain a line: a node's grid is its data and every view reads it. This plan is deleted.</p>
+<svg viewBox="0 0 900 420">
+  <line x1="60" y1="60" x2="60" y2="380" stroke="var(--line)" stroke-width="2"/>
+  <g>
+    <circle cx="60" cy="60" r="14" class="grid"/><text class="t" x="60" y="65" text-anchor="middle">1</text>
+    <text class="h" x="90" y="58">grid.bin per node</text><text class="d" x="90" y="76">check: dump matches Tree + Node grid tab</text>
+    <rect class="grid" x="560" y="42" width="60" height="30" rx="4"/>
+  </g>
+  <g>
+    <circle cx="60" cy="124" r="14" class="grid"/><text class="t" x="60" y="129" text-anchor="middle">2</text>
+    <text class="h" x="90" y="122">Node grid tab reads grids</text><text class="d" x="90" y="140">check: same numbers + out-links + positions</text>
+    <rect class="grid" x="560" y="106" width="60" height="30" rx="4"/><path class="a" d="M620,121 L676,121"/><rect class="read" x="680" y="106" width="80" height="30" rx="4"/>
+  </g>
+  <g>
+    <circle cx="60" cy="188" r="14" class="grid"/><text class="t" x="60" y="193" text-anchor="middle">3</text>
+    <text class="h" x="90" y="186">edits write grids</text><text class="d" x="90" y="204">check: change a start → sum + edge move</text>
+    <rect class="box" x="480" y="170" width="60" height="30" rx="4"/><path class="w" d="M540,185 L556,185"/><rect class="grid" x="560" y="170" width="60" height="30" rx="4"/>
+  </g>
+  <g>
+    <circle cx="60" cy="252" r="14" class="grid"/><text class="t" x="60" y="257" text-anchor="middle">4</text>
+    <text class="h" x="90" y="250">Links + Tree tabs read grids</text><text class="d" x="90" y="268">StepLinks · stepLinksTo · DirFrom deleted</text>
+    <rect class="grid" x="560" y="234" width="60" height="30" rx="4"/><path class="a" d="M620,249 L676,249"/><rect class="read" x="680" y="234" width="80" height="30" rx="4"/><rect class="old" x="780" y="234" width="80" height="30" rx="4"/><path class="x" d="M780,234 L860,264"/>
+  </g>
+  <g>
+    <circle cx="60" cy="316" r="14" class="grid"/><text class="t" x="60" y="321" text-anchor="middle">5</text>
+    <text class="h" x="90" y="314">diagram reads grids</text><text class="d" x="90" y="332">check: drag + step through, diagram = grid</text>
+    <rect class="grid" x="560" y="298" width="60" height="30" rx="4"/><path class="a" d="M620,313 L676,313"/><rect class="read" x="680" y="298" width="80" height="30" rx="4"/>
+  </g>
+  <g>
+    <circle cx="60" cy="380" r="14" class="grid"/><text class="t" x="60" y="385" text-anchor="middle">6</text>
+    <text class="h" x="90" y="378">old files converted, deleted</text><text class="d" x="90" y="396">check: topology-pair-phi-theta-3 opens as before</text>
+    <rect class="old" x="560" y="362" width="60" height="30" rx="4"/><path class="x" d="M560,362 L620,392"/><path class="w" d="M620,377 L676,377"/><rect class="grid" x="680" y="362" width="80" height="30" rx="4"/>
+  </g>
+</svg>
+<p>Each step is checked in the editor before the next. When it lands: a line in MODEL.md, and this plan is deleted.</p>
 </section>
 
+<!-- 6 OPEN -->
 <section id="open">
-<h2>Open questions</h2>
-<table>
-<tr><th>Question</th><th>Why it needs you</th></tr>
-<tr><td>Beads</td><td>Bead positions change every frame, not every step. Do they go in the grid too, or stay in <code>beads.bin</code>?</td></tr>
-<tr><td>Drag</td><td>A drag moves a node between steps. Does a drag write into the shown step's column, or into a separate live column?</td></tr>
-<tr><td>Other drawn values</td><td>Should the rest of <code>node.bin</code> (selection, hover, label anchors) go in the grid as well, or only what is per step?</td></tr>
-</table>
+<svg viewBox="0 0 900 330">
+  <g>
+    <text class="h" x="20" y="28">1 · beads</text>
+    <rect class="q" x="20" y="44" width="260" height="90" rx="8"/>
+    <text class="d" x="34" y="66">per frame, not per step</text>
+    <rect class="grid" x="34" y="80" width="100" height="40" rx="5"/><text class="t" x="84" y="105" text-anchor="middle">grid?</text>
+    <rect class="box" x="164" y="80" width="100" height="40" rx="5"/><text class="m" x="214" y="105" text-anchor="middle">beads.bin?</text>
+  </g>
+  <g>
+    <text class="h" x="320" y="28">2 · drag</text>
+    <rect class="q" x="320" y="44" width="260" height="90" rx="8"/>
+    <text class="d" x="334" y="66">a drag writes into…</text>
+    <rect class="grid" x="334" y="80" width="100" height="40" rx="5"/><text class="t" x="384" y="99" text-anchor="middle">shown step</text><text class="d" x="384" y="114" text-anchor="middle">column?</text>
+    <rect class="grid" x="464" y="80" width="100" height="40" rx="5" stroke-dasharray="4 3"/><text class="t" x="514" y="99" text-anchor="middle">a live</text><text class="d" x="514" y="114" text-anchor="middle">column?</text>
+  </g>
+  <g>
+    <text class="h" x="620" y="28">3 · other drawn values</text>
+    <rect class="q" x="620" y="44" width="260" height="90" rx="8"/>
+    <text class="d" x="634" y="66">selection · hover · label anchors</text>
+    <rect class="grid" x="634" y="80" width="100" height="40" rx="5"/><text class="t" x="684" y="105" text-anchor="middle">grid?</text>
+    <rect class="box" x="764" y="80" width="100" height="40" rx="5"/><text class="m" x="814" y="105" text-anchor="middle">node.bin?</text>
+  </g>
+</svg>
 </section>
 
 </main>
