@@ -1,6 +1,15 @@
 package Builder
 
+import (
+	"strings"
+
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+)
+
 const (
+	OpSeqFind      = "seq-find"
+	OpSeqFindClear = "seq-find-clear"
+
 	OpSeqOpen = "seq-open"
 	OpSeqIn   = "seq-in"
 	OpSeqAdd  = "seq-add"
@@ -46,8 +55,48 @@ func (m *Model) ToSeqs() {
 	m.Sel = Act{Op: OpSeqOpen, I: m.OpenSeq}
 }
 
+func (q Seq) matches(find string) bool {
+	find = strings.ToLower(strings.TrimSpace(find))
+	return strings.Contains(strings.ToLower(q.Name), find) || strings.Contains("sequence "+itoa(q.K), find)
+}
+
+func (m *Model) Find(e Sheet.Edit, key string) {
+	switch {
+	case e.Active:
+		m.SeqFind = e.Draft
+	case key == "Escape":
+		m.SeqFind = ""
+	}
+	if r, ok := m.firstSeqRow(); ok && (e.Active || key == "Enter") {
+		m.Sel = r
+	}
+}
+
+func (m Model) firstSeqRow() (Act, bool) {
+	for _, r := range m.linkRows() {
+		if r.id.Op == OpSeqOpen {
+			return r.id, true
+		}
+	}
+	return Act{}, false
+}
+
+func findGroup(m Model) Group {
+	row := []Cell{Field("find", m.SeqFind, Act{Op: OpSeqFind}, true, false).Wording().Tipped("type part of a name: Enter selects the first match, Escape clears")}
+	if m.SeqFind != "" {
+		row = append(row, Button("×", Act{Op: OpSeqFindClear}, false).Tipped("clear the search"))
+	}
+	return Group{Rows: [][]Cell{row}}
+}
+
 func seqRows(t *tree, m Model) {
+	t.put(findGroup(m))
+	shown := 0
 	for _, q := range m.Seqs {
+		if !q.matches(m.SeqFind) {
+			continue
+		}
+		shown++
 		detail := []Cell{}
 		if q.K == m.OpenSeq {
 			detail = append(detail, Text("open").Dimmed(true))
@@ -69,5 +118,8 @@ func seqRows(t *tree, m Model) {
 			detail: detail,
 			acts:   acts,
 		})
+	}
+	if shown == 0 {
+		t.put(Group{Rows: [][]Cell{{Text("no sequence name contains \"" + m.SeqFind + "\"").Dimmed(true)}}, Wraps: true})
 	}
 }

@@ -11,6 +11,7 @@ import (
 	Panels "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
@@ -22,7 +23,12 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	}
 	if ev.Kind == "key" {
 		if md.UI.Sheet.Edit.Active {
+			finding := md.UI.Sheet.Edit.Act.Op == Builder.OpSeqFind
 			applySheetKey(ctx, md, ev.Key)
+			if finding {
+				md.UI.Builder.Find(md.UI.Sheet.Edit, ev.Key)
+				md.UI.EmitViewFrame(nil)
+			}
 			return
 		}
 		if navKey(md, ev.Key) {

@@ -151,6 +151,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.ToggleStepFold(a.I, a.Node)
 	case Builder.OpSeqs:
 		md.UI.Builder.ToSeqs()
+	case Builder.OpSeqFindClear:
+		md.UI.Builder.SeqFind = ""
 	case Builder.OpLevelUp:
 		if err := md.UI.Builder.LevelUp(); err != nil {
 			View.LogPersistErr("sheet_step_level", md.UI.Builder.Root, err)

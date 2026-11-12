@@ -50,7 +50,8 @@ type Model struct {
 	Seqs        []Seq
 	OpenSeq     int
 	AtSeqs      bool
-	Sel         Act
+	SeqFind     string
+	Sel        Act
 	ClickRow    Act
 	ClickAt     int64
 	ShownStep   int
