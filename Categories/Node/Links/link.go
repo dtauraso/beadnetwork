@@ -114,8 +114,8 @@ func (l *Link) SetS(s int) {
 
 func (l *Link) Drawn() (int, Start) {
 	p := TenTo(l.Start.S)
-	t := l.Start.Tick
-	return p, Start{Phi: float64(t.Phi + l.Delta.Phi*p), Theta: float64(t.Theta + l.Delta.Theta*p), R: l.Start.R + float64(l.Delta.R)}
+	f := float64(p)
+	return p, Start{Phi: l.Start.Phi*f + float64(l.Delta.Phi*p), Theta: l.Start.Theta*f + float64(l.Delta.Theta*p), R: l.Start.R + float64(l.Delta.R)}
 }
 
 func Tenths(v float64) int { return int(math.Floor(v*10 + 1e-6)) }
