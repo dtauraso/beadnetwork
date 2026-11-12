@@ -119,7 +119,7 @@ func Pills(m Model) []Pill {
 	if !m.On() {
 		return nil
 	}
-	return []Pill{FramePill(m), NodesPill(m), LinksPill(m), PlacePill(m), TreePill(m)}
+	return []Pill{FramePill(m), NodesPill(m), LinksPill(m), GridPill(m), PlacePill(m), TreePill(m)}
 }
 
 func Num(v float64) string {

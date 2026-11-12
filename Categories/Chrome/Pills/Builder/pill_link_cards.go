@@ -110,6 +110,65 @@ func netCard(l Links.Link, depth int) Group {
 	return Group{Rows: rows, Card: true, Depth: depth}
 }
 
+const GridLabel = "Node grid"
+
+func nodeGrid(m Model, id string) Group {
+	ns := m.stepNums()
+	head := []Cell{Text("")}
+	for _, n := range ns {
+		head = append(head, Text(m.StepLabel(n)).Inked(inkHead))
+	}
+	rows := [][]Cell{head}
+	links := m.linksTo(id)
+	if len(links) == 0 {
+		rows = append(rows, []Cell{Text("no links into this node").Dimmed(true)})
+	}
+	for _, l := range links {
+		if len(links) > 1 {
+			rows = append(rows, []Cell{Text(l.Name()).Inked(inkStrong)})
+		}
+		for _, a := range axes {
+			for _, v := range []struct {
+				name string
+				of   func(Links.Link) string
+			}{
+				{"start", a.at},
+				{"Δ", func(l Links.Link) string { return strconv.Itoa(a.delta(l)) }},
+				{"nΔ", func(l Links.Link) string { return strconv.Itoa(a.times(l)) }},
+				{"1 step", func(l Links.Link) string { return strconv.Itoa(a.one(l)) }},
+			} {
+				row := []Cell{Text(a.label + " " + v.name).Dimmed(true)}
+				for _, n := range ns {
+					c := l
+					if s := m.StepLinks[StepEdge{n, l.From, l.To}]; s != nil {
+						c = *s
+					}
+					cell := Text(v.of(c)).Outline(false)
+					if m.StepPicked(n, l) {
+						cell = cell.Inked(inkStrong)
+					}
+					row = append(row, cell)
+				}
+				rows = append(rows, row)
+			}
+		}
+	}
+	s := []Cell{Text("s").Dimmed(true)}
+	for range ns {
+		s = append(s, Text(strconv.Itoa(m.SceneS())).Outline(false))
+	}
+	rows = append(rows, s)
+	return Group{Title: "node " + id, Rows: rows, Slides: true, Table: "grid node " + id}
+}
+
+func GridPill(m Model) Pill {
+	var groups []Group
+	for _, id := range m.Nodes {
+		groups = append(groups, nodeGrid(m, id))
+	}
+	return Pill{Label: GridLabel, Bottom: true, Groups: groups}
+}
+
 func linkCard(m Model, step int, l Links.Link, depth int) Group {
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	head := func(s string) Cell { return Text(s).AboveLastDigit().Inked(inkHead) }
