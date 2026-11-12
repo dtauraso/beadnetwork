@@ -67,7 +67,7 @@ func stepGroup(m Model) Group {
 	}
 	row = append(row, Text("").Stepping(Act{Op: OpStepShow}, 0))
 	shown := m.StepShown()
-	row = append(row, Button("+", Act{Op: OpStepAdd, I: shown}, false), Button("⧉", Act{Op: OpStepCopy, I: shown}, false), Button("×", Act{Op: OpStepDrop, I: shown}, false))
+	row = append(row, Button("+ add step", Act{Op: OpStepAdd, I: shown}, false), Button("⧉ duplicate", Act{Op: OpStepCopy, I: shown}, false), Button("× delete", Act{Op: OpStepDrop, I: shown}, false))
 	return Group{Rows: [][]Cell{row}}
 }
 
