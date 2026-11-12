@@ -46,6 +46,8 @@ type Model struct {
 	OpenSeq     int
 	SeqListOpen bool
 	ShownStep   int
+	StepClosed  bool
+	NetworkOpen bool
 
 	Cards    Cards
 	CardsDir string

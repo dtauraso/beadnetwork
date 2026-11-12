@@ -15,6 +15,7 @@ const (
 	OpLinkPress = "link-press"
 	OpLinkOne   = "link-one"
 	OpStepShow  = "step-show"
+	OpNetFold   = "network-fold"
 )
 
 func (m Model) allLinks() []Links.Link {
@@ -49,7 +50,11 @@ func (m Model) StepShown() int {
 
 func (m *Model) ShowStep(a Act, sign int) {
 	if sign == 0 {
-		m.ShownStep = a.I
+		if a.I == m.StepShown() && !m.StepClosed {
+			m.StepClosed = true
+			return
+		}
+		m.ShownStep, m.StepClosed = a.I, false
 		m.ShownStep = m.StepShown()
 		return
 	}
@@ -58,26 +63,35 @@ func (m *Model) ShowStep(a Act, sign int) {
 	m.ShownStep = ns[min(max(i+sign, 0), len(ns)-1)]
 }
 
-func stepGroup(m Model) Group {
-	row := []Cell{Text("step")}
-	for _, s := range m.stepNums() {
-		row = append(row, Button(m.StepLabel(s), Act{Op: OpStepShow, I: s}, s == m.StepShown()))
+func networkGroup(m Model) Group {
+	links := m.allLinks()
+	g := Group{Title: foldTitle(!m.NetworkOpen, "network · what runs now, "+linkCount(len(links))), Fold: Act{Op: OpNetFold}}
+	if !m.NetworkOpen {
+		return g
 	}
-	row = append(row, Text("").Stepping(Act{Op: OpStepShow}, 0))
-	shown := m.StepShown()
-	row = append(row, Button("+ add step", Act{Op: OpStepAdd, I: shown}, false), Button("⧉ duplicate", Act{Op: OpStepCopy, I: shown}, false), Button("× delete", Act{Op: OpStepDrop, I: shown}, false))
-	row = append(row, stepNameCell(m, shown))
-	return Group{Rows: [][]Cell{row}}
+	for _, l := range links {
+		g.Rows = append(g.Rows, []Cell{Text(l.Name()).Outline(l.Picked), Text("start " + ang(l.Start.Phi, l.Start.Theta, &l.Start.R)), Text("Δ " + ticks(l.Delta))})
+	}
+	return g
 }
 
-func LinksPill(m Model) Pill {
-	var groups []Group
-	if len(m.Seqs) > 0 {
-		groups = append(groups, sequenceGroups(m)...)
-	}
-	step := m.StepShown()
-	groups = append(groups, stepGroup(m), activeLinksGroup(m, step))
-	refused := m.Refused
+func (m Model) stepOpen(n int) bool { return n == m.StepShown() && !m.StepClosed }
+
+func stepTitle(m Model, n int) Group {
+	return Group{Title: foldTitle(!m.stepOpen(n), "step "+m.StepLabel(n)), Fold: Act{Op: OpStepShow, I: n}}
+}
+
+func stepActions(m Model, n int) Group {
+	return Group{Rows: [][]Cell{{
+		Button("+ add step", Act{Op: OpStepAdd, I: n}, false),
+		Button("⧉ duplicate", Act{Op: OpStepCopy, I: n}, false),
+		Button("× delete", Act{Op: OpStepDrop, I: n}, false),
+		stepNameCell(m, n),
+	}}, Indent: true}
+}
+
+func stepBody(m Model, step int, refused string) ([]Group, string) {
+	groups := []Group{stepActions(m, step), activeLinksGroup(m, step)}
 	for _, id := range m.Nodes {
 		groups = append(groups, nodeGroups(m, step, id)...)
 		if m.StepFolded(step, id) || refused == "" {
@@ -89,6 +103,24 @@ func LinksPill(m Model) Pill {
 				refused = ""
 				break
 			}
+		}
+	}
+	return groups, refused
+}
+
+func LinksPill(m Model) Pill {
+	var groups []Group
+	if len(m.Seqs) > 0 {
+		groups = append(groups, sequenceGroups(m)...)
+	}
+	groups = append(groups, networkGroup(m))
+	refused := m.Refused
+	for _, n := range m.stepNums() {
+		groups = append(groups, stepTitle(m, n))
+		if m.stepOpen(n) {
+			var body []Group
+			body, refused = stepBody(m, n, refused)
+			groups = append(groups, body...)
 		}
 	}
 	if refused != "" {

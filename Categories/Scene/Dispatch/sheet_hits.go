@@ -97,6 +97,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.SeqListOpen = !md.UI.Builder.SeqListOpen
 	case Builder.OpStepShow:
 		md.UI.Builder.ShowStep(a, sign)
+	case Builder.OpNetFold:
+		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)
 	case Pills.OpOverlay:
