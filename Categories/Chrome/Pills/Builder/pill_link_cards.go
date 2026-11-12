@@ -65,7 +65,15 @@ func nodeLine(m Model, step int, id string) []Cell {
 		Text(foldTitle(folded, "node "+id)).Acting(Act{Op: OpStepFold, Node: id, I: step}),
 	}
 	if folded {
-		return append(row, Text(linkCount(len(links))))
+		return append(row, Text(linkCount(len(links))).Dimmed(true))
+	}
+	return row
+}
+
+func netNodeLine(m Model, id string) []Cell {
+	row := nodeLine(m, 0, id)
+	if m.StepFolded(0, id) {
+		return row
 	}
 	ref := m.Reports[id].Ref
 	refAct := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }

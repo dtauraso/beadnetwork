@@ -7,7 +7,7 @@ func (m Model) StepFolded(step int, id string) bool {
 		return f
 	}
 	for _, l := range m.stepLinksTo(step, id) {
-		if m.StepPicked(step, l) {
+		if step == 0 && l.Picked || m.StepPicked(step, l) {
 			return false
 		}
 	}

@@ -64,16 +64,36 @@ func (m *Model) ShowStep(a Act, sign int) {
 	m.ShownStep = ns[min(max(i+sign, 0), len(ns)-1)]
 }
 
-func networkGroup(m Model) Group {
-	links := m.allLinks()
-	g := Group{Title: foldTitle(!m.NetworkOpen, "network · what runs now, "+linkCount(len(links))), Fold: Act{Op: OpNetFold}}
+func networkGroups(m Model) []Group {
+	groups := []Group{{Rows: [][]Cell{{
+		Text(foldTitle(!m.NetworkOpen, "network")).Acting(Act{Op: OpNetFold}),
+		Text("what runs now, " + linkCount(len(m.allLinks()))).Dimmed(true),
+	}}}}
 	if !m.NetworkOpen {
-		return g
+		return groups
 	}
-	for _, l := range links {
-		g.Rows = append(g.Rows, []Cell{Text(l.Name()).Outline(l.Picked), Text("start " + ang(l.Start.Phi, l.Start.Theta, &l.Start.R)), Text("Δ " + ticks(l.Delta))})
+	for _, id := range m.Nodes {
+		groups = append(groups, Group{Rows: [][]Cell{netNodeLine(m, id)}, Slides: true, Table: "network node " + id, Indent: true})
+		if m.StepFolded(0, id) {
+			continue
+		}
+		for _, l := range m.linksTo(id) {
+			groups = append(groups, linkLine(l, l.Picked, Act{}, Button("x", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false).Tipped("remove this link")))
+			if l.Picked {
+				groups = append(groups, netCard(l))
+			}
+		}
 	}
-	return g
+	return groups
+}
+
+func netCard(l Links.Link) Group {
+	val := func(s string) Cell { return Text(s).Outline(false) }
+	rows := [][]Cell{{Text(""), Text("START"), Text("Δ"), Text("nΔ"), Text("1")}}
+	for _, a := range axes {
+		rows = append(rows, []Cell{Text(a.label), val(a.at(l)), val(strconv.Itoa(a.delta(l))), val(strconv.Itoa(a.times(l))), val(strconv.Itoa(a.one(l)))})
+	}
+	return Group{Rows: rows, Card: true, Indent: true}
 }
 
 func (m *Model) Touch(a Act) {
@@ -136,7 +156,8 @@ func LinksPill(m Model) Pill {
 	if len(m.Seqs) > 0 {
 		groups = append(groups, sequenceGroups(m)...)
 	}
-	groups = append(groups, breadcrumb(m), networkGroup(m))
+	groups = append(groups, breadcrumb(m))
+	groups = append(groups, networkGroups(m)...)
 	refused := m.Refused
 	for _, n := range m.stepNums() {
 		groups = append(groups, stepRow(m, n))
