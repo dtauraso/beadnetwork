@@ -65,6 +65,7 @@ export const SHEET_VALUE_NAMES = [
   "upDim",
   "cellDim",
   "cellBare",
+  "cellInk",
   "cardBox",
   "cardX",
   "cardY",
@@ -72,6 +73,7 @@ export const SHEET_VALUE_NAMES = [
   "cardH",
   "cardPop",
   "cardCell",
+  "cardBand",
 ] as const;
 
 export type SheetValueName = (typeof SHEET_VALUE_NAMES)[number];

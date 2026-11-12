@@ -63,6 +63,7 @@ func (s *State) Write(lay Layout) {
 		w.U8("cellSlides", flag(cb.Slides))
 		w.U8("cellDim", flag(cb.Cell.Dim))
 		w.U8("cellBare", flag(cb.Cell.Bare))
+		w.U8("cellInk", uint8(cb.Cell.Ink))
 		if cb.Up.W > 0 {
 			w.U8("upSlides", flag(cb.Slides))
 			w.U8("upLit", flag(cb.Cell.Locked && cb.Cell.LockSign > 0))
@@ -76,6 +77,7 @@ func (s *State) Write(lay Layout) {
 		w.Rect("cardX", "cardY", "cardW", "cardH", c.Rect)
 		w.U8("cardPop", flag(c.Pop))
 		w.U32("cardCell", uint32(c.Cell))
+		w.U8("cardBand", uint8(c.Band))
 	}
 
 	if err := w.Flush(); err != nil {

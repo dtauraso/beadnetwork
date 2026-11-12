@@ -181,7 +181,14 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: Rect{X: x + in, Y: y, W: outerW(g, room) - in, H: outerH(g)}, Pop: g.Pop != nil, Cell: len(lay.Cells), Max: popMax[gi]})
 				x, y = x+CardPad, y+CardPad
 			}
-			lay.place(box, g, x+in, y, dx)
+			var right float32
+			if g.Band != BandNone {
+				band := Rect{X: x + in, Y: y - RowGapY/2, W: max(room, colsW(g)+2*BandPad) - in, H: groupH(g)}
+				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: band, Cell: len(lay.Cells), Band: g.Band})
+				right = band.X + band.W - BandPad
+				x += BandPad
+			}
+			lay.place(box, g, x+in, y, dx, right)
 		}
 		if p.Bottom {
 			lay.addBar(docked, on, bar, st.Folded[DockKey])

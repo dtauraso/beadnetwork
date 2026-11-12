@@ -19,13 +19,33 @@ func stepPair(right, y float32) (up, down Rect) {
 	return Rect{X: ax, Y: y, W: StepArrowW, H: half}, Rect{X: ax, Y: y + half, W: StepArrowW, H: half}
 }
 
-func (lay *Layout) place(box int, g Group, x, y, dx float32) {
+func (lay *Layout) pinTrail(from, n int, right float32) {
+	cells := lay.Cells[from:]
+	if n <= 0 || right <= 0 || len(cells) < n {
+		return
+	}
+	last := cells[len(cells)-1].Rect
+	shift := right - (last.X + last.W)
+	if shift <= 0 {
+		return
+	}
+	for i := len(cells) - n; i < len(cells); i++ {
+		cells[i].Rect.X += shift
+		if cells[i].Up.W > 0 {
+			cells[i].Up.X += shift
+			cells[i].Down.X += shift
+		}
+	}
+}
+
+func (lay *Layout) place(box int, g Group, x, y, dx, right float32) {
 	if g.Title != "" {
 		lay.Heads = append(lay.Heads, HeadBox{Box: box, Rect: Rect{X: x, Y: y, W: groupW(g), H: titleH()}, Title: g.Title, Fold: g.Fold})
 		y += titleH() + TitleGap
 	}
 	cols := columns(g)
 	for _, row := range g.Rows {
+		from := len(lay.Cells)
 		cx := x - dx
 		for i, c := range row {
 			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}, Slides: g.Slides}
@@ -51,6 +71,7 @@ func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 			lay.Cells = append(lay.Cells, cb)
 			cx += cols[i] + CellGapX
 		}
+		lay.pinTrail(from, g.Trail, right)
 		y += rowH() + RowGapY
 	}
 }

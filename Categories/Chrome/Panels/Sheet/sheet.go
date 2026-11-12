@@ -63,9 +63,33 @@ type Cell struct {
 	Words         bool
 	Bare          bool
 	Tip           string
+	Ink           Ink
 }
 
+type Ink uint8
+
+const (
+	InkPlain Ink = iota
+	InkStrong
+	InkAccent
+	InkGo
+	InkDanger
+	InkHead
+)
+
+type Band uint8
+
+const (
+	BandNone Band = iota
+	BandRow
+	BandPicked
+)
+
+const BandPad = 6
+
 func (c Cell) Tipped(s string) Cell { c.Tip = s; return c }
+
+func (c Cell) Inked(i Ink) Cell { c.Ink = i; return c }
 
 func (c Cell) Plain() Cell { c.Boxed, c.Bare = true, true; return c }
 
@@ -117,6 +141,8 @@ type Group struct {
 	Card    bool
 	Pop     *Anchor
 	MaxRows int
+	Band    Band
+	Trail   int
 }
 
 type Anchor struct {

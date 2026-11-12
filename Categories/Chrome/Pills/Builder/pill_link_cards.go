@@ -90,7 +90,7 @@ func netNodeLine(m Model, id string) []Cell {
 }
 
 func headRow(m Model, step int) Group {
-	row := []Cell{Text("HEAD")}
+	row := []Cell{Text("HEAD").Inked(inkHead)}
 	for _, a := range axes {
 		row = append(row, lockHead(m, step, a))
 	}
@@ -138,16 +138,21 @@ func pressSummary(l Links.Link) string {
 }
 
 func linkLine(l Links.Link, picked bool, pick Act, more ...Cell) Group {
-	row := []Cell{Text(pickMark(picked) + l.Name()).Acting(pick)}
-	if picked {
-		row = append(row, Text(pressSummary(l)).Dimmed(true))
+	if !picked {
+		row := []Cell{Text(pickMark(false) + l.Name()).Acting(pick).Dimmed(true)}
+		return Group{Rows: [][]Cell{append(row, more...)}, Indent: true}
 	}
-	return Group{Rows: [][]Cell{append(row, more...)}, Indent: true}
+	row := []Cell{
+		Text(pickMark(true)).Acting(pick).Inked(inkAccent),
+		Text(l.Name()).Acting(pick).Inked(inkStrong),
+		Text(pressSummary(l)).Dimmed(true),
+	}
+	return Group{Rows: [][]Cell{append(row, more...)}, Indent: true, Band: bandPicked, Trail: len(more)}
 }
 
 func linkCard(m Model, step int, l Links.Link) Group {
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
-	head := func(s string) Cell { return Text(s).AboveLastDigit() }
+	head := func(s string) Cell { return Text(s).AboveLastDigit().Inked(inkHead) }
 	rows := [][]Cell{
 		{Text(""), head("START"), head("Δ"), head("nΔ"), head("1")},
 	}
@@ -157,7 +162,7 @@ func linkCard(m Model, step int, l Links.Link) Group {
 			return Field("", v, act(op, a.k), typed, true).Fitting(cardFit).Outline(false)
 		}
 		rows = append(rows, []Cell{
-			Text(a.label),
+			Text(a.label).Dimmed(true),
 			field(a.at(l), OpLinkStart, true).Dimmed(dim),
 			field(strconv.Itoa(a.delta(l)), OpLinkPress, false).Dimmed(dim),
 			field(strconv.Itoa(a.times(l)), OpIncrement, true),

@@ -66,7 +66,7 @@ func (m *Model) ShowStep(a Act, sign int) {
 
 func networkGroups(m Model) []Group {
 	groups := []Group{{Rows: [][]Cell{{
-		Text(foldTitle(!m.NetworkOpen, "network")).Acting(Act{Op: OpNetFold}),
+		Text(foldTitle(!m.NetworkOpen, "network")).Acting(Act{Op: OpNetFold}).Inked(inkGo),
 		Text("what runs now · " + linkCount(len(m.allLinks()))).Dimmed(true),
 	}}}}
 	if !m.NetworkOpen {
@@ -89,9 +89,10 @@ func networkGroups(m Model) []Group {
 
 func netCard(l Links.Link) Group {
 	val := func(s string) Cell { return Text(s).Outline(false) }
-	rows := [][]Cell{{Text(""), Text("START"), Text("Δ"), Text("nΔ"), Text("1")}}
+	head := func(s string) Cell { return Text(s).Inked(inkHead) }
+	rows := [][]Cell{{Text(""), head("START"), head("Δ"), head("nΔ"), head("1")}}
 	for _, a := range axes {
-		rows = append(rows, []Cell{Text(a.label), val(a.at(l)), val(strconv.Itoa(a.delta(l))), val(strconv.Itoa(a.times(l))), val(strconv.Itoa(a.one(l)))})
+		rows = append(rows, []Cell{Text(a.label).Dimmed(true), val(a.at(l)), val(strconv.Itoa(a.delta(l))), val(strconv.Itoa(a.times(l))), val(strconv.Itoa(a.one(l)))})
 	}
 	return Group{Rows: rows, Card: true, Indent: true}
 }
@@ -106,13 +107,13 @@ func (m Model) stepOpen(n int) bool { return n == m.StepShown() && !m.StepClosed
 
 func stepRow(m Model, n int) Group {
 	return Group{Rows: [][]Cell{{
-		LitText(foldTitle(!m.stepOpen(n), "step "+strconv.Itoa(n)), Act{Op: OpStepShow, I: n}, true).Tipped("open or close this step; drag to reorder"),
+		Text(foldTitle(!m.stepOpen(n), "step "+strconv.Itoa(n))).Acting(Act{Op: OpStepShow, I: n}).Inked(inkStrong).Tipped("open or close this step; drag to reorder"),
 		stepNameCell(m, n),
+		subStepsCell(n),
 		Button("+", Act{Op: OpStepAdd, I: n}, false).Tipped("add a step after this one"),
 		Button("⧉", Act{Op: OpStepCopy, I: n}, false).Tipped("duplicate this step"),
-		Button("×", Act{Op: OpStepDrop, I: n}, false).Tipped("delete this step"),
-		subStepsCell(n),
-	}}}
+		Button("×", Act{Op: OpStepDrop, I: n}, false).Inked(inkDanger).Tipped("delete this step"),
+	}}, Band: bandRow, Trail: 4}
 }
 
 func stepBody(m Model, step int, refused string) ([]Group, string) {
@@ -140,15 +141,15 @@ func breadcrumb(m Model) Group {
 	case m.DragStep != 0:
 		row = append(row, sep, Text("moving step "+m.StepLabel(m.DragStep)+": let go on another step's row"))
 	case m.StepClosed:
-		row = append(row, sep, LitText("network", Act{}, true))
+		row = append(row, sep, Text("network").Inked(inkStrong))
 	default:
 		step := m.StepShown()
-		row = append(row, sep, LitText("step "+m.StepLabel(step), Act{}, true))
+		row = append(row, sep, Text(stepLabelAt(m.lvl(), step)).Inked(inkStrong))
 		if t := m.Touched; t.Step == step && t.From != "" {
-			row = append(row, sep, LitText(t.From+"→"+t.To, Act{}, true))
+			row = append(row, sep, Text(t.From+"→"+t.To).Inked(inkAccent))
 		}
 	}
-	return Group{Rows: [][]Cell{row}, Slides: true, Table: "where you are"}
+	return Group{Rows: [][]Cell{row}, Slides: true, Table: "where you are", Band: bandRow}
 }
 
 func LinksPill(m Model) Pill {
@@ -166,7 +167,7 @@ func LinksPill(m Model) Pill {
 	}
 	if ns := m.stepNums(); len(ns) > 0 {
 		groups = append(groups,
-			Group{Rows: [][]Cell{{LitText("+  add step", Act{Op: OpStepAdd, I: ns[len(ns)-1]}, false).Tipped("add a step after the last one")}}},
+			Group{Rows: [][]Cell{{Text("+  add step").Acting(Act{Op: OpStepAdd, I: ns[len(ns)-1]}).Inked(inkAccent).Tipped("add a step after the last one")}}},
 			Group{Rows: [][]Cell{{Text("drag a step row to reorder").Dimmed(true)}}})
 	}
 	if refused != "" {

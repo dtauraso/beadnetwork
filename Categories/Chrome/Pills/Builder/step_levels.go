@@ -92,7 +92,7 @@ func trailCells(m Model) []Cell {
 	cells := sequenceCells(m)
 	for _, t := range m.Trail {
 		cells = append(cells, Text("›").Dimmed(true),
-			LitText(t.Label, Act{Op: OpLevelGo, Node: t.Level, I: t.Step}, false).Tipped("go back to this step"))
+			Text(t.Label).Acting(Act{Op: OpLevelGo, Node: t.Level, I: t.Step}).Dimmed(true).Tipped("go back to this step"))
 	}
 	return cells
 }

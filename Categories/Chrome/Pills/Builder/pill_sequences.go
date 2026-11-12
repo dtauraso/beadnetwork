@@ -30,7 +30,7 @@ func sequenceCells(m Model) []Cell {
 	if len(m.Seqs) == 0 {
 		return []Cell{Text(m.seqName()).Dimmed(true)}
 	}
-	return []Cell{LitText(m.seqName(), Act{Op: OpSeqFold}, false).Tipped("pick, rename, copy or delete a sequence")}
+	return []Cell{Text(m.seqName()).Acting(Act{Op: OpSeqFold}).Dimmed(true).Tipped("pick, rename, copy or delete a sequence")}
 }
 
 func sequenceList(m Model, at int) []Group {

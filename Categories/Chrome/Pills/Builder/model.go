@@ -24,6 +24,16 @@ var (
 	Field   = Sheet.Field
 )
 
+const (
+	inkStrong  = Sheet.InkStrong
+	inkAccent  = Sheet.InkAccent
+	inkGo      = Sheet.InkGo
+	inkDanger  = Sheet.InkDanger
+	inkHead    = Sheet.InkHead
+	bandRow    = Sheet.BandRow
+	bandPicked = Sheet.BandPicked
+)
+
 type Model struct {
 	Nodes   []string
 	Reports map[string]Links.Report

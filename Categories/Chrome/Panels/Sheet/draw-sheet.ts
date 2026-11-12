@@ -2,13 +2,13 @@ import { drawBox, canvasFont, roundRect } from "../../canvas-box";
 import * as T from "../../chrome-theme";
 import { decodeAt } from "../../leaf-text";
 import { CARET_W, drawPill } from "../../Pills/pill";
-import { drawArrow, drawCell, slid, type R } from "./draw-sheet-cell";
+import { drawArrow, drawBand, drawCell, slid, type R } from "./draw-sheet-cell";
 import { sheetBytes, sheetF32Run, sheetU32Run, sheetText } from "./sheet-leaves";
 
 const TITLE_FONT_PX = 12;
 const TITLE_INK = "#222";
 
-function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "pillBar" | "tabOn" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "upDim" | "cellDim" | "cellBare" | "pillOpen" | "cardPop"): number[] {
+function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "pillBar" | "tabOn" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "upDim" | "cellDim" | "cellBare" | "cellInk" | "pillOpen" | "cardPop" | "cardBand"): number[] {
   const v = sheetBytes(name);
   const out: number[] = [];
   if (v) for (let i = 0; i < v.byteLength; i++) out.push(v.getUint8(i));
@@ -132,7 +132,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const cellSlides = bytesOf("cellSlides"), upSlides = bytesOf("upSlides");
   const upLit = bytesOf("upLit"), downLit = bytesOf("downLit"), upDim = bytesOf("upDim");
   const cardBox = sheetU32Run("cardBox"), cards = rects("cardX", "cardY", "cardW", "cardH");
-  const cardPop = bytesOf("cardPop"), cardCell = sheetU32Run("cardCell");
+  const cardPop = bytesOf("cardPop"), cardCell = sheetU32Run("cardCell"), cardBand = bytesOf("cardBand"), ink = bytesOf("cellInk");
   let popFrom = cells.length;
   cards.forEach((_, i) => { if (cardPop[i]) popFrom = Math.min(popFrom, cardCell?.[i] ?? popFrom); });
 
@@ -148,10 +148,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
       const drawCards = (pop: boolean) => cards.forEach((r, i) => {
         if (cardBox?.[i] !== bi || (cardPop[i] !== 0) !== pop) return;
         if (pop) return drawBox(c, r.x, r.y, r.w, r.h);
-        roundRect(c, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, T.RADIUS_CHIP);
-        c.strokeStyle = T.BORDER;
-        c.lineWidth = 1;
-        c.stroke();
+        drawBand(c, r, cardBand[i] ?? 0);
       });
       const drawCells = (from: number, to: number) => cells.forEach((r, i) => {
         if (i < from || i >= to || cellBox?.[i] !== bi || r.w <= 0) return;
@@ -159,7 +156,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
         slid(c, b, sx, sw, (cellSlides[i] ?? 0) !== 0, () => drawCell(c, r, {
           kind: kinds[i] ?? 0, key: keys[i] ?? "", value: isEditing ? `${draft}_` : vals[i] ?? "", editing: isEditing,
           outlined: (outlined[i] ?? 0) !== 0, boxed: (boxed[i] ?? 0) !== 0, lit: (lit[i] ?? 0) !== 0, dim: (dimCell[i] ?? 0) !== 0,
-          bare: (bare[i] ?? 0) !== 0,
+          bare: (bare[i] ?? 0) !== 0, ink: ink[i] ?? 0,
         }));
       });
       drawCards(false);

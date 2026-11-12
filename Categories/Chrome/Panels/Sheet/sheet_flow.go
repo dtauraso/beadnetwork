@@ -10,6 +10,7 @@ type CardBox struct {
 	Pop  bool
 	Cell int
 	Max  float32
+	Band Band
 }
 
 type spot struct{ X, Y float32 }
@@ -17,6 +18,9 @@ type spot struct{ X, Y float32 }
 func outerW(g Group, room float32) float32 {
 	if g.Card {
 		return indentOf(g) + groupW(g) + 2*CardPad
+	}
+	if g.Band != BandNone {
+		return max(room, shownW(g, room)+2*BandPad)
 	}
 	return shownW(g, room)
 }
@@ -32,6 +36,9 @@ func popSpot(groups []Group, spots []spot, a Anchor) spot {
 	at := spots[a.Group]
 	g := groups[a.Group]
 	x := at.X + indentOf(g)
+	if g.Band != BandNone {
+		x += BandPad
+	}
 	for i, w := range columns(g) {
 		if i == a.Col {
 			break
