@@ -33,7 +33,9 @@ func (m Model) StepLabel(n int) string {
 }
 
 func (m *Model) NameStep(n int, name string) string {
-	name = strings.TrimSpace(name)
+	if name = strings.TrimSpace(name); name == "step "+strconv.Itoa(n) {
+		name = ""
+	}
 	if m.Root == "" {
 		return "steps are kept in the scene's steps/ folder, and this scene has none, so the name was not kept"
 	}
@@ -59,5 +61,9 @@ func (m *Model) NameStep(n int, name string) string {
 }
 
 func stepNameCell(m Model, n int) Cell {
-	return Field("step "+strconv.Itoa(n), m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Fitting(stepNameFit).Plain().Wording().Tipped("click to rename this step; an empty name goes back to its number")
+	shown := m.StepNames[n]
+	if shown == "" {
+		shown = "step " + strconv.Itoa(n)
+	}
+	return Field("", shown, Act{Op: OpStepName, I: n}, true, false).Fitting(stepNameFit).Plain().Wording().Tipped("click to rename this step; an empty name goes back to its number")
 }
