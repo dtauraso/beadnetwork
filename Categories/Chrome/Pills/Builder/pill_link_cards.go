@@ -118,7 +118,15 @@ func nodeGrid(m Model, id string) Group {
 	for _, n := range ns {
 		head = append(head, Text(m.StepLabel(n)).Inked(inkHead))
 	}
-	rows := [][]Cell{head}
+	same := func(name string, v int) []Cell {
+		row := []Cell{Text(name).Dimmed(true)}
+		for range ns {
+			row = append(row, Text(strconv.Itoa(v)).Outline(false))
+		}
+		return row
+	}
+	ref := m.Reports[id].Ref
+	rows := [][]Cell{head, same("ref Δφ", ref.Phi), same("ref Δθ", ref.Theta)}
 	links := m.linksTo(id)
 	if len(links) == 0 {
 		rows = append(rows, []Cell{Text("no links into this node").Dimmed(true)})
@@ -153,11 +161,7 @@ func nodeGrid(m Model, id string) Group {
 			}
 		}
 	}
-	s := []Cell{Text("s").Dimmed(true)}
-	for range ns {
-		s = append(s, Text(strconv.Itoa(m.SceneS())).Outline(false))
-	}
-	rows = append(rows, s)
+	rows = append(rows, same("s", m.SceneS()))
 	return Group{Title: "node " + id, Rows: rows, Slides: true, Table: "grid node " + id}
 }
 
