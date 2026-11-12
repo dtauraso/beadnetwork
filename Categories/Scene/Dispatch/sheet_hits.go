@@ -29,7 +29,7 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 			sh.SelectTab(h.Cell.Act.I)
 			sh.StartTabDrag(h.Cell.Act.Node)
 		} else if h.Cell.Typed {
-			Sheet.StartDraft(&sh.Edit, h.Cell.Act)
+			Sheet.StartDraft(&sh.Edit, h.Cell)
 		} else {
 			runSheetAct(ctx, md, h.Cell.Act, 0, nil)
 		}
@@ -42,12 +42,14 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 }
 
 func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
-	act, v, ok, err := Sheet.Key(&md.UI.Sheet.Edit, key)
+	act, t, ok, err := Sheet.Key(&md.UI.Sheet.Edit, key)
 	if err != nil {
 		md.UI.Builder.Refused = err.Error()
 	}
-	if ok {
-		runSheetAct(ctx, md, act, 0, &v)
+	if ok && act.Op == Builder.OpStepName {
+		md.UI.Builder.Refused = md.UI.Builder.NameStep(act.I, t.Text)
+	} else if ok {
+		runSheetAct(ctx, md, act, 0, &t.V)
 	}
 	md.UI.EmitViewFrame(nil)
 	return err != nil || (ok && md.UI.Builder.Refused != "")

@@ -127,6 +127,7 @@ func (m *Model) ReadNodeSteps() {
 	if m.Root != "" {
 		m.StepNums = ReadStepNumbers(m.Root)
 		m.readStepLinks()
+		m.readStepNames()
 		for _, step := range m.stepNums() {
 			m.StepHead(step)
 		}

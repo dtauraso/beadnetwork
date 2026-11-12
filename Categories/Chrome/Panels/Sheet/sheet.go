@@ -60,11 +60,14 @@ type Cell struct {
 	LockSign      int
 	Locked        bool
 	Dim           bool
+	Words         bool
 }
 
 func (c Cell) LockedOn(on bool) Cell { c.Locked = on; return c }
 
 func (c Cell) Dimmed(on bool) Cell { c.Dim = on; return c }
+
+func (c Cell) Wording() Cell { c.Words = true; return c }
 
 func (c Cell) Stepping(a Act, lock int) Cell { c.Arrows, c.LockSign = a, lock; return c }
 

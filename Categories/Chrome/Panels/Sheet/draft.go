@@ -3,50 +3,66 @@ package Sheet
 import (
 	"fmt"
 	"strconv"
+	"unicode/utf8"
 )
 
 type Edit struct {
 	Active bool
 	Act    Act
 	Draft  string
+	Words  bool
 }
 
-func StartDraft(e *Edit, a Act) {
-	*e = Edit{Active: true, Act: a}
+type Typed struct {
+	V    float64
+	Text string
 }
 
-func Key(e *Edit, key string) (Act, float64, bool, error) {
+func StartDraft(e *Edit, c Cell) {
+	*e = Edit{Active: true, Act: c.Act, Words: c.Words}
+	if c.Words {
+		e.Draft = c.Value
+	}
+}
+
+func Key(e *Edit, key string) (Act, Typed, bool, error) {
 	if !e.Active {
-		return Act{}, 0, false, nil
+		return Act{}, Typed{}, false, nil
 	}
 	switch key {
 	case "Escape":
 		*e = Edit{}
 	case "Enter":
-		a, draft := e.Act, e.Draft
+		a, draft, words := e.Act, e.Draft, e.Words
 		*e = Edit{}
+		if words {
+			return a, Typed{Text: draft}, true, nil
+		}
 		if draft == "" {
-			return Act{}, 0, false, nil
+			return Act{}, Typed{}, false, nil
 		}
 		v, err := strconv.ParseFloat(draft, 64)
 		if err != nil {
-			return Act{}, 0, false, fmt.Errorf("%q: not a number, so nothing changed", draft)
+			return Act{}, Typed{}, false, fmt.Errorf("%q: not a number, so nothing changed", draft)
 		}
-		return a, v, true, nil
+		return a, Typed{V: v}, true, nil
 	case "Backspace":
 		if len(e.Draft) > 0 {
-			e.Draft = e.Draft[:len(e.Draft)-1]
+			_, n := utf8.DecodeLastRuneInString(e.Draft)
+			e.Draft = e.Draft[:len(e.Draft)-n]
 		}
 	case "-":
-		if e.Draft == "" {
-			e.Draft = "-"
+		if e.Words || e.Draft == "" {
+			e.Draft += "-"
 		}
 	case ".":
 		e.Draft += "."
 	default:
-		if len(key) == 1 && key[0] >= '0' && key[0] <= '9' {
+		if e.Words && utf8.RuneCountInString(key) == 1 {
+			e.Draft += key
+		} else if len(key) == 1 && key[0] >= '0' && key[0] <= '9' {
 			e.Draft += key
 		}
 	}
-	return Act{}, 0, false, nil
+	return Act{}, Typed{}, false, nil
 }

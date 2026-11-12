@@ -3,7 +3,6 @@ package Builder
 import (
 	"fmt"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -37,7 +36,6 @@ func (m Model) linksFrom(id string) []Links.Link {
 	return out
 }
 
-
 func (m Model) StepShown() int {
 	ns := m.stepNums()
 	if slices.Contains(ns, m.ShownStep) {
@@ -63,11 +61,12 @@ func (m *Model) ShowStep(a Act, sign int) {
 func stepGroup(m Model) Group {
 	row := []Cell{Text("step")}
 	for _, s := range m.stepNums() {
-		row = append(row, Button(strconv.Itoa(s), Act{Op: OpStepShow, I: s}, s == m.StepShown()))
+		row = append(row, Button(m.StepLabel(s), Act{Op: OpStepShow, I: s}, s == m.StepShown()))
 	}
 	row = append(row, Text("").Stepping(Act{Op: OpStepShow}, 0))
 	shown := m.StepShown()
 	row = append(row, Button("+ add step", Act{Op: OpStepAdd, I: shown}, false), Button("⧉ duplicate", Act{Op: OpStepCopy, I: shown}, false), Button("× delete", Act{Op: OpStepDrop, I: shown}, false))
+	row = append(row, stepNameCell(m, shown))
 	return Group{Rows: [][]Cell{row}}
 }
 

@@ -57,7 +57,6 @@ func (m *Model) DropStepEdge(from, to string) error {
 	return nil
 }
 
-
 func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 	l := m.StepLinks[StepEdge{a.I, a.Node, a.To}]
 	if l == nil {
