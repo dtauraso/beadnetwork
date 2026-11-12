@@ -33,7 +33,10 @@ func (t PointerTarget) TipRect(viewW float32) (x, y, w, h float32) {
 	w = float32(len([]rune(t.Tip)))*TipCharW + 2*TipPadX
 	h = TipHeight
 	x = t.Rect.X
-	y = t.Rect.Y + t.Rect.H + TipGapY
+	y = t.Rect.Y - TipGapY - h
+	if y < TipViewPad {
+		y = t.Rect.Y + t.Rect.H + TipGapY
+	}
 	if right := x + w; viewW > 0 && right > viewW-TipViewPad {
 		x = viewW - TipViewPad - w
 	}

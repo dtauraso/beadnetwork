@@ -34,7 +34,11 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	if h := pl.Sheet.Hit(x, y); h.Part == Sheet.PartGrab {
 		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerResize}
 	} else if h.Part != Sheet.PartNone && h.Part != Sheet.PartInside {
-		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
+		t := Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
+		if h.Part == Sheet.PartBody && h.Cell.Kind == Sheet.CellButton {
+			t.Tip = h.Cell.Key
+		}
+		return t
 	}
 	if i := pl.Speed.Hit(x, y); i >= 0 && i < len(pl.Speed.Ticks) {
 		return Panels.PointerTarget{Rect: pl.Speed.Ticks[i], Kind: Panels.PointerInteractive}
