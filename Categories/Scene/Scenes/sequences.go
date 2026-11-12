@@ -124,3 +124,38 @@ func RemoveSequence(scenePath string, k int) error {
 	}
 	return nil
 }
+
+func InsertSequence(scenePath string, after int, drop string) (int, error) {
+	end, err := CopySequence(scenePath, after)
+	if err != nil {
+		return 0, err
+	}
+	if drop != "" {
+		if err := os.RemoveAll(filepath.Join(SequenceDir(scenePath, end), drop)); err != nil {
+			return 0, err
+		}
+	}
+	to := after + 1
+	if end != to {
+		tmp := filepath.Join(SequencesDir(scenePath), "inserting")
+		if err := os.Rename(SequenceDir(scenePath, end), tmp); err != nil {
+			return 0, err
+		}
+		for s := end - 1; s >= to; s-- {
+			if err := os.Rename(SequenceDir(scenePath, s), SequenceDir(scenePath, s+1)); err != nil {
+				return 0, err
+			}
+		}
+		if err := os.Rename(tmp, SequenceDir(scenePath, to)); err != nil {
+			return 0, err
+		}
+	}
+	for _, s := range Sequences(scenePath) {
+		if numbered.MatchString(SequenceName(scenePath, s)) {
+			if err := WriteSequenceName(scenePath, s, "sequence "+strconv.Itoa(s)); err != nil {
+				return 0, err
+			}
+		}
+	}
+	return to, nil
+}

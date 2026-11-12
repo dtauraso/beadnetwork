@@ -1,7 +1,6 @@
 package Builder
 
 import (
-	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -58,66 +57,30 @@ func linkCount(n int) string {
 	return strconv.Itoa(n) + " links"
 }
 
-func nodeLine(m Model, step int, id string) []Cell {
-	folded := m.StepFolded(step, id)
-	links := m.stepLinksTo(step, id)
-	row := []Cell{
-		Text(foldTitle(folded, "node "+id)).Acting(Act{Op: OpStepFold, Node: id, I: step}),
-	}
-	if folded {
-		return append(row, Text(linkCount(len(links))).Dimmed(true))
-	}
-	return row
-}
-
-func netNodeLine(m Model, id string) []Cell {
-	row := nodeLine(m, 0, id)
-	if m.StepFolded(0, id) {
-		return row
-	}
+func refCells(m Model, id string) []Cell {
 	ref := m.Reports[id].Ref
 	refAct := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
-	row = append(row,
-		Text("ref Δφ"),
+	return []Cell{
+		Text("ref Δφ").Dimmed(true),
 		Field("", strconv.Itoa(ref.Phi), refAct(Links.KPhi), true, true).Fitting(cardFit).Outline(false),
-		Text("Δθ"),
+		Text("Δθ").Dimmed(true),
 		Field("", strconv.Itoa(ref.Theta), refAct(Links.KTheta), true, true).Fitting(cardFit).Outline(false),
-	)
-	if to := connectRow(m, id, "link to"); to != nil {
-		row = append(row, to...)
 	}
-	return row
 }
 
-func headRow(m Model, step int) Group {
+func headRow(m Model, step, depth int) Group {
 	row := []Cell{Text("HEAD").Inked(inkHead)}
 	for _, a := range axes {
 		row = append(row, lockHead(m, step, a))
 	}
-	return Group{Rows: [][]Cell{row}, Indent: true}
-}
-
-func nodeGroups(m Model, step int, id string) []Group {
-	groups := []Group{{Rows: [][]Cell{nodeLine(m, step, id)}, Slides: true, Table: fmt.Sprintf("step %d node %s", step, id)}}
-	links := m.stepLinksTo(step, id)
-	if m.StepFolded(step, id) || len(links) == 0 {
-		return groups
-	}
-	for _, l := range links {
-		picked := m.StepPicked(step, l)
-		groups = append(groups, linkLine(l, picked, Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}))
-		if picked {
-			groups = append(groups, linkCard(m, step, l))
-		}
-	}
-	return groups
+	return Group{Rows: [][]Cell{row}, Depth: depth}
 }
 
 func pickMark(on bool) string {
 	if on {
-		return "● "
+		return "●"
 	}
-	return "○ "
+	return "○"
 }
 
 func pressSummary(l Links.Link) string {
@@ -137,20 +100,17 @@ func pressSummary(l Links.Link) string {
 	return strings.Join(parts, " · ")
 }
 
-func linkLine(l Links.Link, picked bool, pick Act, more ...Cell) Group {
-	if !picked {
-		row := []Cell{Text(pickMark(false) + l.Name()).Acting(pick).Dimmed(true)}
-		return Group{Rows: [][]Cell{append(row, more...)}, Indent: true}
+func netCard(l Links.Link, depth int) Group {
+	val := func(s string) Cell { return Text(s).Outline(false) }
+	head := func(s string) Cell { return Text(s).Inked(inkHead) }
+	rows := [][]Cell{{Text(""), head("START"), head("Δ"), head("nΔ"), head("1")}}
+	for _, a := range axes {
+		rows = append(rows, []Cell{Text(a.label).Dimmed(true), val(a.at(l)), val(strconv.Itoa(a.delta(l))), val(strconv.Itoa(a.times(l))), val(strconv.Itoa(a.one(l)))})
 	}
-	row := []Cell{
-		Text(pickMark(true)).Acting(pick).Inked(inkAccent),
-		Text(l.Name()).Acting(pick).Inked(inkStrong),
-		Text(pressSummary(l)).Dimmed(true),
-	}
-	return Group{Rows: [][]Cell{append(row, more...)}, Indent: true, Band: bandPicked, Trail: len(more)}
+	return Group{Rows: rows, Card: true, Depth: depth}
 }
 
-func linkCard(m Model, step int, l Links.Link) Group {
+func linkCard(m Model, step int, l Links.Link, depth int) Group {
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	head := func(s string) Cell { return Text(s).AboveLastDigit().Inked(inkHead) }
 	rows := [][]Cell{
@@ -169,5 +129,5 @@ func linkCard(m Model, step int, l Links.Link) Group {
 			field(strconv.Itoa(a.one(l)), OpLinkOne, false).Dimmed(dim),
 		})
 	}
-	return Group{Rows: rows, Card: true, Indent: true}
+	return Group{Rows: rows, Card: true, Depth: depth}
 }

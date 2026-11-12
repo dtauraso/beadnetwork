@@ -2,8 +2,6 @@ package Builder
 
 import (
 	"fmt"
-	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -18,6 +16,8 @@ const (
 	OpStepShow  = "step-show"
 	OpNetFold   = "network-fold"
 )
+
+const navHint = "↑↓ move · → open / in · ← close / out · Enter go in · F2 rename · drag a row to reorder"
 
 func (m Model) allLinks() []Links.Link {
 	var out []Links.Link
@@ -38,141 +38,173 @@ func (m Model) linksTo(id string) []Links.Link {
 	return out
 }
 
-func (m Model) StepShown() int {
-	ns := m.stepNums()
-	if slices.Contains(ns, m.ShownStep) {
-		return m.ShownStep
+func openOf(on bool) int {
+	if on {
+		return open
 	}
-	if m.ShownStep > ns[len(ns)-1] {
-		return ns[len(ns)-1]
-	}
-	return ns[0]
+	return closed
 }
 
-func (m *Model) ShowStep(a Act, sign int) {
-	if sign == 0 {
-		if a.I == m.StepShown() && !m.StepClosed {
-			m.StepClosed = true
-			return
-		}
-		m.ShownStep, m.StepClosed = a.I, false
-		m.ShownStep = m.StepShown()
+func networkRows(t *tree, m Model) {
+	t.add(linkRow{
+		id:     Act{Op: OpNetFold},
+		open:   openOf(m.NetworkOpen),
+		fold:   Act{Op: OpNetFold},
+		name:   Text("network"),
+		detail: []Cell{Text("what runs now · " + linkCount(len(m.allLinks()))).Dimmed(true)},
+	})
+	if !m.NetworkOpen {
 		return
 	}
-	ns := m.stepNums()
-	i := slices.Index(ns, m.StepShown())
-	m.ShownStep = ns[min(max(i+sign, 0), len(ns)-1)]
-}
-
-func networkGroups(m Model) []Group {
-	groups := []Group{{Rows: [][]Cell{{
-		Text(foldTitle(!m.NetworkOpen, "network")).Acting(Act{Op: OpNetFold}).Inked(inkGo),
-		Text("what runs now · " + linkCount(len(m.allLinks()))).Dimmed(true),
-	}}}}
-	if !m.NetworkOpen {
-		return groups
-	}
 	for _, id := range m.Nodes {
-		groups = append(groups, Group{Rows: [][]Cell{netNodeLine(m, id)}, Slides: true, Table: "network node " + id, Indent: true})
+		fold := Act{Op: OpStepFold, Node: id}
+		r := linkRow{id: fold, depth: 1, open: openOf(!m.StepFolded(0, id)), fold: fold, name: Text("node " + id), table: "network node " + id}
+		if m.StepFolded(0, id) {
+			r.detail = []Cell{Text(linkCount(len(m.linksTo(id)))).Dimmed(true)}
+		} else {
+			r.more = refCells(m, id)
+		}
+		r.acts = connectRow(m, id, "link to")
+		t.add(r)
 		if m.StepFolded(0, id) {
 			continue
 		}
 		for _, l := range m.linksTo(id) {
-			groups = append(groups, linkLine(l, l.Picked, Act{}, Button("x", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false).Tipped("remove this link")))
+			lr := linkRowOf(l, l.Picked, Act{}, 2)
+			lr.acts = []Cell{Button("×", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false).Tipped("remove this link")}
+			t.add(lr)
 			if l.Picked {
-				groups = append(groups, netCard(l))
+				t.put(netCard(l, 3))
 			}
 		}
 	}
-	return groups
 }
 
-func netCard(l Links.Link) Group {
-	val := func(s string) Cell { return Text(s).Outline(false) }
-	head := func(s string) Cell { return Text(s).Inked(inkHead) }
-	rows := [][]Cell{{Text(""), head("START"), head("Δ"), head("nΔ"), head("1")}}
-	for _, a := range axes {
-		rows = append(rows, []Cell{Text(a.label).Dimmed(true), val(a.at(l)), val(strconv.Itoa(a.delta(l))), val(strconv.Itoa(a.times(l))), val(strconv.Itoa(a.one(l)))})
+func linkRowOf(l Links.Link, picked bool, pick Act, depth int) linkRow {
+	r := linkRow{
+		id:     Act{Op: OpLinkRow, Node: l.From, To: l.To, I: pick.I},
+		depth:  depth,
+		in:     pick,
+		name:   Text(pickMark(picked)).Acting(pick).Tipped("pick this link"),
+		detail: []Cell{Text(l.Name())},
 	}
-	return Group{Rows: rows, Card: true, Indent: true}
-}
-
-func (m *Model) Touch(a Act) {
-	if a.Node != "" && a.To != "" && a.I > 0 {
-		m.Touched = StepEdge{Step: a.I, From: a.Node, To: a.To}
+	if picked {
+		r.detail = append(r.detail, Text(pressSummary(l)).Dimmed(true))
 	}
+	return r
 }
 
-func (m Model) stepOpen(n int) bool { return n == m.StepShown() && !m.StepClosed }
-
-func stepRow(m Model, n int) Group {
-	return Group{Rows: [][]Cell{{
-		Text(foldTitle(!m.stepOpen(n), "step "+strconv.Itoa(n))).Acting(Act{Op: OpStepShow, I: n}).Inked(inkStrong).Tipped("open or close this step; drag to reorder"),
-		stepNameCell(m, n),
-		subStepsCell(n),
-		Button("+", Act{Op: OpStepAdd, I: n}, false).Tipped("add a step after this one"),
-		Button("⧉", Act{Op: OpStepCopy, I: n}, false).Tipped("duplicate this step"),
-		Button("×", Act{Op: OpStepDrop, I: n}, false).Inked(inkDanger).Tipped("delete this step"),
-	}}, Band: bandRow, Trail: 4}
+func stepRows(t *tree, m Model, refused string) string {
+	ns := m.stepNums()
+	for _, n := range ns {
+		show := Act{Op: OpStepShow, I: n}
+		rename := Act{Op: OpRename, K: renameStep, I: n}
+		r := linkRow{
+			id:     show,
+			open:   openOf(m.stepOpen(n)),
+			fold:   show,
+			in:     Act{Op: OpStepEnter, I: n},
+			rename: rename,
+			name:   Field("step "+itoa(n), m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Plain().Wording(),
+			acts: []Cell{
+				Button("→", Act{Op: OpStepEnter, I: n}, false).Tipped("go into this step's own steps"),
+				Button("✎", rename, false).Tipped("rename this step"),
+				Button("+", Act{Op: OpStepAdd, I: n}, false).Tipped("add a step after this one"),
+				Button("⧉", Act{Op: OpStepCopy, I: n}, false).Tipped("duplicate this step"),
+				Button("×", Act{Op: OpStepDrop, I: n}, false).Tipped("delete this step"),
+			},
+		}
+		if m.StepNames[n] != "" {
+			r.detail = []Cell{Text("step " + itoa(n)).Dimmed(true)}
+		}
+		t.add(r)
+		if m.stepOpen(n) {
+			refused = stepBody(t, m, n, refused)
+		}
+	}
+	return refused
 }
 
-func stepBody(m Model, step int, refused string) ([]Group, string) {
-	groups := []Group{headRow(m, step)}
+func stepBody(t *tree, m Model, step int, refused string) string {
+	t.put(headRow(m, step, 1))
 	for _, id := range m.Nodes {
-		groups = append(groups, nodeGroups(m, step, id)...)
-		if m.StepFolded(step, id) || refused == "" {
+		fold := Act{Op: OpStepFold, Node: id, I: step}
+		folded := m.StepFolded(step, id)
+		links := m.stepLinksTo(step, id)
+		r := linkRow{id: fold, depth: 1, open: openOf(!folded), fold: fold, name: Text("node " + id)}
+		if len(links) == 0 {
+			r.open = leaf
+		}
+		if folded {
+			r.detail = []Cell{Text(linkCount(len(links))).Dimmed(true)}
+		}
+		t.add(r)
+		if folded {
 			continue
 		}
-		for _, l := range m.stepLinksTo(step, id) {
-			if strings.HasPrefix(refused, fmt.Sprintf("step %d %s ", step, l.Name())) {
-				groups = append(groups, Group{Rows: [][]Cell{{Text(refused)}}, Wraps: true, Indent: true})
+		for _, l := range links {
+			picked := m.StepPicked(step, l)
+			t.add(linkRowOf(l, picked, Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}, 2))
+			if picked {
+				t.put(linkCard(m, step, l, 3))
+			}
+			if refused != "" && strings.HasPrefix(refused, fmt.Sprintf("step %d %s ", step, l.Name())) {
+				t.put(Group{Rows: [][]Cell{{Text(refused)}}, Wraps: true, Depth: 3})
 				refused = ""
-				break
 			}
 		}
 	}
-	return groups, refused
+	return refused
 }
 
-func breadcrumb(m Model) Group {
-	row := trailCells(m)
+func pathGroup(m Model) Group {
 	sep := Text("›").Dimmed(true)
-	switch {
-	case m.DragStep != 0:
-		row = append(row, sep, Text("moving step "+m.StepLabel(m.DragStep)+": let go on another step's row"))
-	case m.StepClosed:
-		row = append(row, sep, Text("network").Inked(inkStrong))
-	default:
-		step := m.StepShown()
-		row = append(row, sep, Text(stepLabelAt(m.lvl(), step)).Inked(inkStrong))
-		if t := m.Touched; t.Step == step && t.From != "" {
-			row = append(row, sep, Text(t.From+"→"+t.To).Inked(inkAccent))
-		}
+	if m.AtSeqs {
+		return Group{Rows: [][]Cell{{Text("Sequences").Inked(inkStrong)}}, Slides: true, Table: "where you are"}
 	}
-	return Group{Rows: [][]Cell{row}, Slides: true, Table: "where you are", Band: bandRow}
+	row := []Cell{Text("Sequences").Acting(Act{Op: OpSeqs}).Dimmed(true).Tipped("all sequences")}
+	name := Text(m.seqName())
+	if len(m.Trail) > 0 {
+		name = name.Acting(Act{Op: OpLevelGo, Node: m.Trail[0].Level, I: m.Trail[0].Step}).Dimmed(true).Tipped("go back to this level")
+	} else {
+		name = name.Inked(inkStrong)
+	}
+	row = append(row, sep, name)
+	for i, s := range m.Trail {
+		c := Text(s.Label)
+		if i+1 < len(m.Trail) {
+			c = c.Acting(Act{Op: OpLevelGo, Node: m.Trail[i+1].Level, I: m.Trail[i+1].Step}).Dimmed(true).Tipped("go back to this level")
+		} else {
+			c = c.Inked(inkStrong)
+		}
+		row = append(row, sep, c)
+	}
+	return Group{Rows: [][]Cell{row}, Slides: true, Table: "where you are"}
+}
+
+func linksTree(m Model) tree {
+	t := tree{sel: m.Sel}
+	t.put(pathGroup(m))
+	refused := m.Refused
+	if m.AtSeqs {
+		seqRows(&t, m)
+	} else {
+		networkRows(&t, m)
+		refused = stepRows(&t, m, refused)
+		ns := m.stepNums()
+		t.put(Group{Rows: [][]Cell{{Text("+  add step").Acting(Act{Op: OpStepAdd, I: ns[len(ns)-1]}).Dimmed(true).Tipped("add a step after the last one")}}})
+	}
+	if m.DragStep != 0 {
+		t.put(Group{Rows: [][]Cell{{Text("moving step " + m.StepLabel(m.DragStep) + ": let go on another step's row").Dimmed(true)}}})
+	} else {
+		t.put(Group{Rows: [][]Cell{{Text(navHint).Dimmed(true)}}, Wraps: true})
+	}
+	if refused != "" {
+		t.put(Group{Rows: [][]Cell{{Text(refused)}}, Wraps: true})
+	}
+	return t
 }
 
 func LinksPill(m Model) Pill {
-	var groups []Group
-	groups = append(groups, breadcrumb(m))
-	groups = append(groups, networkGroups(m)...)
-	refused := m.Refused
-	for _, n := range m.stepNums() {
-		groups = append(groups, stepRow(m, n))
-		if m.stepOpen(n) {
-			var body []Group
-			body, refused = stepBody(m, n, refused)
-			groups = append(groups, body...)
-		}
-	}
-	if ns := m.stepNums(); len(ns) > 0 {
-		groups = append(groups,
-			Group{Rows: [][]Cell{{Text("+  add step").Acting(Act{Op: OpStepAdd, I: ns[len(ns)-1]}).Inked(inkAccent).Tipped("add a step after the last one")}}},
-			Group{Rows: [][]Cell{{Text("drag a step row to reorder").Dimmed(true)}}})
-	}
-	if refused != "" {
-		groups = append(groups, Group{Rows: [][]Cell{{Text(refused)}}, Wraps: true})
-	}
-	groups = append(groups, sequenceList(m, 0)...)
-	return Pill{Label: LinksLabel, Bottom: true, Groups: groups}
+	return Pill{Label: LinksLabel, Bottom: true, Groups: linksTree(m).groups}
 }

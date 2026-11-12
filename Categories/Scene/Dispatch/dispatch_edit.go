@@ -25,6 +25,10 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			applySheetKey(ctx, md, ev.Key)
 			return
 		}
+		if navKey(md, ev.Key) {
+			applySheetNav(ctx, md, ev.Key)
+			return
+		}
 		applyRuleKey(ctx, md, ev.Key)
 		return
 	}

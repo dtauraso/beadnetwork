@@ -58,7 +58,3 @@ func (m *Model) NameStep(n int, name string) string {
 	m.readLevels()
 	return ""
 }
-
-func stepNameCell(m Model, n int) Cell {
-	return Field("name", m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Plain().Wording().Dimmed(true).Tipped("click to name this step")
-}

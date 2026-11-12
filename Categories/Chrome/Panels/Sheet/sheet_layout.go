@@ -39,6 +39,9 @@ func cellW(c Cell) float32 {
 		return Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
 	}
 	w := textW(c)
+	if c.Fit != "" {
+		w = max(w, Panel.TextWidth(c.Fit, KeyFontPx)+2)
+	}
 	if c.Arrows.Op != "" {
 		w += lockW()
 	}
@@ -91,10 +94,11 @@ func slideW(g Group, room float32) float32 {
 }
 
 func indentOf(g Group) float32 {
+	in := float32(g.Depth) * IndentX
 	if g.Indent {
-		return IndentX
+		in += IndentX
 	}
-	return 0
+	return in
 }
 
 func shownW(g Group, room float32) float32 {
@@ -181,12 +185,19 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: Rect{X: x + in, Y: y, W: outerW(g, room) - in, H: outerH(g)}, Pop: g.Pop != nil, Cell: len(lay.Cells), Max: popMax[gi]})
 				x, y = x+CardPad, y+CardPad
 			}
+			for d := 0; d < g.Depth; d++ {
+				guide := Rect{X: x + float32(d)*IndentX + GuideX, Y: y - Panel.Gap, W: 1, H: outerH(g) + Panel.Gap}
+				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: guide, Cell: len(lay.Cells), Band: BandGuide})
+			}
 			var right float32
-			if g.Band != BandNone {
-				band := Rect{X: x + in, Y: y - RowGapY/2, W: max(room, colsW(g)+2*BandPad) - in, H: groupH(g)}
-				lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: band, Cell: len(lay.Cells), Band: g.Band})
+			if g.Row.Op != "" {
+				band := Rect{X: x - BandPad, Y: y - RowGapY/2, W: max(room, in+colsW(g)) + 2*BandPad, H: groupH(g)}
+				lay.Rows = append(lay.Rows, RowBox{Box: box, Rect: band, Row: g.Row})
+				if g.Band == BandSelected {
+					lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: band, Cell: len(lay.Cells), Band: BandSelected})
+					lay.Nav = true
+				}
 				right = band.X + band.W - BandPad
-				x += BandPad
 			}
 			lay.place(box, g, x+in, y, dx, right)
 		}

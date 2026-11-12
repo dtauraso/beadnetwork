@@ -25,13 +25,8 @@ var (
 )
 
 const (
-	inkStrong  = Sheet.InkStrong
-	inkAccent  = Sheet.InkAccent
-	inkGo      = Sheet.InkGo
-	inkDanger  = Sheet.InkDanger
-	inkHead    = Sheet.InkHead
-	bandRow    = Sheet.BandRow
-	bandPicked = Sheet.BandPicked
+	inkStrong = Sheet.InkStrong
+	inkHead   = Sheet.InkHead
 )
 
 type Model struct {
@@ -54,7 +49,10 @@ type Model struct {
 
 	Seqs        []Seq
 	OpenSeq     int
-	SeqListOpen bool
+	AtSeqs      bool
+	Sel         Act
+	ClickRow    Act
+	ClickAt     int64
 	ShownStep   int
 	StepClosed  bool
 	NetworkOpen bool

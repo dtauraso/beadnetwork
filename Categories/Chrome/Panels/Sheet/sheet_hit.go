@@ -14,6 +14,7 @@ const (
 	PartDown
 	PartInside
 	PartGrab
+	PartRow
 )
 
 type Hit struct {
@@ -22,6 +23,7 @@ type Hit struct {
 	Cell  Cell
 	Rect  Rect
 	DY    float32
+	Row   Act
 }
 
 func (l Layout) Hit(x, y float64) Hit {
@@ -68,7 +70,12 @@ func (l Layout) Hit(x, y float64) Hit {
 			if cb.Cell.Kind == CellField && !cb.Cell.Typed {
 				continue
 			}
-			return Hit{Part: PartBody, Label: label, Cell: cb.Cell, Rect: cb.Rect}
+			return Hit{Part: PartBody, Label: label, Cell: cb.Cell, Rect: cb.Rect, Row: cb.Row}
+		}
+	}
+	for _, r := range l.Rows {
+		if r.Box == top && Panel.HitRect(r.Rect, x, y) {
+			return Hit{Part: PartRow, Label: l.Pills[top].Label, Rect: r.Rect, Row: r.Row}
 		}
 	}
 	for _, h := range l.Heads {

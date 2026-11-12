@@ -19,8 +19,8 @@ func outerW(g Group, room float32) float32 {
 	if g.Card {
 		return indentOf(g) + groupW(g) + 2*CardPad
 	}
-	if g.Band != BandNone {
-		return max(room, shownW(g, room)+2*BandPad)
+	if g.Row.Op != "" {
+		return max(room, shownW(g, room))
 	}
 	return shownW(g, room)
 }
@@ -36,9 +36,6 @@ func popSpot(groups []Group, spots []spot, a Anchor) spot {
 	at := spots[a.Group]
 	g := groups[a.Group]
 	x := at.X + indentOf(g)
-	if g.Band != BandNone {
-		x += BandPad
-	}
 	for i, w := range columns(g) {
 		if i == a.Col {
 			break

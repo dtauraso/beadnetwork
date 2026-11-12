@@ -1,143 +1,98 @@
 import { canvasFont, roundRect } from "../../canvas-box";
 
 const TEXT_INK = "#222";
-const TEXT_LIT_INK = "#111";
+const MUTED_INK = "#555";
+const FONT_PX = 13;
+const HEAD_FONT_PX = 11;
+const WEIGHT = 500;
+const STRONG_WEIGHT = 700;
 
-const CELL_FILL = "#fff";
-const CELL_EDIT_FILL = "#e3eefc";
-const CELL_RADIUS = 3;
+const BOX_FILL = "#fff";
+const ON_FILL = "#e3eefc";
+const BOX_EDGE = "#c8ccd2";
+const EDIT_EDGE = "#1565c0";
+const BOX_RADIUS = 3;
 const CELL_PAD_X = 6;
-const KEY_FONT_PX = 13;
-const KEY_INK = "#444";
-const VAL_FONT_PX = 13;
-const VAL_INK = "#111";
 
-const BUTTON_FILL = "#f2f2f2";
-const BUTTON_EDGE = "#bbb";
-const BUTTON_LIT_FILL = "#cfe0fa";
-
-const OUTLINE_EDGE = "#0d47a1";
-const DIM_TEXT_INK = "#444";
+const CARD_FILL = "#f4f5f7";
+const GUIDE_INK = "#dde1e6";
 
 const CELL_TEXT = 0;
 const CELL_FIELD = 1;
+
+const BAND_SELECTED = 1;
+const BAND_GUIDE = 2;
+
+const INK_STRONG = 1;
+const INK_HEAD = 2;
 
 export type R = { x: number; y: number; w: number; h: number };
 
 export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean; bare: boolean; ink: number };
 
-const BAND_ROW = 1;
-const BAND_FILL = "#eef0f3";
-const PICKED_FILL = "rgba(21,101,192,0.10)";
-const PICKED_EDGE = "rgba(21,101,192,0.6)";
-const CARD_FILL = "#f4f5f7";
-
 export function drawBand(c: CanvasRenderingContext2D, r: R, band: number): void {
-  roundRect(c, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, 4);
-  c.fillStyle = band === 0 ? CARD_FILL : band === BAND_ROW ? BAND_FILL : PICKED_FILL;
-  c.fill();
-  if (band > BAND_ROW) {
-    c.strokeStyle = PICKED_EDGE;
-    c.lineWidth = 1;
-    c.stroke();
+  if (band === BAND_GUIDE) {
+    c.fillStyle = GUIDE_INK;
+    c.fillRect(Math.round(r.x), r.y, 1, r.h);
+    return;
   }
+  roundRect(c, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, 4);
+  c.fillStyle = band === BAND_SELECTED ? ON_FILL : CARD_FILL;
+  c.fill();
+}
+
+function box(c: CanvasRenderingContext2D, r: R, on: boolean, editing: boolean): void {
+  roundRect(c, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, BOX_RADIUS);
+  c.fillStyle = on || editing ? ON_FILL : BOX_FILL;
+  c.fill();
+  c.strokeStyle = editing ? EDIT_EDGE : BOX_EDGE;
+  c.lineWidth = 1;
+  c.stroke();
+}
+
+function label(c: CanvasRenderingContext2D, text: string, x: number, y: number, align: CanvasTextAlign, ink: string, px = FONT_PX, weight = WEIGHT): void {
+  c.fillStyle = ink;
+  c.font = canvasFont(px, weight);
+  c.textAlign = align;
+  c.textBaseline = "middle";
+  c.fillText(text, x, y);
 }
 
 function drawField(c: CanvasRenderingContext2D, r: R, key: string, value: string, editing: boolean): void {
-  roundRect(c, r.x, r.y, r.w, r.h, CELL_RADIUS);
-  c.fillStyle = editing ? CELL_EDIT_FILL : CELL_FILL;
-  c.fill();
-  c.strokeStyle = editing ? OUTLINE_EDGE : BUTTON_EDGE;
-  c.lineWidth = 1;
-  c.stroke();
-  c.textBaseline = "middle";
-  c.fillStyle = KEY_INK;
-  c.font = canvasFont(KEY_FONT_PX, 600);
-  c.textAlign = "left";
-  c.fillText(key, r.x + CELL_PAD_X, r.y + r.h / 2);
-  c.fillStyle = VAL_INK;
-  c.font = canvasFont(VAL_FONT_PX, 700);
-  c.textAlign = "right";
-  c.fillText(value, r.x + r.w - CELL_PAD_X, r.y + r.h / 2);
+  box(c, r, false, editing);
+  label(c, key, r.x + CELL_PAD_X, r.y + r.h / 2, "left", MUTED_INK);
+  label(c, value, r.x + r.w - CELL_PAD_X, r.y + r.h / 2, "right", TEXT_INK);
 }
 
-function drawButton(c: CanvasRenderingContext2D, r: R, label: string, lit: boolean, ink = 0): void {
-  roundRect(c, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, CELL_RADIUS);
-  c.fillStyle = lit ? BUTTON_LIT_FILL : BUTTON_FILL;
-  c.fill();
-  c.strokeStyle = BUTTON_EDGE;
-  c.lineWidth = 1;
-  c.stroke();
-  c.fillStyle = inkColor(ink) ?? TEXT_INK;
-  c.font = canvasFont(KEY_FONT_PX, 600);
-  c.textAlign = "center";
-  c.textBaseline = "middle";
-  c.fillText(label, r.x + r.w / 2, r.y + r.h / 2);
+function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, on: boolean, editing: boolean, dim: boolean): void {
+  box(c, r, on, editing);
+  label(c, text, r.x + r.w / 2, r.y + r.h / 2, "center", dim ? MUTED_INK : TEXT_INK);
 }
 
-const INK_STRONG = 1, INK_ACCENT = 2, INK_GO = 3, INK_DANGER = 4, INK_HEAD = 5;
-const ACCENT_INK = "#111";
-const GO_INK = "#111";
-const DANGER_INK = "#111";
-const STRONG_INK = "#111";
-const HEAD_FONT_PX = 11;
-
-function inkColor(ink: number): string | undefined {
-  return ({ [INK_STRONG]: STRONG_INK, [INK_ACCENT]: ACCENT_INK, [INK_GO]: GO_INK, [INK_DANGER]: DANGER_INK, [INK_HEAD]: DIM_TEXT_INK } as Record<number, string>)[ink];
-}
-
-function drawText(c: CanvasRenderingContext2D, r: R, text: string, lit: boolean, dim = false, ink = 0): void {
-  c.fillStyle = dim ? DIM_TEXT_INK : inkColor(ink) ?? (lit ? TEXT_LIT_INK : TEXT_INK);
-  const bold = lit || ink === INK_STRONG || ink === INK_GO || ink === INK_ACCENT;
-  c.font = ink === INK_HEAD ? canvasFont(HEAD_FONT_PX, 600) : canvasFont(KEY_FONT_PX, bold ? 700 : 500);
-  c.textAlign = "left";
-  c.textBaseline = "middle";
-  c.fillText(text, r.x + 1, r.y + r.h / 2);
-}
-
-function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: boolean, lit: boolean, dim = false): void {
-  roundRect(c, r.x + 0.75, r.y + 0.75, r.w - 1.5, r.h - 1.5, CELL_RADIUS);
-  c.strokeStyle = outlined ? OUTLINE_EDGE : BUTTON_EDGE;
-  c.lineWidth = outlined ? 1.5 : 1;
-  c.stroke();
-  c.fillStyle = dim ? DIM_TEXT_INK : lit ? TEXT_LIT_INK : TEXT_INK;
-  c.font = canvasFont(KEY_FONT_PX, lit ? 700 : 500);
-  c.textAlign = "center";
-  c.textBaseline = "middle";
-  c.fillText(text, r.x + r.w / 2, r.y + r.h / 2);
+function drawText(c: CanvasRenderingContext2D, r: R, text: string, dim: boolean, ink: number): void {
+  if (ink === INK_HEAD) return label(c, text, r.x + 1, r.y + r.h / 2, "left", MUTED_INK, HEAD_FONT_PX);
+  label(c, text, r.x + 1, r.y + r.h / 2, "left", dim ? MUTED_INK : TEXT_INK, FONT_PX, ink === INK_STRONG ? STRONG_WEIGHT : WEIGHT);
 }
 
 export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
-  if (l.kind === CELL_FIELD && l.bare && !l.editing) drawText(c, r, l.value || l.key, l.lit, l.dim);
-  else if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value || l.key, l.outlined || l.editing, l.lit, l.dim || !l.value);
-  else if (l.kind === CELL_FIELD) {
-    drawField(c, r, l.key, l.value, l.editing);
-    if (l.outlined) {
-      roundRect(c, r.x - 1.5, r.y - 1.5, r.w + 3, r.h + 3, CELL_RADIUS + 1);
-      c.strokeStyle = OUTLINE_EDGE;
-      c.lineWidth = 2;
-      c.stroke();
-    }
-  }
-  else if (l.kind === CELL_TEXT && l.boxed) drawBoxed(c, r, l.key, l.outlined, l.lit);
-  else if (l.kind === CELL_TEXT) drawText(c, r, l.key, l.lit, l.dim, l.ink);
-  else drawButton(c, r, l.key, l.lit, l.ink);
+  if (l.kind === CELL_FIELD && l.bare && !l.editing) drawText(c, r, l.value || l.key, l.dim, l.ink);
+  else if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value || l.key, false, l.editing, l.dim || !l.value);
+  else if (l.kind === CELL_FIELD) drawField(c, r, l.key, l.value, l.editing);
+  else if (l.kind === CELL_TEXT && l.boxed) drawBoxed(c, r, l.key, l.outlined || l.lit, false, l.dim);
+  else if (l.kind === CELL_TEXT) drawText(c, r, l.key, l.dim, l.lit && !l.ink ? INK_STRONG : l.ink);
+  else drawBoxed(c, r, l.key, l.lit, false, l.dim);
 }
 
 export function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean, lit: boolean, dim: boolean): void {
   if (r.w <= 0 || r.h <= 0) return;
-  const on = lit && !dim;
-  roundRect(c, r.x + 0.75, r.y + 1, r.w - 1.5, r.h - 2, 2);
-  c.strokeStyle = on ? OUTLINE_EDGE : BUTTON_EDGE;
-  c.lineWidth = on ? 1.5 : 1;
-  c.stroke();
+  box(c, { x: r.x, y: r.y + 0.5, w: r.w, h: r.h - 1 }, lit && !dim, false);
   const cx = r.x + r.w / 2, cy = r.y + r.h / 2, half = Math.min(r.w, r.h) * 0.28;
   c.beginPath();
   c.moveTo(cx - half, cy + (up ? 1 : -1) * half * 0.6);
   c.lineTo(cx + half, cy + (up ? 1 : -1) * half * 0.6);
   c.lineTo(cx, cy - (up ? 1 : -1) * half * 0.6);
   c.closePath();
-  c.fillStyle = dim ? DIM_TEXT_INK : TEXT_INK;
+  c.fillStyle = dim ? MUTED_INK : TEXT_INK;
   c.fill();
 }
 

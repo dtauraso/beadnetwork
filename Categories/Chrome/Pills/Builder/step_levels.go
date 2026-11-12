@@ -2,6 +2,7 @@ package Builder
 
 import (
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -42,8 +43,10 @@ func (m *Model) LevelOp(a Act) error {
 			m.ShownStep = a.I
 		}
 	}
-	m.StepClosed = false
-	return m.rereadSteps()
+	m.StepClosed, m.AtSeqs = false, false
+	err := m.rereadSteps()
+	m.Sel = Act{Op: OpStepShow, I: m.StepShown()}
+	return err
 }
 
 func (m Model) ancestors() []levelStep {
@@ -84,18 +87,39 @@ func (m *Model) readTree(level string, depth int) {
 	}
 }
 
-func subStepsCell(n int) Cell {
-	return Button("→", Act{Op: OpStepEnter, I: n}, false).Tipped("go into this step's own steps")
+func (m Model) StepShown() int {
+	ns := m.stepNums()
+	if slices.Contains(ns, m.ShownStep) {
+		return m.ShownStep
+	}
+	if m.ShownStep > ns[len(ns)-1] {
+		return ns[len(ns)-1]
+	}
+	return ns[0]
 }
 
-func trailCells(m Model) []Cell {
-	cells := sequenceCells(m)
-	for _, t := range m.Trail {
-		cells = append(cells, Text("›").Dimmed(true),
-			Text(t.Label).Acting(Act{Op: OpLevelGo, Node: t.Level, I: t.Step}).Dimmed(true).Tipped("go back to this step"))
+func (m *Model) ShowStep(a Act, sign int) {
+	if sign == 0 {
+		if a.I == m.StepShown() && !m.StepClosed {
+			m.StepClosed = true
+			return
+		}
+		m.ShownStep, m.StepClosed = a.I, false
+		m.ShownStep = m.StepShown()
+		return
 	}
-	return cells
+	ns := m.stepNums()
+	i := slices.Index(ns, m.StepShown())
+	m.ShownStep = ns[min(max(i+sign, 0), len(ns)-1)]
 }
+
+func (m *Model) Touch(a Act) {
+	if a.Node != "" && a.To != "" && a.I > 0 {
+		m.Touched = StepEdge{Step: a.I, From: a.Node, To: a.To}
+	}
+}
+
+func (m Model) stepOpen(n int) bool { return n == m.StepShown() && !m.StepClosed }
 
 func (m Model) TopStep() int { return stepIn(m.Trail, 0) }
 

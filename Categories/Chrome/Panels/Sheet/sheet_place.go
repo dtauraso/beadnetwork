@@ -48,7 +48,7 @@ func (lay *Layout) place(box int, g Group, x, y, dx, right float32) {
 		from := len(lay.Cells)
 		cx := x - dx
 		for i, c := range row {
-			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}, Slides: g.Slides}
+			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}, Slides: g.Slides, Row: g.Row}
 			if c.Arrows.Op != "" {
 				right := cx + cols[i]
 				tw := textW(c)

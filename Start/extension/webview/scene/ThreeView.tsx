@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { buildDeleteRaw, buildKeyRaw } from "../../../../Categories/Scene/Drag/raw-input-build";
 import { sendRawInput } from "../vscode-api";
 import { rulesDraftOpen } from "../../../../Categories/Chrome/Panels/PolarRulesPanel/draw-rules-panel";
-import { sheetDraftOpen } from "../../../../Categories/Chrome/Panels/Sheet/draw-sheet";
+import { sheetDraftOpen, sheetNavOn } from "../../../../Categories/Chrome/Panels/Sheet/draw-sheet";
 import { useInteractionControls } from "./interaction-controls";
 import type { PickFn } from "../../../../Categories/Scene/Drag/pick-types";
 import { Scene } from "./scene-content";
@@ -17,6 +17,8 @@ import { PaneSizeSync } from "./pane-size-sync";
 function consumedByDraft(key: string): boolean {
   return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace";
 }
+
+const SHEET_NAV_KEYS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "F2", "Backspace", "Escape"]);
 
 export function ThreeView() {
   bootPhase("ThreeView body");
@@ -30,6 +32,11 @@ export function ThreeView() {
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if ((rulesDraftOpen() || sheetDraftOpen()) && consumedByDraft(e.key)) {
+        e.preventDefault();
+        sendRawInput(buildKeyRaw(e.key));
+        return;
+      }
+      if (sheetNavOn() && SHEET_NAV_KEYS.has(e.key)) {
         e.preventDefault();
         sendRawInput(buildKeyRaw(e.key));
         return;

@@ -122,42 +122,52 @@ func addLinkNodeAt(md *MoveDispatch, at Links.Place) {
 
 func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
 	m := &md.UI.Builder
-	scene := md.Scenes.TreeRoot
-	if scene == "" || md.Scenes.Reload == nil {
-		if a.Op == Builder.OpSeqOpen || a.Op == Builder.OpSeqAdd || a.Op == Builder.OpSeqDrop {
-			m.Refused = "this scene cannot switch sequences: it was opened with no tree root to reload from"
-			return true
-		}
+	if !Builder.IsSeqOp(a) {
 		return false
 	}
-	open := m.OpenSeq
+	scene := md.Scenes.TreeRoot
+	if scene == "" || md.Scenes.Reload == nil {
+		m.Refused = "this scene cannot change sequences: it was opened with no tree root to reload from"
+		return true
+	}
+	open, k, stay := m.OpenSeq, a.I, 0
 	switch a.Op {
-	case Builder.OpSeqOpen:
-		if a.I == open {
+	case Builder.OpSeqIn:
+		if k == open {
 			if err := m.LevelOp(Sheet.Act{Op: Builder.OpLevelGo, I: m.TopStep()}); err != nil {
 				View.LogPersistErr("sheet_step_level", m.Root, err)
 			}
 			return true
 		}
-		open = a.I
-	case Builder.OpSeqAdd:
-		to, err := Scenes.CopySequence(scene, open)
+		open = k
+	case Builder.OpSeqAdd, Builder.OpSeqCopy:
+		if err := m.WriteSteps(); k == open && err != nil {
+			View.LogPersistErr("sheet_seq_copy", m.Root, err)
+		}
+		to, err := Scenes.InsertSequence(scene, k, map[bool]string{true: Builder.DirSteps}[a.Op == Builder.OpSeqAdd])
 		if err != nil {
-			m.Refused = fmt.Sprintf("could not copy sequence %d: %v", open, err)
+			m.Refused = fmt.Sprintf("could not add a sequence after sequence %d: %v", k, err)
 			return true
 		}
-		open = to
+		if stay = to; open >= to {
+			stay, open = 0, open+1
+		}
 	case Builder.OpSeqDrop:
 		if len(m.Seqs) < 2 {
 			return true
 		}
-		if err := Scenes.RemoveSequence(scene, open); err != nil {
-			m.Refused = fmt.Sprintf("could not delete sequence %d: %v", open, err)
+		if err := Scenes.RemoveSequence(scene, k); err != nil {
+			m.Refused = fmt.Sprintf("could not delete sequence %d: %v", k, err)
 			return true
 		}
-		open = max(1, open-1)
-	default:
-		return false
+		if stay = k - 1; k <= open {
+			stay, open = 0, max(1, open-1)
+		}
+	}
+	if stay > 0 {
+		LoadSequences(md, scene)
+		m.Select(Sheet.Act{Op: Builder.OpSeqOpen, I: stay})
+		return true
 	}
 	if err := Scenes.WriteOpenSequence(scene, open); err != nil {
 		m.Refused = fmt.Sprintf("could not open sequence %d: %v", open, err)

@@ -71,9 +71,6 @@ type Ink uint8
 const (
 	InkPlain Ink = iota
 	InkStrong
-	InkAccent
-	InkGo
-	InkDanger
 	InkHead
 )
 
@@ -81,11 +78,14 @@ type Band uint8
 
 const (
 	BandNone Band = iota
-	BandRow
-	BandPicked
+	BandSelected
+	BandGuide
 )
 
-const BandPad = 6
+const (
+	BandPad = 6
+	GuideX  = 4
+)
 
 func (c Cell) Tipped(s string) Cell { c.Tip = s; return c }
 
@@ -143,6 +143,14 @@ type Group struct {
 	MaxRows int
 	Band    Band
 	Trail   int
+	Depth   int
+	Row     Act
+}
+
+type RowBox struct {
+	Box  int
+	Rect Rect
+	Row  Act
 }
 
 type Anchor struct {
@@ -196,6 +204,7 @@ type CellBox struct {
 	Up     Rect
 	Down   Rect
 	Slides bool
+	Row    Act
 }
 
 type Layout struct {
@@ -203,4 +212,6 @@ type Layout struct {
 	Heads []HeadBox
 	Cells []CellBox
 	Cards []CardBox
+	Rows  []RowBox
+	Nav   bool
 }

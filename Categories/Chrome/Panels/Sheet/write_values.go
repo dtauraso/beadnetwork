@@ -79,6 +79,7 @@ func (s *State) Write(lay Layout) {
 		w.U32("cardCell", uint32(c.Cell))
 		w.U8("cardBand", uint8(c.Band))
 	}
+	w.U8("navOn", flag(lay.Nav))
 
 	if err := w.Flush(); err != nil {
 		fmt.Fprintf(os.Stderr, "sheet_values: %v\n", err)

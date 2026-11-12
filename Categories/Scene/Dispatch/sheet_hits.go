@@ -2,6 +2,7 @@ package Dispatch
 
 import (
 	"context"
+	"time"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
@@ -14,25 +15,29 @@ import (
 
 func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 	sh := &md.UI.Sheet
-	if op := h.Cell.Act.Op; h.Part != Sheet.PartBody || op != Builder.OpSeqFold && op != Builder.OpSeqOpen {
-		md.UI.Builder.SeqListOpen = false
-	}
 	if h.Part == Sheet.PartBody || h.Part == Sheet.PartUp || h.Part == Sheet.PartDown {
 		md.UI.Builder.Touch(h.Cell.ArrowAct())
+	}
+	if h.Row.Op != "" {
+		md.UI.Builder.Select(h.Row)
 	}
 	switch h.Part {
 	case Sheet.PartPill:
 		sh.Toggle(h.Label)
 	case Sheet.PartGrab:
 		sh.StartResize(h.Label, h.DY)
+	case Sheet.PartRow:
+		pressRow(ctx, md, h.Row)
 	case Sheet.PartBody:
 		if h.Cell.Act.Op == Sheet.OpDockFold {
 			sh.ToggleFold(h.Cell.Act.Node)
 		} else if h.Cell.Act.Op == Sheet.OpDockTab {
 			sh.SelectTab(h.Cell.Act.I)
 			sh.StartTabDrag(h.Cell.Act.Node)
-		} else if h.Cell.Act.Op == Builder.OpStepShow {
-			md.UI.Builder.DragStep = h.Cell.Act.I
+		} else if h.Row.Op != "" && Builder.IsRowName(h.Cell.Act) {
+			pressRow(ctx, md, h.Row)
+		} else if h.Cell.Act.Op == Builder.OpRename {
+			md.UI.Builder.Rename(h.Cell.Act, &sh.Edit)
 		} else if h.Cell.Typed {
 			Sheet.StartDraft(&sh.Edit, h.Cell)
 		} else {
@@ -54,17 +59,37 @@ func endStepDrag(md *MoveDispatch, x, y float64) bool {
 	}
 	m.DragStep, m.Refused = 0, ""
 	h := md.UI.PanelLayout().Sheet.Hit(x, y)
-	if to := h.Cell.Act.I; h.Part == Sheet.PartBody && h.Cell.Act.Op == Builder.OpStepShow && to != from {
+	if to := h.Row.I; m.RowDrags(h.Row) && to != from {
 		refused, err := m.MoveStep(from, to)
 		m.Refused = refused
 		if err != nil {
 			View.LogPersistErr("sheet_step_move", m.Root, err)
 		}
-	} else {
-		m.ShowStep(Sheet.Act{Op: Builder.OpStepShow, I: from}, 0)
+		if refused == "" && err == nil {
+			m.Select(h.Row)
+		}
 	}
 	md.UI.EmitViewFrame(nil)
 	return true
+}
+
+func pressRow(ctx context.Context, md *MoveDispatch, id Sheet.Act) {
+	if a := md.UI.Builder.Press(id, time.Now().UnixMilli()); a.Op != "" {
+		runSheetAct(ctx, md, a, 0, nil)
+	}
+}
+
+func navKey(md *MoveDispatch, key string) bool {
+	return Builder.NavKey(key) && !md.UI.Rules.Edit.Active && md.UI.Builder.Sel.Op != "" && md.UI.PanelLayout().Sheet.Nav
+}
+
+func applySheetNav(ctx context.Context, md *MoveDispatch, key string) {
+	if a := md.UI.Builder.Nav(key); a.Op == Builder.OpRename {
+		md.UI.Builder.Rename(a, &md.UI.Sheet.Edit)
+	} else if a.Op != "" {
+		runSheetAct(ctx, md, a, 0, nil)
+	}
+	md.UI.EmitViewFrame(nil)
 }
 
 func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
@@ -113,9 +138,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 		return
 	}
-	if a.Op == Builder.OpSeqOpen {
-		md.UI.Builder.SeqListOpen = false
-	}
 	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) {
 		return
 	}
@@ -127,8 +149,12 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 	case Builder.OpStepFold:
 		md.UI.Builder.ToggleStepFold(a.I, a.Node)
-	case Builder.OpSeqFold:
-		md.UI.Builder.SeqListOpen = !md.UI.Builder.SeqListOpen
+	case Builder.OpSeqs:
+		md.UI.Builder.ToSeqs()
+	case Builder.OpLevelUp:
+		if err := md.UI.Builder.LevelUp(); err != nil {
+			View.LogPersistErr("sheet_step_level", md.UI.Builder.Root, err)
+		}
 	case Builder.OpStepShow:
 		md.UI.Builder.ShowStep(a, sign)
 	case Builder.OpNetFold:
