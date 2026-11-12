@@ -3,18 +3,18 @@ import { canvasFont, roundRect } from "../../canvas-box";
 const TEXT_INK = "#222";
 const TEXT_LIT_INK = "#111";
 
-const CELL_FILL = "#222";
-const CELL_EDIT_FILL = "#0d47a1";
+const CELL_FILL = "#fff";
+const CELL_EDIT_FILL = "#e3eefc";
 const CELL_RADIUS = 3;
 const CELL_PAD_X = 6;
 const KEY_FONT_PX = 13;
-const KEY_INK = "#e0e0e0";
+const KEY_INK = "#444";
 const VAL_FONT_PX = 13;
-const VAL_INK = "#fff";
+const VAL_INK = "#111";
 
 const BUTTON_FILL = "#f2f2f2";
 const BUTTON_EDGE = "#bbb";
-const BUTTON_LIT_FILL = "#0d47a1";
+const BUTTON_LIT_FILL = "#cfe0fa";
 
 const OUTLINE_EDGE = "#0d47a1";
 const DIM_TEXT_INK = "#444";
@@ -47,6 +47,9 @@ function drawField(c: CanvasRenderingContext2D, r: R, key: string, value: string
   roundRect(c, r.x, r.y, r.w, r.h, CELL_RADIUS);
   c.fillStyle = editing ? CELL_EDIT_FILL : CELL_FILL;
   c.fill();
+  c.strokeStyle = editing ? OUTLINE_EDGE : BUTTON_EDGE;
+  c.lineWidth = 1;
+  c.stroke();
   c.textBaseline = "middle";
   c.fillStyle = KEY_INK;
   c.font = canvasFont(KEY_FONT_PX, 600);
@@ -65,7 +68,7 @@ function drawButton(c: CanvasRenderingContext2D, r: R, label: string, lit: boole
   c.strokeStyle = BUTTON_EDGE;
   c.lineWidth = 1;
   c.stroke();
-  c.fillStyle = lit ? VAL_INK : inkColor(ink) ?? TEXT_INK;
+  c.fillStyle = inkColor(ink) ?? TEXT_INK;
   c.font = canvasFont(KEY_FONT_PX, 600);
   c.textAlign = "center";
   c.textBaseline = "middle";
