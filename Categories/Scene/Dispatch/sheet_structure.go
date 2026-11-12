@@ -11,6 +11,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	SceneB "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 func whole(v float64) bool { return v == math.Trunc(v) && !math.IsInf(v, 0) }
@@ -131,7 +132,9 @@ func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
 	switch a.Op {
 	case Builder.OpSeqOpen:
 		if a.I == open {
-			m.Refused = Scenes.SequenceName(scene, open) + " is already open — click another sequence to open it"
+			if err := m.LevelOp(Sheet.Act{Op: Builder.OpLevelGo, I: m.TopStep()}); err != nil {
+				View.LogPersistErr("sheet_step_level", m.Root, err)
+			}
 			return true
 		}
 		open = a.I

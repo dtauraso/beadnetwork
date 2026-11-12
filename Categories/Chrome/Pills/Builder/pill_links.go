@@ -150,9 +150,6 @@ func breadcrumb(m Model) Group {
 
 func LinksPill(m Model) Pill {
 	var groups []Group
-	if len(m.Seqs) > 0 {
-		groups = append(groups, sequenceGroups(m)...)
-	}
 	groups = append(groups, breadcrumb(m))
 	groups = append(groups, networkGroups(m)...)
 	refused := m.Refused

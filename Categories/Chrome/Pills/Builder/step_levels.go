@@ -97,13 +97,7 @@ func subStepsCell(m Model, n int) Cell {
 }
 
 func trailCells(m Model) []Cell {
-	name := "sequence"
-	for _, q := range m.Seqs {
-		if q.K == m.OpenSeq {
-			name = q.Name
-		}
-	}
-	cells := []Cell{Button(name, Act{Op: OpLevelGo, I: stepIn(m.Trail, 0)}, m.Level == "").Tipped("go to the sequence's own steps")}
+	cells := []Cell{sequenceCell(m)}
 	for i, t := range m.Trail {
 		at := filepath.Join(t.Level, DirSteps, strconv.Itoa(t.Step))
 		cells = append(cells, Text("›").Dimmed(true),
@@ -111,6 +105,8 @@ func trailCells(m Model) []Cell {
 	}
 	return cells
 }
+
+func (m Model) TopStep() int { return stepIn(m.Trail, 0) }
 
 func stepIn(trail []TreeRow, i int) int {
 	if i < len(trail) {
