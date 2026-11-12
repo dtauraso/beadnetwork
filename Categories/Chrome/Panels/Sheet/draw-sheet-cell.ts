@@ -1,7 +1,7 @@
 import { canvasFont, roundRect } from "../../canvas-box";
 
 const TEXT_INK = "#222";
-const TEXT_LIT_INK = "#0d47a1";
+const TEXT_LIT_INK = "#111";
 
 const CELL_FILL = "#222";
 const CELL_EDIT_FILL = "#0d47a1";
@@ -17,7 +17,7 @@ const BUTTON_EDGE = "#bbb";
 const BUTTON_LIT_FILL = "#0d47a1";
 
 const OUTLINE_EDGE = "#0d47a1";
-const DIM_TEXT_INK = "#5f6368";
+const DIM_TEXT_INK = "#444";
 
 const CELL_TEXT = 0;
 const CELL_FIELD = 1;
@@ -73,9 +73,9 @@ function drawButton(c: CanvasRenderingContext2D, r: R, label: string, lit: boole
 }
 
 const INK_STRONG = 1, INK_ACCENT = 2, INK_GO = 3, INK_DANGER = 4, INK_HEAD = 5;
-const ACCENT_INK = "#1565c0";
-const GO_INK = "#2e7d32";
-const DANGER_INK = "#c62828";
+const ACCENT_INK = "#111";
+const GO_INK = "#111";
+const DANGER_INK = "#111";
 const STRONG_INK = "#111";
 const HEAD_FONT_PX = 11;
 
