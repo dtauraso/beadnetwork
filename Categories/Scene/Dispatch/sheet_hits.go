@@ -31,6 +31,8 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 		} else if h.Cell.Act.Op == Sheet.OpDockTab {
 			sh.SelectTab(h.Cell.Act.I)
 			sh.StartTabDrag(h.Cell.Act.Node)
+		} else if h.Cell.Act.Op == Builder.OpStepShow {
+			md.UI.Builder.DragStep = h.Cell.Act.I
 		} else if h.Cell.Typed {
 			Sheet.StartDraft(&sh.Edit, h.Cell)
 		} else {
@@ -42,6 +44,27 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 		}
 	}
 	md.UI.EmitViewFrame(nil)
+}
+
+func endStepDrag(md *MoveDispatch, x, y float64) bool {
+	m := &md.UI.Builder
+	from := m.DragStep
+	if from == 0 {
+		return false
+	}
+	m.DragStep, m.Refused = 0, ""
+	h := md.UI.PanelLayout().Sheet.Hit(x, y)
+	if to := h.Cell.Act.I; h.Part == Sheet.PartBody && h.Cell.Act.Op == Builder.OpStepShow && to != from {
+		refused, err := m.MoveStep(from, to)
+		m.Refused = refused
+		if err != nil {
+			View.LogPersistErr("sheet_step_move", m.Root, err)
+		}
+	} else {
+		m.ShowStep(Sheet.Act{Op: Builder.OpStepShow, I: from}, 0)
+	}
+	md.UI.EmitViewFrame(nil)
+	return true
 }
 
 func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {

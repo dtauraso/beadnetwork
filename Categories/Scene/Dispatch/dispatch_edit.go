@@ -52,6 +52,9 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		md.UI.EmitViewFrame(nil)
 		return
 	}
+	if ev.Kind == "pointerup" && endStepDrag(md, ev.X, ev.Y) {
+		return
+	}
 	if ev.Kind == "pointerup" && md.UI.Sheet.EndTabDrag() {
 		return
 	}

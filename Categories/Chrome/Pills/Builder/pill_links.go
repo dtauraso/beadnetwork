@@ -120,7 +120,9 @@ func stepBody(m Model, step int, refused string) ([]Group, string) {
 
 func breadcrumb(m Model) Group {
 	trail := "network only, no step open"
-	if !m.StepClosed {
+	if m.DragStep != 0 {
+		trail = "moving step " + m.StepLabel(m.DragStep) + ": let go on another step's title"
+	} else if !m.StepClosed {
 		step := m.StepShown()
 		trail = "editing step " + m.StepLabel(step)
 		if t := m.Touched; t.Step == step && t.From != "" {

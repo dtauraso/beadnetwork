@@ -80,12 +80,42 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	m.StepHeads, m.StepFolds = nil, nil
+	return "", m.rereadSteps()
+}
+
+func (m *Model) rereadSteps() error {
+	m.StepHeads, m.StepFolds, m.Touched = nil, nil, StepEdge{}
 	m.ReadNodeSteps()
 	if m.SeedStepLinks() {
-		return "", m.WriteSteps()
+		return m.WriteSteps()
 	}
-	return "", nil
+	return nil
+}
+
+func (m *Model) MoveStep(from, to int) (string, error) {
+	if m.Root == "" {
+		return "steps are kept in the scene's steps/ folder, and this scene has none, so nothing moved", nil
+	}
+	if err := m.WriteSteps(); err != nil {
+		return "", err
+	}
+	ns := ReadStepNumbers(m.Root)
+	if !slices.Contains(ns, from) || !slices.Contains(ns, to) {
+		return fmt.Sprintf("step %d or step %d has no folder, so nothing moved", from, to), nil
+	}
+	by := 1
+	if to < from {
+		by = -1
+	}
+	for at := from; at != to; {
+		next, refused, err := m.swapSteps(ns, at, by)
+		if refused != "" || err != nil {
+			return refused, err
+		}
+		at = next
+	}
+	m.ShownStep, m.StepClosed = to, false
+	return "", m.rereadSteps()
 }
 
 func (m Model) shiftSteps(ns []int, after, by int) error {
