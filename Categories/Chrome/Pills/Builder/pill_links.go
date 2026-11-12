@@ -167,6 +167,11 @@ func LinksPill(m Model) Pill {
 			groups = append(groups, body...)
 		}
 	}
+	if ns := m.stepNums(); len(ns) > 0 {
+		groups = append(groups,
+			Group{Rows: [][]Cell{{Button("+  add step", Act{Op: OpStepAdd, I: ns[len(ns)-1]}, false).Tipped("add a step after the last one")}}},
+			Group{Rows: [][]Cell{{Text("drag a step row to reorder").Dimmed(true)}}})
+	}
 	if refused != "" {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(refused)}}, Wraps: true})
 	}
