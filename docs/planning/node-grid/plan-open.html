@@ -10,47 +10,41 @@
 <body>
 <svg width="0" height="0" style="position:absolute"><defs>
   <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ar" d="M0,0 L10,5 L0,10 z"/></marker>
-  <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="aw" d="M0,0 L10,5 L0,10 z"/></marker>
 </defs></svg>
 <header>
   <h1><b>Node grid</b> · each node's data lives in its grid; everything reads the grids</h1>
   <nav>
     <a href="plan.html">1 · Model</a><a href="plan-today.html">2 · Today → after</a><a href="plan-grid.html">3 · The grid</a>
-    <a href="plan-who.html">4 · Edit and read</a><a href="plan-order.html">5 · Order</a><a href="plan-open.html" class="on">6 · Open questions</a>
+    <a href="plan-who.html">4 · Edit and read</a><a href="plan-order.html">5 · Order</a><a href="plan-open.html" class="on">6 · In and out</a>
   </nav>
 </header>
 <main>
 <div class="key">
   <span><i style="background:#1c2433;border-color:#5b7bb5"></i>a node's grid</span>
-  <span><i style="background:#1f2a22;border-color:#5f9a6c"></i>reads</span>
-  <span style="color:#e0b45b">━ writes</span>
-  <span style="color:#cfe0fa">━ reads</span>
+  <span><i style="background:#1e1e24;border-color:#3a3a44"></i>stays where it is</span>
+  <span style="color:#cfe0fa">━ depends on</span>
 </div>
-
 <svg viewBox="0 0 900 330">
-  <text class="h" x="20" y="24">other drawn values: what does each depend on?</text>
-  <rect class="box" x="20" y="60" width="140" height="34" rx="6"/><text class="t" x="90" y="82" text-anchor="middle">label anchor</text>
-  <rect class="box" x="20" y="130" width="140" height="34" rx="6"/><text class="t" x="90" y="152" text-anchor="middle">selection</text>
-  <rect class="box" x="20" y="180" width="140" height="34" rx="6"/><text class="t" x="90" y="202" text-anchor="middle">hover</text>
-  <rect class="grid" x="240" y="56" width="200" height="42" rx="6"/><text class="t" x="340" y="74" text-anchor="middle">place, per step</text><text class="d" x="340" y="90" text-anchor="middle">changes by column</text>
-  <rect class="box" x="240" y="150" width="200" height="42" rx="6"/><text class="t" x="340" y="168" text-anchor="middle">the pointer, now</text><text class="d" x="340" y="184" text-anchor="middle">same in every column</text>
-  <path class="a" d="M160,77 L236,77"/><path class="a" d="M160,147 L236,166"/><path class="a" d="M160,197 L236,176"/>
-  <text class="h" x="500" y="50">A · all in the grid</text>
-  <g transform="translate(500,62)">
+  <text class="h" x="20" y="24">what goes in the grid: does it change by step?</text>
+  <rect class="box" x="20" y="60" width="150" height="34" rx="6"/><text class="t" x="95" y="82" text-anchor="middle">label anchor</text>
+  <rect class="box" x="20" y="150" width="150" height="34" rx="6"/><text class="t" x="95" y="172" text-anchor="middle">selected</text>
+  <rect class="box" x="20" y="200" width="150" height="34" rx="6"/><text class="t" x="95" y="222" text-anchor="middle">hovered</text>
+  <rect class="box" x="20" y="270" width="150" height="34" rx="6"/><text class="t" x="95" y="292" text-anchor="middle">dragging</text>
+  <rect class="grid" x="250" y="56" width="200" height="42" rx="6"/><text class="t" x="350" y="74" text-anchor="middle">place, per step</text><text class="d" x="350" y="90" text-anchor="middle">centre + radius up</text>
+  <rect class="box" x="250" y="170" width="200" height="42" rx="6"/><text class="t" x="350" y="188" text-anchor="middle">the pointer, now</text><text class="d" x="350" y="204" text-anchor="middle">same in every step</text>
+  <rect class="box" x="250" y="266" width="200" height="42" rx="6"/><text class="t" x="350" y="284" text-anchor="middle">works as it does today</text><text class="d" x="350" y="300" text-anchor="middle">its own files</text>
+  <path class="a" d="M170,77 L246,77"/><path class="a" d="M170,167 L246,186"/><path class="a" d="M170,217 L246,196"/><path class="a" d="M170,287 L246,287"/>
+  <text class="h" x="530" y="50">in the grid</text>
+  <g transform="translate(530,62)">
     <rect class="ref" x="0" y="0" width="50" height="22"/><rect class="ref" x="58" y="0" width="50" height="22"/><rect class="ref" x="116" y="0" width="50" height="22"/>
-    <rect class="cell" x="0" y="28" width="50" height="22"/><rect class="cell" x="58" y="28" width="50" height="22"/><rect class="cell" x="116" y="28" width="50" height="22"/>
-    <text class="m" x="180" y="15">anchor</text><text class="m" x="180" y="43">selected (repeated, like s)</text>
+    <text class="m" x="180" y="15">label anchor</text>
+    <text class="d" x="0" y="44">computed from place, one per step</text>
   </g>
-  <text class="d" x="500" y="134">a click or hover is an edit to the node:</text>
-  <text class="d" x="500" y="152">its grid is rewritten on pointer move</text>
-  <text class="h" x="500" y="210">B · split by what it depends on</text>
-  <g transform="translate(500,222)">
-    <rect class="ref" x="0" y="0" width="50" height="22"/><rect class="ref" x="58" y="0" width="50" height="22"/><rect class="ref" x="116" y="0" width="50" height="22"/>
-    <text class="m" x="180" y="15">anchor in the grid</text>
-    <rect class="box" x="0" y="34" width="166" height="26" rx="4"/><text class="m" x="83" y="52" text-anchor="middle">node.bin</text>
-    <text class="m" x="180" y="52">selected · hover stay</text>
-  </g>
-  <text class="d" x="500" y="306">the grid holds only what changes by step</text>
+  <path class="a" d="M450,77 L526,73"/>
+  <text class="h" x="530" y="160">stays out</text>
+  <rect class="box" x="530" y="172" width="166" height="40" rx="5"/><text class="m" x="613" y="190" text-anchor="middle">node.bin</text><text class="d" x="613" y="205" text-anchor="middle">selected · hovered</text>
+  <rect class="box" x="530" y="266" width="166" height="40" rx="5"/><text class="m" x="613" y="284" text-anchor="middle">drag files</text><text class="d" x="613" y="299" text-anchor="middle">untouched</text>
+  <path class="a" d="M450,191 L526,191"/><path class="a" d="M450,287 L526,287"/>
 </svg>
 </main>
 </body>
