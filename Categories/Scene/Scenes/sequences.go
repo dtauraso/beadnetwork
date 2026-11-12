@@ -1,7 +1,6 @@
 package Scenes
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -32,10 +31,9 @@ func Sequences(scenePath string) []int {
 	var out []int
 	for _, e := range entries {
 		k, err := strconv.Atoi(e.Name())
-		if err != nil || k < 1 || !e.IsDir() { // path-resolution-ok: a sequence is a numbered directory under sequences/
-			panic(fmt.Sprintf("Scenes.Sequences: %s holds %q, which is not a numbered sequence directory — sequences/ is an array indexed by its directory names", SequencesDir(scenePath), e.Name()))
+		if err == nil && k > 0 && e.IsDir() { // path-resolution-ok: a sequence is a numbered directory under sequences/; other entries are skipped
+			out = append(out, k)
 		}
-		out = append(out, k)
 	}
 	sort.Ints(out)
 	return out
