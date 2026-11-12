@@ -69,6 +69,14 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.runStepHead(ctx, a, sign)
 		return
 	}
+	if Builder.IsStepDirOp(a) {
+		refused, err := md.UI.Builder.StepDirOp(a)
+		md.UI.Builder.Refused = refused
+		if err != nil {
+			View.LogPersistErr("sheet_step_dir", md.UI.Builder.Root, err)
+		}
+		return
+	}
 	if a.Op == Builder.OpSeqOpen {
 		md.UI.Builder.SeqListOpen = false
 	}
