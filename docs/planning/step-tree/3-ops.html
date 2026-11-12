@@ -1,0 +1,103 @@
+<!doctype html>
+<!-- branch: task/step-tree -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Step Folders</title>
+<style>
+  body { margin: 0; background: #15151a; color: #e7e7ea; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  header { position: sticky; top: 0; background: #15151a; border-bottom: 1px solid #3a3a44; padding: 14px 24px 0; }
+  h1 { margin: 0 0 10px; font-size: 15px; font-weight: 600; color: #9a9aa6; } h1 b { color: #e7e7ea; }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  nav a { font-weight: 600; font-size: 13px; color: #e7e7ea; background: #34343d; border-radius: 6px 6px 0 0; padding: 7px 14px; text-decoration: none; }
+  nav a:hover { background: #3d3d47; } nav a[aria-current] { background: #4ea1ff; color: #04101f; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
+  svg { width: 100%; height: auto; display: block; margin: 0 0 20px; }
+  code { font: 12.5px "SF Mono", Menlo, monospace; background: #34343d; padding: 1px 5px; border-radius: 4px; }
+  h2 { font-size: 14px; margin: 28px 0 12px; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #3a3a44; }
+  th { color: #9a9aa6; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><b>Step folders</b> · one folder per step, holding everything about that step</h1>
+  <nav><a href="1-now.html">1 Now</a><a href="2-tree.html">2 Proposed folders</a><a href="3-ops.html" aria-current="page">3 Step actions</a><a href="4-ui.html">4 Links tab</a><a href="5-order.html">5 Order</a></nav>
+</header>
+<main>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 400" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9a9aa6"/></marker>
+  </defs>
+  <rect width="780" height="400" rx="10" fill="#1e1e24"/>
+  <text x="24" y="30" fill="#e7e7ea" font-size="14" font-weight="600">Every step action is a folder action</text>
+  <g font-size="12" fill="#e7e7ea" font-weight="600">
+    <text x="24" y="84">add / duplicate</text><text x="24" y="168">delete</text><text x="24" y="252">move</text><text x="24" y="336">name</text>
+  </g>
+  <g font-family="SF Mono,Menlo,monospace" font-size="12">
+    <rect x="140" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="153" y="84" fill="#e7e7ea">1</text>
+    <rect x="180" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="193" y="84" fill="#e7e7ea">2</text>
+    <rect x="220" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="233" y="84" fill="#e7e7ea">3</text>
+    <path d="M268 79 H306" stroke="#9a9aa6" marker-end="url(#a)"/>
+    <rect x="318" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="331" y="84" fill="#e7e7ea">1</text>
+    <rect x="358" y="64" width="34" height="30" rx="5" fill="#4ea1ff"/><text x="371" y="84" fill="#04101f">2</text>
+    <rect x="398" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="411" y="84" fill="#e7e7ea">3</text>
+    <rect x="438" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="451" y="84" fill="#e7e7ea">4</text>
+    <text x="350" y="110" fill="#4ea1ff" font-size="10">copy of 1</text>
+    <text x="412" y="124" fill="#9a9aa6" font-size="10">were 2, 3</text>
+    <text x="500" y="76" fill="#9a9aa6" font-size="11">mv 3 4 ; mv 2 3</text>
+    <text x="500" y="92" fill="#9a9aa6" font-size="11">cp -r 1 2</text>
+  </g>
+  <g font-family="SF Mono,Menlo,monospace" font-size="12">
+    <rect x="140" y="148" width="34" height="30" rx="5" fill="#34343d"/><text x="153" y="168" fill="#e7e7ea">1</text>
+    <rect x="180" y="148" width="34" height="30" rx="5" fill="#34343d" stroke="#ff6b6b"/><text x="193" y="168" fill="#ff6b6b">2</text>
+    <path d="M182 150 L212 176" stroke="#ff6b6b"/>
+    <rect x="220" y="148" width="34" height="30" rx="5" fill="#34343d"/><text x="233" y="168" fill="#e7e7ea">3</text>
+    <path d="M268 163 H306" stroke="#9a9aa6" marker-end="url(#a)"/>
+    <rect x="318" y="148" width="34" height="30" rx="5" fill="#34343d"/><text x="331" y="168" fill="#e7e7ea">1</text>
+    <rect x="358" y="148" width="34" height="30" rx="5" fill="#34343d"/><text x="371" y="168" fill="#e7e7ea">2</text>
+    <text x="362" y="194" fill="#9a9aa6" font-size="10">was 3</text>
+    <text x="500" y="160" fill="#9a9aa6" font-size="11">rm -r 2</text>
+    <text x="500" y="176" fill="#9a9aa6" font-size="11">mv 3 2</text>
+  </g>
+  <g font-family="SF Mono,Menlo,monospace" font-size="12">
+    <rect x="140" y="232" width="34" height="30" rx="5" fill="#34343d"/><text x="153" y="252" fill="#e7e7ea">1</text>
+    <rect x="180" y="232" width="34" height="30" rx="5" fill="#34343d"/><text x="193" y="252" fill="#e7e7ea">2</text>
+    <rect x="220" y="232" width="34" height="30" rx="5" fill="#f0a050"/><text x="233" y="252" fill="#04101f">3</text>
+    <path d="M237 230 C237 214 157 214 157 228" fill="none" stroke="#f0a050" marker-end="url(#a)"/>
+    <path d="M268 247 H306" stroke="#9a9aa6" marker-end="url(#a)"/>
+    <rect x="318" y="232" width="34" height="30" rx="5" fill="#f0a050"/><text x="331" y="252" fill="#04101f">1</text>
+    <rect x="358" y="232" width="34" height="30" rx="5" fill="#34343d"/><text x="371" y="252" fill="#e7e7ea">2</text>
+    <rect x="398" y="232" width="34" height="30" rx="5" fill="#34343d"/><text x="411" y="252" fill="#e7e7ea">3</text>
+    <text x="320" y="278" fill="#f0a050" font-size="10">was 3</text>
+    <text x="500" y="244" fill="#9a9aa6" font-size="11">renames, in order</text>
+    <text x="500" y="260" fill="#9a9aa6" font-size="11">(drag in the Links tab)</text>
+  </g>
+  <g font-family="SF Mono,Menlo,monospace" font-size="12">
+    <rect x="140" y="316" width="34" height="30" rx="5" fill="#34343d"/><text x="153" y="336" fill="#e7e7ea">1</text>
+    <path d="M188 331 H226" stroke="#9a9aa6" marker-end="url(#a)"/>
+    <rect x="238" y="316" width="110" height="30" rx="5" fill="#34343d"/><text x="248" y="336" fill="#e7e7ea">1 · lift 3</text>
+    <text x="500" y="336" fill="#9a9aa6" font-size="11">1/name.bin</text>
+  </g>
+  <text x="24" y="382" fill="#9a9aa6" font-size="11">all paths are under sequences/8/steps/ — so Finder or a terminal can do the same while the editor is closed</text>
+</svg>
+<h2>Old path → new path (one-time migration)</h2>
+<div class="scroll"><table>
+  <tr><th>Old</th><th>New</th></tr>
+  <tr><td><code>step/clones/step-N/&lt;to&gt;/links/&lt;f&gt;To&lt;t&gt;/</code></td><td><code>steps/N/nodes/&lt;to&gt;/links/&lt;f&gt;To&lt;t&gt;/</code></td></tr>
+  <tr><td><code>step/picks/step-N/&lt;f&gt;To&lt;t&gt;.bin</code></td><td><code>steps/N/nodes/&lt;t&gt;/links/&lt;f&gt;To&lt;t&gt;/picked.bin</code></td></tr>
+  <tr><td><code>step/heads/step-N/lock-*.bin</code></td><td><code>steps/N/lock-*.bin</code></td></tr>
+  <tr><td><code>step/heads/step-N/&lt;id&gt;/lock-*.bin</code></td><td><code>steps/N/nodes/&lt;id&gt;/lock-*.bin</code></td></tr>
+  <tr><td><code>step/lock-*.bin</code></td><td><code>press/lock-*.bin</code></td></tr>
+  <tr><td><code>step/&lt;id&gt;/lock-*.bin</code></td><td><code>nodes/&lt;id&gt;/press/lock-*.bin</code></td></tr>
+</table></div>
+</main>
+<script>
+  const pages = [...document.querySelectorAll('nav a')];
+  document.addEventListener('keydown', e => { const n = +e.key; if (n >= 1 && n <= pages.length) location.href = pages[n - 1].href; });
+</script>
+</body>
+</html>
