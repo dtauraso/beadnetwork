@@ -106,7 +106,7 @@ func linkCard(m Model, step int, l Links.Link) Group {
 	head := func(s string) Cell { return Text(s).AboveLastDigit() }
 	rows := [][]Cell{
 		{Text(l.Name()).Acting(act(OpStepPick, "")).Outline(m.StepPicked(step, l)), Text(""), Text(""), Text(""), Button("x", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false)},
-		{Text(""), head("at"), head("Δ"), head("nΔ"), head("1")},
+		{Text(""), head("start"), head("Δ"), head("nΔ"), head("1")},
 	}
 	for _, a := range axes {
 		dim := a.k == Links.KR && m.FixedR(l)
