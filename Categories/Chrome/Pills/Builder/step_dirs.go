@@ -10,13 +10,11 @@ const (
 	OpStepAdd  = "step-add"
 	OpStepCopy = "step-copy"
 	OpStepDrop = "step-drop"
-	OpStepUp   = "step-up"
-	OpStepDown = "step-down"
 )
 
 func IsStepDirOp(a Act) bool {
 	switch a.Op {
-	case OpStepAdd, OpStepCopy, OpStepDrop, OpStepUp, OpStepDown:
+	case OpStepAdd, OpStepCopy, OpStepDrop:
 		return true
 	}
 	return false
@@ -71,11 +69,6 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 			err = m.shiftSteps(ns, n, -1)
 		}
 		m.ShownStep = n
-	case OpStepUp, OpStepDown:
-		var refused string
-		if m.ShownStep, refused, err = m.swapSteps(ns, n, map[string]int{OpStepUp: -1, OpStepDown: 1}[a.Op]); refused != "" {
-			return refused, nil
-		}
 	}
 	if err != nil {
 		return "", err

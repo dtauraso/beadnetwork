@@ -3,6 +3,7 @@ package Builder
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -83,25 +84,18 @@ func (m *Model) Touch(a Act) {
 
 func (m Model) stepOpen(n int) bool { return n == m.StepShown() && !m.StepClosed }
 
-func stepTitle(m Model, n int) Group {
-	return Group{Title: foldTitle(!m.stepOpen(n), "step "+m.StepLabel(n)), Fold: Act{Op: OpStepShow, I: n}}
-}
-
-func stepActions(m Model, n int) []Group {
-	rows := [][]Cell{
-		{Button("+ add step", Act{Op: OpStepAdd, I: n}, false), Button("⧉ duplicate", Act{Op: OpStepCopy, I: n}, false), Button("× delete", Act{Op: OpStepDrop, I: n}, false)},
-		{Button("↑ earlier", Act{Op: OpStepUp, I: n}, false), Button("↓ later", Act{Op: OpStepDown, I: n}, false)},
-		{stepNameCell(m, n)},
-	}
-	var out []Group
-	for _, r := range rows {
-		out = append(out, Group{Rows: [][]Cell{r}, Indent: true})
-	}
-	return out
+func stepRow(m Model, n int) Group {
+	return Group{Rows: [][]Cell{{
+		Text(foldTitle(!m.stepOpen(n), "step "+strconv.Itoa(n))).Acting(Act{Op: OpStepShow, I: n}),
+		stepNameCell(m, n),
+		Button("+", Act{Op: OpStepAdd, I: n}, false).Tipped("add a step after this one"),
+		Button("⧉", Act{Op: OpStepCopy, I: n}, false).Tipped("duplicate this step"),
+		Button("×", Act{Op: OpStepDrop, I: n}, false).Tipped("delete this step"),
+	}}}
 }
 
 func stepBody(m Model, step int, refused string) ([]Group, string) {
-	groups := append(stepActions(m, step), activeLinksGroup(m, step))
+	groups := []Group{activeLinksGroup(m, step)}
 	for _, id := range m.Nodes {
 		groups = append(groups, nodeGroups(m, step, id)...)
 		if m.StepFolded(step, id) || refused == "" {
@@ -145,7 +139,7 @@ func LinksPill(m Model) Pill {
 	groups = append(groups, breadcrumb(m), networkGroup(m))
 	refused := m.Refused
 	for _, n := range m.stepNums() {
-		groups = append(groups, stepTitle(m, n))
+		groups = append(groups, stepRow(m, n))
 		if m.stepOpen(n) {
 			var body []Group
 			body, refused = stepBody(m, n, refused)
