@@ -27,37 +27,8 @@
   <span style="color:#cfe0fa">━ reads</span>
 </div>
 
-<svg viewBox="0 0 900 360">
-  <text class="h" x="20" y="24">1 · drag: the diagram shows step 2, a node is dragged</text>
-  <circle cx="90" cy="110" r="16" class="grid" stroke-dasharray="4 3" opacity=".5"/><circle cx="190" cy="80" r="16" class="grid"/>
-  <path class="w" d="M108,104 L170,86"/><text class="d" x="60" y="150">pointer moves the node</text>
-  <text class="h" x="320" y="60">A · into step 2's column</text>
-  <g transform="translate(320,74)">
-    <rect class="cell" x="0" y="0" width="60" height="70"/><rect class="ref" x="70" y="0" width="60" height="70" stroke-width="2"/><rect class="cell" x="140" y="0" width="60" height="70"/>
-    <text class="d" x="30" y="90" text-anchor="middle">1</text><text class="t" x="100" y="90" text-anchor="middle">2</text><text class="d" x="170" y="90" text-anchor="middle">3</text>
-  </g>
-  <path class="w" d="M206,80 C280,60 380,60 416,88"/>
-  <text class="d" x="320" y="190">the drag IS an edit to step 2:</text>
-  <text class="d" x="320" y="208">place, sums, edges in step 2 change;</text>
-  <text class="d" x="320" y="226">steps 1 and 3 do not</text>
-  <line x1="580" y1="40" x2="580" y2="340" stroke="var(--line)"/>
-  <text class="h" x="610" y="60">B · into a live column</text>
-  <g transform="translate(610,74)">
-    <rect class="cell" x="0" y="0" width="50" height="70"/><rect class="cell" x="58" y="0" width="50" height="70"/><rect class="cell" x="116" y="0" width="50" height="70"/>
-    <rect class="ref" x="190" y="0" width="60" height="70" stroke-dasharray="4 3" stroke-width="2"/>
-    <text class="d" x="25" y="90" text-anchor="middle">1</text><text class="d" x="83" y="90" text-anchor="middle">2</text><text class="d" x="141" y="90" text-anchor="middle">3</text><text class="t" x="220" y="90" text-anchor="middle">live</text>
-  </g>
-  <path class="w" d="M206,76 C400,20 760,20 828,70"/>
-  <text class="d" x="610" y="190">diagram reads live while dragging;</text>
-  <text class="d" x="610" y="208">on release:</text>
-  <rect class="grid" x="610" y="224" width="110" height="36" rx="5"/><text class="d" x="665" y="247" text-anchor="middle">copy into step 2</text>
-  <rect class="box" x="740" y="224" width="110" height="36" rx="5"/><text class="d" x="795" y="247" text-anchor="middle">throw away</text>
-  <text class="d" x="610" y="290">every step column only changes</text>
-  <text class="d" x="610" y="308">by a typed edit or the copy</text>
-</svg>
-
 <svg viewBox="0 0 900 330">
-  <text class="h" x="20" y="24">2 · other drawn values: what does each depend on?</text>
+  <text class="h" x="20" y="24">other drawn values: what does each depend on?</text>
   <rect class="box" x="20" y="60" width="140" height="34" rx="6"/><text class="t" x="90" y="82" text-anchor="middle">label anchor</text>
   <rect class="box" x="20" y="130" width="140" height="34" rx="6"/><text class="t" x="90" y="152" text-anchor="middle">selection</text>
   <rect class="box" x="20" y="180" width="140" height="34" rx="6"/><text class="t" x="90" y="202" text-anchor="middle">hover</text>
