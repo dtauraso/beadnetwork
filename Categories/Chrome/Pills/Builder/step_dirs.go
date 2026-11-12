@@ -10,10 +10,33 @@ const (
 	OpStepAdd  = "step-add"
 	OpStepCopy = "step-copy"
 	OpStepDrop = "step-drop"
+	OpStepUp   = "step-up"
+	OpStepDown = "step-down"
 )
 
 func IsStepDirOp(a Act) bool {
-	return a.Op == OpStepAdd || a.Op == OpStepCopy || a.Op == OpStepDrop
+	switch a.Op {
+	case OpStepAdd, OpStepCopy, OpStepDrop, OpStepUp, OpStepDown:
+		return true
+	}
+	return false
+}
+
+func (m Model) swapSteps(ns []int, n, by int) (int, string, error) {
+	i := slices.Index(ns, n) + by
+	if i < 0 || i >= len(ns) {
+		return n, fmt.Sprintf("step %d is already the %s step, so it stays", n, map[int]string{-1: "first", 1: "last"}[by]), nil
+	}
+	k := ns[i]
+	a, b := stepDir(m.Root, n), stepDir(m.Root, k)
+	swap := a + ".swap"
+	if err := os.Rename(a, swap); err != nil {
+		return n, "", err
+	}
+	if err := os.Rename(b, a); err != nil {
+		return n, "", err
+	}
+	return k, "", os.Rename(swap, b)
 }
 
 func (m *Model) StepDirOp(a Act) (string, error) {
@@ -48,6 +71,11 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 			err = m.shiftSteps(ns, n, -1)
 		}
 		m.ShownStep = n
+	case OpStepUp, OpStepDown:
+		var refused string
+		if m.ShownStep, refused, err = m.swapSteps(ns, n, map[string]int{OpStepUp: -1, OpStepDown: 1}[a.Op]); refused != "" {
+			return refused, nil
+		}
 	}
 	if err != nil {
 		return "", err

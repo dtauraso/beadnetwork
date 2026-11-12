@@ -86,6 +86,8 @@ func stepActions(m Model, n int) Group {
 		Button("+ add step", Act{Op: OpStepAdd, I: n}, false),
 		Button("⧉ duplicate", Act{Op: OpStepCopy, I: n}, false),
 		Button("× delete", Act{Op: OpStepDrop, I: n}, false),
+		Button("↑ earlier", Act{Op: OpStepUp, I: n}, false),
+		Button("↓ later", Act{Op: OpStepDown, I: n}, false),
 		stepNameCell(m, n),
 	}}, Indent: true}
 }
