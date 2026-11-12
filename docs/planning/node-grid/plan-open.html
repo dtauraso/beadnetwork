@@ -23,42 +23,12 @@
 <div class="key">
   <span><i style="background:#1c2433;border-color:#5b7bb5"></i>a node's grid</span>
   <span><i style="background:#1f2a22;border-color:#5f9a6c"></i>reads</span>
-  <span><i style="background:#2a1f22;border-color:#9a5f66"></i>breaks a rule</span>
   <span style="color:#e0b45b">━ writes</span>
   <span style="color:#cfe0fa">━ reads</span>
 </div>
 
-<svg viewBox="0 0 900 380">
-  <text class="h" x="20" y="24">1 · beads: the grid ticks per step, a bead moves per frame</text>
-  <line x1="40" y1="70" x2="420" y2="70" stroke="var(--line)" stroke-width="2"/>
-  <line x1="40" y1="58" x2="40" y2="82" stroke="var(--mark)" stroke-width="2"/><text class="t" x="40" y="50" text-anchor="middle">step 1</text>
-  <line x1="420" y1="58" x2="420" y2="82" stroke="var(--mark)" stroke-width="2"/><text class="t" x="420" y="50" text-anchor="middle">step 2</text>
-  <g stroke="var(--dim)"><line x1="78" y1="64" x2="78" y2="76"/><line x1="116" y1="64" x2="116" y2="76"/><line x1="154" y1="64" x2="154" y2="76"/><line x1="192" y1="64" x2="192" y2="76"/><line x1="230" y1="64" x2="230" y2="76"/><line x1="268" y1="64" x2="268" y2="76"/><line x1="306" y1="64" x2="306" y2="76"/><line x1="344" y1="64" x2="344" y2="76"/><line x1="382" y1="64" x2="382" y2="76"/></g>
-  <text class="d" x="230" y="100" text-anchor="middle">frames between two columns</text>
-  <circle cx="500" cy="70" r="12" class="grid"/><circle cx="840" cy="70" r="12" class="grid"/><line x1="512" y1="70" x2="828" y2="70" stroke="var(--line)"/>
-  <g fill="#e0b45b"><circle cx="560" cy="70" r="4"/><circle cx="620" cy="70" r="4" opacity=".7"/><circle cx="680" cy="70" r="4" opacity=".5"/><circle cx="740" cy="70" r="4" opacity=".3"/></g>
-  <text class="d" x="670" y="100" text-anchor="middle">one bead, frame by frame</text>
-  <text class="h" x="20" y="150">A · beads in the grid</text>
-  <rect class="box" x="20" y="166" width="120" height="44" rx="6"/><text class="t" x="80" y="186" text-anchor="middle">node</text><text class="d" x="80" y="202" text-anchor="middle">on an edit</text>
-  <rect class="box" x="20" y="240" width="120" height="44" rx="6"/><text class="t" x="80" y="260" text-anchor="middle">bead animation</text><text class="d" x="80" y="276" text-anchor="middle">every frame</text>
-  <rect class="old" x="200" y="196" width="160" height="60" rx="6"/><text class="t" x="280" y="220" text-anchor="middle">grid.bin</text><text class="d" x="280" y="240" text-anchor="middle">two writers</text>
-  <path class="w" d="M140,188 L196,214"/><path class="w" d="M140,262 L196,240"/>
-  <text class="d" x="20" y="316">a frame column inside each step column,</text>
-  <text class="d" x="20" y="334">and the whole file rewritten every frame</text>
-  <line x1="450" y1="140" x2="450" y2="360" stroke="var(--line)"/>
-  <text class="h" x="480" y="150">B · beads keep their own file</text>
-  <rect class="grid" x="480" y="176" width="120" height="70" rx="6"/><text class="t" x="540" y="198" text-anchor="middle">grid</text><text class="m" x="540" y="216" text-anchor="middle">edge start/end</text><text class="m" x="540" y="232" text-anchor="middle">step count</text>
-  <rect class="box" x="640" y="176" width="110" height="70" rx="6"/><text class="t" x="695" y="206" text-anchor="middle">bead</text><text class="t" x="695" y="224" text-anchor="middle">animation</text>
-  <rect class="box" x="790" y="190" width="90" height="40" rx="6"/><text class="m" x="835" y="215" text-anchor="middle">beads.bin</text>
-  <path class="a" d="M600,211 L636,211"/><path class="w" d="M750,211 L786,211"/>
-  <rect class="read" x="760" y="280" width="120" height="36" rx="6"/><text class="t" x="820" y="303" text-anchor="middle">diagram</text>
-  <path class="a" d="M835,230 L828,276"/>
-  <text class="d" x="480" y="316">one writer per file; the line a bead</text>
-  <text class="d" x="480" y="334">travels is read from the grid</text>
-</svg>
-
 <svg viewBox="0 0 900 360">
-  <text class="h" x="20" y="24">2 · drag: the diagram shows step 2, a node is dragged</text>
+  <text class="h" x="20" y="24">1 · drag: the diagram shows step 2, a node is dragged</text>
   <circle cx="90" cy="110" r="16" class="grid" stroke-dasharray="4 3" opacity=".5"/><circle cx="190" cy="80" r="16" class="grid"/>
   <path class="w" d="M108,104 L170,86"/><text class="d" x="60" y="150">pointer moves the node</text>
   <text class="h" x="320" y="60">A · into step 2's column</text>
@@ -87,7 +57,7 @@
 </svg>
 
 <svg viewBox="0 0 900 330">
-  <text class="h" x="20" y="24">3 · other drawn values: what does each depend on?</text>
+  <text class="h" x="20" y="24">2 · other drawn values: what does each depend on?</text>
   <rect class="box" x="20" y="60" width="140" height="34" rx="6"/><text class="t" x="90" y="82" text-anchor="middle">label anchor</text>
   <rect class="box" x="20" y="130" width="140" height="34" rx="6"/><text class="t" x="90" y="152" text-anchor="middle">selection</text>
   <rect class="box" x="20" y="180" width="140" height="34" rx="6"/><text class="t" x="90" y="202" text-anchor="middle">hover</text>
