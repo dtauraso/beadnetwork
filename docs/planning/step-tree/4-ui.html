@@ -13,85 +13,149 @@
   nav a { font-weight: 600; font-size: 13px; color: #e7e7ea; background: #34343d; border-radius: 6px 6px 0 0; padding: 7px 14px; text-decoration: none; }
   nav a:hover { background: #3d3d47; } nav a[aria-current] { background: #4ea1ff; color: #04101f; }
   main { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
+  h2 { font-size: 15px; margin: 28px 0 8px; }
+  p { margin: 0 0 10px; color: #c9c9d0; }
   svg { width: 100%; height: auto; display: block; margin: 0 0 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 0 0 8px; }
+  th { text-align: left; color: #9a9aa6; font-weight: 600; padding: 6px 8px; border-bottom: 1px solid #3a3a44; }
+  td { padding: 6px 8px; border-bottom: 1px solid #2a2a32; vertical-align: top; }
+  td:first-child { white-space: nowrap; font-weight: 600; }
+  code, kbd { font: 12px SF Mono, Menlo, monospace; background: #2a2a32; border-radius: 4px; padding: 1px 5px; }
+  ul { margin: 0 0 10px; padding-left: 20px; color: #c9c9d0; }
 </style>
 </head>
 <body>
 <header>
   <h1><b>Step folders</b> · one folder per step, holding everything about that step</h1>
-  <nav><a href="1-now.html">1 Now</a><a href="2-tree.html">2 Proposed folders</a><a href="3-ops.html">3 Step actions</a><a href="4-ui.html" aria-current="page">4 Links tab</a><a href="5-order.html">5 Order</a></nav>
+  <nav><a href="1-now.html">1 Now</a><a href="2-tree.html">2 Proposed folders</a><a href="3-ops.html">3 Step actions</a><a href="4-ui.html" aria-current="page">4 UI standard</a><a href="5-order.html">5 Order</a></nav>
 </header>
 <main>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 520" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="11">
-  <rect width="780" height="520" rx="10" fill="#1e1e24"/>
-  <rect x="24" y="24" width="430" height="472" rx="8" fill="#2f2f37" stroke="#3a3a44"/>
-  <g font-weight="600">
-    <rect x="34" y="34" width="56" height="22" rx="6" fill="#34343d"/><text x="46" y="49" fill="#e7e7ea">Frame</text>
-    <rect x="96" y="34" width="56" height="22" rx="6" fill="#34343d"/><text x="107" y="49" fill="#e7e7ea">Nodes</text>
-    <rect x="158" y="34" width="50" height="22" rx="6" fill="#4ea1ff"/><text x="170" y="49" fill="#04101f">Links</text>
-    <rect x="214" y="34" width="52" height="22" rx="6" fill="#34343d"/><text x="226" y="49" fill="#e7e7ea">Place</text>
-    <rect x="272" y="34" width="46" height="22" rx="6" fill="#34343d"/><text x="284" y="49" fill="#e7e7ea">Tree</text>
+<p>The Links tab is a <b>tree</b>, and it follows the tree everyone already knows, VS Code's Explorer: one kind of row, a chevron to fold,
+indentation for depth, one selected row, and actions only on the right. Everything below is one of the elements in the table, and nothing else.</p>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 600" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="13">
+  <rect width="780" height="600" rx="10" fill="#1e1e24"/>
+  <rect x="20" y="20" width="460" height="560" rx="8" fill="#ffffff"/>
+  <!-- breadcrumb -->
+  <text x="34" y="48" fill="#555">Sequences  ›  sequence 8  ›  <tspan fill="#222" font-weight="600">step 1 · lift 3</tspan></text>
+  <line x1="28" y1="60" x2="472" y2="60" stroke="#e1e4e8"/>
+  <!-- rows: 26px each, chevron col at x=34, indent 18/level -->
+  <g fill="#222">
+    <text x="34" y="86" fill="#555">›</text><text x="50" y="86">network</text><text x="120" y="86" fill="#555">what runs now · 3 links</text>
+
+    <rect x="28" y="96" width="444" height="24" rx="4" fill="#e3eefc"/>
+    <text x="34" y="113" fill="#555">⌄</text><text x="50" y="113">step 1</text><text x="104" y="113" fill="#555">lift 3</text>
+    <g font-size="12">
+      <rect x="352" y="100" width="20" height="16" rx="3" fill="#fff" stroke="#d0d4da"/><text x="358" y="112">→</text>
+      <rect x="376" y="100" width="20" height="16" rx="3" fill="#fff" stroke="#d0d4da"/><text x="381" y="112">✎</text>
+      <rect x="400" y="100" width="20" height="16" rx="3" fill="#fff" stroke="#d0d4da"/><text x="406" y="112">+</text>
+      <rect x="424" y="100" width="20" height="16" rx="3" fill="#fff" stroke="#d0d4da"/><text x="429" y="112">⧉</text>
+      <rect x="448" y="100" width="20" height="16" rx="3" fill="#fff" stroke="#d0d4da"/><text x="454" y="112">×</text>
+    </g>
+
+    <line x1="39" y1="122" x2="39" y2="404" stroke="#e1e4e8"/>
+    <text x="52" y="140" fill="#555" font-size="11">HEAD</text>
+    <g font-size="12">
+      <rect x="100" y="127" width="40" height="18" rx="3" fill="#cfe0fa" stroke="#d0d4da"/><text x="108" y="140">φ ↑</text>
+      <rect x="146" y="127" width="40" height="18" rx="3" fill="#fff" stroke="#d0d4da"/><text x="154" y="140">θ ·</text>
+      <rect x="192" y="127" width="40" height="18" rx="3" fill="#fff" stroke="#d0d4da"/><text x="200" y="140">r ·</text>
+    </g>
+
+    <text x="52" y="166" fill="#555">›</text><text x="68" y="166">node 2</text><text x="122" y="166" fill="#555">1 link</text>
+    <text x="52" y="192" fill="#555">⌄</text><text x="68" y="192">node 3</text>
+    <line x1="57" y1="200" x2="57" y2="378" stroke="#e1e4e8"/>
+    <text x="70" y="218">●</text><text x="86" y="218">2→3</text><text x="124" y="218" fill="#555">θ 0 + 12 → tick 12</text>
+    <g font-size="11" fill="#555"><text x="120" y="244">START</text><text x="190" y="244">Δ</text><text x="250" y="244">nΔ</text><text x="310" y="244">1</text></g>
+    <g font-family="SF Mono,Menlo,monospace" font-size="12">
+      <text x="92" y="270" fill="#555">φ</text>
+      <rect x="112" y="256" width="56" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="120" y="270">1</text>
+      <rect x="182" y="256" width="52" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="190" y="270">2</text>
+      <rect x="242" y="256" width="52" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="250" y="270">1</text>
+      <rect x="302" y="256" width="52" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="310" y="270">0</text>
+      <text x="92" y="298" fill="#555">θ</text>
+      <rect x="112" y="284" width="56" height="20" rx="3" fill="#e3eefc" stroke="#1565c0"/><text x="120" y="298">0_</text>
+      <rect x="182" y="284" width="52" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="190" y="298">12</text>
+      <rect x="242" y="284" width="52" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="250" y="298">1</text>
+      <rect x="302" y="284" width="52" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="310" y="298">0</text>
+      <text x="92" y="326" fill="#555">r</text>
+      <rect x="112" y="312" width="56" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="120" y="326">2</text>
+      <rect x="182" y="312" width="52" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="190" y="326">0</text>
+      <rect x="242" y="312" width="52" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="250" y="326">1</text>
+      <rect x="302" y="312" width="52" height="20" rx="3" fill="#fff" stroke="#d0d4da"/><text x="310" y="326">0</text>
+    </g>
+    <text x="70" y="358">○</text><text x="86" y="358">2→1</text>
+    <text x="34" y="430" fill="#555">›</text><text x="50" y="430">step 2</text><text x="104" y="430" fill="#555">drop 3</text>
+    <text x="34" y="456" fill="#555">›</text><text x="50" y="456">step 3</text><text x="104" y="456" fill="#555">— unnamed</text>
+    <text x="50" y="490" fill="#555">+ add step</text>
+    <text x="34" y="560" fill="#555" font-size="11">↑↓ move · → open / in · ← close / out · Enter go in · F2 rename · drag a row to reorder</text>
   </g>
-  <rect x="34" y="66" width="410" height="24" rx="4" fill="#34343d"/>
-  <text x="44" y="82" fill="#9a9aa6">sequence 8  ›  <tspan fill="#e7e7ea">step 1 · lift 3</tspan>  ›  <tspan fill="#4ea1ff" font-weight="600">2→3</tspan></text>
-  <text x="40" y="114" fill="#5cc98b" font-weight="600">▸  network</text>
-  <text x="104" y="114" fill="#9a9aa6">what runs now · folds like a step</text>
-  <rect x="34" y="124" width="410" height="24" rx="4" fill="rgba(255,255,255,0.05)"/>
-  <text x="40" y="140" fill="#e7e7ea" font-weight="600">▾  step 1</text>
-  <text x="104" y="140" fill="#9a9aa6">lift 3</text>
-  <rect x="356" y="128" width="20" height="16" rx="4" fill="#34343d"/><text x="362" y="140" fill="#e7e7ea">+</text>
-  <rect x="380" y="128" width="20" height="16" rx="4" fill="#34343d"/><text x="385" y="140" fill="#e7e7ea">⧉</text>
-  <rect x="404" y="128" width="20" height="16" rx="4" fill="#34343d"/><text x="410" y="140" fill="#ff6b6b">×</text>
-  <text x="60" y="166" fill="#9a9aa6" font-size="9.5" letter-spacing="0.05em">HEAD</text>
-  <g font-family="SF Mono,Menlo,monospace">
-    <rect x="110" y="155" width="44" height="18" rx="4" fill="#4ea1ff"/><text x="118" y="168" fill="#04101f">φ ↑</text>
-    <rect x="160" y="155" width="44" height="18" rx="4" fill="#34343d"/><text x="168" y="168" fill="#e7e7ea">θ ·</text>
-    <rect x="210" y="155" width="44" height="18" rx="4" fill="#34343d"/><text x="218" y="168" fill="#e7e7ea">r ·</text>
-  </g>
-  <text x="60" y="194" fill="#e7e7ea">▸  node 2</text>
-  <text x="60" y="218" fill="#e7e7ea">▾  node 3</text>
-  <rect x="74" y="228" width="370" height="24" rx="4" fill="rgba(78,161,255,0.15)" stroke="#4ea1ff" stroke-opacity="0.6"/>
-  <circle cx="90" cy="240" r="4" fill="#4ea1ff"/>
-  <text x="102" y="244" fill="#e7e7ea" font-weight="600">2→3</text>
-  <text x="140" y="244" fill="#9a9aa6">θ 0 + 12 → tick 12</text>
-  <rect x="88" y="260" width="342" height="104" rx="6" fill="#34343d"/>
-  <g font-size="9.5" fill="#9a9aa6" letter-spacing="0.05em">
-    <text x="140" y="278">START</text><text x="210" y="278">Δ</text><text x="270" y="278">nΔ</text><text x="330" y="278">1</text>
-  </g>
-  <g font-family="SF Mono,Menlo,monospace" fill="#e7e7ea">
-    <text x="100" y="300" fill="#9a9aa6">φ</text><text x="140" y="300">1</text><text x="210" y="300">2</text><text x="270" y="300">1</text><text x="330" y="300">0</text>
-    <rect x="132" y="308" width="56" height="20" rx="4" fill="#2f2f37" stroke="#4ea1ff"/>
-    <text x="100" y="322" fill="#9a9aa6">θ</text><text x="140" y="322">0</text><text x="210" y="322">12</text><text x="270" y="322">1</text><text x="330" y="322">0</text>
-    <text x="100" y="344" fill="#9a9aa6">r</text><text x="140" y="344">2</text><text x="210" y="344">0</text><text x="270" y="344">1</text><text x="330" y="344">0</text>
-  </g>
-  <text x="94" y="384" fill="#9a9aa6">○  2→1</text>
-  <rect x="34" y="396" width="410" height="24" rx="4" fill="rgba(255,255,255,0.05)"/>
-  <text x="40" y="412" fill="#e7e7ea" font-weight="600">▸  step 2</text>
-  <text x="104" y="412" fill="#9a9aa6">drop 3</text>
-  <rect x="356" y="400" width="20" height="16" rx="4" fill="#34343d"/><text x="362" y="412" fill="#e7e7ea">+</text>
-  <rect x="380" y="400" width="20" height="16" rx="4" fill="#34343d"/><text x="385" y="412" fill="#e7e7ea">⧉</text>
-  <rect x="404" y="400" width="20" height="16" rx="4" fill="#34343d"/><text x="410" y="412" fill="#ff6b6b">×</text>
-  <text x="40" y="446" fill="#4ea1ff">+  add step</text>
-  <text x="40" y="476" fill="#9a9aa6" font-size="10">drag a step row to reorder</text>
   <g font-size="11.5" fill="#e7e7ea">
-    <path d="M444 78 H500" stroke="#9a9aa6"/>
-    <text x="508" y="74" font-weight="600">breadcrumb</text>
-    <text x="508" y="90" fill="#9a9aa6">which copy of 2→3 you're editing:</text>
-    <text x="508" y="104" fill="#9a9aa6">network, step 1 or step 2</text>
-    <path d="M424 136 H500" stroke="#9a9aa6"/>
-    <text x="508" y="132" font-weight="600">+  ⧉  ×</text>
-    <text x="508" y="148" fill="#9a9aa6">add after · duplicate · delete</text>
-    <text x="508" y="162" fill="#9a9aa6">= cp -r / rm -r on steps/N</text>
-    <path d="M444 240 H500" stroke="#9a9aa6"/>
-    <text x="508" y="236" font-weight="600">● picked  ○ not picked</text>
-    <text x="508" y="252" fill="#9a9aa6">one picked.bin per link, nothing else</text>
-    <path d="M430 318 H500" stroke="#9a9aa6"/>
-    <text x="508" y="314" font-weight="600">the step's own card</text>
-    <text x="508" y="330" fill="#9a9aa6">exactly what the network gets</text>
-    <text x="508" y="344" fill="#9a9aa6">on a press; start in plain ticks</text>
-    <text x="508" y="358" fill="#9a9aa6">so θ 0 + 12 reads as tick 12</text>
+    <path d="M476 44 H500" stroke="#9a9aa6"/>
+    <text x="508" y="40" font-weight="600">path, not a menu</text>
+    <text x="508" y="56" fill="#9a9aa6">each segment is a level; click to go back up.</text>
+    <text x="508" y="70" fill="#9a9aa6">"Sequences" is a level like any other</text>
+    <path d="M476 108 H500" stroke="#9a9aa6"/>
+    <text x="508" y="104" font-weight="600">the selected row</text>
+    <text x="508" y="120" fill="#9a9aa6">one at a time; its actions show on the right:</text>
+    <text x="508" y="134" fill="#9a9aa6">→ go in · ✎ rename · + add · ⧉ copy · × delete</text>
+    <path d="M240 136 H500" stroke="#9a9aa6"/>
+    <text x="508" y="140" font-weight="600">toggles</text>
+    <text x="508" y="156" fill="#9a9aa6">pale blue when on, white when off</text>
+    <path d="M360 218 H500" stroke="#9a9aa6"/>
+    <text x="508" y="214" font-weight="600">● picked  ○ not picked</text>
+    <text x="508" y="230" fill="#9a9aa6">click the dot to pick; picking opens its card</text>
+    <path d="M360 294 H500" stroke="#9a9aa6"/>
+    <text x="508" y="290" font-weight="600">fields</text>
+    <text x="508" y="306" fill="#9a9aa6">white box = a value you can type into;</text>
+    <text x="508" y="320" fill="#9a9aa6">pale blue + caret while typing</text>
+    <path d="M60 380 H500" stroke="#9a9aa6" stroke-dasharray="2 3"/>
+    <text x="508" y="376" font-weight="600">indent guides</text>
+    <text x="508" y="392" fill="#9a9aa6">one level = one indent; the line shows</text>
+    <text x="508" y="406" fill="#9a9aa6">what belongs to the open row</text>
   </g>
 </svg>
+
+<h2>The elements — there are seven</h2>
+<table>
+  <tr><th>element</th><th>looks</th><th>does</th></tr>
+  <tr><td>path</td><td>one line of plain text at the top, <code>›</code> between levels, the last one dark</td><td>click a segment to go back up to that level</td></tr>
+  <tr><td>row</td><td>chevron <code>›</code>/<code>⌄</code>, name in dark text, detail after it in grey; one size, one weight</td><td>click selects it; click the chevron folds it; double-click goes in</td></tr>
+  <tr><td>selected row</td><td>pale blue background, the only highlight on the page</td><td>shows that row's actions on the right; arrow keys and F2 act on it</td></tr>
+  <tr><td>action</td><td>small white boxed glyph, right edge of the selected row only, always in the order <code>→ ✎ + ⧉ ×</code></td><td>go in, rename, add after, duplicate, delete</td></tr>
+  <tr><td>field</td><td>white box with dark text; pale blue with a caret while typing</td><td>click to type a value, Enter keeps it, Esc drops it</td></tr>
+  <tr><td>toggle</td><td>white boxed label; pale blue when on</td><td>click turns it on or off (HEAD φ θ r)</td></tr>
+  <tr><td>pick dot</td><td><code>●</code> picked, <code>○</code> not</td><td>picks the link this step presses; the picked link shows its card</td></tr>
+</table>
+<p>Text is dark <code>#222</code> or grey <code>#555</code> on white, 13px, never coloured, never white. Small grey 11px is only for table column heads and HEAD.</p>
+
+<h2>Getting around</h2>
+<table>
+  <tr><th>to</th><th>mouse</th><th>keys</th></tr>
+  <tr><td>look inside a row here</td><td>click its chevron</td><td><kbd>→</kbd> opens, <kbd>←</kbd> closes</td></tr>
+  <tr><td>move between rows</td><td>click a row</td><td><kbd>↑</kbd> <kbd>↓</kbd></td></tr>
+  <tr><td>go into a step's own steps (or a sequence's steps)</td><td>double-click, or the <code>→</code> action</td><td><kbd>Enter</kbd>, or <kbd>→</kbd> on an open row</td></tr>
+  <tr><td>go back up</td><td>click a path segment</td><td><kbd>←</kbd> on a closed row, or <kbd>Backspace</kbd></td></tr>
+  <tr><td>switch sequence</td><td>click <code>Sequences</code> in the path: the sequences are rows like steps</td><td><kbd>Backspace</kbd> until the top</td></tr>
+  <tr><td>rename</td><td>the <code>✎</code> action</td><td><kbd>F2</kbd></td></tr>
+  <tr><td>reorder</td><td>drag a row onto another row</td><td>—</td></tr>
+</table>
+
+<h2>The levels</h2>
+<ul>
+  <li><b>Sequences</b> — rows are sequences. Actions: go in, rename, add, duplicate, delete.</li>
+  <li><b>a sequence</b> — first row is <i>network</i> (what runs now; folds, has no actions), then its steps.</li>
+  <li><b>a step's own steps</b> — the same as a sequence's level, one deeper. The path shows how deep.</li>
+  <li>Inside an open step: HEAD toggles, then a row per node; inside a node, a row per link; under the picked link, its card.</li>
+</ul>
+
+<h2>What this removes from what's built now</h2>
+<ul>
+  <li>the sequence dropdown popover, which becomes the Sequences level</li>
+  <li>rename by clicking a name (clicking now only selects), which becomes <code>✎</code> / F2</li>
+  <li>grey bands on every step row and on the path, along with blue, green and red text and the bold step titles</li>
+  <li>actions on every row at once; they now appear on the selected row only</li>
+  <li><code>▸ ▾ ▶ ▼</code> mixed glyphs, replaced by one chevron pair</li>
+</ul>
 </main>
 <script>
   const pages = [...document.querySelectorAll('nav a')];
