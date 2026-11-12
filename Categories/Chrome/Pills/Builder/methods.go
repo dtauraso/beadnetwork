@@ -57,8 +57,8 @@ func rowsInto(m Model, item string) []row {
 		if l.To != item {
 			continue
 		}
-		t := l.DirFrom(m.Frame, m.RefOf(l.From))
-		at := m.Reports[l.From].At
+		t := m.SumOf(l)
+		at := m.Col(l.From).At
 		c := m.Frame.At(at)
 		d := m.Frame.LinkVec(l, m.RefOf(l.From))
 		out = append(out, row{from: l.From, t: t, d: d, at: at, c: c, b: c.Add(d)})
@@ -88,7 +88,7 @@ func fromNodes(rows []row) CardStep {
 }
 
 func result(m Model, item string, p Links.Vec3, label string) []string {
-	miss := p.Sub(m.Frame.At(m.Reports[item].At)).Length()
+	miss := p.Sub(m.Frame.At(m.Col(item).At)).Length()
 	lands := " — misses it"
 	if miss < 1e-6 {
 		lands = " — lands on it"

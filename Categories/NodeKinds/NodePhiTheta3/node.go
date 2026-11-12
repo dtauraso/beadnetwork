@@ -20,6 +20,13 @@ type NodePhiTheta3 struct {
 	peer   *Links.Peer
 	tickMs int
 	showAt int64
+	ctx    context.Context
+}
+
+func (n *NodePhiTheta3) send(out []Links.Envelope) {
+	for _, e := range out {
+		n.mesh.Send(n.ctx, n.peer.ID, e)
+	}
 }
 
 func (n *NodePhiTheta3) breadcrumb(label, value string) {
@@ -32,6 +39,8 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 }
 
 func (n *NodePhiTheta3) Update(ctx context.Context) {
+	n.ctx = ctx
+	n.loadGrid("")
 	clk := n.Clock.Copy()
 	clk.SpeedFrom(n.SpeedCh)
 	n.geom.Clocks().Use(clk)
@@ -71,10 +80,11 @@ func (n *NodePhiTheta3) take(ctx context.Context, msg any) bool {
 	if s, ok := msg.(Links.StepAll); ok {
 		n.showAt = s.H + 2
 	}
-	out := n.peer.Handle(msg)
-	for _, e := range out {
-		n.mesh.Send(ctx, n.peer.ID, e)
+	if s, ok := msg.(Links.ShowStep); ok {
+		n.showLevel(s)
 	}
+	out := n.peer.Handle(msg)
+	n.send(out)
 	picked := ""
 	for _, l := range n.peer.Links() {
 		if l.Picked {
@@ -125,8 +135,10 @@ func (n *NodePhiTheta3) apply() {
 func (n *NodePhiTheta3) publish() { n.publishWith("") }
 
 func (n *NodePhiTheta3) publishWith(refused string) {
+	n.send(n.peer.Snap())
+	n.writeGrid()
 	n.postVectors()
-	n.mesh.Report(Links.Report{ID: n.peer.ID, At: n.peer.At, Ref: n.peer.Ref, Links: n.peer.Links(), Refused: refused})
+	n.mesh.Report(Links.Report{ID: n.peer.ID, Grid: n.peer.Grid(), Refused: refused})
 }
 
 func (a BuildArgs) Geom() *NodeCat.NodeGeometry {

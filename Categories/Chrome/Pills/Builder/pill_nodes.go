@@ -18,7 +18,7 @@ const (
 func NodesPill(m Model) Pill {
 	var rows [][]Cell
 	for _, id := range m.Nodes {
-		r := m.Reports[id]
+		r := m.Col(id)
 		act := func(op, k string) Act { return Act{Op: op, Node: id, K: k} }
 		c := m.Frame.At(r.At)
 		rows = append(rows, []Cell{

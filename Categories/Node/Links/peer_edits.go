@@ -2,17 +2,6 @@ package Links
 
 import "fmt"
 
-func (p *Peer) setLink(m SetLink) []Envelope {
-	l, ok := p.own[m.From]
-	if !ok {
-		return nil
-	}
-	l.Start, l.Delta, l.Increment = m.Start, m.Delta, m.Increment
-	l.SetS(p.S)
-	p.touched(m.From)
-	return p.take(l)
-}
-
 func (p *Peer) pickReq(m PickReq) []Envelope {
 	l, ok := p.own[m.From]
 	if !ok {
@@ -25,6 +14,15 @@ func (p *Peer) pickReq(m PickReq) []Envelope {
 	l.Picked = true
 	p.touched(m.From)
 	return []Envelope{{To: m.From, Msg: PickSet{From: p.ID, On: true}}}
+}
+
+func (p *Peer) pickSet(m PickSet) []Envelope {
+	was := p.outPicked[m.From]
+	p.outPicked[m.From] = m.On
+	if m.On && !was && p.placed {
+		return []Envelope{{To: m.From, Msg: Put{From: p.ID, P: p.point, Round: p.round}}}
+	}
+	return nil
 }
 
 func (p *Peer) unpick(m Unpick) []Envelope {

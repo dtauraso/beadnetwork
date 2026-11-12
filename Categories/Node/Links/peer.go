@@ -32,6 +32,9 @@ type Peer struct {
 	placed    bool
 	heard     map[string]int
 	held      []any
+	grid      Grid
+	geom      GridGeom
+	sent      map[sentKey]OutLink
 
 	Changed Changes
 }
@@ -140,8 +143,14 @@ func (p *Peer) neighbours() []string {
 
 func (p *Peer) Handle(msg any) []Envelope {
 	switch m := msg.(type) {
-	case SetLink:
-		return p.setLink(m)
+	case StepEdit:
+		return p.stepEdit(m)
+	case ShowStep:
+		return p.showStep(m)
+	case OutLink:
+		p.outLink(m)
+	case WantOut:
+		p.wantOut(m)
 	case StepAll:
 		return p.stepAll(m)
 	case Put:
@@ -155,7 +164,7 @@ func (p *Peer) Handle(msg any) []Envelope {
 	case PickReq:
 		return p.pickReq(m)
 	case PickSet:
-		p.outPicked[m.From] = m.On
+		return p.pickSet(m)
 	case Unpick:
 		return p.unpick(m)
 	case SetIdx:

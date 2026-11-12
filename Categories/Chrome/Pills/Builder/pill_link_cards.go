@@ -58,7 +58,7 @@ func linkCount(n int) string {
 }
 
 func refCells(m Model, id string) []Cell {
-	ref := m.Reports[id].Ref
+	ref := m.Col(id).Ref
 	refAct := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
 	return []Cell{
 		Text("ref Δφ").Dimmed(true),
@@ -113,60 +113,50 @@ func netCard(l Links.Link, depth int) Group {
 const GridLabel = "Node grid"
 
 func nodeGrid(m Model, id string) Group {
-	ns := m.stepNums()
+	g := m.Grids[id]
 	head := []Cell{Text("")}
-	for _, n := range ns {
-		head = append(head, Text(m.StepLabel(n)).Inked(inkHead))
-	}
-	same := func(name string, v int) []Cell {
-		row := []Cell{Text(name).Dimmed(true)}
-		for range ns {
-			row = append(row, Text(strconv.Itoa(v)).Outline(false))
+	for _, n := range g.Steps() {
+		cell := Text(m.StepLabel(n)).Inked(inkHead)
+		if n == g.Shown {
+			cell = cell.Inked(inkStrong)
 		}
-		return row
+		head = append(head, cell)
 	}
-	ref := m.Reports[id].Ref
-	rows := [][]Cell{head, same("ref Δφ", ref.Phi), same("ref Δθ", ref.Theta)}
-	links := m.linksTo(id)
-	if len(links) == 0 {
-		rows = append(rows, []Cell{Text("no links into this node").Dimmed(true)})
-	}
-	for _, l := range links {
-		if len(links) > 1 {
-			rows = append(rows, []Cell{Text(l.Name()).Inked(inkStrong)})
+	rows := [][]Cell{head}
+	band, present := "", []float64(nil)
+	for _, r := range g.Rows() {
+		if r.Band != band {
+			band = r.Band
+			rows = append(rows, []Cell{Text(bandTitle(id, band)).Inked(inkStrong)})
 		}
-		per := func(name string, of func(Links.Link) string) []Cell {
-			row := []Cell{Text(name).Dimmed(true)}
-			for _, n := range ns {
-				c := l
-				if s := m.StepLinks[StepEdge{n, l.From, l.To}]; s != nil {
-					c = *s
-				}
-				cell := Text(of(c)).Outline(false)
-				if m.StepPicked(n, l) {
-					cell = cell.Inked(inkStrong)
-				}
-				row = append(row, cell)
+		if r.Name == "present" {
+			present = r.V
+			continue
+		}
+		row := []Cell{Text(r.Name).Dimmed(true)}
+		for i, v := range r.V {
+			s := n3(v)
+			if band != Links.BandNode && i < len(present) && present[i] == 0 {
+				s = "—"
 			}
-			return row
+			row = append(row, Text(s).Outline(false))
 		}
-		for _, a := range axes {
-			rows = append(rows,
-				per(a.label+" start", a.at),
-				per(a.label+" Δ", func(l Links.Link) string { return strconv.Itoa(a.delta(l)) }),
-				per(a.label+" nΔ", func(l Links.Link) string { return strconv.Itoa(a.times(l)) }),
-				per(a.label+" 1 step", func(l Links.Link) string { return strconv.Itoa(a.one(l)) }),
-			)
-		}
-		for _, a := range axes {
-			rows = append(rows, per(a.label+" sum", func(l Links.Link) string {
-				d := l.DirFrom(m.Frame, m.RefOf(l.From))
-				return n3(map[string]float64{Links.KPhi: d.Phi, Links.KTheta: d.Theta, Links.KR: d.R}[a.k])
-			}))
-		}
+		rows = append(rows, row)
 	}
-	rows = append(rows, same("s", m.SceneS()))
+	if len(g.Cols) == 0 {
+		rows = append(rows, []Cell{Text("node " + id + " has not reported its grid yet").Dimmed(true)})
+	}
 	return Group{Title: "node " + id, Rows: rows, Slides: true, Table: "grid node " + id}
+}
+
+func bandTitle(id, band string) string {
+	switch {
+	case strings.HasPrefix(band, Links.BandIn):
+		return "in · " + strings.TrimPrefix(band, Links.BandIn) + "→" + id
+	case strings.HasPrefix(band, Links.BandOut):
+		return "out · " + id + "→" + strings.TrimPrefix(band, Links.BandOut)
+	}
+	return "node " + id
 }
 
 func GridPill(m Model) Pill {

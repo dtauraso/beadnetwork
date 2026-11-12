@@ -22,7 +22,7 @@ const navHint = "↑↓ move · → open / in · ← close / out · Enter go in 
 func (m Model) allLinks() []Links.Link {
 	var out []Links.Link
 	for _, id := range m.Nodes {
-		out = append(out, m.Reports[id].Links...)
+		out = append(out, m.Col(id).Links()...)
 	}
 	Links.SortLinks(out)
 	return out
@@ -130,7 +130,7 @@ func stepBody(t *tree, m Model, step int, refused string) string {
 	for _, id := range m.Nodes {
 		fold := Act{Op: OpStepFold, Node: id, I: step}
 		folded := m.StepFolded(step, id)
-		links := m.stepLinksTo(step, id)
+		links := m.gridLinks(step, id)
 		r := linkRow{id: fold, depth: 1, open: openOf(!folded), fold: fold, name: Text("node " + id)}
 		if len(links) == 0 {
 			r.open = leaf

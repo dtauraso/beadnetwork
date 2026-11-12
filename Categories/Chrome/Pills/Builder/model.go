@@ -31,7 +31,7 @@ const (
 
 type Model struct {
 	Nodes   []string
-	Reports map[string]Links.Report
+	Grids   map[string]Links.Grid
 	Frame   Links.Frame
 	S       int
 	SNote   string
@@ -43,7 +43,7 @@ type Model struct {
 	StepNums  []int
 	StepNames map[int]string
 
-	StepLinks map[StepEdge]*Links.Link
+	StepFrom  []int
 	StepHeads map[int]*Step
 	StepFolds map[StepNode]bool
 
@@ -75,9 +75,9 @@ func (m Model) On() bool { return len(m.Nodes) > 0 }
 
 func (m Model) ManyIn() []string {
 	var out []string
-	for id, r := range m.Reports {
+	for id := range m.Grids {
 		from := map[string]bool{}
-		for _, l := range r.Links {
+		for _, l := range m.Col(id).Links() {
 			from[l.From] = true
 		}
 		if len(from) > 1 {
@@ -94,25 +94,36 @@ func (m Model) FixedR(l Links.Link) bool {
 }
 
 func (m *Model) Take(r Links.Report) {
-	if m.Reports == nil {
-		m.Reports = map[string]Links.Report{}
+	if m.Grids == nil {
+		m.Grids = map[string]Links.Grid{}
 	}
-	m.Reports[r.ID] = r
+	m.Grids[r.ID] = r.Grid
 	if r.Refused != "" {
 		m.Refused = r.Refused
 	}
 }
 
-func (m Model) Link(from, to string) (Links.Link, bool) {
-	for _, l := range m.Reports[to].Links {
-		if l.From == from {
-			return l, true
-		}
-	}
-	return Links.Link{}, false
+func (m Model) Col(id string) Links.Col { return m.Grids[id].ShownCol() }
+
+func (m Model) StepCol(step int, id string) (Links.Col, bool) { return m.Grids[id].Col(step) }
+
+func (m *Model) ShowMsg() Links.ShowStep {
+	s := Links.ShowStep{Level: m.Level, Step: m.StepShown(), Steps: m.stepNums(), From: m.StepFrom}
+	m.StepFrom = nil
+	return s
 }
 
-func (m Model) RefOf(id string) Links.Turn { return Links.RefTurn(m.Reports[id].Ref) }
+func (m Model) SumOf(l Links.Link) Links.Start {
+	in, _ := m.Col(l.To).InFrom(l.From)
+	return in.Sum
+}
+
+func (m Model) Link(from, to string) (Links.Link, bool) {
+	in, ok := m.Col(to).InFrom(from)
+	return in.Link, ok
+}
+
+func (m Model) RefOf(id string) Links.Turn { return Links.RefTurn(m.Col(id).Ref) }
 
 func (m Model) SceneS() int { return max(1, m.S) }
 

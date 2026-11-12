@@ -96,14 +96,14 @@ func TreePill(m Model) Pill {
 		box(2, "method cards", kv("item", m.Item(), true), kv("methods", names(methods), false), kv("card step", strconv.Itoa(m.CardShown()), false)),
 	)
 	for _, l := range all {
-		d := l.DirFrom(m.Frame, m.RefOf(l.From))
+		d := m.SumOf(l)
 		groups = append(groups, box(2, "edge "+l.Name(), kv("from", l.From, true), kv("to", l.To, true),
 			kv("start", ang(l.Start.Phi, l.Start.Theta, &l.Start.R), false), kv("Δ", ticks(l.Delta), false),
 			kv("increment", ticks(l.Increment), false), kv("lock", lockText(l.Lock), false),
 			notStored(), kv("start + Δ", ang(d.Phi, d.Theta, &d.R), false)))
 	}
 	for _, id := range m.Nodes {
-		r := m.Reports[id]
+		r := m.Col(id)
 		var out, in []string
 		for _, l := range all {
 			if l.From == id {

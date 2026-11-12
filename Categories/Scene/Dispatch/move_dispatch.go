@@ -9,7 +9,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
@@ -102,13 +101,19 @@ func (md *MoveDispatch) persistStep() {
 	}
 }
 
-func (md *MoveDispatch) syncStepPicks(ctx context.Context, step int) {
-	unpick, pick := md.UI.Builder.StepPickChanges(step)
-	for _, l := range unpick {
-		md.sendLink(ctx, l.To, Links.Unpick{From: l.From})
+func (md *MoveDispatch) ShowStep(ctx context.Context) {
+	s := md.UI.Builder.ShowMsg()
+	for _, id := range md.UI.Builder.Nodes {
+		md.sendLink(ctx, id, s)
 	}
-	for _, l := range pick {
-		md.sendLink(ctx, l.To, Links.PickReq{From: l.From})
+	md.Settle(ctx)
+}
+
+func (md *MoveDispatch) showFor(ctx context.Context, step int) {
+	m := &md.UI.Builder
+	if step != m.StepShown() || m.StepClosed {
+		m.ShownStep, m.StepClosed = step, false
+		md.ShowStep(ctx)
 	}
 }
 
@@ -123,24 +128,14 @@ func (md *MoveDispatch) sFitsStarts(ctx context.Context) {
 
 func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) {
 	m := &md.UI.Builder
-	refused, moved := m.StepHeadEdit(a, sign)
-	m.Refused = refused
+	edits := m.StepHeadEdit(a, sign)
 	md.persistStep()
-	if len(moved) > 0 {
-		md.syncStepPicks(ctx, a.I)
+	if len(edits) > 0 {
+		md.showFor(ctx, a.I)
 	}
-	for _, e := range moved {
-		md.sendStepLink(ctx, e)
+	for _, e := range edits {
+		md.sendLink(ctx, e.To, e.Edit)
 	}
-	md.sFitsStarts(ctx)
-}
-
-func (md *MoveDispatch) sendStepLink(ctx context.Context, e Builder.StepEdge) {
-	l := md.UI.Builder.StepLinks[e]
-	if l == nil {
-		return
-	}
-	md.sendLink(ctx, e.To, Links.SetLink{From: e.From, Start: l.Start, Delta: l.Delta, Increment: l.Increment})
 }
 
 func DrainLinkReports(md *MoveDispatch) {
@@ -154,9 +149,6 @@ func DrainLinkReports(md *MoveDispatch) {
 	}
 	if len(rs) > 0 {
 		md.sFitsStarts(context.TODO())
-	}
-	if len(rs) > 0 && m.Root != "" && m.SeedStepLinks() {
-		md.persistStep()
 	}
 	before := m.TimeKey()
 	for _, t := range md.Links.TakeTimings() {

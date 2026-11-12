@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 )
 
@@ -41,10 +42,14 @@ func linkName(from, to string) string { return from + "To" + to }
 
 func ReadLinks(nodeDir, to string) ([]Link, error) {
 	dir := DragLinksDir(nodeDir)
-	if _, err := os.Stat(dir); err != nil { // path-resolution-ok: a node's edits replace its base links only once it has made one
-		dir = BaseLinksDir(nodeDir)
+	if _, err := os.Stat(dir); err == nil { // path-resolution-ok: a node's edits replace its grid's links only once it has made one
+		return readLinksIn(dir, to)
 	}
-	return readLinksIn(dir, to)
+	g, ok, err := ReadGrid(filepath.Join(nodeDir, FileGrid))
+	if err != nil || !ok {
+		return readLinksIn(BaseLinksDir(nodeDir), to)
+	}
+	return g.ShownCol().Links(), nil
 }
 
 func ReadBaseLinks(nodeDir, to string) ([]Link, error) { return readLinksIn(BaseLinksDir(nodeDir), to) }
@@ -131,7 +136,16 @@ func RemoveLinksTo(nodeDir, from, to string) error {
 			return err
 		}
 	}
-	return nil
+	path := filepath.Join(nodeDir, FileGrid)
+	g, ok, err := ReadGrid(path)
+	if err != nil || !ok {
+		return err
+	}
+	for i := range g.Cols {
+		c := &g.Cols[i]
+		c.In = slices.DeleteFunc(c.In, func(in InCell) bool { return in.Link.From == from })
+	}
+	return WriteGrid(path, g)
 }
 
 func writeLinksIn(linksDir string, links []Link) error {

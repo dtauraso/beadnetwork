@@ -68,6 +68,7 @@ func endStepDrag(md *MoveDispatch, x, y float64) bool {
 		if refused == "" && err == nil {
 			m.Select(h.Row)
 		}
+		md.ShowStep(context.TODO())
 	}
 	md.UI.EmitViewFrame(nil)
 	return true
@@ -111,13 +112,8 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
 	md.UI.Builder.Refused = ""
 	if Builder.IsStepEdit(a) {
-		md.UI.Builder.Refused = md.UI.Builder.StepEdit(a, sign, typed)
-		md.persistStep()
-		if md.UI.Builder.Refused == "" {
-			md.syncStepPicks(ctx, a.I)
-			md.sendStepLink(ctx, Builder.StepEdge{Step: a.I, From: a.Node, To: a.To})
-			md.sFitsStarts(ctx)
-		}
+		md.showFor(ctx, a.I)
+		md.sendLink(ctx, a.To, Builder.StepEditOf(a, sign, typed))
 		return
 	}
 	if Builder.IsStepHead(a) {
@@ -130,23 +126,20 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if err != nil {
 			View.LogPersistErr("sheet_step_dir", md.UI.Builder.Root, err)
 		}
+		md.ShowStep(ctx)
 		return
 	}
 	if Builder.IsLevelOp(a) {
 		if err := md.UI.Builder.LevelOp(a); err != nil {
 			View.LogPersistErr("sheet_step_level", md.UI.Builder.Root, err)
 		}
+		md.ShowStep(ctx)
 		return
 	}
 	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) {
 		return
 	}
 	switch a.Op {
-	case Builder.OpStepPick:
-		if md.UI.Builder.Refused = md.UI.Builder.ToggleStepPick(a.I, a.Node, a.To); md.UI.Builder.Refused == "" {
-			md.persistStep()
-			md.syncStepPicks(ctx, a.I)
-		}
 	case Builder.OpStepFold:
 		md.UI.Builder.ToggleStepFold(a.I, a.Node)
 	case Builder.OpSeqs:
@@ -157,8 +150,13 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if err := md.UI.Builder.LevelUp(); err != nil {
 			View.LogPersistErr("sheet_step_level", md.UI.Builder.Root, err)
 		}
+		md.ShowStep(ctx)
 	case Builder.OpStepShow:
+		was := md.UI.Builder.StepShown()
 		md.UI.Builder.ShowStep(a, sign)
+		if md.UI.Builder.StepShown() != was {
+			md.ShowStep(ctx)
+		}
 	case Builder.OpNetFold:
 		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:

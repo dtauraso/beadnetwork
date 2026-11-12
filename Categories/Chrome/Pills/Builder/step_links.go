@@ -1,166 +1,58 @@
 package Builder
 
 import (
-	"fmt"
-	"math"
-	"os"
-	"path/filepath"
-
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
-func (m Model) stepLinksTo(step int, id string) []Links.Link {
-	var out []Links.Link
-	for _, l := range m.linksTo(id) {
-		if c := m.StepLinks[StepEdge{step, l.From, l.To}]; c != nil {
-			l = *c
-		}
-		out = append(out, l)
+func (m Model) gridLinks(step int, id string) []Links.Link {
+	if step == 0 {
+		return m.Col(id).Links()
 	}
-	return out
+	c, ok := m.StepCol(step, id)
+	if !ok {
+		return nil
+	}
+	return c.Links()
 }
 
-func (m *Model) SeedStepLinks() bool {
-	if m.StepLinks == nil {
-		m.StepLinks = map[StepEdge]*Links.Link{}
+func (m Model) gridLink(e StepEdge) (Links.Link, bool) {
+	c, ok := m.StepCol(e.Step, e.To)
+	if !ok {
+		return Links.Link{}, false
 	}
-	seeded := false
-	for _, step := range m.stepNums() {
-		for _, l := range m.allLinks() {
-			k := StepEdge{step, l.From, l.To}
-			c := m.StepLinks[k]
-			if c == nil {
-				c := l
-				c.Picked = false
-				m.StepLinks[k] = &c
-				seeded = true
-				continue
-			}
-			if c.Delta.S != l.Delta.S || c.Start.S != l.Start.S || c.Increment.S != l.Increment.S {
-				c.SetS(l.Start.S)
-				seeded = true
-			}
-		}
-	}
-	return seeded
-}
-
-func (m *Model) DropStepEdge(from, to string) error {
-	for _, step := range m.stepNums() {
-		delete(m.StepLinks, StepEdge{step, from, to})
-		if m.Root != "" {
-			if err := Links.RemoveLinksTo(stepNodeDir(m.lvl(), step, to), from, to); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
-	l := m.StepLinks[StepEdge{a.I, a.Node, a.To}]
-	if l == nil {
-		return fmt.Sprintf("step %d %s→%s: this step has no copy of the link yet, so nothing changed", a.I, a.Node, a.To)
-	}
-	name := fmt.Sprintf("step %d %s→%s", a.I, a.Node, a.To)
-	switch a.Op {
-	case OpLinkStart:
-		v := map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K] + float64(sign)
-		if typed != nil && a.K == Links.KR {
-			v = *typed
-		} else if typed != nil {
-			v = l.Start.FromTick(int(math.Floor(*typed)))
-		}
-		if a.K == Links.KR && (v < 0 || v+float64(l.Delta.R) < 0) {
-			return fmt.Sprintf("%s r %v: neither r nor r + Δr can be negative, so r stays at %v", name, v, l.Start.R)
-		}
-		l.SetStart(a.K, v)
-	case OpLinkOne:
-		if sign == 0 {
-			return ""
-		}
-		if a.K == Links.KR && l.Dir().R+float64(l.OneCarry(a.K, sign)) < 0 {
-			return fmt.Sprintf("%s 1r: r + Δr would be below 0, so 1r stays at %d", name, l.Start.One.R)
-		}
-		l.StepOne(a.K, sign)
-	case OpLinkPress:
-		if sign == 0 {
-			sign = a.Sign
-		}
-		if a.K == Links.KR && l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0 {
-			return fmt.Sprintf("%s Δr: r + Δr would be below 0, so Δr stays at %d", name, l.Delta.R)
-		}
-		l.Step(a.K, sign)
-	case OpIncrement:
-		inc := *l.Increment.At(a.K)
-		v := inc + sign
-		if typed != nil {
-			if *typed != math.Trunc(*typed) {
-				return fmt.Sprintf("%s nΔ %v: not a whole number, so it stays at %d", name, *typed, inc)
-			}
-			v = int(*typed)
-		}
-		if a.K == Links.KR && v <= 0 {
-			return fmt.Sprintf("%s nΔr %d: it must stay above 0, so it stays at %d", name, v, inc)
-		}
-		*l.Increment.At(a.K) = v
-	}
-	return ""
+	in, ok := c.InFrom(e.From)
+	return in.Link, ok
 }
 
 func (m Model) SNeeded() int {
 	need := 1
-	for _, l := range m.allLinks() {
-		need = Links.Lcm(need, l.Start.TicksNeeded())
-	}
-	for _, c := range m.StepLinks {
-		need = Links.Lcm(need, c.Start.TicksNeeded())
+	for _, g := range m.Grids {
+		for _, c := range g.Cols {
+			for _, l := range c.Links() {
+				need = Links.Lcm(need, l.Start.TicksNeeded())
+			}
+		}
 	}
 	return need
 }
 
+var editOps = map[string]string{
+	OpLinkStart: Links.EditStart, OpLinkOne: Links.EditOne, OpLinkPress: Links.EditPress,
+	OpIncrement: Links.EditInc, OpStepPick: Links.EditPick,
+}
+
 func IsStepEdit(a Act) bool {
-	return a.I > 0 && (a.Op == OpLinkStart || a.Op == OpLinkOne || a.Op == OpLinkPress || a.Op == OpIncrement)
+	_, ok := editOps[a.Op]
+	return a.I > 0 && ok
 }
 
-func (m *Model) readStepLinks() {
-	m.StepLinks = map[StepEdge]*Links.Link{}
-	for _, step := range m.stepNums() {
-		dir := filepath.Join(stepDir(m.lvl(), step), DirNodes)
-		entries, err := os.ReadDir(dir)
-		if err != nil {
-			continue
-		}
-		for _, e := range entries {
-			if !e.IsDir() { // path-resolution-ok: each step clone holds one directory per target node
-				continue
-			}
-			ls, err := Links.ReadLinks(filepath.Join(dir, e.Name()), e.Name())
-			if err != nil {
-				continue
-			}
-			for _, l := range ls {
-				c := l
-				m.StepLinks[StepEdge{step, l.From, l.To}] = &c
-			}
-		}
+func StepEditOf(a Act, sign int, typed *float64) Links.StepEdit {
+	e := Links.StepEdit{Step: a.I, From: a.Node, Op: editOps[a.Op], K: a.K, Sign: sign}
+	if a.Op == OpLinkPress && sign == 0 {
+		e.Sign = a.Sign
 	}
-}
-
-func (m Model) writeStepLinks() error {
-	byTo := map[int]map[string][]Links.Link{}
-	for k, l := range m.StepLinks {
-		if byTo[k.Step] == nil {
-			byTo[k.Step] = map[string][]Links.Link{}
-		}
-		byTo[k.Step][k.To] = append(byTo[k.Step][k.To], *l)
+	if typed != nil {
+		e.Typed, e.IsTyped = *typed, true
 	}
-	for step, tos := range byTo {
-		for to, ls := range tos {
-			if err := Links.WriteBaseLinks(stepNodeDir(m.lvl(), step, to), ls); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return e
 }

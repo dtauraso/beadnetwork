@@ -7,13 +7,6 @@ type Envelope struct {
 	Msg any
 }
 
-type SetLink struct {
-	From      string
-	Start     Start
-	Delta     Ints
-	Increment Ints
-}
-
 type StepAll struct {
 	Round   int
 	H       int64

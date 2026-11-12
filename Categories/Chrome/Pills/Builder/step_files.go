@@ -72,9 +72,6 @@ func (m Model) lvl() string { return filepath.Join(m.Root, m.Level) }
 
 func stepDir(root string, step int) string { return filepath.Join(StepsDir(root), strconv.Itoa(step)) }
 
-func stepNodeDir(root string, step int, id string) string {
-	return filepath.Join(stepDir(root, step), DirNodes, id)
-}
 
 func ReadStepNumbers(root string) []int {
 	var out []int
@@ -128,7 +125,6 @@ func (m *Model) ReadNodeSteps() {
 	}
 	if m.Root != "" {
 		m.StepNums = ReadStepNumbers(m.lvl())
-		m.readStepLinks()
 		m.readStepNames()
 		m.readLevels()
 		for _, step := range m.stepNums() {
@@ -145,9 +141,6 @@ func (m Model) WriteSteps() error {
 		if err := WriteStep(nodePressDir(m.Root, id), *s); err != nil {
 			return err
 		}
-	}
-	if err := m.writeStepLinks(); err != nil {
-		return err
 	}
 	return m.writeStepHeads()
 }

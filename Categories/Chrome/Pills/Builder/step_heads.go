@@ -1,7 +1,6 @@
 package Builder
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -48,55 +47,34 @@ func IsStepHead(a Act) bool {
 	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock || a.Op == OpAllInc || a.Op == OpAllOne)
 }
 
-func (m *Model) stepHeadIncrements(step int, k string, sign int) (string, []StepEdge) {
-	if sign == 0 {
-		return "", nil
-	}
-	refused := ""
-	var moved []StepEdge
-	for _, e := range m.stepActive(step) {
-		l := m.StepLinks[e]
-		inc := l.Increment.At(k)
-		v := *inc + sign
-		if k == Links.KR && v <= 0 {
-			refused = fmt.Sprintf("step %d %s→%s nΔr: it would be %d, and it must stay above 0, so it stays at %d", step, e.From, e.To, v, *inc)
-			continue
-		}
-		*inc = v
-		moved = append(moved, e)
-	}
-	return refused, moved
+type HeadEdit struct {
+	To   string
+	Edit Links.StepEdit
 }
 
-func (m *Model) stepHeadOnes(step int, k string, sign int) (string, []StepEdge) {
+func (m *Model) stepHeadEdits(step int, op, k string, sign int, locks Links.Lock) []HeadEdit {
 	if sign == 0 {
-		return "", nil
+		return nil
 	}
-	refused := ""
-	var moved []StepEdge
+	var out []HeadEdit
+	many := m.ManyIn()
 	for _, e := range m.stepActive(step) {
-		l := m.StepLinks[e]
-		if k == Links.KR && l.Dir().R+float64(l.OneCarry(k, sign)) < 0 {
-			refused = fmt.Sprintf("step %d %s→%s 1r: r + Δr would be below 0, so 1r stays at %d", step, e.From, e.To, l.Start.One.R)
-			continue
-		}
-		l.StepOne(k, sign)
-		moved = append(moved, e)
+		fixed := slices.Contains(many, e.To) || slices.Contains(many, e.From)
+		out = append(out, HeadEdit{To: e.To, Edit: Links.StepEdit{Step: step, From: e.From, Op: op, K: k, Sign: sign, Locks: locks, FixedR: fixed}})
 	}
-	return refused, moved
+	return out
 }
 
-func (m *Model) StepHeadEdit(a Act, sign int) (string, []StepEdge) {
+func (m *Model) StepHeadEdit(a Act, sign int) []HeadEdit {
 	st := m.StepHead(a.I)
-	k := a.K
 	switch a.Op {
 	case OpAllLocks:
 		st.ToggleBoth()
-		return "", nil
+		return nil
 	case OpAllInc:
-		return m.stepHeadIncrements(a.I, k, sign)
+		return m.stepHeadEdits(a.I, Links.EditHeadInc, a.K, sign, Links.Lock{})
 	case OpAllOne:
-		return m.stepHeadOnes(a.I, k, sign)
+		return m.stepHeadEdits(a.I, Links.EditHeadOne, a.K, sign, Links.Lock{})
 	case OpAllLock:
 		way, on := st.At(a.K)
 		switch {
@@ -105,66 +83,19 @@ func (m *Model) StepHeadEdit(a Act, sign int) (string, []StepEdge) {
 			st.Both = st.Both && !*on
 		case *on:
 			*way = sign
-			return m.stepHeadLinks(a.I, k, sign, st.Locks())
+			return m.stepHeadEdits(a.I, Links.EditHead, a.K, sign, st.Locks())
 		default:
-			return m.stepHeadLinks(a.I, k, sign, st.Locks())
+			return m.stepHeadEdits(a.I, Links.EditHead, a.K, sign, st.Locks())
 		}
 		if *way == 0 {
 			*way = 1
 		}
-		return "", nil
+		return nil
 	}
 	if sign == 0 {
 		sign = a.Sign
 	}
-	return m.stepHeadLinks(a.I, Links.KBoth, sign, st.Locks())
-}
-
-func (m *Model) stepHeadLinks(step int, k string, sign int, locks Links.Lock) (string, []StepEdge) {
-	refused := ""
-	var moved []StepEdge
-	if sign == 0 {
-		return "", nil
-	}
-	for _, e := range m.stepActive(step) {
-		l := m.StepLinks[e]
-		stepR := func(sign int) {
-			name := fmt.Sprintf("step %d %s→%s Δr", step, e.From, e.To)
-			switch {
-			case slices.Contains(m.ManyIn(), e.To) || slices.Contains(m.ManyIn(), e.From):
-				refused = fmt.Sprintf("%s: a node it joins has more than one incoming link, so no radius it is part of can change; Δr stays at %v", name, l.Delta.R)
-			case l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0:
-				refused = fmt.Sprintf("%s: r + Δr would be below 0, so Δr stays at %v", name, l.Delta.R)
-			default:
-				l.Step(Links.KR, sign)
-			}
-		}
-		switch k {
-		case Links.KBoth:
-			l.Step(Links.KPhi, sign*wayOf(l, locks, Links.KPhi))
-			l.Step(Links.KTheta, sign*wayOf(l, locks, Links.KTheta))
-			stepR(sign * wayOf(l, locks, Links.KR))
-		case Links.KR:
-			stepR(sign)
-		default:
-			l.Step(k, sign)
-		}
-		moved = append(moved, e)
-	}
-	return refused, moved
-}
-
-func wayOf(l *Links.Link, all Links.Lock, k string) int {
-	at := func(x Links.Lock) int {
-		return map[string]int{Links.KPhi: x.Phi, Links.KTheta: x.Theta, Links.KR: x.R}[k]
-	}
-	if v := at(l.Lock); v != 0 {
-		return v
-	}
-	if v := at(all); v != 0 {
-		return v
-	}
-	return 1
+	return m.stepHeadEdits(a.I, Links.EditHead, Links.KBoth, sign, st.Locks())
 }
 
 func (m Model) writeStepHeads() error {

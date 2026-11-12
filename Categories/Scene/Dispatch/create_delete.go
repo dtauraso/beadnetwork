@@ -145,10 +145,6 @@ func removeLink(md *MoveDispatch, from, to string) {
 		m.Refused = fmt.Sprintf("could not remove %s→%s: %v", from, to, err)
 		return
 	}
-	if err := m.DropStepEdge(from, to); err != nil {
-		m.Refused = fmt.Sprintf("could not remove %s→%s from the steps: %v", from, to, err)
-		return
-	}
 	md.persistStep()
 	if err := writeCounts(md.Scenes.TreeRoot, largestNodeID(root), countEdgeFiles(root)); err != nil {
 		m.Refused = fmt.Sprintf("could not update the counts: %v", err)

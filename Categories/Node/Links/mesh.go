@@ -9,9 +9,7 @@ const InboxDepth = 1024
 
 type Report struct {
 	ID      string
-	At      Place
-	Ref     Ref
-	Links   []Link
+	Grid    Grid
 	Refused string
 }
 

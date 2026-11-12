@@ -50,6 +50,7 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 		return fmt.Sprintf("step %d: there is no steps/%d folder, so nothing changed", n, n), nil
 	}
 	var err error
+	m.StepFrom = shiftedFrom(ns, n, a.Op)
 	switch a.Op {
 	case OpStepAdd:
 		if err = m.shiftSteps(ns, n, 1); err == nil {
@@ -79,10 +80,31 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 func (m *Model) rereadSteps() error {
 	m.StepHeads, m.StepFolds, m.Touched = nil, nil, StepEdge{}
 	m.ReadNodeSteps()
-	if m.SeedStepLinks() {
-		return m.WriteSteps()
-	}
 	return nil
+}
+
+func shiftedFrom(ns []int, n int, op string) []int {
+	var from []int
+	for _, k := range ns {
+		switch {
+		case k < n || (k == n && op != OpStepDrop):
+			from = append(from, k)
+		case k > n && op == OpStepDrop:
+			from = append(from, k)
+		}
+		if k == n && op == OpStepAdd {
+			from = append(from, 0)
+		}
+		if k == n && op == OpStepCopy {
+			from = append(from, n)
+		}
+	}
+	return from
+}
+
+func movedFrom(ns []int, from, to int) []int {
+	order := slices.DeleteFunc(slices.Clone(ns), func(k int) bool { return k == from })
+	return slices.Insert(order, slices.Index(ns, to), from)
 }
 
 func (m *Model) MoveStep(from, to int) (string, error) {
@@ -107,7 +129,7 @@ func (m *Model) MoveStep(from, to int) (string, error) {
 		}
 		at = next
 	}
-	m.ShownStep, m.StepClosed = to, false
+	m.ShownStep, m.StepClosed, m.StepFrom = to, false, movedFrom(ns, from, to)
 	return "", m.rereadSteps()
 }
 
