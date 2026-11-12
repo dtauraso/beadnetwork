@@ -60,9 +60,5 @@ func (m *Model) NameStep(n int, name string) string {
 }
 
 func stepNameCell(m Model, n int) Cell {
-	shown := m.StepNames[n]
-	if shown == "" {
-		shown = "step " + strconv.Itoa(n)
-	}
-	return Field("", shown, Act{Op: OpStepName, I: n}, true, false).Plain().Wording().Tipped("click to rename this step")
+	return Field("name", m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Plain().Wording().Dimmed(true).Tipped("click to name this step")
 }

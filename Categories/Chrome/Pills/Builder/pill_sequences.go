@@ -28,29 +28,22 @@ func (m Model) seqName() string {
 
 func sequenceCells(m Model) []Cell {
 	if len(m.Seqs) == 0 {
-		return []Cell{Button(m.seqName(), Act{Op: OpLevelGo, I: stepIn(m.Trail, 0)}, m.Level == "").Tipped("go to the sequence's own steps")}
+		return []Cell{Text(m.seqName()).Dimmed(true)}
 	}
-	caret := "▾"
-	if m.SeqListOpen {
-		caret = "▴"
-	}
-	return []Cell{
-		Field("", m.seqName(), Act{Op: OpSeqName, I: m.OpenSeq}, true, false).Plain().Wording().Tipped("click to rename this sequence"),
-		Button(caret, Act{Op: OpSeqFold}, m.SeqListOpen).Tipped("pick a sequence, or pick this one to go to its own steps"),
-	}
+	return []Cell{LitText(m.seqName(), Act{Op: OpSeqFold}, false).Tipped("pick, rename, copy or delete a sequence")}
 }
 
 func sequenceList(m Model, at int) []Group {
 	if !m.SeqListOpen || len(m.Seqs) == 0 {
 		return nil
 	}
-	list := Group{Card: true, Pop: &Sheet.Anchor{Group: at, Col: 1}, MaxRows: seqListRows}
+	list := Group{Card: true, Pop: &Sheet.Anchor{Group: at, Col: 0}, MaxRows: seqListRows}
 	for _, q := range m.Seqs {
-		mark := "   "
 		if q.K == m.OpenSeq {
-			mark = "✓ "
+			list.Rows = append(list.Rows, []Cell{Field("", q.Name, Act{Op: OpSeqName, I: q.K}, true, false).Plain().Wording().Tipped("the open sequence; click to rename it")})
+			continue
 		}
-		list.Rows = append(list.Rows, []Cell{Button(mark+q.Name, Act{Op: OpSeqOpen, I: q.K}, q.K == m.OpenSeq)})
+		list.Rows = append(list.Rows, []Cell{LitText(q.Name, Act{Op: OpSeqOpen, I: q.K}, false).Tipped("open this sequence")})
 	}
 	list.Rows = append(list.Rows, []Cell{Button("+  copy this sequence", Act{Op: OpSeqAdd}, false)})
 	if len(m.Seqs) > 1 {

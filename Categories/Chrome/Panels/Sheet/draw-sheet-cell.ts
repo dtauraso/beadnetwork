@@ -55,8 +55,8 @@ function drawButton(c: CanvasRenderingContext2D, r: R, label: string, lit: boole
   c.fillText(label, r.x + r.w / 2, r.y + r.h / 2);
 }
 
-function drawText(c: CanvasRenderingContext2D, r: R, text: string, lit: boolean): void {
-  c.fillStyle = lit ? TEXT_LIT_INK : TEXT_INK;
+function drawText(c: CanvasRenderingContext2D, r: R, text: string, lit: boolean, dim = false): void {
+  c.fillStyle = dim ? DIM_TEXT_INK : lit ? TEXT_LIT_INK : TEXT_INK;
   c.font = canvasFont(KEY_FONT_PX, lit ? 700 : 500);
   c.textAlign = "left";
   c.textBaseline = "middle";
@@ -76,7 +76,7 @@ function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: bo
 }
 
 export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
-  if (l.kind === CELL_FIELD && l.bare && !l.editing) drawText(c, r, l.value || l.key, l.lit);
+  if (l.kind === CELL_FIELD && l.bare && !l.editing) drawText(c, r, l.value || l.key, l.lit, l.dim);
   else if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value || l.key, l.outlined || l.editing, l.lit, l.dim || !l.value);
   else if (l.kind === CELL_FIELD) {
     drawField(c, r, l.key, l.value, l.editing);

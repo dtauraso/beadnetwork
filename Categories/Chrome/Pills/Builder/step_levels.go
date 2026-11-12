@@ -68,10 +68,6 @@ func stepLabelAt(dir string, n int) string {
 }
 
 func (m *Model) readLevels() {
-	m.SubSteps = map[int]int{}
-	for _, n := range m.stepNums() {
-		m.SubSteps[n] = len(ReadStepNumbers(stepDir(m.lvl(), n)))
-	}
 	m.Trail = nil
 	for _, a := range m.ancestors() {
 		m.Trail = append(m.Trail, TreeRow{Level: a.Level, Step: a.Step, Label: stepLabelAt(filepath.Join(m.Root, a.Level), a.Step)})
@@ -88,20 +84,15 @@ func (m *Model) readTree(level string, depth int) {
 	}
 }
 
-func subStepsCell(m Model, n int) Cell {
-	tip := "open this step's own steps"
-	if k := m.SubSteps[n]; k > 0 {
-		return Button("→ "+strconv.Itoa(k)+map[bool]string{true: " step", false: " steps"}[k == 1], Act{Op: OpStepEnter, I: n}, false).Tipped(tip)
-	}
-	return Button("→", Act{Op: OpStepEnter, I: n}, false).Tipped(tip + "; it has none yet, so going in makes its step 1")
+func subStepsCell(n int) Cell {
+	return Button("→", Act{Op: OpStepEnter, I: n}, false).Tipped("go into this step's own steps")
 }
 
 func trailCells(m Model) []Cell {
 	cells := sequenceCells(m)
-	for i, t := range m.Trail {
-		at := filepath.Join(t.Level, DirSteps, strconv.Itoa(t.Step))
+	for _, t := range m.Trail {
 		cells = append(cells, Text("›").Dimmed(true),
-			Button(t.Label, Act{Op: OpLevelGo, Node: at, I: stepIn(m.Trail, i+1)}, at == m.Level).Tipped("go to this step's own steps"))
+			LitText(t.Label, Act{Op: OpLevelGo, Node: t.Level, I: t.Step}, false).Tipped("go back to this step"))
 	}
 	return cells
 }
@@ -124,7 +115,7 @@ func stepTree(m Model) Group {
 		here := t.Level == m.Level && t.Step == m.StepShown()
 		rows = append(rows, []Cell{
 			Text(strings.Repeat("    ", t.Depth)),
-			Button(t.Label, Act{Op: OpLevelGo, Node: t.Level, I: t.Step}, here).Tipped("open this step in the Links tab"),
+			LitText(t.Label, Act{Op: OpLevelGo, Node: t.Level, I: t.Step}, here).Tipped("open this step in the Links tab"),
 		})
 	}
 	return Group{Rows: rows, Slides: true, Table: "step tree"}

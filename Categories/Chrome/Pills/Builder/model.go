@@ -51,7 +51,6 @@ type Model struct {
 	Touched     StepEdge
 	DragStep    int
 	Level       string
-	SubSteps    map[int]int
 	Trail       []TreeRow
 	Tree        []TreeRow
 

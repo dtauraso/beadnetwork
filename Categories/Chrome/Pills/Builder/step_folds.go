@@ -23,7 +23,7 @@ func (m *Model) ToggleStepFold(step int, id string) {
 
 func foldTitle(folded bool, title string) string {
 	if folded {
-		return "▶ " + title
+		return "▸  " + title
 	}
-	return "▼ " + title
+	return "▾  " + title
 }
