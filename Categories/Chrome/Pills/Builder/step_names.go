@@ -58,5 +58,5 @@ func (m *Model) NameStep(n int, name string) string {
 }
 
 func stepNameCell(m Model, n int) Cell {
-	return Field("name", m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Fitting(stepNameFit).Wording()
+	return Field("name", m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Fitting(stepNameFit).Outline(false).Wording()
 }

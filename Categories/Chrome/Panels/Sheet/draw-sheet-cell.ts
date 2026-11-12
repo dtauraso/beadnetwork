@@ -76,7 +76,7 @@ function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: bo
 }
 
 export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
-  if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value, l.outlined || l.editing, l.lit, l.dim);
+  if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value || l.key, l.outlined || l.editing, l.lit, l.dim || !l.value);
   else if (l.kind === CELL_FIELD) {
     drawField(c, r, l.key, l.value, l.editing);
     if (l.outlined) {
