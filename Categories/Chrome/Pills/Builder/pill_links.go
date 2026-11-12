@@ -133,12 +133,12 @@ func stepBody(m Model, step int, refused string) ([]Group, string) {
 }
 
 func breadcrumb(m Model) Group {
-	trail := "network only, no step open"
+	trail := "network"
 	if m.DragStep != 0 {
-		trail = "moving step " + m.StepLabel(m.DragStep) + ": let go on another step's title"
+		trail = "moving step " + m.StepLabel(m.DragStep) + ": let go on another step's row"
 	} else if !m.StepClosed {
 		step := m.StepShown()
-		trail = "editing step " + m.StepLabel(step)
+		trail = "step " + m.StepLabel(step)
 		if t := m.Touched; t.Step == step && t.From != "" {
 			trail += " › " + t.From + "→" + t.To
 		}
@@ -148,7 +148,7 @@ func breadcrumb(m Model) Group {
 			trail = q.Name + " › " + trail
 		}
 	}
-	return Group{Rows: [][]Cell{{Text(trail).Dimmed(true)}}, Wraps: true}
+	return Group{Rows: [][]Cell{{Text(trail).Outline(true)}}, Wraps: true}
 }
 
 func LinksPill(m Model) Pill {
