@@ -95,7 +95,7 @@ func stepRow(m Model, n int) Group {
 }
 
 func stepBody(m Model, step int, refused string) ([]Group, string) {
-	groups := []Group{activeLinksGroup(m, step)}
+	groups := []Group{headRow(m, step)}
 	for _, id := range m.Nodes {
 		groups = append(groups, nodeGroups(m, step, id)...)
 		if m.StepFolded(step, id) || refused == "" {
