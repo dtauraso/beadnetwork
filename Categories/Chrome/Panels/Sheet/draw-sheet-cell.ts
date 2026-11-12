@@ -7,7 +7,7 @@ const CELL_FILL = "#222";
 const CELL_EDIT_FILL = "#0d47a1";
 const CELL_RADIUS = 3;
 const CELL_PAD_X = 6;
-const KEY_FONT_PX = 11;
+const KEY_FONT_PX = 13;
 const KEY_INK = "#e0e0e0";
 const VAL_FONT_PX = 13;
 const VAL_INK = "#fff";
@@ -17,7 +17,7 @@ const BUTTON_EDGE = "#bbb";
 const BUTTON_LIT_FILL = "#0d47a1";
 
 const OUTLINE_EDGE = "#0d47a1";
-const DIM_TEXT_INK = "#9e9e9e";
+const DIM_TEXT_INK = "#5f6368";
 
 const CELL_TEXT = 0;
 const CELL_FIELD = 1;
@@ -77,7 +77,7 @@ const ACCENT_INK = "#1565c0";
 const GO_INK = "#2e7d32";
 const DANGER_INK = "#c62828";
 const STRONG_INK = "#111";
-const HEAD_FONT_PX = 9.5;
+const HEAD_FONT_PX = 11;
 
 function inkColor(ink: number): string | undefined {
   return ({ [INK_STRONG]: STRONG_INK, [INK_ACCENT]: ACCENT_INK, [INK_GO]: GO_INK, [INK_DANGER]: DANGER_INK, [INK_HEAD]: DIM_TEXT_INK } as Record<number, string>)[ink];

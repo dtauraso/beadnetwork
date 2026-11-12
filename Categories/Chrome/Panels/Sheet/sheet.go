@@ -6,13 +6,13 @@ import (
 
 const (
 	TitleFontPx = 12
-	KeyFontPx   = 11
+	KeyFontPx   = 13
 	ValFontPx   = 13
 
 	CellPadX = 6
-	CellPadY = 2
+	CellPadY = 3
 	CellGapX = 6
-	RowGapY  = 3
+	RowGapY  = 5
 	TitleGap = 3
 
 	StepArrowW = 14
