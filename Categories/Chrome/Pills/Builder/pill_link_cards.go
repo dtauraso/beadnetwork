@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
@@ -95,21 +96,52 @@ func nodeGroups(m Model, step int, id string) []Group {
 		return groups
 	}
 	for _, l := range links {
-		groups = append(groups, linkCard(m, step, l))
+		picked := m.StepPicked(step, l)
+		groups = append(groups, linkLine(l, picked, Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}))
+		if picked {
+			groups = append(groups, linkCard(m, step, l))
+		}
 	}
 	return groups
+}
+
+func pickMark(on bool) string {
+	if on {
+		return "● "
+	}
+	return "○ "
+}
+
+func pressSummary(l Links.Link) string {
+	var parts []string
+	if l.Delta.Phi != 0 {
+		parts = append(parts, "φ "+strconv.Itoa(l.Start.Tick.Phi)+" + "+strconv.Itoa(l.Delta.Phi)+" → tick "+strconv.Itoa(l.Start.Tick.Phi+l.Delta.Phi))
+	}
+	if l.Delta.Theta != 0 {
+		parts = append(parts, "θ "+strconv.Itoa(l.Start.Tick.Theta)+" + "+strconv.Itoa(l.Delta.Theta)+" → tick "+strconv.Itoa(l.Start.Tick.Theta+l.Delta.Theta))
+	}
+	if l.Delta.R != 0 {
+		parts = append(parts, "r "+tenths(l.Start.R)+" + "+strconv.Itoa(l.Delta.R)+" → "+tenths(l.Start.R+float64(l.Delta.R)))
+	}
+	if len(parts) == 0 {
+		return "no move"
+	}
+	return strings.Join(parts, " · ")
+}
+
+func linkLine(l Links.Link, picked bool, pick Act, more ...Cell) Group {
+	row := []Cell{Text(pickMark(picked) + l.Name()).Acting(pick)}
+	if picked {
+		row = append(row, Text(pressSummary(l)).Dimmed(true))
+	}
+	return Group{Rows: [][]Cell{append(row, more...)}, Indent: true}
 }
 
 func linkCard(m Model, step int, l Links.Link) Group {
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	head := func(s string) Cell { return Text(s).AboveLastDigit() }
 	rows := [][]Cell{
-		{Text(l.Name()).Acting(act(OpStepPick, "")).Outline(m.StepPicked(step, l)), Text(""), Text(""), Text(""), Text(""), Button("x", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false)},
-		{Text(""), head("start"), head("Δ"), head("nΔ"), head("1"), Text("on a press")},
-	}
-	lands := map[string]string{
-		Links.KPhi:   "→ tick " + strconv.Itoa(l.Start.Tick.Phi+l.Delta.Phi),
-		Links.KTheta: "→ tick " + strconv.Itoa(l.Start.Tick.Theta+l.Delta.Theta),
+		{Text(""), head("START"), head("Δ"), head("nΔ"), head("1")},
 	}
 	for _, a := range axes {
 		dim := a.k == Links.KR && m.FixedR(l)
@@ -122,7 +154,6 @@ func linkCard(m Model, step int, l Links.Link) Group {
 			field(strconv.Itoa(a.delta(l)), OpLinkPress, false).Dimmed(dim),
 			field(strconv.Itoa(a.times(l)), OpIncrement, true),
 			field(strconv.Itoa(a.one(l)), OpLinkOne, false).Dimmed(dim),
-			Text(lands[a.k]),
 		})
 	}
 	return Group{Rows: rows, Card: true, Indent: true}
