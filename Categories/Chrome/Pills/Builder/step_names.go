@@ -12,7 +12,7 @@ import (
 const (
 	OpStepName   = "step-name"
 	FileStepName = "name.bin"
-	stepNameFit  = "a step name here"
+	stepNameFit  = "a step name"
 )
 
 func (m *Model) readStepNames() {
@@ -59,5 +59,5 @@ func (m *Model) NameStep(n int, name string) string {
 }
 
 func stepNameCell(m Model, n int) Cell {
-	return Field("name", m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Fitting(stepNameFit).Outline(false).Wording()
+	return Field("step "+strconv.Itoa(n), m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Fitting(stepNameFit).Plain().Wording().Tipped("click to rename this step; an empty name goes back to its number")
 }

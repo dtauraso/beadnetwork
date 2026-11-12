@@ -74,6 +74,8 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	}
 	if ok && act.Op == Builder.OpStepName {
 		md.UI.Builder.Refused = md.UI.Builder.NameStep(act.I, t.Text)
+	} else if ok && act.Op == Builder.OpSeqName {
+		nameSequence(md, act.I, t.Text)
 	} else if ok {
 		runSheetAct(ctx, md, act, 0, &t.V)
 	}

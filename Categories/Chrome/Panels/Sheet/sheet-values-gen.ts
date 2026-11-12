@@ -64,6 +64,7 @@ export const SHEET_VALUE_NAMES = [
   "downLit",
   "upDim",
   "cellDim",
+  "cellBare",
   "cardBox",
   "cardX",
   "cardY",

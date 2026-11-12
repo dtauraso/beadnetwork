@@ -9,6 +9,16 @@ import (
 func cellW(c Cell) float32 {
 	switch c.Kind {
 	case CellField:
+		if c.Bare {
+			v := c.Value
+			if v == "" {
+				v = c.Key
+			}
+			if len(v) < len(c.Fit) {
+				v = c.Fit
+			}
+			return Panel.TextWidth(v, KeyFontPx) + 2*CellPadX
+		}
 		fit := valueField
 		if c.Fit != "" {
 			fit = c.Fit

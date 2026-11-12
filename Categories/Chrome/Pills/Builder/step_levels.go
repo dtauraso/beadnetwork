@@ -97,7 +97,7 @@ func subStepsCell(m Model, n int) Cell {
 }
 
 func trailCells(m Model) []Cell {
-	cells := []Cell{sequenceCell(m)}
+	cells := sequenceCells(m)
 	for i, t := range m.Trail {
 		at := filepath.Join(t.Level, DirSteps, strconv.Itoa(t.Step))
 		cells = append(cells, Text("›").Dimmed(true),

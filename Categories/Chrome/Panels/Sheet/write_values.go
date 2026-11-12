@@ -62,6 +62,7 @@ func (s *State) Write(lay Layout) {
 		w.U8("cellBoxed", flag(cb.Cell.Boxed))
 		w.U8("cellSlides", flag(cb.Slides))
 		w.U8("cellDim", flag(cb.Cell.Dim))
+		w.U8("cellBare", flag(cb.Cell.Bare))
 		if cb.Up.W > 0 {
 			w.U8("upSlides", flag(cb.Slides))
 			w.U8("upLit", flag(cb.Cell.Locked && cb.Cell.LockSign > 0))

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
@@ -168,6 +170,22 @@ func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
 	}
 	md.Scenes.Reload()
 	return true
+}
+
+func nameSequence(md *MoveDispatch, k int, name string) {
+	scene := md.Scenes.TreeRoot
+	if scene == "" {
+		md.UI.Builder.Refused = "this scene has no sequences folder, so the name was not kept"
+		return
+	}
+	if name = strings.TrimSpace(name); name == "" {
+		name = "sequence " + strconv.Itoa(k)
+	}
+	if err := Scenes.WriteSequenceName(scene, k, name); err != nil {
+		View.LogPersistErr("sheet_seq_name", scene, err)
+		md.UI.Builder.Refused = fmt.Sprintf("could not rename sequence %d: %v", k, err)
+	}
+	LoadSequences(md, scene)
 }
 
 func LoadSequences(md *MoveDispatch, scene string) {

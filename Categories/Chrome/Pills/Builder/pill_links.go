@@ -106,7 +106,7 @@ func (m Model) stepOpen(n int) bool { return n == m.StepShown() && !m.StepClosed
 
 func stepRow(m Model, n int) Group {
 	return Group{Rows: [][]Cell{{
-		Text(foldTitle(!m.stepOpen(n), "step "+strconv.Itoa(n))).Acting(Act{Op: OpStepShow, I: n}),
+		Text(map[bool]string{true: "▶", false: "▼"}[!m.stepOpen(n)]).Acting(Act{Op: OpStepShow, I: n}).Tipped("open or close this step; drag to reorder"),
 		stepNameCell(m, n),
 		subStepsCell(m, n),
 		Button("+", Act{Op: OpStepAdd, I: n}, false).Tipped("add a step after this one"),

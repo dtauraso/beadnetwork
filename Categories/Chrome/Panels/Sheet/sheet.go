@@ -61,10 +61,13 @@ type Cell struct {
 	Locked        bool
 	Dim           bool
 	Words         bool
+	Bare          bool
 	Tip           string
 }
 
 func (c Cell) Tipped(s string) Cell { c.Tip = s; return c }
+
+func (c Cell) Plain() Cell { c.Boxed, c.Bare = true, true; return c }
 
 func (c Cell) LockedOn(on bool) Cell { c.Locked = on; return c }
 

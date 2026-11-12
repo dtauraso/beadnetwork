@@ -24,7 +24,7 @@ const CELL_FIELD = 1;
 
 export type R = { x: number; y: number; w: number; h: number };
 
-export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean };
+export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean; bare: boolean };
 
 function drawField(c: CanvasRenderingContext2D, r: R, key: string, value: string, editing: boolean): void {
   roundRect(c, r.x, r.y, r.w, r.h, CELL_RADIUS);
@@ -76,7 +76,8 @@ function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: bo
 }
 
 export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
-  if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value || l.key, l.outlined || l.editing, l.lit, l.dim || !l.value);
+  if (l.kind === CELL_FIELD && l.bare && !l.editing) drawText(c, r, l.value || l.key, l.lit);
+  else if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value || l.key, l.outlined || l.editing, l.lit, l.dim || !l.value);
   else if (l.kind === CELL_FIELD) {
     drawField(c, r, l.key, l.value, l.editing);
     if (l.outlined) {

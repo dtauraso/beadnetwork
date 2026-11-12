@@ -8,7 +8,7 @@ import { sheetBytes, sheetF32Run, sheetU32Run, sheetText } from "./sheet-leaves"
 const TITLE_FONT_PX = 12;
 const TITLE_INK = "#222";
 
-function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "pillBar" | "tabOn" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "upDim" | "cellDim" | "pillOpen" | "cardPop"): number[] {
+function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "pillBar" | "tabOn" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "upDim" | "cellDim" | "cellBare" | "pillOpen" | "cardPop"): number[] {
   const v = sheetBytes(name);
   const out: number[] = [];
   if (v) for (let i = 0; i < v.byteLength; i++) out.push(v.getUint8(i));
@@ -127,7 +127,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const upBox = sheetU32Run("upBox");
   const ups = rects("upX", "upY", "upW", "upH"), downs = rects("downX", "downY", "downW", "downH");
   const draft = draftText();
-  const outlined = bytesOf("cellOutlined"), boxed = bytesOf("cellBoxed"), dimCell = bytesOf("cellDim");
+  const outlined = bytesOf("cellOutlined"), boxed = bytesOf("cellBoxed"), dimCell = bytesOf("cellDim"), bare = bytesOf("cellBare");
   const slideX = sheetF32Run("slideX"), slideW = sheetF32Run("slideW");
   const cellSlides = bytesOf("cellSlides"), upSlides = bytesOf("upSlides");
   const upLit = bytesOf("upLit"), downLit = bytesOf("downLit"), upDim = bytesOf("upDim");
@@ -159,6 +159,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
         slid(c, b, sx, sw, (cellSlides[i] ?? 0) !== 0, () => drawCell(c, r, {
           kind: kinds[i] ?? 0, key: keys[i] ?? "", value: isEditing ? `${draft}_` : vals[i] ?? "", editing: isEditing,
           outlined: (outlined[i] ?? 0) !== 0, boxed: (boxed[i] ?? 0) !== 0, lit: (lit[i] ?? 0) !== 0, dim: (dimCell[i] ?? 0) !== 0,
+          bare: (bare[i] ?? 0) !== 0,
         }));
       });
       drawCards(false);

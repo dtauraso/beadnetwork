@@ -7,6 +7,7 @@ const (
 	OpSeqAdd  = "seq-add"
 	OpSeqDrop = "seq-drop"
 	OpSeqFold = "seq-fold"
+	OpSeqName = "seq-name"
 )
 
 const seqListRows = 6
@@ -25,22 +26,25 @@ func (m Model) seqName() string {
 	return "sequence"
 }
 
-func sequenceCell(m Model) Cell {
+func sequenceCells(m Model) []Cell {
 	if len(m.Seqs) == 0 {
-		return Button(m.seqName(), Act{Op: OpLevelGo, I: stepIn(m.Trail, 0)}, m.Level == "").Tipped("go to the sequence's own steps")
+		return []Cell{Button(m.seqName(), Act{Op: OpLevelGo, I: stepIn(m.Trail, 0)}, m.Level == "").Tipped("go to the sequence's own steps")}
 	}
-	caret := " ▾"
+	caret := "▾"
 	if m.SeqListOpen {
-		caret = " ▴"
+		caret = "▴"
 	}
-	return Button(m.seqName()+caret, Act{Op: OpSeqFold}, m.Level == "" || m.SeqListOpen).Tipped("pick a sequence, or pick this one to go to its own steps")
+	return []Cell{
+		Field("", m.seqName(), Act{Op: OpSeqName, I: m.OpenSeq}, true, false).Plain().Wording().Tipped("click to rename this sequence"),
+		Button(caret, Act{Op: OpSeqFold}, m.SeqListOpen).Tipped("pick a sequence, or pick this one to go to its own steps"),
+	}
 }
 
 func sequenceList(m Model, at int) []Group {
 	if !m.SeqListOpen || len(m.Seqs) == 0 {
 		return nil
 	}
-	list := Group{Card: true, Pop: &Sheet.Anchor{Group: at, Col: 0}, MaxRows: seqListRows}
+	list := Group{Card: true, Pop: &Sheet.Anchor{Group: at, Col: 1}, MaxRows: seqListRows}
 	for _, q := range m.Seqs {
 		mark := "   "
 		if q.K == m.OpenSeq {
