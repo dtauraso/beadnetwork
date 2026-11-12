@@ -2,23 +2,14 @@ package Builder
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"slices"
-	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
-const DirStepHeads = "heads"
-
 type StepNode struct {
 	Step int
 	ID   string
-}
-
-func stepHeadDir(stepDir string, step int) string {
-	return filepath.Join(stepDir, DirStepHeads, "step-"+strconv.Itoa(step))
 }
 
 func (m *Model) StepHead(step int) *Step {
@@ -27,8 +18,8 @@ func (m *Model) StepHead(step int) *Step {
 	}
 	if m.StepHeads[step] == nil {
 		s := Step{}
-		if m.StepDir != "" {
-			s = ReadStep(stepHeadDir(m.StepDir, step))
+		if m.Root != "" {
+			s = ReadStep(stepDir(m.Root, step))
 		}
 		m.StepHeads[step] = &s
 	}
@@ -46,7 +37,7 @@ func (m Model) stepActive(step int) []StepEdge {
 	var out []StepEdge
 	for _, l := range m.allLinks() {
 		e := StepEdge{step, l.From, l.To}
-		if m.StepPicks[e] && m.StepLinks[e] != nil {
+		if m.StepPicked(step, l) {
 			out = append(out, e)
 		}
 	}
@@ -178,11 +169,7 @@ func wayOf(l *Links.Link, all Links.Lock, k string) int {
 
 func (m Model) writeStepHeads() error {
 	for step, s := range m.StepHeads {
-		dir := stepHeadDir(m.StepDir, step)
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			return err
-		}
-		if err := WriteStep(dir, *s); err != nil {
+		if err := WriteStep(stepDir(m.Root, step), *s); err != nil {
 			return err
 		}
 	}

@@ -95,7 +95,7 @@ func (md *MoveDispatch) sendLink(ctx context.Context, to string, msg any) {
 }
 
 func (md *MoveDispatch) persistStep() {
-	if dir := md.UI.Builder.StepDir; dir != "" {
+	if dir := md.UI.Builder.Root; dir != "" {
 		if err := md.UI.Builder.WriteSteps(); err != nil {
 			View.LogPersistErr("sheet_step_persist", dir, err)
 		}
@@ -155,7 +155,7 @@ func DrainLinkReports(md *MoveDispatch) {
 	if len(rs) > 0 {
 		md.sFitsStarts(context.TODO())
 	}
-	if len(rs) > 0 && m.StepDir != "" && m.SeedStepLinks() {
+	if len(rs) > 0 && m.Root != "" && m.SeedStepLinks() {
 		md.persistStep()
 	}
 	before := m.TimeKey()

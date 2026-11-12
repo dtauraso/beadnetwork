@@ -63,10 +63,11 @@ func fitS(root string) error {
 	for _, to := range ids {
 		dirs = append(dirs, [2]string{NodeBuf.NodeDir(root, to), to})
 	}
-	clones := filepath.Join(Builder.StepDir(root), Builder.DirStepClones)
-	for _, step := range subdirs(clones) {
-		for _, to := range subdirs(filepath.Join(clones, step)) {
-			dirs = append(dirs, [2]string{filepath.Join(clones, step, to), to})
+	steps := Builder.StepsDir(root)
+	for _, step := range subdirs(steps) {
+		nodes := filepath.Join(steps, step, Builder.DirNodes)
+		for _, to := range subdirs(nodes) {
+			dirs = append(dirs, [2]string{filepath.Join(nodes, to), to})
 		}
 	}
 	var layers []*linkLayer

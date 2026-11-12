@@ -2,6 +2,7 @@ package Builder
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -38,21 +39,30 @@ func (m Model) linksFrom(id string) []Links.Link {
 
 
 func (m Model) StepShown() int {
-	return min(max(m.ShownStep, StepNumbers[0]), StepNumbers[len(StepNumbers)-1])
+	ns := m.stepNums()
+	if slices.Contains(ns, m.ShownStep) {
+		return m.ShownStep
+	}
+	if m.ShownStep > ns[len(ns)-1] {
+		return ns[len(ns)-1]
+	}
+	return ns[0]
 }
 
 func (m *Model) ShowStep(a Act, sign int) {
-	if sign != 0 {
-		m.ShownStep = m.StepShown() + sign
-	} else {
+	if sign == 0 {
 		m.ShownStep = a.I
+		m.ShownStep = m.StepShown()
+		return
 	}
-	m.ShownStep = m.StepShown()
+	ns := m.stepNums()
+	i := slices.Index(ns, m.StepShown())
+	m.ShownStep = ns[min(max(i+sign, 0), len(ns)-1)]
 }
 
 func stepGroup(m Model) Group {
 	row := []Cell{Text("step")}
-	for _, s := range StepNumbers {
+	for _, s := range m.stepNums() {
 		row = append(row, Button(strconv.Itoa(s), Act{Op: OpStepShow, I: s}, s == m.StepShown()))
 	}
 	row = append(row, Text("").Stepping(Act{Op: OpStepShow}, 0))

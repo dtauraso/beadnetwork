@@ -32,11 +32,11 @@ type Model struct {
 	SNote   string
 	Refused string
 
-	Step    Step
-	Steps   map[string]*Step
-	StepDir string
+	Step     Step
+	Steps    map[string]*Step
+	Root     string
+	StepNums []int
 
-	StepPicks map[StepEdge]bool
 	StepLinks map[StepEdge]*Links.Link
 	StepHeads map[int]*Step
 	StepFolds map[StepNode]bool

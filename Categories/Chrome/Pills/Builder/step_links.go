@@ -5,16 +5,9 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
-
-const DirStepClones = "clones"
-
-func stepClonesDir(stepDir string, step int) string {
-	return filepath.Join(stepDir, DirStepClones, "step-"+strconv.Itoa(step))
-}
 
 func (m Model) stepLinksFrom(step int, id string) []Links.Link {
 	var out []Links.Link
@@ -32,12 +25,13 @@ func (m *Model) SeedStepLinks() bool {
 		m.StepLinks = map[StepEdge]*Links.Link{}
 	}
 	seeded := false
-	for _, step := range StepNumbers {
+	for _, step := range m.stepNums() {
 		for _, l := range m.allLinks() {
 			k := StepEdge{step, l.From, l.To}
 			c := m.StepLinks[k]
 			if c == nil {
 				c := l
+				c.Picked = false
 				m.StepLinks[k] = &c
 				seeded = true
 				continue
@@ -52,14 +46,10 @@ func (m *Model) SeedStepLinks() bool {
 }
 
 func (m *Model) DropStepEdge(from, to string) error {
-	for _, step := range StepNumbers {
-		k := StepEdge{step, from, to}
-		if m.StepPicks[k] {
-			m.StepPicks[k] = false
-		}
-		delete(m.StepLinks, k)
-		if m.StepDir != "" {
-			if err := Links.RemoveLinksTo(filepath.Join(stepClonesDir(m.StepDir, step), to), from, to); err != nil {
+	for _, step := range m.stepNums() {
+		delete(m.StepLinks, StepEdge{step, from, to})
+		if m.Root != "" {
+			if err := Links.RemoveLinksTo(stepNodeDir(m.Root, step, to), from, to); err != nil {
 				return err
 			}
 		}
@@ -123,11 +113,9 @@ func (m Model) SNeeded() int {
 	need := 1
 	for _, l := range m.allLinks() {
 		need = Links.Lcm(need, l.Start.TicksNeeded())
-		for _, step := range StepNumbers {
-			if c := m.StepLinks[StepEdge{step, l.From, l.To}]; c != nil {
-				need = Links.Lcm(need, c.Start.TicksNeeded())
-			}
-		}
+	}
+	for _, c := range m.StepLinks {
+		need = Links.Lcm(need, c.Start.TicksNeeded())
 	}
 	return need
 }
@@ -138,8 +126,8 @@ func IsStepEdit(a Act) bool {
 
 func (m *Model) readStepLinks() {
 	m.StepLinks = map[StepEdge]*Links.Link{}
-	for _, step := range StepNumbers {
-		dir := stepClonesDir(m.StepDir, step)
+	for _, step := range m.stepNums() {
+		dir := filepath.Join(stepDir(m.Root, step), DirNodes)
 		entries, err := os.ReadDir(dir)
 		if err != nil {
 			continue
@@ -170,7 +158,7 @@ func (m Model) writeStepLinks() error {
 	}
 	for step, tos := range byTo {
 		for to, ls := range tos {
-			if err := Links.WriteBaseLinks(filepath.Join(stepClonesDir(m.StepDir, step), to), ls); err != nil {
+			if err := Links.WriteBaseLinks(stepNodeDir(m.Root, step, to), ls); err != nil {
 				return err
 			}
 		}

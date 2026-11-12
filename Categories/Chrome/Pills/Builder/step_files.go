@@ -3,12 +3,16 @@ package Builder
 import (
 	"os"
 	"path/filepath"
+	"slices"
+	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
 const (
-	DirStep         = "step"
+	DirPress        = "press"
+	DirSteps        = "steps"
+	DirNodes        = "nodes"
 	FileLockPhi     = "lock-phi.bin"
 	FileLockTheta   = "lock-theta.bin"
 	FileLockR       = "lock-r.bin"
@@ -58,7 +62,36 @@ func (s *Step) At(k string) (*int, *bool) {
 	return &s.LockAll.Phi, &s.On.Phi
 }
 
-func StepDir(nodesRoot string) string { return filepath.Join(nodesRoot, DirStep) }
+func PressDir(root string) string { return filepath.Join(root, DirPress) }
+
+func nodePressDir(root, id string) string { return filepath.Join(root, DirNodes, id, DirPress) }
+
+func StepsDir(root string) string { return filepath.Join(root, DirSteps) }
+
+func stepDir(root string, step int) string { return filepath.Join(StepsDir(root), strconv.Itoa(step)) }
+
+func stepNodeDir(root string, step int, id string) string {
+	return filepath.Join(stepDir(root, step), DirNodes, id)
+}
+
+func ReadStepNumbers(root string) []int {
+	var out []int
+	entries, _ := os.ReadDir(StepsDir(root))
+	for _, e := range entries {
+		if n, err := strconv.Atoi(e.Name()); e.IsDir() && err == nil && n > 0 { // path-resolution-ok: steps/ holds one numbered directory per step; skipping strays
+			out = append(out, n)
+		}
+	}
+	slices.Sort(out)
+	return out
+}
+
+func (m Model) stepNums() []int {
+	if len(m.StepNums) == 0 {
+		return []int{1}
+	}
+	return m.StepNums
+}
 
 func (m Model) StepOf(id string) Step {
 	if id == "" {
@@ -79,8 +112,8 @@ func (m *Model) NodeStep(id string) *Step {
 	}
 	if m.Steps[id] == nil {
 		s := Step{}
-		if m.StepDir != "" {
-			s = ReadStep(filepath.Join(m.StepDir, id))
+		if m.Root != "" {
+			s = ReadStep(nodePressDir(m.Root, id))
 		}
 		m.Steps[id] = &s
 	}
@@ -91,30 +124,23 @@ func (m *Model) ReadNodeSteps() {
 	for _, id := range m.Nodes {
 		m.NodeStep(id)
 	}
-	m.ReadStepPicks()
-	if m.StepDir != "" {
+	if m.Root != "" {
+		m.StepNums = ReadStepNumbers(m.Root)
 		m.readStepLinks()
-		for _, step := range StepNumbers {
+		for _, step := range m.stepNums() {
 			m.StepHead(step)
 		}
 	}
 }
 
 func (m Model) WriteSteps() error {
-	if err := WriteStep(m.StepDir, m.Step); err != nil {
+	if err := WriteStep(PressDir(m.Root), m.Step); err != nil {
 		return err
 	}
 	for id, s := range m.Steps {
-		dir := filepath.Join(m.StepDir, id)
-		if err := os.MkdirAll(dir, 0o755); err != nil {
+		if err := WriteStep(nodePressDir(m.Root, id), *s); err != nil {
 			return err
 		}
-		if err := WriteStep(dir, *s); err != nil {
-			return err
-		}
-	}
-	if err := m.writeStepPicks(); err != nil {
-		return err
 	}
 	if err := m.writeStepLinks(); err != nil {
 		return err
@@ -136,6 +162,9 @@ func ReadStep(dir string) Step {
 }
 
 func WriteStep(dir string, s Step) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
 	for name, v := range map[string]any{FileLockPhi: s.LockAll.Phi, FileLockTheta: s.LockAll.Theta, FileLockR: s.LockAll.R,
 		FileLockOnPhi: s.On.Phi, FileLockOnTheta: s.On.Theta, FileLockOnR: s.On.R, FileLockOnBoth: s.Both} {
 		if err := Links.WriteAtomicIfChanged(filepath.Join(dir, name), v); err != nil {
