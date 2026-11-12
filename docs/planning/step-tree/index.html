@@ -1,0 +1,426 @@
+<!doctype html>
+<!-- branch: task/step-tree -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Step Folders</title>
+<style>
+  :root {
+    --bg: #15151a; --surface: #2f2f37; --chip: #34343d; --border: #3a3a44;
+    --text: #e7e7ea; --dim: #9a9aa6; --accent: #4ea1ff; --ink: #04101f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  header { position: sticky; top: 0; z-index: 1; background: var(--bg);
+    border-bottom: 1px solid var(--border); padding: 14px 24px 0; }
+  h1 { margin: 0 0 10px; font-size: 15px; font-weight: 600; color: var(--dim); }
+  h1 b { color: var(--text); }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  nav button { font: inherit; font-weight: 600; font-size: 13px; color: var(--text);
+    background: var(--chip); border: 0; border-radius: 6px 6px 0 0; padding: 7px 14px; cursor: pointer; }
+  nav button:hover { background: #3d3d47; }
+  nav button[aria-selected="true"] { background: var(--accent); color: var(--ink); }
+  nav button span { opacity: .6; margin-right: 6px; font-weight: 400; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
+  section[hidden] { display: none; }
+  section svg { width: 100%; height: auto; display: block; margin: 0 0 20px; }
+  ul { padding-left: 20px; margin: 0 0 20px; }
+  li { margin: 4px 0; }
+  code { font: 12.5px "SF Mono", Menlo, monospace; background: var(--chip); padding: 1px 5px; border-radius: 4px; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 0 0 20px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  .open { background: var(--surface); border: 1px dashed var(--dim); border-radius: 8px; padding: 12px 16px; }
+  .open b { color: #f0a050; }
+  h2 { font-size: 14px; margin: 28px 0 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><b>Step folders</b> · one folder per step, holding everything about that step</h1>
+  <nav role="tablist">
+    <button role="tab" data-tab="now"><span>1</span>Now</button>
+    <button role="tab" data-tab="tree"><span>2</span>Proposed folders</button>
+    <button role="tab" data-tab="ops"><span>3</span>Step actions</button>
+    <button role="tab" data-tab="ui"><span>4</span>Links tab</button>
+    <button role="tab" data-tab="order"><span>5</span>Order</button>
+  </nav>
+</header>
+<main>
+
+<section id="now" role="tabpanel">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 380" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12">
+  <rect width="780" height="380" rx="10" fill="#1e1e24"/>
+  <text x="24" y="30" fill="#e7e7ea" font-size="14" font-weight="600">Today: one step is spread over three folders</text>
+  <rect x="40" y="186" width="200" height="20" rx="4" fill="#4ea1ff" fill-opacity="0.18"/>
+  <rect x="40" y="252" width="200" height="20" rx="4" fill="#4ea1ff" fill-opacity="0.18"/>
+  <rect x="40" y="296" width="200" height="20" rx="4" fill="#4ea1ff" fill-opacity="0.18"/>
+  <rect x="40" y="208" width="200" height="20" rx="4" fill="#f0a050" fill-opacity="0.15"/>
+  <rect x="40" y="318" width="200" height="20" rx="4" fill="#f0a050" fill-opacity="0.15"/>
+  <rect x="40" y="120" width="200" height="20" rx="4" fill="#ff6b6b" fill-opacity="0.18"/>
+  <g font-family="SF Mono,Menlo,monospace" font-size="12" fill="#e7e7ea">
+    <text x="28" y="66">sequences/8/</text>
+    <text x="44" y="88" fill="#9a9aa6">nodes/          the network</text>
+    <text x="44" y="110">step/</text>
+    <text x="60" y="132">1/ 2/ 3/</text>
+    <text x="60" y="154" fill="#9a9aa6">lock-*.bin</text>
+    <text x="60" y="176">heads/</text>
+    <text x="76" y="198" fill="#4ea1ff">step-1/</text>
+    <text x="76" y="220" fill="#f0a050">step-2/</text>
+    <text x="60" y="242">picks/</text>
+    <text x="76" y="264" fill="#4ea1ff">step-1/</text>
+    <text x="60" y="286">clones/</text>
+    <text x="76" y="308" fill="#4ea1ff">step-1/</text>
+    <text x="76" y="330" fill="#f0a050">step-2/</text>
+  </g>
+  <path d="M240 130 H300" stroke="#ff6b6b" stroke-width="1.5"/>
+  <rect x="300" y="112" width="200" height="38" rx="6" fill="#2f2f37" stroke="#ff6b6b"/>
+  <text x="312" y="128" fill="#ff6b6b" font-weight="600">these are NODE ids</text>
+  <text x="312" y="143" fill="#9a9aa6" font-size="11">same folder, opposite meaning</text>
+  <rect x="470" y="180" width="280" height="150" rx="8" fill="#2f2f37" stroke="#3a3a44"/>
+  <text x="486" y="204" fill="#4ea1ff" font-weight="600" font-size="13">what "step 1" is</text>
+  <rect x="486" y="216" width="248" height="28" rx="5" fill="#34343d"/>
+  <text x="498" y="234" fill="#e7e7ea">head row · locks</text>
+  <rect x="486" y="252" width="248" height="28" rx="5" fill="#34343d"/>
+  <text x="498" y="270" fill="#e7e7ea">picks · which link is on</text>
+  <rect x="486" y="288" width="248" height="28" rx="5" fill="#34343d"/>
+  <text x="498" y="306" fill="#e7e7ea">link copies · start Δ nΔ 1</text>
+  <g fill="none" stroke="#4ea1ff" stroke-width="1.5" stroke-opacity="0.8">
+    <path d="M240 196 C360 196 380 230 486 230"/>
+    <path d="M240 262 C360 262 380 266 486 266"/>
+    <path d="M240 306 C360 306 380 302 486 302"/>
+  </g>
+  <rect x="24" y="346" width="732" height="24" rx="5" fill="#34343d"/>
+  <text x="36" y="362" fill="#9a9aa6">the list of steps is in code, not on disk:</text>
+  <text x="270" y="362" fill="#f0a050" font-family="SF Mono,Menlo,monospace">var StepNumbers = []int{1, 2}</text>
+  <text x="510" y="362" fill="#9a9aa6">step 3 needs a code change</text>
+</svg>
+<ul>
+  <li>To see one step, you have to open three folders: <code>heads/step-1</code>, <code>picks/step-1</code> and <code>clones/step-1</code>.</li>
+  <li><code>step/1/</code> is node 1, while <code>heads/step-1/</code> is step 1.</li>
+  <li>A pick is stored twice: <code>picks/step-1/2To3.bin</code> and <code>picked.bin</code> in the step's link copy.</li>
+  <li>The list of steps lives in code (<code>step_picks.go:19</code>), not on disk.</li>
+</ul>
+</section>
+
+<section id="tree" role="tabpanel" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 440" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12">
+  <rect width="780" height="440" rx="10" fill="#1e1e24"/>
+  <text x="24" y="30" fill="#e7e7ea" font-size="14" font-weight="600">Proposed: a step is one folder, shaped like the network</text>
+  <rect x="20" y="46" width="740" height="380" rx="10" fill="none" stroke="#3a3a44"/>
+  <text x="34" y="66" fill="#9a9aa6" font-family="SF Mono,Menlo,monospace">sequences/8/</text>
+  <rect x="36" y="80" width="210" height="190" rx="8" fill="#2f2f37" stroke="#5cc98b"/>
+  <text x="50" y="102" fill="#5cc98b" font-weight="600">nodes/  ·  the network</text>
+  <g font-family="SF Mono,Menlo,monospace" font-size="11" fill="#e7e7ea">
+    <rect x="50" y="114" width="182" height="40" rx="5" fill="#34343d"/>
+    <text x="60" y="131">2/</text><text x="60" y="146" fill="#9a9aa6">drag/ref-*.bin</text>
+    <rect x="50" y="162" width="182" height="58" rx="5" fill="#34343d"/>
+    <text x="60" y="179">3/links/2To3/</text><text x="60" y="194" fill="#9a9aa6">start-* delta-*</text><text x="60" y="209" fill="#9a9aa6">picked.bin</text>
+  </g>
+  <text x="50" y="248" fill="#9a9aa6" font-size="11">what runs right now</text>
+  <rect x="36" y="286" width="210" height="120" rx="8" fill="none" stroke="#9a9aa6" stroke-dasharray="5 4"/>
+  <text x="50" y="308" fill="#e7e7ea" font-weight="600">press/   <tspan fill="#f0a050" font-weight="400">(name open)</tspan></text>
+  <text x="50" y="330" fill="#9a9aa6" font-size="11">network-wide step-press locks</text>
+  <text x="50" y="352" fill="#9a9aa6" font-size="11">was step/lock-*.bin</text>
+  <text x="50" y="380" fill="#9a9aa6" font-size="11">per node → nodes/&lt;id&gt;/press/</text>
+  <text x="50" y="396" fill="#9a9aa6" font-size="11">was step/&lt;id&gt;/</text>
+  <rect x="262" y="80" width="482" height="326" rx="8" fill="none" stroke="#4ea1ff"/>
+  <text x="276" y="102" fill="#4ea1ff" font-weight="600">steps/  ·  the folders ARE the list</text>
+  <rect x="276" y="114" width="220" height="280" rx="8" fill="#2f2f37" stroke="#3a3a44"/>
+  <text x="290" y="136" fill="#e7e7ea" font-weight="600" font-size="13">1/</text>
+  <text x="316" y="136" fill="#9a9aa6">"lift 3"</text>
+  <g font-family="SF Mono,Menlo,monospace" font-size="11">
+    <rect x="290" y="148" width="192" height="26" rx="5" fill="#34343d"/>
+    <text x="300" y="165" fill="#e7e7ea">name.bin</text>
+    <rect x="290" y="180" width="192" height="26" rx="5" fill="#34343d"/>
+    <text x="300" y="197" fill="#e7e7ea">lock-*.bin</text><text x="400" y="197" fill="#9a9aa6">head row</text>
+    <rect x="290" y="212" width="192" height="26" rx="5" fill="#34343d"/>
+    <text x="300" y="229" fill="#e7e7ea">nodes/2/lock-*</text><text x="420" y="229" fill="#9a9aa6">head</text>
+    <rect x="290" y="244" width="192" height="138" rx="5" fill="#34343d" stroke="#4ea1ff" stroke-opacity="0.5"/>
+    <text x="300" y="262" fill="#e7e7ea">nodes/3/links/2To3/</text>
+    <text x="310" y="282" fill="#9a9aa6">start-φ θ r s</text>
+    <text x="310" y="300" fill="#9a9aa6">delta-φ θ r s</text>
+    <text x="310" y="318" fill="#9a9aa6">increment-*</text>
+    <text x="310" y="336" fill="#9a9aa6">one-*</text>
+    <rect x="306" y="346" width="96" height="22" rx="11" fill="#4ea1ff"/>
+    <text x="318" y="361" fill="#04101f" font-weight="600">picked.bin</text>
+  </g>
+  <rect x="510" y="114" width="220" height="280" rx="8" fill="#2f2f37" stroke="#3a3a44"/>
+  <text x="524" y="136" fill="#e7e7ea" font-weight="600" font-size="13">2/</text>
+  <text x="550" y="136" fill="#9a9aa6">"drop 3"</text>
+  <g font-family="SF Mono,Menlo,monospace" font-size="11">
+    <rect x="524" y="148" width="192" height="26" rx="5" fill="#34343d"/><text x="534" y="165" fill="#e7e7ea">name.bin</text>
+    <rect x="524" y="180" width="192" height="26" rx="5" fill="#34343d"/><text x="534" y="197" fill="#e7e7ea">lock-*.bin</text>
+    <rect x="524" y="212" width="192" height="26" rx="5" fill="#34343d"/><text x="534" y="229" fill="#e7e7ea">nodes/2/lock-*</text>
+    <rect x="524" y="244" width="192" height="138" rx="5" fill="#34343d"/><text x="534" y="262" fill="#e7e7ea">nodes/3/links/2To3/</text>
+    <text x="544" y="282" fill="#9a9aa6">…same shape</text>
+  </g>
+</svg>
+<ul>
+  <li>A step holds the same <code>nodes/&lt;id&gt;/links/&lt;from&gt;To&lt;to&gt;/</code> layout as the network, so one reader loads both.</li>
+  <li><code>steps/</code> is an array indexed by folder name, the same as <code>sequences/</code> already is.</li>
+  <li>A pick is <code>picked.bin</code> in the step's link folder, and nowhere else.</li>
+</ul>
+<h2>Open question: full copy, or only what changes?</h2>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 300" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12">
+  <rect width="780" height="300" rx="10" fill="#1e1e24"/>
+  <text x="24" y="30" fill="#e7e7ea" font-size="14" font-weight="600">Does a step copy every link, or only the ones it changes?</text>
+  <text x="40" y="66" fill="#e7e7ea" font-weight="600">Full copy  <tspan fill="#9a9aa6" font-weight="400">(today)</tspan></text>
+  <g font-size="11">
+    <text x="130" y="92" fill="#9a9aa6">2→1</text><text x="230" y="92" fill="#9a9aa6">2→3</text>
+    <text x="40" y="124" fill="#5cc98b">network</text>
+    <text x="40" y="168" fill="#4ea1ff">step 1</text>
+    <text x="40" y="212" fill="#f0a050">step 2</text>
+  </g>
+  <rect x="110" y="104" width="80" height="32" rx="5" fill="#34343d" stroke="#5cc98b"/>
+  <rect x="210" y="104" width="80" height="32" rx="5" fill="#34343d" stroke="#5cc98b"/>
+  <rect x="110" y="148" width="80" height="32" rx="5" fill="#34343d" stroke="#4ea1ff"/>
+  <rect x="210" y="148" width="80" height="32" rx="5" fill="#34343d" stroke="#4ea1ff"/>
+  <rect x="110" y="192" width="80" height="32" rx="5" fill="#34343d" stroke="#f0a050"/>
+  <rect x="210" y="192" width="80" height="32" rx="5" fill="#34343d" stroke="#f0a050"/>
+  <g font-size="11" fill="#e7e7ea" font-family="SF Mono,Menlo,monospace">
+    <text x="122" y="124">θ 0+0</text><text x="222" y="124">θ 0+12</text>
+    <text x="122" y="168">θ 0+0</text><text x="222" y="168">θ 0+12</text>
+    <text x="122" y="212">θ 0+0</text><text x="222" y="212">θ 0+0</text>
+  </g>
+  <text x="40" y="256" fill="#9a9aa6" font-size="11">every step stands alone; a later edit to</text>
+  <text x="40" y="272" fill="#9a9aa6" font-size="11">the network never changes a step</text>
+  <line x1="390" y1="56" x2="390" y2="280" stroke="#3a3a44"/>
+  <text x="420" y="66" fill="#e7e7ea" font-weight="600">Only what changes</text>
+  <g font-size="11">
+    <text x="510" y="92" fill="#9a9aa6">2→1</text><text x="610" y="92" fill="#9a9aa6">2→3</text>
+    <text x="420" y="124" fill="#5cc98b">network</text>
+    <text x="420" y="168" fill="#4ea1ff">step 1</text>
+    <text x="420" y="212" fill="#f0a050">step 2</text>
+  </g>
+  <rect x="490" y="104" width="80" height="32" rx="5" fill="#34343d" stroke="#5cc98b"/>
+  <rect x="590" y="104" width="80" height="32" rx="5" fill="#34343d" stroke="#5cc98b"/>
+  <rect x="490" y="148" width="80" height="32" rx="5" fill="none" stroke="#3a3a44" stroke-dasharray="4 3"/>
+  <rect x="590" y="148" width="80" height="32" rx="5" fill="none" stroke="#3a3a44" stroke-dasharray="4 3"/>
+  <rect x="490" y="192" width="80" height="32" rx="5" fill="none" stroke="#3a3a44" stroke-dasharray="4 3"/>
+  <rect x="590" y="192" width="80" height="32" rx="5" fill="#34343d" stroke="#f0a050"/>
+  <g font-size="11" fill="#e7e7ea" font-family="SF Mono,Menlo,monospace">
+    <text x="502" y="124">θ 0+0</text><text x="602" y="124">θ 0+12</text>
+    <text x="602" y="212">θ 0+0</text>
+  </g>
+  <g fill="#9a9aa6" font-size="14">
+    <text x="524" y="170">↑</text><text x="624" y="170">↑</text><text x="524" y="214">↑</text>
+  </g>
+  <text x="420" y="256" fill="#9a9aa6" font-size="11">empty = uses the network; smaller, but a network</text>
+  <text x="420" y="272" fill="#9a9aa6" font-size="11">edit shows up in every step that didn't override it</text>
+</svg>
+</section>
+
+<section id="ops" role="tabpanel" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 400" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12">
+  <defs>
+    <marker id="a-ops" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9a9aa6"/></marker>
+  </defs>
+  <rect width="780" height="400" rx="10" fill="#1e1e24"/>
+  <text x="24" y="30" fill="#e7e7ea" font-size="14" font-weight="600">Every step action is a folder action</text>
+  <g font-size="12" fill="#e7e7ea" font-weight="600">
+    <text x="24" y="84">add / duplicate</text>
+    <text x="24" y="168">delete</text>
+    <text x="24" y="252">move</text>
+    <text x="24" y="336">name</text>
+  </g>
+  <g font-family="SF Mono,Menlo,monospace" font-size="12">
+    <rect x="140" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="153" y="84" fill="#e7e7ea">1</text>
+    <rect x="180" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="193" y="84" fill="#e7e7ea">2</text>
+    <rect x="220" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="233" y="84" fill="#e7e7ea">3</text>
+    <path d="M268 79 H306" stroke="#9a9aa6" marker-end="url(#a-ops)"/>
+    <rect x="318" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="331" y="84" fill="#e7e7ea">1</text>
+    <rect x="358" y="64" width="34" height="30" rx="5" fill="#4ea1ff"/><text x="371" y="84" fill="#04101f">2</text>
+    <rect x="398" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="411" y="84" fill="#e7e7ea">3</text>
+    <rect x="438" y="64" width="34" height="30" rx="5" fill="#34343d"/><text x="451" y="84" fill="#e7e7ea">4</text>
+    <text x="350" y="110" fill="#4ea1ff" font-size="10">copy of 1</text>
+    <text x="412" y="124" fill="#9a9aa6" font-size="10">were 2, 3</text>
+    <text x="500" y="76" fill="#9a9aa6" font-size="11">mv 3 4 ; mv 2 3</text>
+    <text x="500" y="92" fill="#9a9aa6" font-size="11">cp -r 1 2</text>
+  </g>
+  <g font-family="SF Mono,Menlo,monospace" font-size="12">
+    <rect x="140" y="148" width="34" height="30" rx="5" fill="#34343d"/><text x="153" y="168" fill="#e7e7ea">1</text>
+    <rect x="180" y="148" width="34" height="30" rx="5" fill="#34343d" stroke="#ff6b6b"/><text x="193" y="168" fill="#ff6b6b">2</text>
+    <path d="M182 150 L212 176" stroke="#ff6b6b"/>
+    <rect x="220" y="148" width="34" height="30" rx="5" fill="#34343d"/><text x="233" y="168" fill="#e7e7ea">3</text>
+    <path d="M268 163 H306" stroke="#9a9aa6" marker-end="url(#a-ops)"/>
+    <rect x="318" y="148" width="34" height="30" rx="5" fill="#34343d"/><text x="331" y="168" fill="#e7e7ea">1</text>
+    <rect x="358" y="148" width="34" height="30" rx="5" fill="#34343d"/><text x="371" y="168" fill="#e7e7ea">2</text>
+    <text x="362" y="194" fill="#9a9aa6" font-size="10">was 3</text>
+    <text x="500" y="160" fill="#9a9aa6" font-size="11">rm -r 2</text>
+    <text x="500" y="176" fill="#9a9aa6" font-size="11">mv 3 2</text>
+  </g>
+  <g font-family="SF Mono,Menlo,monospace" font-size="12">
+    <rect x="140" y="232" width="34" height="30" rx="5" fill="#34343d"/><text x="153" y="252" fill="#e7e7ea">1</text>
+    <rect x="180" y="232" width="34" height="30" rx="5" fill="#34343d"/><text x="193" y="252" fill="#e7e7ea">2</text>
+    <rect x="220" y="232" width="34" height="30" rx="5" fill="#f0a050"/><text x="233" y="252" fill="#04101f">3</text>
+    <path d="M237 230 C237 214 157 214 157 228" fill="none" stroke="#f0a050" marker-end="url(#a-ops)"/>
+    <path d="M268 247 H306" stroke="#9a9aa6" marker-end="url(#a-ops)"/>
+    <rect x="318" y="232" width="34" height="30" rx="5" fill="#f0a050"/><text x="331" y="252" fill="#04101f">1</text>
+    <rect x="358" y="232" width="34" height="30" rx="5" fill="#34343d"/><text x="371" y="252" fill="#e7e7ea">2</text>
+    <rect x="398" y="232" width="34" height="30" rx="5" fill="#34343d"/><text x="411" y="252" fill="#e7e7ea">3</text>
+    <text x="320" y="278" fill="#f0a050" font-size="10">was 3</text>
+    <text x="500" y="244" fill="#9a9aa6" font-size="11">renames, in order</text>
+    <text x="500" y="260" fill="#9a9aa6" font-size="11">(drag in the Links tab)</text>
+  </g>
+  <g font-family="SF Mono,Menlo,monospace" font-size="12">
+    <rect x="140" y="316" width="34" height="30" rx="5" fill="#34343d"/><text x="153" y="336" fill="#e7e7ea">1</text>
+    <path d="M188 331 H226" stroke="#9a9aa6" marker-end="url(#a-ops)"/>
+    <rect x="238" y="316" width="110" height="30" rx="5" fill="#34343d"/><text x="248" y="336" fill="#e7e7ea">1 · lift 3</text>
+    <text x="500" y="336" fill="#9a9aa6" font-size="11">1/name.bin</text>
+  </g>
+  <text x="24" y="382" fill="#9a9aa6" font-size="11">all paths are under sequences/8/steps/ — so Finder or a terminal can do the same while the editor is closed</text>
+</svg>
+<h2>Old path → new path (one-time migration)</h2>
+<div class="scroll"><table>
+  <tr><th>Old</th><th>New</th></tr>
+  <tr><td><code>step/clones/step-N/&lt;to&gt;/links/&lt;f&gt;To&lt;t&gt;/</code></td><td><code>steps/N/nodes/&lt;to&gt;/links/&lt;f&gt;To&lt;t&gt;/</code></td></tr>
+  <tr><td><code>step/picks/step-N/&lt;f&gt;To&lt;t&gt;.bin</code></td><td><code>steps/N/nodes/&lt;t&gt;/links/&lt;f&gt;To&lt;t&gt;/picked.bin</code></td></tr>
+  <tr><td><code>step/heads/step-N/lock-*.bin</code></td><td><code>steps/N/lock-*.bin</code></td></tr>
+  <tr><td><code>step/heads/step-N/&lt;id&gt;/lock-*.bin</code></td><td><code>steps/N/nodes/&lt;id&gt;/lock-*.bin</code></td></tr>
+  <tr><td><code>step/lock-*.bin</code></td><td><code>press/lock-*.bin</code></td></tr>
+  <tr><td><code>step/&lt;id&gt;/lock-*.bin</code></td><td><code>nodes/&lt;id&gt;/press/lock-*.bin</code></td></tr>
+</table></div>
+</section>
+
+<section id="ui" role="tabpanel" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 520" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="11">
+  <rect width="780" height="520" rx="10" fill="#1e1e24"/>
+  <rect x="24" y="24" width="430" height="472" rx="8" fill="#2f2f37" stroke="#3a3a44"/>
+  <g font-weight="600">
+    <rect x="34" y="34" width="56" height="22" rx="6" fill="#34343d"/><text x="46" y="49" fill="#e7e7ea">Frame</text>
+    <rect x="96" y="34" width="56" height="22" rx="6" fill="#34343d"/><text x="107" y="49" fill="#e7e7ea">Nodes</text>
+    <rect x="158" y="34" width="50" height="22" rx="6" fill="#4ea1ff"/><text x="170" y="49" fill="#04101f">Links</text>
+    <rect x="214" y="34" width="52" height="22" rx="6" fill="#34343d"/><text x="226" y="49" fill="#e7e7ea">Place</text>
+    <rect x="272" y="34" width="46" height="22" rx="6" fill="#34343d"/><text x="284" y="49" fill="#e7e7ea">Tree</text>
+  </g>
+  <rect x="34" y="66" width="410" height="24" rx="4" fill="#34343d"/>
+  <text x="44" y="82" fill="#9a9aa6">sequence 8  ›  <tspan fill="#e7e7ea">step 1 · lift 3</tspan>  ›  <tspan fill="#4ea1ff" font-weight="600">2→3</tspan></text>
+  <text x="40" y="114" fill="#5cc98b" font-weight="600">▸  network</text>
+  <text x="104" y="114" fill="#9a9aa6">what runs now · folds like a step</text>
+  <rect x="34" y="124" width="410" height="24" rx="4" fill="rgba(255,255,255,0.05)"/>
+  <text x="40" y="140" fill="#e7e7ea" font-weight="600">▾  step 1</text>
+  <text x="104" y="140" fill="#9a9aa6">lift 3</text>
+  <rect x="356" y="128" width="20" height="16" rx="4" fill="#34343d"/><text x="362" y="140" fill="#e7e7ea">+</text>
+  <rect x="380" y="128" width="20" height="16" rx="4" fill="#34343d"/><text x="385" y="140" fill="#e7e7ea">⧉</text>
+  <rect x="404" y="128" width="20" height="16" rx="4" fill="#34343d"/><text x="410" y="140" fill="#ff6b6b">×</text>
+  <text x="60" y="166" fill="#9a9aa6" font-size="9.5" letter-spacing="0.05em">HEAD</text>
+  <g font-family="SF Mono,Menlo,monospace">
+    <rect x="110" y="155" width="44" height="18" rx="4" fill="#4ea1ff"/><text x="118" y="168" fill="#04101f">φ ↑</text>
+    <rect x="160" y="155" width="44" height="18" rx="4" fill="#34343d"/><text x="168" y="168" fill="#e7e7ea">θ ·</text>
+    <rect x="210" y="155" width="44" height="18" rx="4" fill="#34343d"/><text x="218" y="168" fill="#e7e7ea">r ·</text>
+  </g>
+  <text x="60" y="194" fill="#e7e7ea">▸  node 2</text>
+  <text x="60" y="218" fill="#e7e7ea">▾  node 3</text>
+  <rect x="74" y="228" width="370" height="24" rx="4" fill="rgba(78,161,255,0.15)" stroke="#4ea1ff" stroke-opacity="0.6"/>
+  <circle cx="90" cy="240" r="4" fill="#4ea1ff"/>
+  <text x="102" y="244" fill="#e7e7ea" font-weight="600">2→3</text>
+  <text x="140" y="244" fill="#9a9aa6">θ 0 + 12 → tick 12</text>
+  <rect x="88" y="260" width="342" height="104" rx="6" fill="#34343d"/>
+  <g font-size="9.5" fill="#9a9aa6" letter-spacing="0.05em">
+    <text x="140" y="278">START</text><text x="210" y="278">Δ</text><text x="270" y="278">nΔ</text><text x="330" y="278">1</text>
+  </g>
+  <g font-family="SF Mono,Menlo,monospace" fill="#e7e7ea">
+    <text x="100" y="300" fill="#9a9aa6">φ</text><text x="140" y="300">1</text><text x="210" y="300">2</text><text x="270" y="300">1</text><text x="330" y="300">0</text>
+    <rect x="132" y="308" width="56" height="20" rx="4" fill="#2f2f37" stroke="#4ea1ff"/>
+    <text x="100" y="322" fill="#9a9aa6">θ</text><text x="140" y="322">0</text><text x="210" y="322">12</text><text x="270" y="322">1</text><text x="330" y="322">0</text>
+    <text x="100" y="344" fill="#9a9aa6">r</text><text x="140" y="344">2</text><text x="210" y="344">0</text><text x="270" y="344">1</text><text x="330" y="344">0</text>
+  </g>
+  <text x="94" y="384" fill="#9a9aa6">○  2→1</text>
+  <rect x="34" y="396" width="410" height="24" rx="4" fill="rgba(255,255,255,0.05)"/>
+  <text x="40" y="412" fill="#e7e7ea" font-weight="600">▸  step 2</text>
+  <text x="104" y="412" fill="#9a9aa6">drop 3</text>
+  <rect x="356" y="400" width="20" height="16" rx="4" fill="#34343d"/><text x="362" y="412" fill="#e7e7ea">+</text>
+  <rect x="380" y="400" width="20" height="16" rx="4" fill="#34343d"/><text x="385" y="412" fill="#e7e7ea">⧉</text>
+  <rect x="404" y="400" width="20" height="16" rx="4" fill="#34343d"/><text x="410" y="412" fill="#ff6b6b">×</text>
+  <text x="40" y="446" fill="#4ea1ff">+  add step</text>
+  <text x="40" y="476" fill="#9a9aa6" font-size="10">drag a step row to reorder</text>
+  <g font-size="11.5" fill="#e7e7ea">
+    <path d="M444 78 H500" stroke="#9a9aa6"/>
+    <text x="508" y="74" font-weight="600">breadcrumb</text>
+    <text x="508" y="90" fill="#9a9aa6">which copy of 2→3 you're editing:</text>
+    <text x="508" y="104" fill="#9a9aa6">network, step 1 or step 2</text>
+    <path d="M424 136 H500" stroke="#9a9aa6"/>
+    <text x="508" y="132" font-weight="600">+  ⧉  ×</text>
+    <text x="508" y="148" fill="#9a9aa6">add after · duplicate · delete</text>
+    <text x="508" y="162" fill="#9a9aa6">= cp -r / rm -r on steps/N</text>
+    <path d="M444 240 H500" stroke="#9a9aa6"/>
+    <text x="508" y="236" font-weight="600">● picked  ○ not picked</text>
+    <text x="508" y="252" fill="#9a9aa6">one picked.bin per link, nothing else</text>
+    <path d="M430 318 H500" stroke="#9a9aa6"/>
+    <text x="508" y="314" font-weight="600">the step's own card</text>
+    <text x="508" y="330" fill="#9a9aa6">exactly what the network gets</text>
+    <text x="508" y="344" fill="#9a9aa6">on a press; start in plain ticks</text>
+    <text x="508" y="358" fill="#9a9aa6">so θ 0 + 12 reads as tick 12</text>
+  </g>
+</svg>
+</section>
+
+<section id="order" role="tabpanel" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 200" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12">
+  <defs>
+    <marker id="a-order" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9a9aa6"/></marker>
+  </defs>
+  <rect width="780" height="200" rx="10" fill="#1e1e24"/>
+  <text x="24" y="30" fill="#e7e7ea" font-size="14" font-weight="600">Order: each change on its own, checked in the editor</text>
+  <rect x="24" y="52" width="164" height="120" rx="8" fill="#2f2f37" stroke="#4ea1ff"/>
+  <text x="38" y="76" fill="#4ea1ff" font-weight="600">1 · move paths</text>
+  <text x="38" y="98" fill="#e7e7ea" font-size="11">migrate script +</text>
+  <text x="38" y="114" fill="#e7e7ea" font-size="11">5 Builder files</text>
+  <text x="38" y="144" fill="#9a9aa6" font-size="11">check: nothing on</text>
+  <text x="38" y="158" fill="#9a9aa6" font-size="11">screen changes</text>
+  <path d="M192 112 H210" stroke="#9a9aa6" marker-end="url(#a-order)"/>
+  <rect x="214" y="52" width="164" height="120" rx="8" fill="#2f2f37" stroke="#3a3a44"/>
+  <text x="228" y="76" fill="#e7e7ea" font-weight="600">2 · one pick store</text>
+  <text x="228" y="98" fill="#e7e7ea" font-size="11">drop picks/,</text>
+  <text x="228" y="114" fill="#e7e7ea" font-size="11">read picked.bin</text>
+  <text x="228" y="144" fill="#9a9aa6" font-size="11">check: ● / ○ same</text>
+  <text x="228" y="158" fill="#9a9aa6" font-size="11">as before</text>
+  <path d="M382 112 H400" stroke="#9a9aa6" marker-end="url(#a-order)"/>
+  <rect x="404" y="52" width="164" height="120" rx="8" fill="#2f2f37" stroke="#3a3a44"/>
+  <text x="418" y="76" fill="#e7e7ea" font-weight="600">3 · steps from disk</text>
+  <text x="418" y="98" fill="#e7e7ea" font-size="11">delete StepNumbers</text>
+  <text x="418" y="144" fill="#9a9aa6" font-size="11">check: mkdir steps/3</text>
+  <text x="418" y="158" fill="#9a9aa6" font-size="11">shows a step 3</text>
+  <path d="M572 112 H590" stroke="#9a9aa6" marker-end="url(#a-order)"/>
+  <rect x="594" y="52" width="164" height="120" rx="8" fill="none" stroke="#9a9aa6" stroke-dasharray="5 4"/>
+  <text x="608" y="76" fill="#e7e7ea" font-weight="600">4 · + ⧉ × buttons</text>
+  <text x="608" y="98" fill="#e7e7ea" font-size="11">breadcrumb, drag</text>
+  <text x="608" y="114" fill="#e7e7ea" font-size="11">to reorder</text>
+  <text x="608" y="144" fill="#9a9aa6" font-size="11">optional — only if</text>
+  <text x="608" y="158" fill="#9a9aa6" font-size="11">you want it</text>
+</svg>
+<div class="scroll"><table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>Builder/step_picks.go</code></td><td>the step list is read from <code>steps/</code>; picks are <code>picked.bin</code></td></tr>
+  <tr><td><code>Builder/step_links.go</code></td><td><code>steps/N/nodes</code></td></tr>
+  <tr><td><code>Builder/step_heads.go</code></td><td><code>steps/N</code></td></tr>
+  <tr><td><code>Builder/step_files.go</code></td><td><code>press/</code>, <code>nodes/&lt;id&gt;/press/</code></td></tr>
+  <tr><td><code>Builder/pill_links.go</code></td><td>loops over the steps read from disk</td></tr>
+  <tr><td><code>Scene/Startup/fit_s.go:66</code></td><td>reads <code>steps/*/nodes</code></td></tr>
+  <tr><td>new <code>scripts/migrate-steps/</code></td><td>one-time migration</td></tr>
+</table></div>
+<div class="open"><b>Open:</b> the name <code>press/</code> · full copy or only what changes (tab 2) · folders for sequences</div>
+</section>
+
+</main>
+<script>
+  const tabs = [...document.querySelectorAll('[role=tab]')];
+  function show(id) {
+    if (!document.getElementById(id)) id = 'now';
+    tabs.forEach(t => t.setAttribute('aria-selected', t.dataset.tab === id));
+    document.querySelectorAll('[role=tabpanel]').forEach(p => p.hidden = p.id !== id);
+    history.replaceState(null, '', '#' + id);
+  }
+  tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.tab)));
+  document.addEventListener('keydown', e => {
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= tabs.length) show(tabs[n - 1].dataset.tab);
+  });
+  show(location.hash.slice(1));
+</script>
+</body>
+</html>
