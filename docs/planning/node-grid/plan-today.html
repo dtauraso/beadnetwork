@@ -1,0 +1,64 @@
+<!doctype html>
+<!-- branch: task/node-grid-data -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Node Grid Plan</title>
+<link rel="stylesheet" href="plan.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ar" d="M0,0 L10,5 L0,10 z"/></marker>
+</defs></svg>
+<header>
+  <h1><b>Node grid</b> · each node's data lives in its grid; everything reads the grids</h1>
+  <nav>
+    <a href="plan.html">1 · Model</a><a href="plan-today.html" class="on">2 · Today → after</a><a href="plan-grid.html">3 · The grid</a>
+    <a href="plan-who.html">4 · Edit and read</a><a href="plan-order.html">5 · Order</a><a href="plan-open.html">6 · Open questions</a>
+  </nav>
+</header>
+<main>
+<div class="key">
+  <span><i style="background:#1c2433;border-color:#5b7bb5"></i>a node's grid</span>
+  <span><i style="background:#1f2a22;border-color:#5f9a6c"></i>reads a grid</span>
+  <span><i style="background:#2a1f22;border-color:#9a5f66"></i>goes away</span>
+  <span style="color:#cfe0fa">━ reads</span>
+</div>
+<svg viewBox="0 0 900 470">
+  <text class="h" x="20" y="24">today: the same values in 9 places</text>
+  <g>
+    <rect class="old" x="20" y="44" width="300" height="34" rx="6"/><text class="m" x="30" y="66">nodes/&lt;id&gt;/links/1To2/*.bin</text>
+    <rect class="old" x="20" y="86" width="300" height="34" rx="6"/><text class="m" x="30" y="108">nodes/&lt;id&gt;/drag/links/1To2/*.bin</text>
+    <rect class="old" x="20" y="128" width="300" height="34" rx="6"/><text class="m" x="30" y="150">steps/&lt;n&gt;/nodes/&lt;id&gt;/links/…</text>
+    <rect class="old" x="20" y="170" width="300" height="34" rx="6"/><text class="m" x="30" y="192">nodes/&lt;id&gt;/drag · base  (place, ref)</text>
+    <rect class="old" x="20" y="212" width="300" height="34" rx="6"/><text class="m" x="30" y="234">Builder.StepLinks  (memory)</text>
+    <rect class="old" x="20" y="254" width="300" height="34" rx="6"/><text class="m" x="30" y="276">Builder.Reports  (memory)</text>
+    <rect class="old" x="20" y="296" width="300" height="34" rx="6"/><text class="m" x="30" y="318">view/nodes/&lt;row&gt;/node.bin  positions</text>
+    <rect class="old" x="20" y="338" width="300" height="34" rx="6"/><text class="m" x="30" y="360">view/edges/&lt;n&gt;/edge.bin  sx…ez</text>
+    <rect class="old" x="20" y="380" width="300" height="34" rx="6" stroke-dasharray="4 3"/><text class="m" x="30" y="402">angle sums: not stored, DirFrom each draw</text>
+  </g>
+  <rect class="read" x="380" y="80" width="150" height="40" rx="6"/><text class="t" x="455" y="105" text-anchor="middle">Links tab</text>
+  <rect class="read" x="380" y="170" width="150" height="40" rx="6"/><text class="t" x="455" y="195" text-anchor="middle">Node grid tab</text>
+  <rect class="read" x="380" y="260" width="150" height="40" rx="6"/><text class="t" x="455" y="285" text-anchor="middle">Tree tab</text>
+  <rect class="read" x="380" y="350" width="150" height="40" rx="6"/><text class="t" x="455" y="375" text-anchor="middle">diagram</text>
+  <g class="x">
+    <path d="M320,145 L380,100"/><path d="M320,229 L380,104"/><path d="M320,271 L380,108"/>
+    <path d="M320,229 L380,186"/><path d="M320,397 L380,194"/>
+    <path d="M320,271 L380,280"/><path d="M320,397 L380,286"/>
+    <path d="M320,313 L380,366"/><path d="M320,355 L380,374"/>
+  </g>
+  <line x1="590" y1="40" x2="590" y2="440" stroke="var(--line)"/>
+  <text class="h" x="620" y="24">after: one place per node</text>
+  <rect class="grid" x="620" y="140" width="110" height="34" rx="6"/><text class="m" x="632" y="162">node 1 grid</text>
+  <rect class="grid" x="620" y="200" width="110" height="34" rx="6"/><text class="m" x="632" y="222">node 2 grid</text>
+  <rect class="grid" x="620" y="260" width="110" height="34" rx="6"/><text class="m" x="632" y="282">node 3 grid</text>
+  <rect class="read" x="770" y="80" width="120" height="36" rx="6"/><text class="t" x="830" y="103" text-anchor="middle">Links tab</text>
+  <rect class="read" x="770" y="160" width="120" height="36" rx="6"/><text class="t" x="830" y="183" text-anchor="middle">Node grid tab</text>
+  <rect class="read" x="770" y="240" width="120" height="36" rx="6"/><text class="t" x="830" y="263" text-anchor="middle">Tree tab</text>
+  <rect class="read" x="770" y="320" width="120" height="36" rx="6"/><text class="t" x="830" y="343" text-anchor="middle">diagram</text>
+  <g class="a"><path d="M730,200 L766,100"/><path d="M730,212 L766,178"/><path d="M730,222 L766,256"/><path d="M730,232 L766,336"/></g>
+</svg>
+</main>
+</body>
+</html>

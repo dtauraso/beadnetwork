@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- branch: task/node-grid-data -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Node Grid Plan</title>
+<link rel="stylesheet" href="plan.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ar" d="M0,0 L10,5 L0,10 z"/></marker>
+  <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="aw" d="M0,0 L10,5 L0,10 z"/></marker>
+</defs></svg>
+<header>
+  <h1><b>Node grid</b> · each node's data lives in its grid; everything reads the grids</h1>
+  <nav>
+    <a href="plan.html">1 · Model</a><a href="plan-today.html">2 · Today → after</a><a href="plan-grid.html">3 · The grid</a>
+    <a href="plan-who.html">4 · Edit and read</a><a href="plan-order.html" class="on">5 · Order</a><a href="plan-open.html">6 · Open questions</a>
+  </nav>
+</header>
+<main>
+<svg viewBox="0 0 900 420">
+  <line x1="60" y1="60" x2="60" y2="380" stroke="var(--line)" stroke-width="2"/>
+  <circle cx="60" cy="60" r="14" class="grid"/><text class="t" x="60" y="65" text-anchor="middle">1</text>
+  <text class="h" x="90" y="58">grid.bin per node</text><text class="d" x="90" y="76">check: dump matches Tree + Node grid tab</text>
+  <rect class="grid" x="560" y="42" width="60" height="30" rx="4"/>
+  <circle cx="60" cy="124" r="14" class="grid"/><text class="t" x="60" y="129" text-anchor="middle">2</text>
+  <text class="h" x="90" y="122">Node grid tab reads grids</text><text class="d" x="90" y="140">check: same numbers + out-links + positions</text>
+  <rect class="grid" x="560" y="106" width="60" height="30" rx="4"/><path class="a" d="M620,121 L676,121"/><rect class="read" x="680" y="106" width="80" height="30" rx="4"/>
+  <circle cx="60" cy="188" r="14" class="grid"/><text class="t" x="60" y="193" text-anchor="middle">3</text>
+  <text class="h" x="90" y="186">edits write grids</text><text class="d" x="90" y="204">check: change a start → sum + edge move</text>
+  <rect class="box" x="480" y="170" width="60" height="30" rx="4"/><path class="w" d="M540,185 L556,185"/><rect class="grid" x="560" y="170" width="60" height="30" rx="4"/>
+  <circle cx="60" cy="252" r="14" class="grid"/><text class="t" x="60" y="257" text-anchor="middle">4</text>
+  <text class="h" x="90" y="250">Links + Tree tabs read grids</text><text class="d" x="90" y="268">StepLinks · stepLinksTo · DirFrom deleted</text>
+  <rect class="grid" x="560" y="234" width="60" height="30" rx="4"/><path class="a" d="M620,249 L676,249"/><rect class="read" x="680" y="234" width="80" height="30" rx="4"/><rect class="old" x="780" y="234" width="80" height="30" rx="4"/><path class="x" d="M780,234 L860,264"/>
+  <circle cx="60" cy="316" r="14" class="grid"/><text class="t" x="60" y="321" text-anchor="middle">5</text>
+  <text class="h" x="90" y="314">diagram reads grids</text><text class="d" x="90" y="332">check: drag + step through, diagram = grid</text>
+  <rect class="grid" x="560" y="298" width="60" height="30" rx="4"/><path class="a" d="M620,313 L676,313"/><rect class="read" x="680" y="298" width="80" height="30" rx="4"/>
+  <circle cx="60" cy="380" r="14" class="grid"/><text class="t" x="60" y="385" text-anchor="middle">6</text>
+  <text class="h" x="90" y="378">old files converted, deleted</text><text class="d" x="90" y="396">check: topology-pair-phi-theta-3 opens as before</text>
+  <rect class="old" x="560" y="362" width="60" height="30" rx="4"/><path class="x" d="M560,362 L620,392"/><path class="w" d="M620,377 L676,377"/><rect class="grid" x="680" y="362" width="80" height="30" rx="4"/>
+</svg>
+<p>Each step is checked in the editor before the next. When it lands: a line in MODEL.md, and this plan is deleted.</p>
+</main>
+</body>
+</html>

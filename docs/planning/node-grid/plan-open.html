@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- branch: task/node-grid-data -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Node Grid Plan</title>
+<link rel="stylesheet" href="plan.css">
+</head>
+<body>
+<header>
+  <h1><b>Node grid</b> · each node's data lives in its grid; everything reads the grids</h1>
+  <nav>
+    <a href="plan.html">1 · Model</a><a href="plan-today.html">2 · Today → after</a><a href="plan-grid.html">3 · The grid</a>
+    <a href="plan-who.html">4 · Edit and read</a><a href="plan-order.html">5 · Order</a><a href="plan-open.html" class="on">6 · Open questions</a>
+  </nav>
+</header>
+<main>
+<svg viewBox="0 0 900 160">
+  <text class="h" x="20" y="28">1 · beads</text>
+  <rect class="q" x="20" y="44" width="260" height="90" rx="8"/>
+  <text class="d" x="34" y="66">per frame, not per step</text>
+  <rect class="grid" x="34" y="80" width="100" height="40" rx="5"/><text class="t" x="84" y="105" text-anchor="middle">grid?</text>
+  <rect class="box" x="164" y="80" width="100" height="40" rx="5"/><text class="m" x="214" y="105" text-anchor="middle">beads.bin?</text>
+  <text class="h" x="320" y="28">2 · drag</text>
+  <rect class="q" x="320" y="44" width="260" height="90" rx="8"/>
+  <text class="d" x="334" y="66">a drag writes into…</text>
+  <rect class="grid" x="334" y="80" width="100" height="40" rx="5"/><text class="t" x="384" y="99" text-anchor="middle">shown step</text><text class="d" x="384" y="114" text-anchor="middle">column?</text>
+  <rect class="grid" x="464" y="80" width="100" height="40" rx="5" stroke-dasharray="4 3"/><text class="t" x="514" y="99" text-anchor="middle">a live</text><text class="d" x="514" y="114" text-anchor="middle">column?</text>
+  <text class="h" x="620" y="28">3 · other drawn values</text>
+  <rect class="q" x="620" y="44" width="260" height="90" rx="8"/>
+  <text class="d" x="634" y="66">selection · hover · label anchors</text>
+  <rect class="grid" x="634" y="80" width="100" height="40" rx="5"/><text class="t" x="684" y="105" text-anchor="middle">grid?</text>
+  <rect class="box" x="764" y="80" width="100" height="40" rx="5"/><text class="m" x="814" y="105" text-anchor="middle">node.bin?</text>
+</svg>
+</main>
+</body>
+</html>
