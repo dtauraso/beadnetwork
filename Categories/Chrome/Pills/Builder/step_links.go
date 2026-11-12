@@ -67,24 +67,6 @@ func (m *Model) DropStepEdge(from, to string) error {
 	return nil
 }
 
-func (m Model) StepDeltas(step int) map[StepEdge]Links.Ints {
-	out := map[StepEdge]Links.Ints{}
-	for e, l := range m.StepLinks {
-		if e.Step == step {
-			out[e] = l.Delta
-		}
-	}
-	return out
-}
-
-func (m Model) TurnFromDrawn(e StepEdge, was Links.Ints) (Links.Start, bool) {
-	live, ok := m.Link(e.From, e.To)
-	if !ok {
-		return Links.Start{}, false
-	}
-	drawn := live.Dir()
-	return Links.Start{Phi: Links.Wrap(1, drawn.Phi-float64(was.Phi)), Theta: Links.Wrap(1, drawn.Theta-float64(was.Theta)), R: drawn.R - float64(was.R), S: live.Start.S, One: live.Start.One}.Pulled(), true
-}
 
 func (m *Model) StepEdit(a Act, sign int, typed *float64) string {
 	l := m.StepLinks[StepEdge{a.I, a.Node, a.To}]
