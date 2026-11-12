@@ -50,6 +50,7 @@ type Model struct {
 	NetworkOpen bool
 	Touched     StepEdge
 	DragStep    int
+	FoldersOpen map[string]bool
 
 	Cards    Cards
 	CardsDir string

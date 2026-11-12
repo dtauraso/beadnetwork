@@ -86,14 +86,18 @@ func TreePill(m Model) Pill {
 	groups := []Group{
 		box(0, "builder", kv("s", n3(float64(m.S)), false), kv("ρ", n3(f.Rho), false), kv("T_φ", n3(float64(f.Tphi)), false),
 			kv("T_θ", n3(float64(f.Ttheta)), false), kv("c_r", n3(f.Cr), false), kv("sequences", names(seqNames), false), kv("open", open, true)),
-		box(1, open, kv("steps", "1", false)),
-		box(2, "step 1", kv("cards", "method cards", true), kv("edges", names(linkNames(all)), true), kv("nodes", names(m.Nodes), true),
-			kv("picked", names(linkNames(m.Picked())), true), notStored(), kv("recalculated", names(linkNames(recalc)), true)),
-		box(3, "method cards", kv("item", m.Item(), true), kv("methods", names(methods), false), kv("card step", strconv.Itoa(m.CardShown()), false)),
 	}
+	if m.Root != "" {
+		groups = append(groups, folderGroups(m, ".", 1)...)
+	}
+	groups = append(groups,
+		box(1, "what runs now", kv("edges", names(linkNames(all)), true), kv("nodes", names(m.Nodes), true),
+			kv("picked", names(linkNames(m.Picked())), true), notStored(), kv("recalculated", names(linkNames(recalc)), true)),
+		box(2, "method cards", kv("item", m.Item(), true), kv("methods", names(methods), false), kv("card step", strconv.Itoa(m.CardShown()), false)),
+	)
 	for _, l := range all {
 		d := l.DirFrom(m.Frame, m.RefOf(l.From))
-		groups = append(groups, box(3, "edge "+l.Name(), kv("from", l.From, true), kv("to", l.To, true),
+		groups = append(groups, box(2, "edge "+l.Name(), kv("from", l.From, true), kv("to", l.To, true),
 			kv("start", ang(l.Start.Phi, l.Start.Theta, &l.Start.R), false), kv("Δ", ticks(l.Delta), false),
 			kv("increment", ticks(l.Increment), false), kv("lock", lockText(l.Lock), false),
 			notStored(), kv("start + Δ", ang(d.Phi, d.Theta, &d.R), false)))
@@ -110,7 +114,7 @@ func TreePill(m Model) Pill {
 			}
 		}
 		c := f.At(r.At)
-		groups = append(groups, box(4, "node "+id,
+		groups = append(groups, box(2, "node "+id,
 			kv("at on O's grid", "r "+n3(r.At.R)+" | φ "+n3(r.At.Phi)+" | θ "+n3(r.At.Theta), false),
 			kv("out", names(out), true), kv("in", names(in), true),
 			kv("all lock", lockText(m.StepOf(id).Locks()), false), notStored(),
