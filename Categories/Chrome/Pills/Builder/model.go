@@ -51,6 +51,7 @@ type Model struct {
 	Touched     StepEdge
 	DragStep    int
 	FoldersOpen map[string]bool
+	Cwd         string
 
 	Cards    Cards
 	CardsDir string
