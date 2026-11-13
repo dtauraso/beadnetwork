@@ -17,9 +17,9 @@ type Changes struct {
 type Peer struct {
 	ID    string
 	S     int
-	At    Place
+	At    *Place
 	Frame Frame
-	Ref   Ref
+	Ref   *Ref
 
 	refs      map[string]Turn
 	own       map[string]*Link
@@ -50,13 +50,17 @@ type Seed struct {
 }
 
 func NewPeer(id string, seed Seed) *Peer {
-	p := &Peer{ID: id, S: ShownS(seed.S), At: seed.Places[id], Frame: seed.Frame, placed: true,
+	at, ref := seed.Places[id], seed.Refs[id]
+	p := &Peer{ID: id, S: ShownS(seed.S), At: &at, Ref: &ref, Frame: seed.Frame, placed: true,
 		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}}
 	maps.Copy(p.places, seed.Places)
-	p.Ref, p.refs = seed.Refs[id], map[string]Turn{}
+	delete(p.places, id)
+	p.refs = map[string]Turn{}
 	p.Ref.S = p.S
 	for n, r := range seed.Refs {
-		p.refs[n] = RefTurn(r)
+		if n != id {
+			p.refs[n] = RefTurn(r)
+		}
 	}
 	for _, l := range seed.Links {
 		switch {
@@ -84,9 +88,14 @@ func (p *Peer) Links() []Link {
 	return out
 }
 
-func (p *Peer) Pos() Vec3 { return p.Frame.At(p.At) }
+func (p *Peer) Pos() Vec3 { return p.Frame.At(*p.At) }
 
-func (p *Peer) posOf(id string) Vec3 { return p.Frame.At(p.places[id]) }
+func (p *Peer) posOf(id string) Vec3 {
+	if id == p.ID {
+		return p.Pos()
+	}
+	return p.Frame.At(p.places[id])
+}
 
 func (p *Peer) Offset(id string) Vec3 { return p.posOf(id).Sub(p.Pos()) }
 

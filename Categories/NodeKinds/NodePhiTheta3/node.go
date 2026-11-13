@@ -91,7 +91,7 @@ func (n *NodePhiTheta3) take(ctx context.Context, msg any) bool {
 			picked += l.From + "→" + l.To + " "
 		}
 	}
-	n.breadcrumb("msg", fmt.Sprintf("%T %+v | at=%+v picked=[%s] sent=%d", msg, msg, n.peer.At, picked, len(out)))
+	n.breadcrumb("msg", fmt.Sprintf("%T %+v | at=%+v picked=[%s] sent=%d", msg, msg, *n.peer.At, picked, len(out)))
 	return true
 }
 
@@ -101,7 +101,7 @@ func (n *NodePhiTheta3) apply() {
 	if root == "" {
 		c = Links.Changes{Place: c.Place, S: c.S, Refused: c.Refused}
 		if c.Place {
-			n.geom.KindPosts().PostPlace(n.peer.At)
+			n.geom.KindPosts().PostPlace(*n.peer.At)
 		}
 		if c.S {
 			n.postTicks()
@@ -110,11 +110,11 @@ func (n *NodePhiTheta3) apply() {
 		return
 	}
 	if c.Place {
-		if err := NodeCat.WritePlace(root, id, n.peer.At); err != nil {
+		if err := NodeCat.WritePlace(root, id, *n.peer.At); err != nil {
 			n.breadcrumb("place-persist", err.Error())
 		}
-		n.geom.KindPosts().PostPlace(n.peer.At)
-		n.breadcrumb("sat", fmt.Sprintf("at=%+v", n.peer.At))
+		n.geom.KindPosts().PostPlace(*n.peer.At)
+		n.breadcrumb("sat", fmt.Sprintf("at=%+v", *n.peer.At))
 	}
 	if c.S {
 		n.postTicks()
@@ -162,6 +162,6 @@ var Builder = BuilderFor("NodePhiTheta3",
 		}
 		n.peer = Links.NewPeer(a.Name, seed)
 		n.tickMs = max(seed.TickMs, 1)
-		n.breadcrumb("built", fmt.Sprintf("node=%s s=%d at=%+v links=%d", a.Name, n.peer.S, n.peer.At, len(n.peer.Links())))
+		n.breadcrumb("built", fmt.Sprintf("node=%s s=%d at=%+v links=%d", a.Name, n.peer.S, *n.peer.At, len(n.peer.Links())))
 		return n, nil
 	})

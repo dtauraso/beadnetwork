@@ -49,7 +49,7 @@ func (p *Peer) remap(steps, from []int) {
 			cols = append(cols, nc)
 			continue
 		}
-		cols = append(cols, freshCol(n, p.Links(), p.At, p.Ref))
+		cols = append(cols, freshCol(n, p.Links(), *p.At, *p.Ref))
 	}
 	p.grid.Cols = cols
 	p.sent = map[sentKey]OutLink{}

@@ -84,5 +84,5 @@ func (p *Peer) connect(m Connect) []Envelope {
 	}
 	p.order = append(p.order, m.From)
 	p.touched(m.From)
-	return []Envelope{{To: m.From, Msg: Linked{From: p.ID, At: p.At}}}
+	return []Envelope{{To: m.From, Msg: Linked{From: p.ID, At: *p.At}}}
 }

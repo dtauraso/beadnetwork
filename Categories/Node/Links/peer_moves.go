@@ -83,18 +83,17 @@ func (p *Peer) recover(m Put) []Envelope {
 		return nil
 	}
 	p.placed = true
-	p.At = p.Frame.GridAt(m.P.Add(p.vecOf(l)))
+	*p.At = p.Frame.GridAt(m.P.Add(p.vecOf(l)))
 	p.point = p.Pos()
 	return append(p.sat("", true), p.tell()...)
 }
 
 func (p *Peer) take(l *Link) []Envelope {
-	p.At = p.Frame.GridAt(p.posOf(l.From).Add(p.vecOf(l)))
+	*p.At = p.Frame.GridAt(p.posOf(l.From).Add(p.vecOf(l)))
 	return p.sat(l.From, false)
 }
 
 func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
-	p.places[p.ID] = p.At
 	p.Changed.Place = true
 	for _, from := range p.order {
 		l := p.own[from]
@@ -110,7 +109,7 @@ func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
 func (p *Peer) movedTo(keepPicked bool) []Envelope {
 	var out []Envelope
 	for _, id := range p.neighbours() {
-		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: p.At, KeepPicked: keepPicked, Round: p.round}})
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: *p.At, KeepPicked: keepPicked, Round: p.round}})
 	}
 	return out
 }

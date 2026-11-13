@@ -87,7 +87,7 @@ func collect(seed Links.Seed, ids []string, peers map[string]*Links.Peer) (Links
 			refused = append(refused, c.Refused)
 		}
 		if _, had := seed.Places[id]; had || c.Place {
-			after.Places[id] = p.At
+			after.Places[id] = *p.At
 		}
 		after.S = p.S
 	}
