@@ -85,14 +85,20 @@ func pickMark(on bool) string {
 
 func pressSummary(l Links.Link) string {
 	var parts []string
-	if l.Delta.Phi != 0 {
-		parts = append(parts, "φ "+strconv.Itoa(l.Start.Tick.Phi)+" + "+strconv.Itoa(l.Delta.Phi)+" → tick "+strconv.Itoa(l.Start.Tick.Phi+l.Delta.Phi))
+	term := func(k string, start, total, d int, end string) {
+		if total != 0 || d != 0 {
+			s := k + " " + strconv.Itoa(start)
+			if total != 0 {
+				s += " + total " + strconv.Itoa(total)
+			}
+			parts = append(parts, s+" + "+strconv.Itoa(d)+" → "+end)
+		}
 	}
-	if l.Delta.Theta != 0 {
-		parts = append(parts, "θ "+strconv.Itoa(l.Start.Tick.Theta)+" + "+strconv.Itoa(l.Delta.Theta)+" → tick "+strconv.Itoa(l.Start.Tick.Theta+l.Delta.Theta))
-	}
-	if l.Delta.R != 0 {
-		parts = append(parts, "r "+tenths(l.Start.R)+" + "+strconv.Itoa(l.Delta.R)+" → "+tenths(l.Start.R+float64(l.Delta.R)))
+	sum := l.Sum()
+	term("φ", l.Start.Tick.Phi, l.Total.Phi, l.Delta.Phi, "tick "+strconv.Itoa(l.Start.Tick.Phi+sum.Phi))
+	term("θ", l.Start.Tick.Theta, l.Total.Theta, l.Delta.Theta, "tick "+strconv.Itoa(l.Start.Tick.Theta+sum.Theta))
+	if sum.R != 0 {
+		parts = append(parts, "r "+tenths(l.Start.R)+" + "+strconv.Itoa(sum.R)+" → "+tenths(l.Start.R+float64(sum.R)))
 	}
 	if len(parts) == 0 {
 		return "no move"

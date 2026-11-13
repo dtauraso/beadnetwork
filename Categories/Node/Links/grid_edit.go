@@ -52,7 +52,7 @@ func (p *Peer) stepEdit(m StepEdit) []Envelope {
 		return nil
 	}
 	p.touched(m.From)
-	return p.take(l)
+	return p.take(l, false)
 }
 
 func editLink(l *Link, m StepEdit, name string) string {

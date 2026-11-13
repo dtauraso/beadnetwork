@@ -16,7 +16,7 @@ func way(l *Link, all Lock, k string) int {
 }
 
 func (p *Peer) stepR(l *Link, sign int) {
-	if l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0 {
+	if l.Start.R+float64(l.Sum().R+sign*l.Increment.R) < 0 {
 		p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %v", l.From, p.ID, l.Delta.R)
 		return
 	}
@@ -57,7 +57,7 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 	p.round, p.point, p.placed = m.Round, p.Pos(), p.pickedIn() == nil
 	var out []Envelope
 	if p.placed {
-		out = append(p.tell(), p.movedTo(true)...)
+		out = append(p.tell(), p.movedTo(true, false)...)
 	}
 	held := p.held
 	p.held = nil
@@ -85,31 +85,28 @@ func (p *Peer) recover(m Put) []Envelope {
 	p.placed = true
 	*p.At = p.Frame.GridAt(m.P.Add(p.vecOf(l)))
 	p.point = p.Pos()
-	return append(p.sat("", true), p.tell()...)
+	return append(p.sat("", true, false), p.tell()...)
 }
 
-func (p *Peer) take(l *Link) []Envelope {
+func (p *Peer) take(l *Link, measure bool) []Envelope {
 	*p.At = p.Frame.GridAt(p.posOf(l.From).Add(p.vecOf(l)))
-	return p.sat(l.From, false)
+	return p.sat(l.From, false, measure)
 }
 
-func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
+func (p *Peer) sat(keep string, keepPicked, measure bool) []Envelope {
 	p.Changed.Place = true
 	for _, from := range p.order {
-		l := p.own[from]
-		if from == keep || (keepPicked && l.Picked) {
-			continue
+		if measure && from != keep && !(keepPicked && p.own[from].Picked) {
+			p.remeasure(from)
 		}
-		l.Remeasure(p.Frame, p.refs[from], p.posOf(from), p.Pos())
-		p.touched(from)
 	}
-	return p.movedTo(keepPicked)
+	return p.movedTo(keepPicked, measure)
 }
 
-func (p *Peer) movedTo(keepPicked bool) []Envelope {
+func (p *Peer) movedTo(keepPicked, measure bool) []Envelope {
 	var out []Envelope
 	for _, id := range p.neighbours() {
-		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: *p.At, KeepPicked: keepPicked, Round: p.round}})
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: *p.At, KeepPicked: keepPicked, Measure: measure, Round: p.round}})
 	}
 	return out
 }
@@ -117,8 +114,14 @@ func (p *Peer) movedTo(keepPicked bool) []Envelope {
 func (p *Peer) moved(m Moved) {
 	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
-	if l, ok := p.own[m.ID]; ok && !(m.KeepPicked && l.Picked) {
-		l.Remeasure(p.Frame, p.refs[m.ID], p.posOf(m.ID), p.Pos())
-		p.touched(m.ID)
+	if l, ok := p.own[m.ID]; ok && m.Measure && !(m.KeepPicked && l.Picked) {
+		p.remeasure(m.ID)
 	}
+}
+
+func (p *Peer) remeasure(from string) {
+	l := p.own[from]
+	l.Remeasure(p.Frame, p.refs[from], p.posOf(from), p.Pos())
+	p.setOrigin(from, l.Start)
+	p.touched(from)
 }

@@ -44,7 +44,7 @@ func (p *Peer) setIdx(m SetIdx) []Envelope {
 	default:
 		p.At.Phi = m.V
 	}
-	return p.sat("", false)
+	return p.sat("", false, true)
 }
 
 func (p *Peer) setS(m SetS) []Envelope {

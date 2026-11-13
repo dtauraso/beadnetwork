@@ -77,7 +77,7 @@ func (p *Peer) refSet(m RefSet) []Envelope {
 		return nil
 	}
 	p.touched(m.From)
-	return p.take(l)
+	return p.take(l, true)
 }
 
 func (p *Peer) RefOf(id string) Turn {
