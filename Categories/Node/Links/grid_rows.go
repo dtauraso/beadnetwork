@@ -69,6 +69,7 @@ var sumRows = []row[Start]{
 }
 
 var nodeRows = append([]row[Col]{
+	intRow("walked", func(c *Col) *int { return &c.Walked }),
 	intRow("ref Δφ", func(c *Col) *int { return &c.Ref.Phi }),
 	intRow("ref Δθ", func(c *Col) *int { return &c.Ref.Theta }),
 	intRow("ref s", func(c *Col) *int { return &c.Ref.S }),

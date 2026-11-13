@@ -20,6 +20,7 @@ type OutCell struct {
 
 type Col struct {
 	Step       int
+	Walked     int
 	Ref        Ref
 	At         Place
 	Pos, Label Vec3
@@ -79,6 +80,17 @@ func (b Base) Add(d Ints) Base {
 
 func (p *Peer) fitTotals() {
 	p.fitBase()
+	for from, b := range p.grid.Base {
+		b.Total = Ints{}
+		for _, c := range p.grid.Cols {
+			if in, ok := c.InFrom(from); ok {
+				for range c.Walked {
+					b = b.Add(in.Link.Delta)
+				}
+			}
+		}
+		p.grid.Base[from] = b
+	}
 	shown := p.grid.ShownCol()
 	for i := range p.grid.Cols {
 		c := &p.grid.Cols[i]
