@@ -36,6 +36,7 @@ type Peer struct {
 	geom      GridGeom
 	sent      map[sentKey]OutLink
 	fresh     bool
+	drawn     map[string]Vec3
 
 	Changed Changes
 }
@@ -52,7 +53,7 @@ type Seed struct {
 func NewPeer(id string, seed Seed) *Peer {
 	at, ref := seed.Places[id], seed.Refs[id]
 	p := &Peer{ID: id, S: ShownS(seed.S), At: &at, Ref: &ref, Frame: seed.Frame, placed: true,
-		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}}
+		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}, drawn: map[string]Vec3{}}
 	maps.Copy(p.places, seed.Places)
 	delete(p.places, id)
 	p.refs = map[string]Turn{}
@@ -170,7 +171,7 @@ func (p *Peer) Handle(msg any) []Envelope {
 		}
 		return p.recover(m)
 	case Moved:
-		p.moved(m)
+		return p.moved(m)
 	case PickReq:
 		return p.pickReq(m)
 	case PickSet:

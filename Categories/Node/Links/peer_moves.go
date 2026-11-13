@@ -54,10 +54,11 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 		}
 		p.touched(l.From)
 	}
+	shifted := p.shift()
 	p.round, p.point, p.placed = m.Round, p.Pos(), p.pickedIn() == nil
-	var out []Envelope
+	out := shifted
 	if p.placed {
-		out = append(p.tell(), p.movedTo(true, false)...)
+		out = append(append(out, p.tell()...), p.movedTo(true, false)...)
 	}
 	held := p.held
 	p.held = nil
@@ -83,14 +84,15 @@ func (p *Peer) recover(m Put) []Envelope {
 		return nil
 	}
 	p.placed = true
-	*p.At = p.Frame.GridAt(m.P.Add(p.vecOf(l)))
 	p.point = p.Pos()
-	return append(p.sat("", true, false), p.tell()...)
+	return p.tell()
 }
 
 func (p *Peer) take(l *Link, measure bool) []Envelope {
 	*p.At = p.Frame.GridAt(p.posOf(l.From).Add(p.vecOf(l)))
-	return p.sat(l.From, false, measure)
+	out := p.sat(l.From, false, measure)
+	p.rebase()
+	return out
 }
 
 func (p *Peer) sat(keep string, keepPicked, measure bool) []Envelope {
@@ -111,12 +113,57 @@ func (p *Peer) movedTo(keepPicked, measure bool) []Envelope {
 	return out
 }
 
-func (p *Peer) moved(m Moved) {
+func (p *Peer) moved(m Moved) []Envelope {
+	was := p.posOf(m.ID)
 	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
-	if l, ok := p.own[m.ID]; ok && m.Measure && !(m.KeepPicked && l.Picked) {
+	l, ok := p.own[m.ID]
+	switch {
+	case !ok:
+		return nil
+	case m.Measure && !(m.KeepPicked && l.Picked):
 		p.remeasure(m.ID)
+		p.rebase()
+	case l.Picked:
+		return p.moveBy(p.posOf(m.ID).Sub(was))
 	}
+	return nil
+}
+
+func (p *Peer) shift() []Envelope {
+	var d Vec3
+	for _, from := range p.order {
+		v := p.vecOf(p.own[from])
+		if old, ok := p.drawn[from]; ok {
+			d = d.Add(v.Sub(old))
+		}
+		p.drawn[from] = v
+	}
+	return p.moveBy(d)
+}
+
+func (p *Peer) rebase() {
+	clear(p.drawn)
+	p.shift()
+}
+
+func (p *Peer) moveBy(d Vec3) []Envelope {
+	if d.Length() < 1e-12 {
+		return nil
+	}
+	*p.At = p.Frame.GridAt(p.Pos().Add(d))
+	p.point = p.Pos()
+	p.Changed.Place = true
+	return p.movedTo(false, false)
+}
+
+func (p *Peer) refit(walk bool) []Envelope {
+	p.fitTotals()
+	if walk {
+		return p.shift()
+	}
+	p.rebase()
+	return nil
 }
 
 func (p *Peer) remeasure(from string) {

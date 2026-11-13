@@ -82,6 +82,7 @@ func (p *Peer) connect(m Connect) []Envelope {
 		c.In = append(c.In, InCell{Link: *l})
 		p.bind()
 	}
+	p.drawn[m.From] = p.vecOf(l)
 	p.order = append(p.order, m.From)
 	p.touched(m.From)
 	return []Envelope{{To: m.From, Msg: Linked{From: p.ID, At: *p.At}}}

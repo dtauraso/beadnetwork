@@ -45,6 +45,7 @@ func (p *Peer) SetGrid(g Grid, geom GridGeom) {
 	ref := *p.Ref
 	p.bind()
 	*p.Ref = ref
+	p.rebase()
 	p.fresh = true
 }
 
@@ -191,7 +192,7 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 		*p.At = at
 	}
 	*p.Ref = ref
-	p.fitTotals()
+	out = append(out, p.refit(walk)...)
 	p.Changed.Place = true
 	for _, from := range p.order {
 		p.touched(from)
