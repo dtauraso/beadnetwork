@@ -177,7 +177,7 @@ func linkCard(m Model, step int, l Links.Link, depth int) Group {
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	head := func(s string) Cell { return Text(s).AboveLastDigit().Inked(inkHead) }
 	rows := [][]Cell{
-		{Text(""), head("Δ"), head("nΔ")},
+		{Text(""), head("Δ"), head("nΔ"), head("total")},
 	}
 	for _, a := range axes {
 		dim := a.k == Links.KR && m.FixedR(l)
@@ -188,6 +188,7 @@ func linkCard(m Model, step int, l Links.Link, depth int) Group {
 			Text(a.label).Dimmed(true),
 			field(strconv.Itoa(a.delta(l)), OpLinkPress, false).Dimmed(dim),
 			field(strconv.Itoa(a.times(l)), OpIncrement, true),
+			Text(strconv.Itoa(map[string]int{Links.KPhi: l.Total.Phi, Links.KTheta: l.Total.Theta, Links.KR: l.Total.R}[a.k])).Dimmed(true),
 		})
 	}
 	return Group{Rows: rows, Card: true, Depth: depth}

@@ -178,8 +178,12 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 	if c == nil {
 		return out
 	}
-	if w := p.grid.at(was.Step); walk && w != nil {
-		w.Walked++
+	if walk {
+		for from, b := range p.grid.Base {
+			if in, ok := was.InFrom(from); ok {
+				p.grid.Base[from] = b.Add(in.Link.Delta)
+			}
+		}
 	}
 	p.grid.Shown = m.Step
 	p.bind()
