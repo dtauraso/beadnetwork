@@ -85,7 +85,7 @@ func (p *Peer) recover(m Put) []Envelope {
 	}
 	p.placed = true
 	p.point = p.Pos()
-	return p.tell()
+	return append(p.tell(), p.movedTo(true, false)...)
 }
 
 func (p *Peer) take(l *Link, measure bool) []Envelope {
