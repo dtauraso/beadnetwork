@@ -78,6 +78,10 @@ func (p *Peer) connect(m Connect) []Envelope {
 	l.Start = Measure(p.Frame, l.Dir(), p.posOf(m.From), p.Pos())
 	l.SetS(p.S)
 	p.own[m.From] = l
+	if c := p.grid.at(p.grid.Shown); c != nil {
+		c.In = append(c.In, InCell{Link: *l})
+		p.bind()
+	}
 	p.order = append(p.order, m.From)
 	p.touched(m.From)
 	return []Envelope{{To: m.From, Msg: Linked{From: p.ID, At: p.At}}}

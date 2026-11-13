@@ -41,7 +41,18 @@ func (p *Peer) SetGrid(g Grid, geom GridGeom) {
 		p.fitLinks(&p.grid.Cols[i])
 	}
 	p.fitBase()
+	p.bind()
 	p.fresh = true
+}
+
+func (p *Peer) bind() {
+	c := p.grid.at(p.grid.Shown)
+	if c == nil {
+		return
+	}
+	for i := range c.In {
+		p.own[c.In[i].Link.From] = &c.In[i].Link
+	}
 }
 
 func (p *Peer) fitLinks(c *Col) {
@@ -76,10 +87,6 @@ func (p *Peer) Snap() []Envelope {
 		c = p.grid.at(p.grid.Shown)
 	}
 	c.At = p.At
-	c.In = nil
-	for _, l := range p.Links() {
-		c.In = append(c.In, InCell{Link: l})
-	}
 	var outs []OutCell
 	for _, to := range slices.Sorted(maps.Keys(p.out)) {
 		o := *c.outTo(to)
@@ -162,6 +169,7 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 	was := p.grid.ShownCol()
 	if m.Steps != nil {
 		p.remap(m.Steps, m.From)
+		p.bind()
 	}
 	c := p.grid.at(m.Step)
 	if c == nil {
@@ -177,12 +185,11 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 		}
 	}
 	p.grid.Shown = m.Step
-	for _, in := range c.In {
-		if l, ok := p.own[in.Link.From]; ok {
-			*l = in.Link
-			l.Start = p.grid.Base[l.From].Plus(Ints{})
-			l.SetS(p.S)
-		}
+	p.bind()
+	for _, from := range p.order {
+		l := p.own[from]
+		l.Start = p.grid.Base[from].Plus(Ints{})
+		l.SetS(p.S)
 	}
 	p.places[p.ID] = p.At
 	p.Changed.Place = true

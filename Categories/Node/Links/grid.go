@@ -90,14 +90,13 @@ func (p *Peer) deriveStarts() {
 	shown := p.grid.ShownCol()
 	for i := range p.grid.Cols {
 		c := &p.grid.Cols[i]
+		if c.Step == shown.Step {
+			continue
+		}
 		for j := range c.In {
 			from := c.In[j].Link.From
-			var d Ints
-			if c.Step != shown.Step {
-				was, _ := shown.InFrom(from)
-				d = was.Link.Delta
-			}
-			c.In[j].Link.Start = p.grid.Base[from].Plus(d)
+			was, _ := shown.InFrom(from)
+			c.In[j].Link.Start = p.grid.Base[from].Plus(was.Link.Delta)
 		}
 	}
 }
