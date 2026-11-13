@@ -76,6 +76,18 @@ func (f Frame) Vec(s int, t Start) Vec3 {
 	return f.cart(s, t.R, Wrap(s, t.Phi), Wrap(s, t.Theta))
 }
 
+func (f Frame) Sum(l Link, ref Turn) Start {
+	d, a := l.Dir(), ref.In(1)
+	return Measure(f, Start{Phi: d.Phi + a.Phi, Theta: d.Theta + a.Theta}, Vec3{}, f.LinkVec(l, ref))
+}
+
+func Normalized(l Link, s int) Link {
+	l.Start.Phi, l.Start.Theta = FromSigned(1, l.Start.Phi), FromSigned(1, l.Start.Theta)
+	l.Start = l.Start.Pulled()
+	l.SetS(s)
+	return l
+}
+
 func (f Frame) cart(s int, r, phi, theta float64) Vec3 {
 	ang := func(x float64) float64 { return x * 2 * math.Pi / float64(TurnTicks*s) }
 	v := Cart(r*f.Rho, ang(phi), ang(theta))

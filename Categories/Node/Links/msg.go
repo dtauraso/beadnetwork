@@ -57,5 +57,6 @@ type Moved struct {
 	ID         string
 	At         Place
 	KeepPicked bool
+	Measure    bool
 	Round      int
 }

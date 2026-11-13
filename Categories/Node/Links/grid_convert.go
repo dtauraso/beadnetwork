@@ -49,7 +49,7 @@ func (p *Peer) remap(steps, from []int) {
 			cols = append(cols, nc)
 			continue
 		}
-		cols = append(cols, freshCol(n, p.Links(), p.At, p.Ref))
+		cols = append(cols, freshCol(n, p.Links(), *p.At, *p.Ref))
 	}
 	p.grid.Cols = cols
 	p.sent = map[sentKey]OutLink{}
@@ -79,6 +79,14 @@ func ConvertGrid(level, id string, stepNodeDirs map[int]string, live []Link, at 
 	}
 	g.Shown = g.Cols[0].Step
 	return g, nil
+}
+
+func (g Grid) Steps() []int {
+	out := make([]int, len(g.Cols))
+	for i, c := range g.Cols {
+		out[i] = c.Step
+	}
+	return out
 }
 
 func sortCols(cols []Col) {

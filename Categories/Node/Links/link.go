@@ -59,6 +59,7 @@ type Link struct {
 	From, To  string
 	Start     Start
 	Delta     Ints
+	Total     Ints
 	Increment Ints
 	Lock      Lock
 	Picked    bool
@@ -79,9 +80,13 @@ func NewLink(from, to string) *Link {
 
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
+func (l *Link) Sum() Ints {
+	return Ints{Phi: l.Total.Phi + l.Delta.Phi, Theta: l.Total.Theta + l.Delta.Theta, R: l.Total.R + l.Delta.R, S: l.Delta.S}
+}
+
 func (l *Link) Dir() Start {
-	at := l.Start
-	return Start{Phi: Wrap(1, at.Phi+float64(l.Delta.Phi)), Theta: Wrap(1, at.Theta+float64(l.Delta.Theta)), R: at.R + float64(l.Delta.R)}
+	at, d := l.Start, l.Sum()
+	return Start{Phi: Wrap(1, at.Phi+float64(d.Phi)), Theta: Wrap(1, at.Theta+float64(d.Theta)), R: at.R + float64(d.R)}
 }
 
 func (l *Link) OneCarry(k string, sign int) int {
@@ -113,9 +118,9 @@ func (l *Link) SetS(s int) {
 }
 
 func (l *Link) Drawn() (int, Start) {
-	p := TenTo(l.Start.S)
+	p, d := TenTo(l.Start.S), l.Sum()
 	f := float64(p)
-	return p, Start{Phi: l.Start.Phi*f + float64(l.Delta.Phi*p), Theta: l.Start.Theta*f + float64(l.Delta.Theta*p), R: l.Start.R + float64(l.Delta.R)}
+	return p, Start{Phi: l.Start.Phi*f + float64(d.Phi*p), Theta: l.Start.Theta*f + float64(d.Theta*p), R: l.Start.R + float64(d.R)}
 }
 
 func Tenths(v float64) int { return int(math.Floor(v*10 + 1e-6)) }
@@ -208,6 +213,6 @@ func Measure(f Frame, was Start, p, t Vec3) Start {
 }
 
 func (l *Link) Remeasure(f Frame, ref Turn, p, t Vec3) {
-	v := Measure(f, l.Dir(), Vec3{}, ref.Unrotate(t.Sub(p)))
-	l.Start = Start{Phi: Wrap(1, v.Phi-float64(l.Delta.Phi)), Theta: Wrap(1, v.Theta-float64(l.Delta.Theta)), R: v.R - float64(l.Delta.R), S: l.Start.S, One: l.Start.One}.Pulled()
+	v := Measure(f, l.Start, Vec3{}, ref.Unrotate(t.Sub(p)))
+	l.Start = Start{Phi: v.Phi, Theta: v.Theta, R: v.R, S: l.Start.S, One: l.Start.One}.Pulled()
 }

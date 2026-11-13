@@ -16,7 +16,7 @@ func way(l *Link, all Lock, k string) int {
 }
 
 func (p *Peer) stepR(l *Link, sign int) {
-	if l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0 {
+	if l.Start.R+float64(l.Sum().R+sign*l.Increment.R) < 0 {
 		p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %v", l.From, p.ID, l.Delta.R)
 		return
 	}
@@ -54,10 +54,11 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 		}
 		p.touched(l.From)
 	}
+	shifted := p.shift()
 	p.round, p.point, p.placed = m.Round, p.Pos(), p.pickedIn() == nil
-	var out []Envelope
+	out := shifted
 	if p.placed {
-		out = append(p.tell(), p.movedTo(true)...)
+		out = append(append(out, p.tell()...), p.movedTo(true, false)...)
 	}
 	held := p.held
 	p.held = nil
@@ -83,43 +84,104 @@ func (p *Peer) recover(m Put) []Envelope {
 		return nil
 	}
 	p.placed = true
-	p.At = p.Frame.GridAt(m.P.Add(p.vecOf(l)))
 	p.point = p.Pos()
-	return append(p.sat("", true), p.tell()...)
+	return append(p.tell(), p.movedTo(true, false)...)
 }
 
-func (p *Peer) take(l *Link) []Envelope {
-	p.At = p.Frame.GridAt(p.posOf(l.From).Add(p.vecOf(l)))
-	return p.sat(l.From, false)
+func (p *Peer) take(l *Link, measure bool) []Envelope {
+	*p.At = p.Frame.GridAt(p.posOf(l.From).Add(p.vecOf(l)))
+	out := p.sat(l.From, false, measure)
+	p.rebase()
+	return out
 }
 
-func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
-	p.places[p.ID] = p.At
+func (p *Peer) sat(keep string, keepPicked, measure bool) []Envelope {
 	p.Changed.Place = true
 	for _, from := range p.order {
-		l := p.own[from]
-		if from == keep || (keepPicked && l.Picked) {
-			continue
+		if measure && from != keep && !(keepPicked && p.own[from].Picked) {
+			p.remeasure(from)
 		}
-		l.Remeasure(p.Frame, p.refs[from], p.posOf(from), p.Pos())
-		p.touched(from)
 	}
-	return p.movedTo(keepPicked)
+	return p.movedTo(keepPicked, measure)
 }
 
-func (p *Peer) movedTo(keepPicked bool) []Envelope {
+func (p *Peer) movedTo(keepPicked, measure bool) []Envelope {
 	var out []Envelope
 	for _, id := range p.neighbours() {
-		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: p.At, KeepPicked: keepPicked, Round: p.round}})
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: *p.At, KeepPicked: keepPicked, Measure: measure, Round: p.round}})
 	}
 	return out
 }
 
-func (p *Peer) moved(m Moved) {
+func (p *Peer) moved(m Moved) []Envelope {
+	was := p.posOf(m.ID)
 	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
-	if l, ok := p.own[m.ID]; ok && !(m.KeepPicked && l.Picked) {
-		l.Remeasure(p.Frame, p.refs[m.ID], p.posOf(m.ID), p.Pos())
-		p.touched(m.ID)
+	l, ok := p.own[m.ID]
+	switch {
+	case !ok:
+		return nil
+	case m.Measure && !(m.KeepPicked && l.Picked):
+		p.remeasure(m.ID)
+		p.rebase()
+	case l.Picked:
+		return p.moveBy(p.posOf(m.ID).Sub(was))
 	}
+	return nil
+}
+
+func (p *Peer) shift() []Envelope {
+	var d Vec3
+	for _, from := range p.order {
+		v := p.vecOf(p.own[from])
+		if old, ok := p.drawn[from]; ok {
+			d = d.Add(v.Sub(old))
+		}
+		p.drawn[from] = v
+	}
+	return p.moveBy(d)
+}
+
+func (p *Peer) rebase() {
+	clear(p.drawn)
+	p.shift()
+}
+
+func (p *Peer) moveBy(d Vec3) []Envelope {
+	if d.Length() < 1e-12 {
+		return nil
+	}
+	*p.At = p.Frame.GridAt(p.Pos().Add(d))
+	p.point = p.Pos()
+	p.Changed.Place = true
+	return p.movedTo(false, false)
+}
+
+func (p *Peer) refit(walk bool) []Envelope {
+	p.fitTotals()
+	if walk {
+		return p.shift()
+	}
+	p.rebase()
+	return nil
+}
+
+func (p *Peer) count(was, now *Col) {
+	for from, b := range p.grid.Base {
+		if in, ok := was.InFrom(from); ok && !was.Counted {
+			b = b.Add(in.Link.Delta)
+		}
+		if in, ok := now.InFrom(from); ok && now.Counted {
+			b = b.Sub(in.Link.Delta)
+		}
+		p.grid.Base[from] = b
+	}
+	was.Counted, now.Counted = true, false
+}
+
+func (p *Peer) remeasure(from string) {
+	l := p.own[from]
+	l.Remeasure(p.Frame, p.refs[from], p.posOf(from), p.Pos())
+	p.setOrigin(from, l.Start)
+	p.touched(from)
 }

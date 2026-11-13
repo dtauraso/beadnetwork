@@ -33,6 +33,9 @@ func (p *Peer) stepEdit(m StepEdit) []Envelope {
 	if !ok {
 		return nil
 	}
+	if m.Op == EditStart || m.Op == EditOne || m.Op == EditHeadOne {
+		return p.originEdit(l, m)
+	}
 	name := fmt.Sprintf("step %d %s→%s", m.Step, m.From, p.ID)
 	if m.Step != p.grid.Shown {
 		p.Changed.Refused = fmt.Sprintf("%s: step %d is not the step shown (step %d is), so nothing changed", name, m.Step, p.grid.Shown)
@@ -49,7 +52,7 @@ func (p *Peer) stepEdit(m StepEdit) []Envelope {
 		return nil
 	}
 	p.touched(m.From)
-	return p.take(l)
+	return p.shift()
 }
 
 func editLink(l *Link, m StepEdit, name string) string {

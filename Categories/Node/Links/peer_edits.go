@@ -44,7 +44,7 @@ func (p *Peer) setIdx(m SetIdx) []Envelope {
 	default:
 		p.At.Phi = m.V
 	}
-	return p.sat("", false)
+	return p.sat("", false, true)
 }
 
 func (p *Peer) setS(m SetS) []Envelope {
@@ -78,7 +78,12 @@ func (p *Peer) connect(m Connect) []Envelope {
 	l.Start = Measure(p.Frame, l.Dir(), p.posOf(m.From), p.Pos())
 	l.SetS(p.S)
 	p.own[m.From] = l
+	if c := p.grid.at(p.grid.Shown); c != nil {
+		c.In = append(c.In, InCell{Link: *l})
+		p.bind()
+	}
+	p.drawn[m.From] = p.vecOf(l)
 	p.order = append(p.order, m.From)
 	p.touched(m.From)
-	return []Envelope{{To: m.From, Msg: Linked{From: p.ID, At: p.At}}}
+	return []Envelope{{To: m.From, Msg: Linked{From: p.ID, At: *p.At}}}
 }

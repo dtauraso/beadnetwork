@@ -63,10 +63,9 @@ func (p *Peer) setRef(m SetRef) []Envelope {
 		p.Ref.Phi = m.V
 	}
 	p.Changed.Ref = true
-	p.refs[p.ID] = RefTurn(p.Ref)
 	var out []Envelope
 	for _, to := range slices.Sorted(maps.Keys(p.out)) {
-		out = append(out, Envelope{To: to, Msg: RefSet{From: p.ID, Ref: p.refs[p.ID]}})
+		out = append(out, Envelope{To: to, Msg: RefSet{From: p.ID, Ref: RefTurn(*p.Ref)}})
 	}
 	return out
 }
@@ -78,12 +77,17 @@ func (p *Peer) refSet(m RefSet) []Envelope {
 		return nil
 	}
 	p.touched(m.From)
-	return p.take(l)
+	return p.take(l, true)
 }
 
-func (p *Peer) RefOf(id string) Turn { return p.refs[id] }
+func (p *Peer) RefOf(id string) Turn {
+	if id == p.ID {
+		return RefTurn(*p.Ref)
+	}
+	return p.refs[id]
+}
 
 func (p *Peer) RefVecs() (phi, theta Vec3) {
-	r := p.refs[p.ID]
+	r := RefTurn(*p.Ref)
 	return r.Rotate(p.Frame.cart(p.S, 1, 0, 0)), r.Rotate(p.Frame.cart(p.S, 1, half(p.S)/2, 0))
 }

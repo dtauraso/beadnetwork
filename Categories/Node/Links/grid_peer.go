@@ -1,6 +1,7 @@
 package Links
 
 import (
+	"cmp"
 	"maps"
 	"slices"
 )
@@ -32,7 +33,7 @@ type sentKey struct {
 func (p *Peer) SetGrid(g Grid, geom GridGeom) {
 	p.grid, p.geom, p.sent = g, geom, map[sentKey]OutLink{}
 	if len(p.grid.Cols) == 0 {
-		p.grid.Cols = []Col{freshCol(1, p.Links(), p.At, p.Ref)}
+		p.grid.Cols = []Col{freshCol(1, p.Links(), *p.At, *p.Ref)}
 	}
 	if p.grid.at(p.grid.Shown) == nil {
 		p.grid.Shown = p.grid.Cols[0].Step
@@ -41,7 +42,22 @@ func (p *Peer) SetGrid(g Grid, geom GridGeom) {
 		p.fitLinks(&p.grid.Cols[i])
 	}
 	p.fitBase()
+	ref := *p.Ref
+	p.bind()
+	*p.Ref = ref
+	p.rebase()
 	p.fresh = true
+}
+
+func (p *Peer) bind() {
+	c := p.grid.at(p.grid.Shown)
+	if c == nil {
+		return
+	}
+	for i := range c.In {
+		p.own[c.In[i].Link.From] = &c.In[i].Link
+	}
+	p.At, p.Ref = &c.At, &c.Ref
 }
 
 func (p *Peer) fitLinks(c *Col) {
@@ -75,19 +91,12 @@ func (p *Peer) Snap() []Envelope {
 		p.SetGrid(p.grid, p.geom)
 		c = p.grid.at(p.grid.Shown)
 	}
-	c.At = p.At
-	c.In = nil
-	for _, l := range p.Links() {
-		c.In = append(c.In, InCell{Link: l})
+	for to := range p.out {
+		c.outTo(to).End = p.posOf(to)
 	}
-	var outs []OutCell
-	for _, to := range slices.Sorted(maps.Keys(p.out)) {
-		o := *c.outTo(to)
-		o.End = p.posOf(to)
-		outs = append(outs, o)
-	}
-	c.Out = outs
-	p.deriveStarts()
+	c.Out = slices.DeleteFunc(c.Out, func(o OutCell) bool { return !p.out[o.Link.To] })
+	slices.SortFunc(c.Out, func(a, b OutCell) int { return cmp.Compare(a.Link.To, b.Link.To) })
+	p.fitTotals()
 	for i := range p.grid.Cols {
 		p.compute(&p.grid.Cols[i])
 	}
@@ -95,7 +104,7 @@ func (p *Peer) Snap() []Envelope {
 }
 
 func (p *Peer) compute(c *Col) {
-	c.Ref = p.Ref
+	c.Ref = *p.Ref
 	c.Pos = p.Frame.At(c.At)
 	c.Label = c.Pos.Add(Vec3{Y: p.geom.NodeR})
 	for i := range c.In {
@@ -108,7 +117,7 @@ func (p *Peer) compute(c *Col) {
 	for i := range c.Out {
 		o := &c.Out[i]
 		o.Start = c.Pos
-		o.Sum = p.Frame.Sum(o.Link, p.refs[p.ID])
+		o.Sum = p.Frame.Sum(o.Link, RefTurn(*p.Ref))
 		if p.geom.LineSteps != nil {
 			o.Steps = p.geom.LineSteps(o.End.Sub(o.Start).Length())
 		}
@@ -160,31 +169,26 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 		out = p.Snap()
 	}
 	was := p.grid.ShownCol()
+	at, ref := *p.At, *p.Ref
+	walk := m.From == nil && m.Step != was.Step
 	if m.Steps != nil {
 		p.remap(m.Steps, m.From)
+		p.bind()
 	}
 	c := p.grid.at(m.Step)
 	if c == nil {
 		return out
 	}
-	if fresh || m.From != nil || m.Step == was.Step {
-		p.At = c.At
-	} else {
-		for from, b := range p.grid.Base {
-			if in, ok := was.InFrom(from); ok {
-				p.grid.Base[from] = b.Add(in.Link.Delta)
-			}
-		}
+	if walk {
+		p.count(p.grid.at(was.Step), c)
 	}
 	p.grid.Shown = m.Step
-	for _, in := range c.In {
-		if l, ok := p.own[in.Link.From]; ok {
-			*l = in.Link
-			l.Start = p.grid.Base[l.From].Plus(Ints{})
-			l.SetS(p.S)
-		}
+	p.bind()
+	if walk {
+		*p.At = at
 	}
-	p.places[p.ID] = p.At
+	*p.Ref = ref
+	out = append(out, p.refit(walk)...)
 	p.Changed.Place = true
 	for _, from := range p.order {
 		p.touched(from)

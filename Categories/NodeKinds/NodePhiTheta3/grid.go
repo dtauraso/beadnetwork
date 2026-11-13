@@ -48,7 +48,7 @@ func (n *NodePhiTheta3) convertGrid(root, level string) (Links.Grid, error) {
 		dirs[s] = NodeCat.NodeDir(Links.StepDir(levelDir, s), id)
 		old = append(old, dirs[s])
 	}
-	g, err := Links.ConvertGrid(level, id, dirs, n.peer.Links(), n.peer.At, n.peer.Ref, n.peer.S)
+	g, err := Links.ConvertGrid(level, id, dirs, n.peer.Links(), *n.peer.At, *n.peer.Ref, n.peer.S)
 	if err != nil {
 		return g, err
 	}

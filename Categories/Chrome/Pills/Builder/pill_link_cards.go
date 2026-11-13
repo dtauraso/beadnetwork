@@ -85,14 +85,20 @@ func pickMark(on bool) string {
 
 func pressSummary(l Links.Link) string {
 	var parts []string
-	if l.Delta.Phi != 0 {
-		parts = append(parts, "φ "+strconv.Itoa(l.Start.Tick.Phi)+" + "+strconv.Itoa(l.Delta.Phi)+" → tick "+strconv.Itoa(l.Start.Tick.Phi+l.Delta.Phi))
+	term := func(k string, start, total, d int, end string) {
+		if total != 0 || d != 0 {
+			s := k + " " + strconv.Itoa(start)
+			if total != 0 {
+				s += " + total " + strconv.Itoa(total)
+			}
+			parts = append(parts, s+" + "+strconv.Itoa(d)+" → "+end)
+		}
 	}
-	if l.Delta.Theta != 0 {
-		parts = append(parts, "θ "+strconv.Itoa(l.Start.Tick.Theta)+" + "+strconv.Itoa(l.Delta.Theta)+" → tick "+strconv.Itoa(l.Start.Tick.Theta+l.Delta.Theta))
-	}
-	if l.Delta.R != 0 {
-		parts = append(parts, "r "+tenths(l.Start.R)+" + "+strconv.Itoa(l.Delta.R)+" → "+tenths(l.Start.R+float64(l.Delta.R)))
+	sum := l.Sum()
+	term("φ", l.Start.Tick.Phi, l.Total.Phi, l.Delta.Phi, "tick "+strconv.Itoa(l.Start.Tick.Phi+sum.Phi))
+	term("θ", l.Start.Tick.Theta, l.Total.Theta, l.Delta.Theta, "tick "+strconv.Itoa(l.Start.Tick.Theta+sum.Theta))
+	if sum.R != 0 {
+		parts = append(parts, "r "+tenths(l.Start.R)+" + "+strconv.Itoa(sum.R)+" → "+tenths(l.Start.R+float64(sum.R)))
 	}
 	if len(parts) == 0 {
 		return "no move"
@@ -171,7 +177,7 @@ func linkCard(m Model, step int, l Links.Link, depth int) Group {
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	head := func(s string) Cell { return Text(s).AboveLastDigit().Inked(inkHead) }
 	rows := [][]Cell{
-		{Text(""), head("START"), head("Δ"), head("nΔ"), head("1")},
+		{Text(""), head("Δ"), head("nΔ"), head("total")},
 	}
 	for _, a := range axes {
 		dim := a.k == Links.KR && m.FixedR(l)
@@ -180,10 +186,9 @@ func linkCard(m Model, step int, l Links.Link, depth int) Group {
 		}
 		rows = append(rows, []Cell{
 			Text(a.label).Dimmed(true),
-			field(a.at(l), OpLinkStart, true).Dimmed(dim),
 			field(strconv.Itoa(a.delta(l)), OpLinkPress, false).Dimmed(dim),
 			field(strconv.Itoa(a.times(l)), OpIncrement, true),
-			field(strconv.Itoa(a.one(l)), OpLinkOne, false).Dimmed(dim),
+			Text(strconv.Itoa(map[string]int{Links.KPhi: l.Total.Phi, Links.KTheta: l.Total.Theta, Links.KR: l.Total.R}[a.k])).Dimmed(true),
 		})
 	}
 	return Group{Rows: rows, Card: true, Depth: depth}
