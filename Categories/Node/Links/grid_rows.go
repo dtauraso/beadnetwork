@@ -69,6 +69,7 @@ var sumRows = []row[Start]{
 }
 
 var nodeRows = append([]row[Col]{
+	{"counted", func(c Col) float64 { return b2f(c.Counted) }, func(c *Col, v float64) { c.Counted = v != 0 }},
 	intRow("ref Δφ", func(c *Col) *int { return &c.Ref.Phi }),
 	intRow("ref Δθ", func(c *Col) *int { return &c.Ref.Theta }),
 	intRow("ref s", func(c *Col) *int { return &c.Ref.S }),

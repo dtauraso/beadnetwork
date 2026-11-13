@@ -25,6 +25,7 @@ type Col struct {
 	Pos, Label Vec3
 	In         []InCell
 	Out        []OutCell
+	Counted    bool
 }
 
 type Grid struct {
@@ -77,6 +78,10 @@ func (b Base) Add(d Ints) Base {
 	return b
 }
 
+func (b Base) Sub(d Ints) Base {
+	return b.Add(Ints{Phi: -d.Phi, Theta: -d.Theta, R: -d.R})
+}
+
 func (p *Peer) fitTotals() {
 	p.fitBase()
 	shown := p.grid.ShownCol()
@@ -87,6 +92,9 @@ func (p *Peer) fitTotals() {
 			b := p.grid.Base[l.From]
 			if was, ok := shown.InFrom(l.From); ok && c.Step != shown.Step {
 				b = b.Add(was.Link.Delta)
+				if c.Counted {
+					b = b.Sub(l.Delta)
+				}
 			}
 			l.Start, l.Total = b.Origin, Ints{Phi: b.Total.Phi, Theta: b.Total.Theta, R: b.Total.R, S: p.S}
 			l.SetS(p.S)
