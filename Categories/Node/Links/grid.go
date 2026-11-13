@@ -82,50 +82,26 @@ func (p *Peer) fitBase() {
 	}
 }
 
-func (p *Peer) shownIdx() int {
-	for i := range p.grid.Cols {
-		if p.grid.Cols[i].Step == p.grid.Shown {
-			return i
-		}
-	}
-	return -1
-}
-
-func (p *Peer) chain(i int) {
-	c := &p.grid.Cols[i]
-	for j := range c.In {
-		from := c.In[j].Link.From
-		s := p.grid.Base[from].Origin
-		if i > 0 {
-			if prev, ok := p.grid.Cols[i-1].InFrom(from); ok {
-				s = endOf(prev.Link)
-			}
-		}
-		c.In[j].Link.Start = s
-		c.In[j].Link.SetS(p.S)
-	}
-}
-
-func (p *Peer) totals(upto int) {
-	for from, b := range p.grid.Base {
-		b.Total = Ints{}
-		for _, c := range p.grid.Cols[:max(upto, 0)] {
-			if in, ok := c.InFrom(from); ok {
-				d := in.Link.Delta
-				b.Total.Phi, b.Total.Theta, b.Total.R = b.Total.Phi+d.Phi, b.Total.Theta+d.Theta, b.Total.R+d.R
-			}
-		}
-		p.grid.Base[from] = b
-	}
+func (b Base) Add(d Ints) Base {
+	b.Total.Phi, b.Total.Theta, b.Total.R = b.Total.Phi+d.Phi, b.Total.Theta+d.Theta, b.Total.R+d.R
+	return b
 }
 
 func (p *Peer) deriveStarts() {
 	p.fitBase()
-	i := p.shownIdx()
-	for k := i + 1; k < len(p.grid.Cols); k++ {
-		p.chain(k)
+	shown := p.grid.ShownCol()
+	for i := range p.grid.Cols {
+		c := &p.grid.Cols[i]
+		if c.Step == shown.Step {
+			continue
+		}
+		for j := range c.In {
+			if was, ok := shown.InFrom(c.In[j].Link.From); ok {
+				c.In[j].Link.Start = endOf(was.Link)
+				c.In[j].Link.SetS(p.S)
+			}
+		}
 	}
-	p.totals(i)
 }
 
 func (p *Peer) originEdit(l *Link, m StepEdit) []Envelope {
