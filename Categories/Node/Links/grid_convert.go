@@ -81,6 +81,14 @@ func ConvertGrid(level, id string, stepNodeDirs map[int]string, live []Link, at 
 	return g, nil
 }
 
+func (g Grid) Steps() []int {
+	out := make([]int, len(g.Cols))
+	for i, c := range g.Cols {
+		out[i] = c.Step
+	}
+	return out
+}
+
 func sortCols(cols []Col) {
 	for i := 1; i < len(cols); i++ {
 		for j := i; j > 0 && cols[j].Step < cols[j-1].Step; j-- {

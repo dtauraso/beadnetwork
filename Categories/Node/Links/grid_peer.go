@@ -178,24 +178,14 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 		return out
 	}
 	carry := !(fresh || m.From != nil || m.Step == was.Step)
-	if carry {
-		for from, b := range p.grid.Base {
-			if in, ok := was.InFrom(from); ok {
-				p.grid.Base[from] = b.Add(in.Link.Delta)
-			}
-		}
-	}
 	p.grid.Shown = m.Step
 	p.bind()
 	if carry {
 		*p.At = at
 	}
 	*p.Ref = ref
-	for _, from := range p.order {
-		l := p.own[from]
-		l.Start = p.grid.Base[from].Plus(Ints{})
-		l.SetS(p.S)
-	}
+	p.fitBase()
+	p.chain(p.shownIdx())
 	p.Changed.Place = true
 	for _, from := range p.order {
 		p.touched(from)

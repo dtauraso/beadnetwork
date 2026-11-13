@@ -48,10 +48,7 @@ func (b Base) Plus(d Ints) Start {
 	return s.Pulled()
 }
 
-func (b Base) Add(d Ints) Base {
-	b.Total.Phi, b.Total.Theta, b.Total.R = b.Total.Phi+d.Phi, b.Total.Theta+d.Theta, b.Total.R+d.R
-	return b
-}
+func endOf(l Link) Start { return Base{Origin: l.Start}.Plus(l.Delta) }
 
 func baseOf(start Start, total Ints) Base {
 	o := start
@@ -85,20 +82,50 @@ func (p *Peer) fitBase() {
 	}
 }
 
-func (p *Peer) deriveStarts() {
-	p.fitBase()
-	shown := p.grid.ShownCol()
+func (p *Peer) shownIdx() int {
 	for i := range p.grid.Cols {
-		c := &p.grid.Cols[i]
-		if c.Step == shown.Step {
-			continue
-		}
-		for j := range c.In {
-			from := c.In[j].Link.From
-			was, _ := shown.InFrom(from)
-			c.In[j].Link.Start = p.grid.Base[from].Plus(was.Link.Delta)
+		if p.grid.Cols[i].Step == p.grid.Shown {
+			return i
 		}
 	}
+	return -1
+}
+
+func (p *Peer) chain(i int) {
+	c := &p.grid.Cols[i]
+	for j := range c.In {
+		from := c.In[j].Link.From
+		s := p.grid.Base[from].Origin
+		if i > 0 {
+			if prev, ok := p.grid.Cols[i-1].InFrom(from); ok {
+				s = endOf(prev.Link)
+			}
+		}
+		c.In[j].Link.Start = s
+		c.In[j].Link.SetS(p.S)
+	}
+}
+
+func (p *Peer) totals(upto int) {
+	for from, b := range p.grid.Base {
+		b.Total = Ints{}
+		for _, c := range p.grid.Cols[:max(upto, 0)] {
+			if in, ok := c.InFrom(from); ok {
+				d := in.Link.Delta
+				b.Total.Phi, b.Total.Theta, b.Total.R = b.Total.Phi+d.Phi, b.Total.Theta+d.Theta, b.Total.R+d.R
+			}
+		}
+		p.grid.Base[from] = b
+	}
+}
+
+func (p *Peer) deriveStarts() {
+	p.fitBase()
+	i := p.shownIdx()
+	for k := i + 1; k < len(p.grid.Cols); k++ {
+		p.chain(k)
+	}
+	p.totals(i)
 }
 
 func (p *Peer) originEdit(l *Link, m StepEdit) []Envelope {
@@ -111,10 +138,18 @@ func (p *Peer) originEdit(l *Link, m StepEdit) []Envelope {
 		p.Changed.Refused = refused
 		return nil
 	}
+	dPhi, dTheta, dR := t.Start.Phi-b.Origin.Phi, t.Start.Theta-b.Origin.Theta, t.Start.R-b.Origin.R
+	for i := range p.grid.Cols {
+		c := &p.grid.Cols[i]
+		for j := range c.In {
+			if s := &c.In[j].Link.Start; c.In[j].Link.From == m.From {
+				s.Phi, s.Theta, s.R, s.One = Wrap(1, s.Phi+dPhi), Wrap(1, s.Theta+dTheta), s.R+dR, t.Start.One
+				*s = s.Pulled()
+			}
+		}
+	}
 	b.Origin = t.Start
 	p.grid.Base[m.From] = b
-	l.Start = b.Plus(Ints{})
-	l.SetS(p.S)
 	p.touched(m.From)
 	return p.take(l)
 }
@@ -122,14 +157,6 @@ func (p *Peer) originEdit(l *Link, m StepEdit) []Envelope {
 type GridGeom struct {
 	NodeR     float64
 	LineSteps func(dist float64) int
-}
-
-func (g Grid) Steps() []int {
-	out := make([]int, len(g.Cols))
-	for i, c := range g.Cols {
-		out[i] = c.Step
-	}
-	return out
 }
 
 func (g Grid) Col(step int) (Col, bool) {
@@ -193,16 +220,4 @@ func (c *Col) outTo(to string) *OutCell {
 	}
 	c.Out = append(c.Out, OutCell{Link: Link{To: to}})
 	return &c.Out[len(c.Out)-1]
-}
-
-func (f Frame) Sum(l Link, ref Turn) Start {
-	d, a := l.Dir(), ref.In(1)
-	return Measure(f, Start{Phi: d.Phi + a.Phi, Theta: d.Theta + a.Theta}, Vec3{}, f.LinkVec(l, ref))
-}
-
-func Normalized(l Link, s int) Link {
-	l.Start.Phi, l.Start.Theta = FromSigned(1, l.Start.Phi), FromSigned(1, l.Start.Theta)
-	l.Start = l.Start.Pulled()
-	l.SetS(s)
-	return l
 }
