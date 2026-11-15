@@ -92,8 +92,6 @@ func (m Model) RowIn(id Act) Act {
 	return r.fold
 }
 
-func (m Model) RowDrags(id Act) bool { return id.Op == OpStepShow }
-
 const doubleClickMs = 400
 
 func (m *Model) Press(id Act, now int64) Act {
@@ -102,9 +100,6 @@ func (m *Model) Press(id Act, now int64) Act {
 	if double {
 		m.ClickRow = Act{}
 		return m.RowIn(id)
-	}
-	if m.RowDrags(id) {
-		m.DragStep = id.I
 	}
 	return Act{}
 }

@@ -1,9 +1,6 @@
 package Builder
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -18,7 +15,7 @@ const (
 	OpPlaceFold = "place-fold"
 )
 
-const navHint = "↑↓ move · → open / in · ← close / out · Enter go in · F2 rename · drag a row to reorder"
+const navHint = "↑↓ move · → open / in · ← close / out · Enter go in · F2 rename"
 
 func (m Model) allLinks() []Links.Link {
 	var out []Links.Link
@@ -60,70 +57,6 @@ func linkRowOf(l Links.Link, picked bool, pick Act, depth int) linkRow {
 	return r
 }
 
-func stepRows(t *tree, m Model, refused string) string {
-	ns := m.stepNums()
-	for _, n := range ns {
-		show := Act{Op: OpStepShow, I: n}
-		rename := Act{Op: OpRename, K: renameStep, I: n}
-		r := linkRow{
-			id:     show,
-			open:   openOf(m.stepOpen(n)),
-			fold:   show,
-			in:     Act{Op: OpStepEnter, I: n},
-			rename: rename,
-			name:   Field("step "+itoa(n), m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Plain().Wording(),
-			acts: []Cell{
-				Button("→", Act{Op: OpStepEnter, I: n}, false).Tipped("go into this step's own steps"),
-				Button("✎", rename, false).Tipped("rename this step"),
-				Button("+", Act{Op: OpStepAdd, I: n}, false).Tipped("add a step after this one"),
-				Button("⧉", Act{Op: OpStepCopy, I: n}, false).Tipped("duplicate this step"),
-				Button("×", Act{Op: OpStepDrop, I: n}, false).Tipped("delete this step"),
-			},
-		}
-		if m.StepNames[n] != "" {
-			r.detail = []Cell{Text("step " + itoa(n)).Dimmed(true)}
-		}
-		t.add(r)
-		if m.stepOpen(n) {
-			refused = stepBody(t, m, n, refused)
-		}
-	}
-	return refused
-}
-
-func stepBody(t *tree, m Model, step int, refused string) string {
-	t.put(headRow(m, step, 1))
-	for _, id := range m.Nodes {
-		fold := Act{Op: OpStepFold, Node: id, I: step}
-		folded := m.StepFolded(step, id)
-		links := m.gridLinks(step, id)
-		r := linkRow{id: fold, depth: 1, open: openOf(!folded), fold: fold, name: Text("node " + id)}
-		if len(links) == 0 {
-			r.open = leaf
-		}
-		if folded {
-			r.detail = []Cell{Text(linkCount(len(links))).Dimmed(true)}
-		}
-		t.add(r)
-		if folded {
-			continue
-		}
-		for _, l := range links {
-			picked := m.StepPicked(step, l)
-			e := StepEdge{step, l.From, l.To}
-			t.add(m.cardRow(linkRowOf(l, picked, Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}, 2), e, picked))
-			if m.CardOpen(e, picked) {
-				t.put(linkCard(m, step, l, 3))
-			}
-			if refused != "" && strings.HasPrefix(refused, fmt.Sprintf("step %d %s ", step, l.Name())) {
-				t.put(Group{Rows: [][]Cell{{Text(refused)}}, Wraps: true, Depth: 3})
-				refused = ""
-			}
-		}
-	}
-	return refused
-}
-
 func pathGroup(m Model) Group {
 	sep := Text("›").Dimmed(true)
 	if m.AtSeqs {
@@ -151,30 +84,15 @@ func pathGroup(m Model) Group {
 
 func linksTree(m Model) tree {
 	t := tree{sel: m.Sel}
-	refused := m.Refused
-	inScore := m.Score && !m.AtSeqs
-	if !inScore {
+	if m.AtSeqs {
 		t.put(allSeqsGroup(m), pathGroup(m))
-	}
-	if inScore {
-		scoreView(&t, m)
-	} else if m.AtSeqs {
 		seqRows(&t, m)
-	} else {
-		t.put(viewGroup(m), seqFrameGroup(m))
-		networkRows(&t, m)
-		startRows(&t, m)
-		refused = stepRows(&t, m, refused)
-		ns := m.stepNums()
-		t.put(Group{Rows: [][]Cell{{Text("+  add step").Acting(Act{Op: OpStepAdd, I: ns[len(ns)-1]}).Dimmed(true).Tipped("add a step after the last one")}}})
-	}
-	if m.DragStep != 0 {
-		t.put(Group{Rows: [][]Cell{{Text("moving step " + m.StepLabel(m.DragStep) + ": let go on another step's row").Dimmed(true)}}})
-	} else if !m.Score || m.AtSeqs {
 		t.put(Group{Rows: [][]Cell{{Text(navHint).Dimmed(true)}}, Wraps: true})
+	} else {
+		scoreView(&t, m)
 	}
-	if refused != "" {
-		t.put(Group{Rows: [][]Cell{{Text(refused)}}, Wraps: true})
+	if m.Refused != "" {
+		t.put(Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
 	}
 	return t
 }

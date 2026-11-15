@@ -55,29 +55,6 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 	md.UI.EmitViewFrame(nil)
 }
 
-func endStepDrag(md *MoveDispatch, x, y float64) bool {
-	m := &md.UI.Builder
-	from := m.DragStep
-	if from == 0 {
-		return false
-	}
-	m.DragStep, m.Refused = 0, ""
-	h := md.UI.PanelLayout().Sheet.Hit(x, y)
-	if to := h.Row.I; m.RowDrags(h.Row) && to != from {
-		refused, err := m.MoveStep(from, to)
-		m.Refused = refused
-		if err != nil {
-			View.LogPersistErr("sheet_step_move", m.Root, err)
-		}
-		if refused == "" && err == nil {
-			m.Select(h.Row)
-		}
-		md.ShowStep(context.TODO())
-	}
-	md.UI.EmitViewFrame(nil)
-	return true
-}
-
 func pressRow(ctx context.Context, md *MoveDispatch, id Sheet.Act) {
 	if a := md.UI.Builder.Press(id, time.Now().UnixMilli()); a.Op != "" {
 		runSheetAct(ctx, md, a, 0, nil)
@@ -167,8 +144,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if md.UI.Builder.StepShown() != was {
 			md.ShowStep(ctx)
 		}
-	case Builder.OpLinksView:
-		md.UI.Builder.SetView(a)
 	case Builder.OpScoreCell:
 		md.UI.Builder.SelectCell(a)
 	case Builder.OpNetFold:

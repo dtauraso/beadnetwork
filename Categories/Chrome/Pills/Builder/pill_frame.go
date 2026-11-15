@@ -32,13 +32,3 @@ func allSeqsGroup(m Model) Group {
 		{Field("Δt", strconv.Itoa(m.TickMs), Act{Op: OpTickMs}, true, true), Text("ms one human tick lasts — each node's machine ticks become one human tick")},
 	}}
 }
-
-func seqFrameGroup(m Model) Group {
-	rows := [][]Cell{
-		{Field("s", strconv.Itoa(m.SceneS()), frameAct(FrameS), true, false), Text("ticks a twelfth of a turn, one s every node uses — it rises when a start needs more")},
-	}
-	if m.SNote != "" {
-		rows = append(rows, []Cell{Text(""), Text(m.SNote)})
-	}
-	return Group{Title: "this sequence", Rows: rows}
-}
