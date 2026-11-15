@@ -151,11 +151,12 @@ func pathGroup(m Model) Group {
 
 func linksTree(m Model) tree {
 	t := tree{sel: m.Sel}
-	t.put(pathGroup(m))
+	t.put(allSeqsGroup(m), pathGroup(m))
 	refused := m.Refused
 	if m.AtSeqs {
 		seqRows(&t, m)
 	} else {
+		t.put(seqFrameGroup(m))
 		networkRows(&t, m)
 		startRows(&t, m)
 		refused = stepRows(&t, m, refused)

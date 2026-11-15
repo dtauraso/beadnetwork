@@ -130,7 +130,7 @@ func Pills(m Model) []Pill {
 	if !m.On() {
 		return nil
 	}
-	return []Pill{FramePill(m), LinksPill(m)}
+	return []Pill{LinksPill(m)}
 }
 
 func Num(v float64) string {
