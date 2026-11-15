@@ -46,43 +46,6 @@ func openOf(on bool) int {
 	return closed
 }
 
-func networkRows(t *tree, m Model) {
-	t.add(linkRow{
-		id:     Act{Op: OpNetFold},
-		open:   openOf(m.NetworkOpen),
-		fold:   Act{Op: OpNetFold},
-		name:   Text("network"),
-		detail: []Cell{Text("what runs now · " + linkCount(len(m.allLinks()))).Dimmed(true)},
-	})
-	if !m.NetworkOpen {
-		return
-	}
-	for _, id := range m.Nodes {
-		fold := Act{Op: OpStepFold, Node: id}
-		r := linkRow{id: fold, depth: 1, open: openOf(!m.StepFolded(0, id)), fold: fold, name: Text("node " + id), table: "network node " + id}
-		if m.StepFolded(0, id) {
-			r.detail = []Cell{Text(linkCount(len(m.linksTo(id)))).Dimmed(true)}
-		} else {
-			r.more = refCells(m, id)
-		}
-		r.acts = connectRow(m, id, "link to")
-		t.add(r)
-		if m.StepFolded(0, id) {
-			continue
-		}
-		placeRows(t, m, id)
-		for _, l := range m.linksTo(id) {
-			e := StepEdge{0, l.From, l.To}
-			lr := m.cardRow(linkRowOf(l, l.Picked, Act{}, 2), e, l.Picked)
-			lr.acts = []Cell{Button("×", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false).Tipped("remove this link")}
-			t.add(lr)
-			if m.CardOpen(e, l.Picked) {
-				t.put(netCard(l, 3))
-			}
-		}
-	}
-}
-
 func linkRowOf(l Links.Link, picked bool, pick Act, depth int) linkRow {
 	r := linkRow{
 		id:     Act{Op: OpLinkRow, Node: l.From, To: l.To, I: pick.I},

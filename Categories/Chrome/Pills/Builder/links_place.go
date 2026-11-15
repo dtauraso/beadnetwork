@@ -27,6 +27,5 @@ func placeRows(t *tree, m Model, id string) {
 			Field("", Num(r.At.Theta), act(Links.KTheta), true, true).Outline(false)},
 		{Text(""), head("x"), head("y"), head("z")},
 		{Text("C").Dimmed(true), Text(Num(c.X)), Text(Num(c.Y)), Text(Num(c.Z))},
-		{Text("n").Dimmed(true), Text(m.NOf(id))},
 	}})
 }
