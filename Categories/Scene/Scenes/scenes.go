@@ -45,7 +45,7 @@ var All = []Scene{
 			"SelectLeft", "SelectRight",
 		},
 		RemovedOverlays: []string{"nodePoles", "scenePoles", "allPoleSpheres"},
-		FixedOverlays:   []string{"nodeBody", "nodeRing"}},
+		FixedOverlays:   []string{"nodeBody", "nodeRing", "edgeVectors"}},
 
 	{Name: "φ, θ", Dir: "topology-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: true, Kinds: []string{"PhiTheta"}, PlusButton: true,
 		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors"},
