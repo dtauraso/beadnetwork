@@ -13,7 +13,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
-	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
 func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, h Sheet.Hit) {
@@ -188,9 +187,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 				View.LogPersistErr("sheet_frame_fold", root, err)
 			}
 		}
-	case Pills.OpOverlay:
-		Flags.ToggleFlag(&md.UI.OV, &md.UI, a.K)
-		md.UI.PersistOverlays(md.UI.OV)
+	case Pills.OpOverlay, Pills.OpOverlayBoth:
+		applyOverlayAct(md, a)
 	}
 }
 

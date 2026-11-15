@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeBytes } from "../node-leaves";
+import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 
 const TICK_COLOR = "#8a8a8a";
 
@@ -27,11 +28,15 @@ export function TickMarks() {
       geometry.setAttribute("position", new THREE.BufferAttribute(holder.positions, 3));
     }
 
+    const phi = overlayFlag("phiTicks");
+    const theta = overlayFlag("thetaTicks");
     let out = 0;
     for (let row = 0; row < nodes; row++) {
       const cols = COLUMNS.map((n) => nodeBytes(row, n));
       const count = cols[0] ? cols[0].byteLength / 4 : 0;
+      const half = count / 2;
       for (let i = 0; i < count; i++) {
+        if (i < half ? !phi : !theta) continue;
         for (let c = 0; c < 6; c++) {
           const col = cols[c];
           holder.positions[out++] = col && col.byteLength >= i * 4 + 4 ? col.getFloat32(i * 4, true) : 0;

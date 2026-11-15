@@ -19,6 +19,8 @@ type OverlayState struct {
 	EdgeVectorsVisible    bool
 	NodePoleSphereVisible bool
 	AllPoleSpheresVisible bool
+	PhiTicksVisible       bool
+	ThetaTicksVisible     bool
 }
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
@@ -81,6 +83,16 @@ func (o *OverlayState) ToggleNodePoleSphere() {
 // ToggleAllPoleSpheres flips AllPoleSpheresVisible.
 func (o *OverlayState) ToggleAllPoleSpheres() {
 	o.setFlag(&o.AllPoleSpheresVisible)
+}
+
+// TogglePhiTicks flips PhiTicksVisible.
+func (o *OverlayState) TogglePhiTicks() {
+	o.setFlag(&o.PhiTicksVisible)
+}
+
+// ToggleThetaTicks flips ThetaTicksVisible.
+func (o *OverlayState) ToggleThetaTicks() {
+	o.setFlag(&o.ThetaTicksVisible)
 }
 
 // SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS

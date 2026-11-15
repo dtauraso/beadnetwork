@@ -40,6 +40,14 @@ var Tree = []Group{
 					{Flag: "nodePoleSphere", Icon: "◍", Label: "pole sphere"},
 				},
 			},
+			{
+				Heading: "TICKS",
+				Panel:   "nodeTicks",
+				Items: []Item{
+					{Flag: "phiTicks", Icon: "φ", Label: "φ ticks"},
+					{Flag: "thetaTicks", Icon: "θ", Label: "θ ticks"},
+				},
+			},
 		},
 	},
 	{

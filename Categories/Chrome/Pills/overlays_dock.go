@@ -2,25 +2,31 @@ package Pills
 
 import (
 	"slices"
+	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
-const OpOverlay = "overlay"
+const (
+	OpOverlay     = "overlay"
+	OpOverlayBoth = "overlay-both"
+)
 
-const dockPerRow = 2
+const dockPerRow = 3
 
 var dockRows = []struct {
 	Name  string
 	Flags []string
+	Both  string
 }{
-	{"node", []string{"nodeBody", "nodeRing"}},
-	{"node poles", []string{"nodePoles", "nodePoleSphere"}},
-	{"scene poles", []string{"scenePoles", "allPoleSpheres"}},
-	{"guides", []string{"tori", "handholds"}},
-	{"vectors", []string{"edgeVectors"}},
-	{"labels", []string{"labelsGlobal"}},
+	{"node", []string{"nodeBody", "nodeRing"}, ""},
+	{"node poles", []string{"nodePoles", "nodePoleSphere"}, ""},
+	{"scene poles", []string{"scenePoles", "allPoleSpheres"}, ""},
+	{"guides", []string{"tori", "handholds"}, ""},
+	{"vectors", []string{"edgeVectors"}, ""},
+	{"ticks", []string{"phiTicks", "thetaTicks"}, "┼ both"},
+	{"labels", []string{"labelsGlobal"}, ""},
 }
 
 func itemOf(flag string, groups []Group) (Item, bool) {
@@ -62,6 +68,11 @@ func DockPill(ov *Flags.OverlayState, hidden []string) Sheet.Pill {
 				icon = LabelsIcon(on)
 			}
 			buttons = append(buttons, Sheet.Button(icon+" "+it.Label, Sheet.Act{Op: OpOverlay, K: f}, on).Dimmed(!active))
+		}
+		if r.Both != "" && len(buttons) == len(r.Flags) {
+			on := !slices.ContainsFunc(r.Flags, func(f string) bool { return !flagOn(ov, f) })
+			both := Sheet.Button(r.Both, Sheet.Act{Op: OpOverlayBoth, K: strings.Join(r.Flags, ",")}, on).Dimmed(!active)
+			buttons = append([]Sheet.Cell{both}, buttons...)
 		}
 		name := r.Name
 		if len(buttons) > 0 && len(rows) > 1 {
