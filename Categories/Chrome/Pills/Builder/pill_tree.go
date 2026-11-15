@@ -77,12 +77,6 @@ func TreePill(m Model) Pill {
 			recalc = append(recalc, l)
 		}
 	}
-	var methods []string
-	for _, id := range MethodIDs {
-		if m.Cards.Methods[id] {
-			methods = append(methods, id)
-		}
-	}
 	groups := []Group{
 		box(0, "builder", kv("s", n3(float64(m.S)), false), kv("ρ", n3(f.Rho), false), kv("T_φ", n3(float64(f.Tphi)), false),
 			kv("T_θ", n3(float64(f.Ttheta)), false), kv("c_r", n3(f.Cr), false), kv("sequences", names(seqNames), false), kv("open", open, true)),
@@ -93,7 +87,6 @@ func TreePill(m Model) Pill {
 	groups = append(groups,
 		box(1, "what runs now", kv("edges", names(linkNames(all)), true), kv("nodes", names(m.Nodes), true),
 			kv("picked", names(linkNames(m.Picked())), true), notStored(), kv("recalculated", names(linkNames(recalc)), true)),
-		box(2, "method cards", kv("item", m.Item(), true), kv("methods", names(methods), false), kv("card step", strconv.Itoa(m.CardShown()), false)),
 	)
 	for _, l := range all {
 		d := m.SumOf(l)
