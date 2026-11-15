@@ -191,6 +191,7 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 				}
 				right = band.X + band.W - BandPad
 			}
+			lay.Nav = lay.Nav || g.Keys
 			lay.place(box, g, x+in, y, dx, right)
 		}
 		if p.Bottom {

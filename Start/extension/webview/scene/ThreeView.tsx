@@ -17,7 +17,7 @@ function consumedByDraft(key: string): boolean {
   return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace";
 }
 
-const SHEET_NAV_KEYS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "F2", "Backspace", "Escape"]);
+const SHEET_NAV_KEYS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "F2", "Backspace", "Escape", " ", "+", "=", "-", "1", "2", "3"]);
 
 export function ThreeView() {
   bootPhase("ThreeView body");

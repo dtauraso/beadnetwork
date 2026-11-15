@@ -107,7 +107,7 @@ func inspectorGroup(m Model) Group {
 			dial = m.dialCell(l, a.k, act(OpLinkPress, a.k))
 		}
 		rows = append(rows, []Cell{
-			Text(a.label).Dimmed(true),
+			axisLabel(m, a),
 			Field("", signed(a.delta(l)), act(OpLinkPress, a.k), false, true).Fitting(cardFit).Outline(false).Dimmed(dim),
 			dial,
 			Field("", strconv.Itoa(a.times(l)), act(OpIncrement, a.k), true, true).Fitting(cardFit).Outline(false),
@@ -119,6 +119,13 @@ func inspectorGroup(m Model) Group {
 		rows = append(rows, []Cell{Text(note).Dimmed(true)})
 	}
 	return Group{Rows: rows, Card: true, Wraps: true}
+}
+
+func axisLabel(m Model, a axis) Cell {
+	if a.k == m.scoreAxis() {
+		return Text(a.label).Inked(inkStrong).Tipped("+ and − press this axis · 1 2 3 choose φ θ r")
+	}
+	return Text(a.label).Dimmed(true)
 }
 
 func (m Model) rNote(l Links.Link) string {

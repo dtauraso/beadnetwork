@@ -170,6 +170,7 @@ type Group struct {
 	Trail   int
 	Depth   int
 	Row     Act
+	Keys    bool
 }
 
 type RowBox struct {

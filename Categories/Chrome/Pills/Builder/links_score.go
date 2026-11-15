@@ -1,6 +1,7 @@
 package Builder
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -113,5 +114,62 @@ func scoreGroup(m Model) Group {
 			rows = append(rows, row)
 		}
 	}
-	return Group{Title: "score — links down, steps across · ● moves its target in that step", Rows: rows, Slides: true, Table: "score"}
+	return Group{Title: "score — links down, steps across · ● moves its target in that step", Rows: rows, Slides: true, Table: "score", Keys: m.ScoreFocused()}
+}
+
+const scoreKeysHint = "←→↑↓ move · Space pick · + − press Δ · 1 2 3 axis φ θ r · Esc leave"
+
+func (m Model) ScoreFocused() bool { return m.Score && !m.AtSeqs && m.ScoreCell.Step != 0 }
+
+func (m Model) scoreAxis() string {
+	if m.ScoreAxis == "" {
+		return Links.KPhi
+	}
+	return m.ScoreAxis
+}
+
+func (m Model) scoreLinks() []Links.Link {
+	var out []Links.Link
+	for _, id := range m.Nodes {
+		out = append(out, m.linksTo(id)...)
+	}
+	return out
+}
+
+func (m *Model) scoreKey(key string) Act {
+	e := m.ScoreCell
+	ls, ns := m.scoreLinks(), m.stepNums()
+	li, si := slices.IndexFunc(ls, func(l Links.Link) bool { return l.From == e.From && l.To == e.To }), slices.Index(ns, e.Step)
+	move := func(dl, ds int) {
+		if li >= 0 && si >= 0 {
+			l := ls[min(max(li+dl, 0), len(ls)-1)]
+			m.ScoreCell = StepEdge{ns[min(max(si+ds, 0), len(ns)-1)], l.From, l.To}
+		}
+	}
+	at := Act{Node: e.From, To: e.To, I: e.Step}
+	switch key {
+	case "ArrowUp":
+		move(-1, 0)
+	case "ArrowDown":
+		move(1, 0)
+	case "ArrowLeft":
+		move(0, -1)
+	case "ArrowRight":
+		move(0, 1)
+	case "1", "2", "3":
+		m.ScoreAxis = map[string]string{"1": Links.KPhi, "2": Links.KTheta, "3": Links.KR}[key]
+	case "Escape":
+		m.ScoreCell = StepEdge{}
+	case " ":
+		at.Op = OpStepPick
+		return at
+	case "+", "=", "-":
+		l, ok := m.gridLink(e)
+		if !ok || !l.Picked || m.scoreAxis() == Links.KR && m.FixedR(l) {
+			return Act{}
+		}
+		at.Op, at.K, at.Sign = OpLinkPress, m.scoreAxis(), map[bool]int{true: -1, false: 1}[key == "-"]
+		return at
+	}
+	return Act{}
 }
