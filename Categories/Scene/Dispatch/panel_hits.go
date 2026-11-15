@@ -137,7 +137,7 @@ func setLatticeStep(md *MoveDispatch, sign int, typed *float64) {
 	if typed != nil {
 		v = int32(*typed)
 		if !whole(*typed) || v < AngleDropdown.LatticePointsMin || v > AngleDropdown.LatticePointsMax || v%AngleDropdown.LatticePointsStep != 0 {
-			md.UI.Builder.Refused = fmt.Sprintf("lattice points %v: not a multiple of %d from %d to %d, so it stays at %d",
+			md.UI.Builder.Refused = fmt.Sprintf("points per turn %v: not a multiple of %d from %d to %d, so it stays at %d",
 				*typed, AngleDropdown.LatticePointsStep, AngleDropdown.LatticePointsMin, AngleDropdown.LatticePointsMax, md.UI.LatticePoints)
 			return
 		}
