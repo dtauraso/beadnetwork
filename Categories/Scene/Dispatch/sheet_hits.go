@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -146,6 +147,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		return
 	}
 	switch a.Op {
+	case AngleDropdown.OpLattice:
+		setLatticeStep(md, sign, typed)
 	case Builder.OpCardFold:
 		md.UI.Builder.ToggleCard(a)
 	case Builder.OpStepFold:

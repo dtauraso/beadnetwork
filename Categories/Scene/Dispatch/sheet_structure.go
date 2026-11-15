@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -22,8 +21,6 @@ func whole(v float64) bool { return v == math.Trunc(v) && !math.IsInf(v, 0) }
 func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) bool {
 	m := md.UI.Builder
 	switch a.Op {
-	case AngleDropdown.OpLattice:
-		setLatticeStep(md, sign, typed)
 	case Builder.OpTickMs:
 		setTickMs(ctx, md, sign, typed)
 	case Builder.OpFrame:
