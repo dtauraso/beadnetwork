@@ -66,7 +66,6 @@ var Tree = []Group{
 				Heading: "VECTORS",
 				Panel:   "sceneVectors",
 				Items: []Item{
-					{Flag: "sceneVectors", Icon: "↗", Label: "scene vectors"},
 					{Flag: "edgeVectors", Icon: "➜", Label: "edge vectors"},
 					{Flag: "ruleChannels", Icon: "⇄", Label: "rule channels"},
 				},

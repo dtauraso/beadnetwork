@@ -19,7 +19,7 @@ var dockRows = []struct {
 	{"node poles", []string{"nodePoles", "nodePoleSphere"}},
 	{"scene poles", []string{"scenePoles", "allPoleSpheres"}},
 	{"guides", []string{"tori", "handholds"}},
-	{"vectors", []string{"sceneVectors", "edgeVectors", "ruleChannels"}},
+	{"vectors", []string{"edgeVectors", "ruleChannels"}},
 	{"labels", []string{"labelsGlobal"}},
 }
 

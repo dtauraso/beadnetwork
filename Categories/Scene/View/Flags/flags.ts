@@ -9,7 +9,6 @@ const OVERLAY_FLAG_NAMES = [
 
   "nodeBody",
   "nodeRing",
-  "sceneVectors",
   "edgeVectors",
   "ruleChannels",
   "nodePoleSphere",

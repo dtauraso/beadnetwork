@@ -19,7 +19,6 @@ var FlagNames = []string{
 	"overlays",
 	"nodeBody",
 	"nodeRing",
-	"sceneVectors",
 	"edgeVectors",
 	"ruleChannels",
 	"nodePoleSphere",
