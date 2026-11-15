@@ -44,8 +44,8 @@ var Tree = []Group{
 				Heading: "TICKS",
 				Panel:   "nodeTicks",
 				Items: []Item{
-					{Flag: "phiTicks", Icon: "φ", Label: "φ ticks"},
-					{Flag: "thetaTicks", Icon: "θ", Label: "θ ticks"},
+					{Flag: "phiTicks", Icon: "φ", Label: "ticks"},
+					{Flag: "thetaTicks", Icon: "θ", Label: "ticks"},
 				},
 			},
 		},
