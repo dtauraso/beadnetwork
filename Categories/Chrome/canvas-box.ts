@@ -17,7 +17,7 @@ export function roundRect(
   h: number,
   r: number,
 ): void {
-  const rr = Math.min(r, w / 2, h / 2);
+  const rr = Math.max(0, Math.min(r, w / 2, h / 2));
   c.beginPath();
   c.moveTo(x + rr, y);
   c.arcTo(x + w, y, x + w, y + h, rr);
