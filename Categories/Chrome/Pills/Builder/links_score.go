@@ -9,20 +9,22 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
-const (
-	OpLinksView = "links-view"
-	viewTree    = "tree"
-	viewScore   = "score"
-)
-
-func (m *Model) SetView(a Act) { m.Score = a.K == viewScore }
-
-func viewGroup(m Model) Group {
-	return Group{Rows: [][]Cell{{
-		Text("view").Dimmed(true),
-		Button(viewTree, Act{Op: OpLinksView, K: viewTree}, !m.Score).Tipped("one folding list"),
-		Button(viewScore, Act{Op: OpLinksView, K: viewScore}, m.Score).Tipped("links down, steps across"),
+func stepBar(m Model) []Group {
+	n := m.StepShown()
+	if n == 0 {
+		return nil
+	}
+	name := Field("step "+itoa(n), m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Plain().Wording().Tipped("name this step")
+	bar := Group{Rows: [][]Cell{{
+		name,
+		Button("‹", Act{Op: OpStepEarlier, I: n}, false).Tipped("move this step one earlier"),
+		Button("›", Act{Op: OpStepLater, I: n}, false).Tipped("move this step one later"),
+		Button("→ in", Act{Op: OpStepEnter, I: n}, false).Tipped("go into this step's own steps"),
+		Button("+", Act{Op: OpStepAdd, I: n}, false).Tipped("add a step after this one"),
+		Button("⧉", Act{Op: OpStepCopy, I: n}, false).Tipped("duplicate this step"),
+		Button("×", Act{Op: OpStepDrop, I: n}, false).Tipped("delete this step"),
 	}}}
+	return []Group{bar, headRow(m, n, 0)}
 }
 
 func signed(n int) string {
@@ -123,7 +125,7 @@ func scoreGroup(m Model) Group {
 
 const scoreKeysHint = "←→↑↓ move · Space pick · + − press Δ · 1 2 3 axis φ θ r · Esc leave"
 
-func (m Model) ScoreFocused() bool { return m.Score && !m.AtSeqs && m.ScoreCell.Step != 0 }
+func (m Model) ScoreFocused() bool { return !m.AtSeqs && m.ScoreCell.Step != 0 }
 
 func (m Model) scoreAxis() string {
 	if m.ScoreAxis == "" {

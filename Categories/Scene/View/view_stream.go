@@ -48,7 +48,7 @@ func (ui *UIState) linksPreview() Preview.Preview {
 	if !ui.Builder.On() || ui.NodeRowFor == nil {
 		return p
 	}
-	p.EdgePick = ui.Builder.Score && !ui.Builder.AtSeqs
+	p.EdgePick = !ui.Builder.AtSeqs
 	from, to, ghosts := ui.Builder.Preview()
 	if a, ok := ui.NodeRowFor(from); ok {
 		if b, ok := ui.NodeRowFor(to); ok {

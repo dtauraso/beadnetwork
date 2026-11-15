@@ -51,10 +51,13 @@ func framePop(m Model) Group {
 }
 
 func scoreView(t *tree, m Model) {
-	t.put(pathGroup(m), viewGroup(m), scopeBar(m))
+	t.put(pathGroup(m), scopeBar(m))
 	if m.FramePop {
 		t.put(framePop(m))
 	}
+	networkRows(t, m)
+	startRows(t, m)
+	t.put(stepBar(m)...)
 	t.put(scoreGroup(m))
 	if m.ScoreFocused() {
 		t.put(Group{Rows: [][]Cell{{Text(scoreKeysHint).Dimmed(true)}}, Wraps: true})
@@ -74,7 +77,7 @@ func (m Model) Preview() (from, to string, ghosts []Links.Vec3) {
 	if t := m.Turning; t.Act.Op != "" {
 		return t.Act.Node, t.Act.To, m.turnGhosts(t)
 	}
-	if !m.Score || m.AtSeqs {
+	if m.AtSeqs {
 		return "", "", nil
 	}
 	if h := m.Hot; h.Op == OpStepShow && h.I != m.StepShown() {
@@ -121,7 +124,7 @@ func (m Model) downstream(step int, root string) []string {
 }
 
 func (m *Model) SelectEdge(a, b string) bool {
-	if !m.Score || m.AtSeqs {
+	if m.AtSeqs {
 		return false
 	}
 	step := m.ScoreCell.Step

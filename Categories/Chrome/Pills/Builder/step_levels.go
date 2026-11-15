@@ -108,8 +108,6 @@ func (m *Model) Touch(a Act) {
 	}
 }
 
-func (m Model) stepOpen(n int) bool { return n == m.StepShown() && !m.StepClosed }
-
 func (m Model) TopStep() int { return stepIn(m.Trail, 0) }
 
 func stepIn(trail []TreeRow, i int) int {

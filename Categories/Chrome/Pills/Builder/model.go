@@ -63,7 +63,6 @@ type Model struct {
 	PlaceOpen   map[string]bool
 	StartOpen   bool
 	FrameFolded bool
-	Score       bool
 	ScoreCell   StepEdge
 	FramePop    bool
 	FrameDraft  map[string]float64
@@ -71,7 +70,6 @@ type Model struct {
 	Hot         Act
 	ScoreAxis   string
 	Touched     StepEdge
-	DragStep    int
 	Level       string
 	Trail       []TreeRow
 

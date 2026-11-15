@@ -7,14 +7,16 @@ import (
 )
 
 const (
-	OpStepAdd  = "step-add"
-	OpStepCopy = "step-copy"
-	OpStepDrop = "step-drop"
+	OpStepAdd     = "step-add"
+	OpStepCopy    = "step-copy"
+	OpStepDrop    = "step-drop"
+	OpStepEarlier = "step-earlier"
+	OpStepLater   = "step-later"
 )
 
 func IsStepDirOp(a Act) bool {
 	switch a.Op {
-	case OpStepAdd, OpStepCopy, OpStepDrop:
+	case OpStepAdd, OpStepCopy, OpStepDrop, OpStepEarlier, OpStepLater:
 		return true
 	}
 	return false
@@ -48,6 +50,13 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 	n := a.I
 	if !slices.Contains(ns, n) {
 		return fmt.Sprintf("step %d: there is no steps/%d folder, so nothing changed", n, n), nil
+	}
+	if by := map[string]int{OpStepEarlier: -1, OpStepLater: 1}[a.Op]; by != 0 {
+		i := slices.Index(ns, n) + by
+		if i < 0 || i >= len(ns) {
+			return fmt.Sprintf("step %d is already the %s step, so it stays", n, map[int]string{-1: "first", 1: "last"}[by]), nil
+		}
+		return m.MoveStep(n, ns[i])
 	}
 	var err error
 	m.StepFrom = shiftedFrom(ns, n, a.Op)

@@ -72,9 +72,6 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			return
 		}
 	}
-	if ev.Kind == "pointerup" && endStepDrag(md, ev.X, ev.Y) {
-		return
-	}
 	if ev.Kind == "pointerup" && md.UI.Sheet.EndTabDrag() {
 		return
 	}
@@ -88,7 +85,7 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	if ev.Kind == "pointermove" {
 		t := Chrome.TargetAt(md.UI.PanelLayout(), ev.X, ev.Y)
 		hot := Sheet.Act{}
-		if h := md.UI.PanelLayout().Sheet.Hit(ev.X, ev.Y); md.UI.Builder.Score && h.Part == Sheet.PartBody {
+		if h := md.UI.PanelLayout().Sheet.Hit(ev.X, ev.Y); !md.UI.Builder.AtSeqs && h.Part == Sheet.PartBody {
 			hot = h.Cell.Act
 		}
 		if hovered := md.UI.Builder.Hover(hot); t != md.UI.Pointer || hovered {
