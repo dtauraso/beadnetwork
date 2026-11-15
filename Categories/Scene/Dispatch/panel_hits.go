@@ -34,7 +34,7 @@ func panelTookPointerDown(
 	}
 
 	if h := pl.Sheet.Hit(ev.X, ev.Y); h.Part != Sheet.PartNone {
-		applySheetHit(ctx, md, h)
+		applySheetHit(ctx, md, speedSinks, h)
 		return true
 	}
 
@@ -128,6 +128,19 @@ func applyAngleHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 		setLatticePoints(md, md.UI.LatticePoints-AngleDropdown.LatticePointsStep)
 	}
 	md.UI.EmitViewFrame(nil)
+}
+
+func setLatticeStep(md *MoveDispatch, sign int, typed *float64) {
+	v := md.UI.LatticePoints + int32(sign)*AngleDropdown.LatticePointsStep
+	if typed != nil {
+		v = int32(*typed)
+		if !whole(*typed) || v < AngleDropdown.LatticePointsMin || v > AngleDropdown.LatticePointsMax || v%AngleDropdown.LatticePointsStep != 0 {
+			md.UI.Builder.Refused = fmt.Sprintf("lattice points %v: not a multiple of %d from %d to %d, so it stays at %d",
+				*typed, AngleDropdown.LatticePointsStep, AngleDropdown.LatticePointsMin, AngleDropdown.LatticePointsMax, md.UI.LatticePoints)
+			return
+		}
+	}
+	setLatticePoints(md, v)
 }
 
 func setClockSpeed(md *MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {

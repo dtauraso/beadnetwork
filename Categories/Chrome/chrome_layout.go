@@ -36,6 +36,7 @@ type Of struct {
 	OverlaysDock  bool
 	HiddenFlags   []string
 	LatticePoints int32
+	Speed         float64
 
 	Overlays *Flags.OverlayState
 	Panels   *Panel.PanelState
@@ -65,21 +66,27 @@ func LayoutOf(in Of) Layout {
 	st := Panel.NewAt(top, float32(in.ViewH))
 
 	lay := Layout{Fit: fit, Tabs: tabs}
-	if in.SpeedSlider {
+	if in.SpeedSlider && !in.OverlaysDock {
 		lay.Speed = SliderPanel.Build(st)
 	}
-	if in.AnglesPill {
+	if in.AnglesPill && !in.OverlaysDock {
 		lay.Angle = AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints)
 	}
 	kinds := NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen)
 	if in.PlusButton {
-		lay.Nodes = NodesDropdown.BuildPlus(float32(in.ViewW), tabs.Strip, kinds)
+		lay.Nodes = NodesDropdown.BuildPlus(float32(in.ViewW), tabs.Strip, in.Nodes.Open && in.SceneEditable, kinds)
 	} else {
 		lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, kinds)
 	}
 	if in.Sheet != nil {
 		left := Panel.NewLeftPillStack(float32(in.ViewW), float32(in.ViewH), st.Next(), nil)
 		dock := Builder.Pills(in.Builder)
+		if in.OverlaysDock && in.SpeedSlider {
+			dock = append(dock, SliderPanel.DockPill(in.Speed))
+		}
+		if in.OverlaysDock && in.AnglesPill {
+			dock = append(dock, AngleDropdown.DockPill(in.LatticePoints))
+		}
 		if in.OverlaysDock {
 			dock = append(dock, Pills.DockPill(in.Overlays, in.HiddenFlags))
 		}

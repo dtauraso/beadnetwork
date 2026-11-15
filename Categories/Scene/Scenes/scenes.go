@@ -38,7 +38,7 @@ type Scene struct {
 
 var All = []Scene{
 
-	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, Editable: true, NodesDraggable: true, SpeedSlider: true, AnglesPill: true,
+	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, Editable: true, NodesDraggable: true, SpeedSlider: true, AnglesPill: true, PlusButton: true, OverlaysDock: true,
 		Kinds: []string{
 			"Input", "Time", "TimeStart", "TimeEnd",
 			"Pulse", "PulseLeft", "PulseRight",

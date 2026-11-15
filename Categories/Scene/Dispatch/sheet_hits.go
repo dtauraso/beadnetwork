@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
@@ -14,7 +15,7 @@ import (
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
-func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
+func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, h Sheet.Hit) {
 	sh := &md.UI.Sheet
 	if h.Part == Sheet.PartBody || h.Part == Sheet.PartUp || h.Part == Sheet.PartDown {
 		md.UI.Builder.Touch(h.Cell.ArrowAct())
@@ -32,6 +33,8 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 	case Sheet.PartBody:
 		if h.Cell.Act.Op == Sheet.OpDockFold {
 			sh.ToggleFold(h.Cell.Act.Node)
+		} else if h.Cell.Act.Op == SliderPanel.OpSpeed {
+			setClockSpeed(md, speedSinks, SliderPanel.Settings[h.Cell.Act.I].Speed)
 		} else if h.Cell.Act.Op == Sheet.OpDockTab {
 			sh.SelectTab(h.Cell.Act.I)
 			sh.StartTabDrag(h.Cell.Act.Node)

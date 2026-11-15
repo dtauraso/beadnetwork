@@ -73,22 +73,31 @@ func Build(st *Panel.PillStack, open bool, kinds []Kind) Layout {
 	}
 
 	w := pill.W - 2*Panel.PopoverPad
+	box, x, y := st.AddPopover(rowsHeight(kinds, w))
+	lay.Popover = box
+	lay.Rows = layRows(kinds, x, y, w)
+	st.EndGroup()
+	return lay
+}
+
+func rowsHeight(kinds []Kind, w float32) float32 {
 	rowH := Panel.RowH()
 	lineH := Panel.LineHeight(Panel.PillFontPx) * DescLineH
-
-	var contentH float32
+	var h float32
 	for _, k := range kinds {
-		contentH += rowH
+		h += rowH
 		if k.Open {
 			a, _ := NodeBuf.AppearanceOf(k.Name)
-			contentH += float32(descLines(a.Desc, w)) * lineH
+			h += float32(descLines(a.Desc, w)) * lineH
 		}
 	}
+	return h
+}
 
-	box, x, y := st.AddPopover(contentH)
-	lay.Popover = box
-
-	lay.Rows = make([]Row, len(kinds))
+func layRows(kinds []Kind, x, y, w float32) []Row {
+	rowH := Panel.RowH()
+	lineH := Panel.LineHeight(Panel.PillFontPx) * DescLineH
+	rows := make([]Row, len(kinds))
 	for i, k := range kinds {
 		a, _ := NodeBuf.AppearanceOf(k.Name)
 		r := Row{
@@ -111,10 +120,9 @@ func Build(st *Panel.PillStack, open bool, kinds []Kind) Layout {
 			r.DescRect = Rect{X: x + DescPadLeft, Y: y, W: w - DescPadLeft, H: h}
 			y += h
 		}
-		lay.Rows[i] = r
+		rows[i] = r
 	}
-	st.EndGroup()
-	return lay
+	return rows
 }
 
 type HitKind int
@@ -135,12 +143,15 @@ type Hit struct {
 
 func (l Layout) Hit(x, y float64) Hit {
 	if l.Plus.Rect.W > 0 && Panel.HitRect(l.Plus.Rect, x, y) {
+		if l.Plus.Menu {
+			return Hit{Kind: HitPill, Rect: l.Plus.Rect}
+		}
 		return Hit{Kind: HitPlus, KindID: l.Plus.KindID, Rect: l.Plus.Rect}
 	}
-	if l.Pill.W <= 0 {
+	if l.Pill.W <= 0 && !l.Plus.Menu {
 		return Hit{}
 	}
-	if Panel.HitRect(l.Pill, x, y) {
+	if l.Pill.W > 0 && Panel.HitRect(l.Pill, x, y) {
 		return Hit{Kind: HitPill, Rect: l.Pill}
 	}
 	if !l.Open {
