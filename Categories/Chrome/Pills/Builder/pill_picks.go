@@ -15,9 +15,10 @@ func (m Model) Picked() []Links.Link {
 }
 
 const (
-	OpAllBoth  = "all-both"
-	OpAllLock  = "all-lock"
-	OpAllLocks = "all-locks"
-	OpAllInc   = "all-increment"
-	OpAllOne   = "all-one"
+	OpAllBoth      = "all-both"
+	OpAllLock      = "all-lock"
+	OpAllLockCycle = "all-lock-cycle"
+	OpAllLocks     = "all-locks"
+	OpAllInc       = "all-increment"
+	OpAllOne       = "all-one"
 )

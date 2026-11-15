@@ -72,7 +72,6 @@ func (m Model) lvl() string { return filepath.Join(m.Root, m.Level) }
 
 func stepDir(root string, step int) string { return filepath.Join(StepsDir(root), strconv.Itoa(step)) }
 
-
 func ReadStepNumbers(root string) []int {
 	var out []int
 	entries, _ := os.ReadDir(StepsDir(root))
@@ -126,6 +125,7 @@ func (m *Model) ReadNodeSteps() {
 	if m.Root != "" {
 		m.StepNums = ReadStepNumbers(m.lvl())
 		m.readStepNames()
+		m.readStepsOpen()
 		m.readLevels()
 		for _, step := range m.stepNums() {
 			m.StepHead(step)

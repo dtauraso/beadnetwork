@@ -28,7 +28,6 @@ var SheetValueNames = []string{
 	"cellDim", "cellBare", "cellInk",
 	"cellDial", "dialStart", "dialTurn", "dialGhost",
 	"cardBox", "cardX", "cardY", "cardW", "cardH", "cardPop", "cardCell", "cardBand",
-	"navOn",
 }
 
 func ValueRelPath() string { return ValueRelFile }

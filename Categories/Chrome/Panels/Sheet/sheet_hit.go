@@ -55,6 +55,14 @@ func (l Layout) Hit(x, y float64) Hit {
 	if top < 0 {
 		return Hit{}
 	}
+	if b := l.Pills[top].Board; b != nil {
+		h, ok := b.Hit(x, y)
+		if !ok {
+			return Hit{Part: PartInside, Label: l.Pills[top].Label}
+		}
+		h.Label = l.Pills[top].Label
+		return h
+	}
 	for i := len(l.Cells) - 1; i >= 0; i-- {
 		cb := l.Cells[i]
 		if cb.Box != top || cb.Slides && !Panel.HitRect(l.Pills[top].Slide, x, y) {

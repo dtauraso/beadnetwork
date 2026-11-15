@@ -1,82 +1,20 @@
 package Builder
 
 import (
-	"slices"
 	"strconv"
 	"strings"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
-
-func stepBar(m Model) []Group {
-	n := m.StepShown()
-	if n == 0 {
-		return nil
-	}
-	name := Field("step "+itoa(n), m.StepNames[n], Act{Op: OpStepName, I: n}, true, false).Plain().Wording().Tipped("name this step")
-	bar := Group{Rows: [][]Cell{{
-		name,
-		Button("‹", Act{Op: OpStepEarlier, I: n}, false).Tipped("move this step one earlier"),
-		Button("›", Act{Op: OpStepLater, I: n}, false).Tipped("move this step one later"),
-		Button("→ in", Act{Op: OpStepEnter, I: n}, false).Tipped("go into this step's own steps"),
-		Button("+", Act{Op: OpStepAdd, I: n}, false).Tipped("add a step after this one"),
-		Button("⧉", Act{Op: OpStepCopy, I: n}, false).Tipped("duplicate this step"),
-		Button("×", Act{Op: OpStepDrop, I: n}, false).Tipped("delete this step"),
-	}}}
-	return []Group{bar, headRow(m, n, 0)}
-}
 
 func signed(n int) string {
 	if n > 0 {
 		return "+" + strconv.Itoa(n)
 	}
 	return strings.Replace(strconv.Itoa(n), "-", "−", 1)
-}
-
-func turnText(l Links.Link) string {
-	var parts []string
-	for _, a := range axes {
-		if d := a.delta(l); d != 0 {
-			parts = append(parts, signed(d)+a.label)
-		}
-	}
-	if len(parts) == 0 {
-		return "0"
-	}
-	return strings.Join(parts, " ")
-}
-
-func startText(o Links.Start) string {
-	return "φ" + strconv.Itoa(o.Tick.Phi) + " θ" + strconv.Itoa(o.Tick.Theta) + " r" + tenths(o.R)
-}
-
-func locksText(m Model, step int) string {
-	st := m.headOf(step)
-	var parts []string
-	for _, a := range axes {
-		way, on := st.At(a.k)
-		glyph := "·"
-		if *on && *way > 0 {
-			glyph = "↑"
-		} else if *on && *way < 0 {
-			glyph = "↓"
-		}
-		parts = append(parts, a.label+glyph)
-	}
-	return strings.Join(parts, " ")
-}
-
-func scoreCell(m Model, step int, l Links.Link) Cell {
-	e := StepEdge{step, l.From, l.To}
-	sl, ok := m.gridLink(e)
-	if !ok {
-		return Text("").Dimmed(true)
-	}
-	if !sl.Picked {
-		return LitText("— "+pickMark(false), cellAct(step, l), m.ScoreCell == e).Tipped("select to edit")
-	}
-	return LitText(turnText(sl)+" "+pickMark(true), cellAct(step, l), m.ScoreCell == e).Tipped(pressSummary(sl)).Dialed(dialOf(sl))
 }
 
 func dialOf(l Links.Link) Sheet.Dial {
@@ -93,89 +31,152 @@ func axisDial(l Links.Link, k string) Sheet.Dial {
 	return Sheet.Dial{Axis: Sheet.DialPhi, Start: float32(l.Start.Phi) + float32(l.Total.Phi), Turn: float32(l.Delta.Phi)}
 }
 
-func scoreGroup(m Model) Group {
-	ns := m.stepNums()
-	head := []Cell{Text("link").Inked(inkHead), Text("START").Inked(inkHead)}
-	locks := []Cell{Text(""), Text("")}
-	for _, n := range ns {
-		head = append(head, LitText(m.StepLabel(n), Act{Op: OpStepShow, I: n}, n == m.StepShown()).Tipped("show this step in the scene · hover to ghost its places"))
-		locks = append(locks, Text(locksText(m, n)).Dimmed(true).Tipped("HEAD locks for this step"))
+func boardDial(d Sheet.Dial) Board.Dial {
+	p := Board.Phi
+	if d.Axis == Sheet.DialTheta {
+		p = Board.Theta
 	}
-	rows := [][]Cell{head, locks}
-	for _, id := range m.Nodes {
-		links := m.linksTo(id)
-		if len(links) == 0 {
-			continue
-		}
-		rows = append(rows, []Cell{Text("into " + id).Inked(inkHead)})
-		for _, l := range links {
-			pick := m.ScoreCell.Step
-			if pick == 0 {
-				pick = m.StepShown()
-			}
-			row := []Cell{LitText(l.From+" → "+l.To, cellAct(pick, l), false).Tipped("select this link · hover to mark its edge"), Text(startText(m.Grids[id].Base[l.From].Origin)).Dimmed(true)}
-			for _, n := range ns {
-				row = append(row, scoreCell(m, n, l))
-			}
-			rows = append(rows, row)
-		}
-	}
-	return Group{Title: "score — links down, steps across · ● moves its target in that step", Rows: rows, Slides: true, Table: "score", Keys: m.ScoreFocused()}
+	return Board.Dial{Axis: p, Start: d.Start, Turn: d.Turn, Ghost: d.Ghost}
 }
 
-const scoreKeysHint = "←→↑↓ move · Space pick · + − press Δ · 1 2 3 axis φ θ r · Esc leave"
-
-func (m Model) ScoreFocused() bool { return !m.AtSeqs && m.ScoreCell.Step != 0 }
-
-func (m Model) scoreAxis() string {
-	if m.ScoreAxis == "" {
-		return Links.KPhi
+func lockOf(m Model, step int, a axis) LinksBoard.Lock {
+	st := m.headOf(step)
+	way, on := st.At(a.k)
+	glyph := "·"
+	if *on && *way > 0 {
+		glyph = "↑"
+	} else if *on && *way < 0 {
+		glyph = "↓"
 	}
-	return m.ScoreAxis
+	return LinksBoard.Lock{Label: a.label + " " + glyph, On: *on, Cycle: Act{Op: OpAllLockCycle, K: a.k, I: step}, Press: Act{Op: OpAllLock, K: a.k, I: step}}
 }
 
-func (m Model) scoreLinks() []Links.Link {
-	var out []Links.Link
+func (m Model) progress(n int) string {
+	if !m.Walking() || m.Walk.Steps[m.Walk.I] != n {
+		return ""
+	}
+	placed := 0
 	for _, id := range m.Nodes {
-		out = append(out, m.linksTo(id)...)
+		if m.Rounds[id] >= m.Walk.Round {
+			placed++
+		}
+	}
+	return "moving… " + itoa(placed) + " of " + itoa(len(m.Nodes)) + " placed"
+}
+
+func boardCols(m Model) []LinksBoard.Column {
+	out := []LinksBoard.Column{m.startCol()}
+	for _, n := range m.stepNums() {
+		out = append(out, m.stepCol(n))
 	}
 	return out
 }
 
-func (m *Model) scoreKey(key string) Act {
-	e := m.ScoreCell
-	ls, ns := m.scoreLinks(), m.stepNums()
-	li, si := slices.IndexFunc(ls, func(l Links.Link) bool { return l.From == e.From && l.To == e.To }), slices.Index(ns, e.Step)
-	move := func(dl, ds int) {
-		if li >= 0 && si >= 0 {
-			l := ls[min(max(li+dl, 0), len(ls)-1)]
-			m.ScoreCell = StepEdge{ns[min(max(si+ds, 0), len(ns)-1)], l.From, l.To}
+func (m Model) stepCol(n int) LinksBoard.Column {
+	c := LinksBoard.Column{Label: "step " + itoa(n), Short: itoa(n), Sub: m.StepNames[n], Open: m.StepOpen(n), Shown: n == m.StepShown(),
+		Fold: Act{Op: OpStepFold, I: n}, Progress: m.progress(n)}
+	if !c.Shown {
+		c.Show = Act{Op: OpStepShow, I: n}
+	}
+	if !c.Open {
+		return c
+	}
+	c.Name = Board.Field{Value: m.StepNames[n], Fit: "a step name", Act: Act{Op: OpStepName, I: n}, Words: true, Tip: "name this step"}
+	c.Tools = []Board.Chip{
+		{Label: "‹", Act: Act{Op: OpStepEarlier, I: n}, Tip: "move this step one earlier"},
+		{Label: "›", Act: Act{Op: OpStepLater, I: n}, Tip: "move this step one later"},
+		{Label: "✎", Act: Act{Op: OpRename, K: renameStep, I: n}, Tip: "rename this step"},
+		{Label: "↳ in", Act: Act{Op: OpStepEnter, I: n}, Tip: "go into this step's own steps"},
+		{Label: "＋ after", Act: Act{Op: OpStepAdd, I: n}, Tip: "add a step after this one"},
+		{Label: "⧉", Act: Act{Op: OpStepCopy, I: n}, Tip: "duplicate this step"},
+		{Label: "×", Act: Act{Op: OpStepDrop, I: n}, Tip: "delete this step"},
+	}
+	hd := &LinksBoard.Head{Picked: itoa(len(m.stepActive(n))) + " picked"}
+	for _, a := range axes {
+		hd.Locks = append(hd.Locks, lockOf(m, n, a))
+	}
+	c.Head = hd
+	for _, id := range m.Nodes {
+		if links := m.linksTo(id); len(links) > 0 {
+			c.Nodes = append(c.Nodes, m.nodeOf(n, id, links))
 		}
 	}
-	at := Act{Node: e.From, To: e.To, I: e.Step}
-	switch key {
-	case "ArrowUp":
-		move(-1, 0)
-	case "ArrowDown":
-		move(1, 0)
-	case "ArrowLeft":
-		move(0, -1)
-	case "ArrowRight":
-		move(0, 1)
-	case "1", "2", "3":
-		m.ScoreAxis = map[string]string{"1": Links.KPhi, "2": Links.KTheta, "3": Links.KR}[key]
-	case "Escape":
-		m.ScoreCell = StepEdge{}
-	case " ":
-		at.Op = OpStepPick
-		return at
-	case "+", "=", "-":
-		l, ok := m.gridLink(e)
-		if !ok || !l.Picked || m.scoreAxis() == Links.KR && m.FixedR(l) {
-			return Act{}
+	return c
+}
+
+func (m Model) nodeOf(step int, id string, links []Links.Link) LinksBoard.Node {
+	n := LinksBoard.Node{Label: "node " + id, Sub: "· " + linkCount(len(links)) + " in", Open: !m.StepFolded(step, id), Fold: Act{Op: OpStepFold, Node: id, I: step}}
+	picked := 0
+	for _, l := range links {
+		if step == startPart {
+			n.Links = append(n.Links, m.startLink(id, l))
+			continue
 		}
-		at.Op, at.K, at.Sign = OpLinkPress, m.scoreAxis(), map[bool]int{true: -1, false: 1}[key == "-"]
-		return at
+		lk := m.linkOf(step, l)
+		if lk.Picked {
+			picked++
+		}
+		n.Links = append(n.Links, lk)
 	}
-	return Act{}
+	if !n.Open && picked > 0 {
+		n.Sub += " · " + itoa(picked) + " picked"
+	}
+	return n
+}
+
+func (m Model) hot(l Links.Link) bool { return m.Hot.Node == l.From && m.Hot.To == l.To }
+
+func (m Model) linkOf(step int, l Links.Link) LinksBoard.Link {
+	e := StepEdge{step, l.From, l.To}
+	sl, ok := m.gridLink(e)
+	lk := LinksBoard.Link{Label: l.From + " → " + l.To, Picked: ok && sl.Picked, Open: m.CardOpen(e), Fold: Act{Op: OpCardFold, Node: l.From, To: l.To, I: step},
+		Dial: boardDial(dialOf(sl)), Sum: "—", Tip: "open or close this link's card", Hot: m.hot(l)}
+	if !ok {
+		return lk
+	}
+	lk.Pick = Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}
+	if lk.Open {
+		lk.Card = m.stepCard(step, sl)
+	}
+	if !sl.Picked {
+		lk.Dial.Turn = 0
+		return lk
+	}
+	lk.Tip = pressSummary(sl)
+	var parts []string
+	for _, a := range axes {
+		if d := a.delta(sl); d != 0 {
+			parts = append(parts, signed(d)+a.label)
+		}
+	}
+	lk.Sum = "0"
+	if len(parts) > 0 {
+		lk.Sum = strings.Join(parts, " ")
+	}
+	return lk
+}
+
+func (m Model) startCol() LinksBoard.Column {
+	c := LinksBoard.Column{Label: "START", Short: "S", Sub: "where each link begins", Open: m.StartOpen, Fold: Act{Op: OpStartFold}}
+	if !c.Open {
+		return c
+	}
+	for _, id := range m.Nodes {
+		if links := m.linksTo(id); len(links) > 0 {
+			c.Nodes = append(c.Nodes, m.nodeOf(startPart, id, links))
+		}
+	}
+	return c
+}
+
+func (m Model) startLink(id string, l Links.Link) LinksBoard.Link {
+	e := StepEdge{startPart, l.From, l.To}
+	o := m.Grids[id].Base[l.From].Origin
+	lk := LinksBoard.Link{Label: l.From + " → " + l.To, Open: m.CardOpen(e), Fold: Act{Op: OpCardFold, Node: l.From, To: l.To, I: startPart},
+		Dial: Board.Dial{Axis: Board.Phi, Start: float32(o.Tick.Phi)}, Sum: "φ" + itoa(o.Tick.Phi) + " θ" + itoa(o.Tick.Theta) + " r" + tenths(o.R),
+		Tip: "open or close where this link starts", Hot: m.hot(l)}
+	if lk.Open {
+		lk.Card = m.startBoardCard(id, l)
+	}
+	return lk
 }

@@ -78,7 +78,6 @@ export const SHEET_VALUE_NAMES = [
   "cardPop",
   "cardCell",
   "cardBand",
-  "navOn",
 ] as const;
 
 export type SheetValueName = (typeof SHEET_VALUE_NAMES)[number];

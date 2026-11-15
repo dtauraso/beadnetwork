@@ -104,76 +104,10 @@ func (m *Model) Press(id Act, now int64) Act {
 	return Act{}
 }
 
-func NavKey(key string) bool {
-	switch key {
-	case "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "F2", "Backspace", "Escape", " ", "+", "=", "-", "1", "2", "3":
-		return true
-	}
-	return false
-}
-
 func (m Model) Rename(a Act, e *Sheet.Edit) {
 	if c, ok := m.RenameCell(a); ok {
 		Sheet.StartDraft(e, c)
 	}
-}
-
-func (m *Model) Nav(key string) Act {
-	if m.ScoreFocused() {
-		return m.scoreKey(key)
-	}
-	rows := m.linkRows()
-	i := -1
-	for j, r := range rows {
-		if r.id == m.Sel {
-			i = j
-		}
-	}
-	if i < 0 {
-		if len(rows) > 0 && key != "Escape" {
-			m.Sel = rows[0].id
-		}
-		return Act{}
-	}
-	r := rows[i]
-	switch key {
-	case "ArrowUp":
-		m.Sel = rows[max(i-1, 0)].id
-	case "ArrowDown":
-		m.Sel = rows[min(i+1, len(rows)-1)].id
-	case "ArrowRight":
-		switch {
-		case r.open == closed:
-			return r.fold
-		case r.in.Op != "":
-			return r.in
-		case r.open == open && i+1 < len(rows) && rows[i+1].depth > r.depth:
-			m.Sel = rows[i+1].id
-		}
-	case "ArrowLeft":
-		if r.open == open {
-			return r.fold
-		}
-		for j := i - 1; j >= 0; j-- {
-			if rows[j].depth < r.depth {
-				m.Sel = rows[j].id
-				return Act{}
-			}
-		}
-		return Act{Op: OpLevelUp}
-	case "Enter":
-		if r.in.Op != "" {
-			return r.in
-		}
-		return r.fold
-	case "F2":
-		return r.rename
-	case "Backspace":
-		return Act{Op: OpLevelUp}
-	case "Escape":
-		m.Sel = Act{}
-	}
-	return Act{}
 }
 
 func (m *Model) LevelUp() error {

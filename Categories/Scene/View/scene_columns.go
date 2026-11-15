@@ -1,8 +1,19 @@
 package View
 
 import (
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 )
+
+func boardOf(l Sheet.Layout) *Board.Laid {
+	for _, p := range l.Pills {
+		if b, ok := p.Board.(*Board.Laid); ok && p.Open {
+			return b
+		}
+	}
+	return nil
+}
 
 func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	if sceneRoot == "" {
@@ -14,6 +25,7 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	ui.TabStrip.Arm(sceneRoot)
 	ui.Fit.Arm(sceneRoot)
 	ui.Sheet.Arm(sceneRoot)
+	ui.Board.Arm(sceneRoot)
 	ui.LinksPreview.Arm(sceneRoot)
 	ui.OverlaysPill.Arm(sceneRoot)
 	ui.NodeRingPoints.Arm(sceneRoot)

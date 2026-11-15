@@ -29,10 +29,6 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			}
 			return
 		}
-		if navKey(md, ev.Key) {
-			applySheetNav(ctx, md, ev.Key)
-			return
-		}
 		return
 	}
 	if ev.Kind == "delete" {
@@ -87,13 +83,16 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		hot := Sheet.Act{}
 		if h := md.UI.PanelLayout().Sheet.Hit(ev.X, ev.Y); !md.UI.Builder.AtSeqs && h.Part == Sheet.PartBody {
 			hot = h.Cell.Act
+		} else if h.Part == Sheet.PartNone && ev.Hit.Kind == "edge" && ev.Hit.EdgeRow >= 0 && int(ev.Hit.EdgeRow) < len(md.RT.EdgeEndpointRowTable) {
+			e := md.RT.EdgeEndpointRowTable[ev.Hit.EdgeRow]
+			hot = md.UI.Builder.EdgeHot(e.SrcNode, e.DstNode)
 		}
 		if hovered := md.UI.Builder.Hover(hot); t != md.UI.Pointer || hovered {
 			md.UI.Pointer = t
 			md.UI.EmitViewFrame(nil)
 		}
 	}
-	if ev.Kind == "pointerdown" && ev.Hit.Kind == "edge" && ev.Hit.EdgeRow >= 0 && int(ev.Hit.EdgeRow) < len(md.RT.EdgeEndpointRowTable) {
+	if ev.Kind == "pointerdown" && ev.Hit.Kind == "edge" && ev.Hit.EdgeRow >= 0 && int(ev.Hit.EdgeRow) < len(md.RT.EdgeEndpointRowTable) && md.UI.PanelLayout().Sheet.Hit(ev.X, ev.Y).Part == Sheet.PartNone {
 		e := md.RT.EdgeEndpointRowTable[ev.Hit.EdgeRow]
 		if md.UI.Builder.SelectEdge(e.SrcNode, e.DstNode) {
 			md.UI.EmitViewFrame(nil)

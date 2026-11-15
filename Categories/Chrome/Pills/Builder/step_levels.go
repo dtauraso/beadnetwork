@@ -103,7 +103,7 @@ func (m *Model) ShowStep(a Act, sign int) {
 }
 
 func (m *Model) Touch(a Act) {
-	if a.Node != "" && a.To != "" && a.I > 0 {
+	if a.Node != "" && a.To != "" && (a.I > 0 || a.I == startPart) {
 		m.Touched = StepEdge{Step: a.I, From: a.Node, To: a.To}
 	}
 }

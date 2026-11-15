@@ -79,6 +79,7 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 	pl := ui.PanelLayout()
 	ui.Slider.Write(pl.Speed, ui.Speed)
 	ui.Sheet.Write(pl.Sheet)
+	ui.Board.Write(boardOf(pl.Sheet), ui.Sheet.Edit)
 	ui.Angle.Write(pl.Angle)
 	ui.Nodes.Write(pl.Nodes, ui.EditRefused)
 	ui.OverlaysPill.Write(pl.Overlays)

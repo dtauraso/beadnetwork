@@ -2,7 +2,10 @@ package Builder
 
 import (
 	"strconv"
+	"strings"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -10,6 +13,7 @@ const (
 	OpFramePop   = "frame-pop"
 	OpFrameDraft = "frame-draft"
 	OpFrameApply = "frame-apply"
+	OpToastClose = "toast-close"
 )
 
 func (m *Model) StageFrame(k string, v float64) {
@@ -19,50 +23,78 @@ func (m *Model) StageFrame(k string, v float64) {
 	m.FrameDraft[k] = v
 }
 
-func scopeBar(m Model) Group {
-	rows := [][]Cell{{
-		Field("s", strconv.Itoa(m.SceneS()), frameAct(FrameS), true, false).Tipped("ticks a twelfth of a turn, one s every node uses — it rises when a start needs more"),
-		Field("Δt", strconv.Itoa(m.TickMs), Act{Op: OpTickMs}, true, true).Tipped("ms one human tick lasts"),
-		Button("frame ⟳", Act{Op: OpFramePop}, m.FramePop).Tipped("ρ, T_φ, T_θ, c_r — shared by every sequence; Apply reloads the scene"),
-	}}
-	if m.SNote != "" {
-		rows = append(rows, []Cell{Text(m.SNote).Dimmed(true)})
+func crumbs(m Model) []LinksBoard.Crumb {
+	out := []LinksBoard.Crumb{{Label: "Sequences ▾", Short: "Seq ▾", Act: Act{Op: OpSeqs}}}
+	names := []string{m.seqName()}
+	for _, s := range m.Trail {
+		names = append(names, s.Label)
 	}
-	return Group{Rows: rows}
-}
-
-func framePop(m Model) Group {
-	f := m.Frame
-	field := func(label, k, now, what string) []Cell {
-		c := Field(label, now, Act{Op: OpFrameDraft, K: k}, true, false)
-		if v, ok := m.FrameDraft[k]; ok {
-			c.Value, c.Lit = Num(v), true
+	for i, n := range names {
+		c := LinksBoard.Crumb{Label: n}
+		if i < len(m.Trail) {
+			c.Act = Act{Op: OpLevelGo, Node: m.Trail[i].Level, I: m.Trail[i].Step}
 		}
-		return []Cell{c, Text(what).Dimmed(true)}
+		out = append(out, c)
 	}
-	apply := Button("Apply", Act{Op: OpFrameApply}, len(m.FrameDraft) > 0).Dimmed(len(m.FrameDraft) == 0).Tipped("write the frame and reload the scene")
-	return Group{Title: "frame — every sequence shares it · Apply reloads the scene", Card: true, Rows: [][]Cell{
-		field("ρ", FrameRho, Num(f.Rho), "length of one unit of a link's r"),
-		field("T_φ", FrameTphi, strconv.Itoa(f.Tphi), "index steps a turn in φ"),
-		field("T_θ", FrameTtheta, strconv.Itoa(f.Ttheta), "index steps a turn in θ"),
-		field("c_r", FrameCr, Num(f.Cr), "length of one radial index step"),
-		{apply, Button("Cancel", Act{Op: OpFramePop}, false).Tipped("close without changing the frame")},
-	}}
+	return out
 }
 
-func scoreView(t *tree, m Model) {
-	t.put(pathGroup(m), scopeBar(m))
+func framePop(m Model) *LinksBoard.Pop {
+	f := m.Frame
+	field := func(label, k, now, what string) LinksBoard.PopField {
+		p := LinksBoard.PopField{Label: label, What: what, Field: Board.Field{Value: now, Fit: "000.00", Act: Act{Op: OpFrameDraft, K: k}}}
+		if v, ok := m.FrameDraft[k]; ok {
+			p.Field.Value, p.Was = Num(v), now
+		}
+		return p
+	}
+	return &LinksBoard.Pop{Tag: "shared by all " + itoa(max(1, len(m.Seqs))) + " sequences", Apply: Act{Op: OpFrameApply}, Cancel: Act{Op: OpFramePop}, CanApply: len(m.FrameDraft) > 0,
+		Fields: []LinksBoard.PopField{
+			field("ρ", FrameRho, Num(f.Rho), "length of one unit of r"),
+			field("T_φ", FrameTphi, strconv.Itoa(f.Tphi), "index steps a turn in φ"),
+			field("T_θ", FrameTtheta, strconv.Itoa(f.Ttheta), "index steps a turn in θ"),
+			field("c_r", FrameCr, Num(f.Cr), "one radial index step"),
+			{Label: "Δt", What: "ms a human tick lasts · applies now", Field: Board.Field{Value: strconv.Itoa(m.TickMs), Fit: "000.00", Act: Act{Op: OpTickMs}}},
+		}}
+}
+
+func boardData(m Model) LinksBoard.Data {
+	net := Board.Chip{Label: "Network…", Act: Act{Op: OpNetFold}, Tip: "nodes, links and places: what runs now"}
+	d := LinksBoard.Data{Crumbs: crumbs(m), SNote: m.SNote,
+		S:          Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "00", Act: frameAct(FrameS), Tip: "ticks a twelfth of a turn, one s every node uses — it rises when a start needs more"},
+		Doors:      []Board.Chip{net, {Label: "Frame ⚙", Act: Act{Op: OpFramePop}, Lit: m.FramePop, Tip: "ρ, T_φ, T_θ, c_r, Δt — shared by every sequence; applying reloads the scene"}},
+		DoorsShort: []string{"Net…", "⚙"}, Cols: boardCols(m), Insp: boardInspector(m), InspOpen: m.InspOpen, InspTab: Act{Op: OpInspTab},
+		Status: "showing step " + itoa(m.StepShown()), Ghost: m.GhostNote(),
+		Toast: m.Refused, Dismiss: Act{Op: OpToastClose}}
+	if ns := m.stepNums(); len(ns) > 0 {
+		d.Add = Act{Op: OpStepAdd, I: ns[len(ns)-1]}
+	}
+	if strings.HasPrefix(m.Refused, "moved the pick") {
+		d.Undo = m.UndoPick
+	}
 	if m.FramePop {
-		t.put(framePop(m))
+		d.Pop = framePop(m)
 	}
-	networkRows(t, m)
-	startRows(t, m)
-	t.put(stepBar(m)...)
-	t.put(scoreGroup(m))
-	if m.ScoreFocused() {
-		t.put(Group{Rows: [][]Cell{{Text(scoreKeysHint).Dimmed(true)}}, Wraps: true})
+	if len(m.allLinks()) == 0 {
+		e := &LinksBoard.Empty{Title: "No links yet.", Sub: "add nodes and links, then come back here to animate them", Door: Board.Chip{Label: "Open Network…", Act: net.Act}}
+		if len(m.Nodes) == 1 {
+			e.Title, e.Sub = "Node "+m.Nodes[0]+" has nothing to turn against.", "A link needs two nodes."
+		}
+		d.Empty = e
 	}
-	t.put(inspectorGroup(m))
+	return d
+}
+
+func (m *Model) NotePick(a Act) {
+	m.UndoPick = Act{}
+	if a.Op != OpStepPick {
+		return
+	}
+	for _, l := range m.linksTo(a.To) {
+		if sl, ok := m.gridLink(StepEdge{a.I, l.From, a.To}); ok && sl.Picked && l.From != a.Node {
+			m.UndoPick = Act{Op: OpStepPick, Node: l.From, To: a.To, I: a.I}
+		}
+	}
 }
 
 func (m *Model) Hover(a Act) bool {
@@ -89,6 +121,21 @@ func (m Model) Preview() (from, to string, ghosts []Links.Vec3) {
 		return "", "", ghosts
 	}
 	return m.Hot.Node, m.Hot.To, nil
+}
+
+func (m Model) GhostNote() string {
+	_, _, ghosts := m.Preview()
+	if len(ghosts) == 0 {
+		return ""
+	}
+	n := itoa(len(ghosts)) + " faint node"
+	if len(ghosts) > 1 {
+		n += "s"
+	}
+	if t := m.Turning; t.Act.Op != "" {
+		return "ghost: the " + n + " in the scene show where " + t.Act.To + " and what follows it land when you let go"
+	}
+	return "ghost: the " + n + " in the scene show where every node sits at the end of step " + itoa(m.Hot.I)
 }
 
 func (m Model) turnGhosts(t Turning) []Links.Vec3 {
@@ -127,15 +174,32 @@ func (m *Model) SelectEdge(a, b string) bool {
 	if m.AtSeqs {
 		return false
 	}
-	step := m.ScoreCell.Step
-	if step == 0 {
-		step = m.StepShown()
+	e, ok := m.edgeIn(m.StepShown(), a, b)
+	if !ok {
+		return false
 	}
+	m.setStepOpen(e.Step, true)
+	if m.StepFolds == nil {
+		m.StepFolds = map[StepNode]bool{}
+	}
+	m.StepFolds[StepNode{e.Step, e.To}] = false
+	m.ToggleCard(Act{Node: e.From, To: e.To, I: e.Step})
+	m.Touched = e
+	return true
+}
+
+func (m Model) edgeIn(step int, a, b string) (StepEdge, bool) {
 	for _, e := range []StepEdge{{step, a, b}, {step, b, a}} {
 		if _, ok := m.gridLink(e); ok {
-			m.ScoreCell = e
-			return true
+			return e, true
 		}
 	}
-	return false
+	return StepEdge{}, false
+}
+
+func (m Model) EdgeHot(a, b string) Act {
+	if e, ok := m.edgeIn(m.StepShown(), a, b); ok && !m.AtSeqs {
+		return Act{Op: OpLinkRow, Node: e.From, To: e.To, I: e.Step}
+	}
+	return Act{}
 }

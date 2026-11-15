@@ -103,7 +103,7 @@ const (
 )
 
 type Dial struct {
-	Axis        DialAxis
+	Axis               DialAxis
 	Start, Turn, Ghost float32
 }
 
@@ -170,7 +170,6 @@ type Group struct {
 	Trail   int
 	Depth   int
 	Row     Act
-	Keys    bool
 }
 
 type RowBox struct {
@@ -194,9 +193,18 @@ type Pill struct {
 	Left   bool
 	Bottom bool
 	Groups []Group
+	Board  func(box Rect, scrollX, scrollY float32) Board
 }
 
+type Board interface {
+	Hit(x, y float64) (Hit, bool)
+	Most() (x, y float32)
+}
+
+const BoardTable = "board"
+
 type PillBox struct {
+	Board     Board
 	Label     string
 	Left      bool
 	Pill      Rect
@@ -239,5 +247,4 @@ type Layout struct {
 	Cells []CellBox
 	Cards []CardBox
 	Rows  []RowBox
-	Nav   bool
 }

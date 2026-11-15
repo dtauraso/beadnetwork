@@ -1,6 +1,8 @@
 package Builder
 
 import (
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -15,7 +17,7 @@ const (
 	OpPlaceFold = "place-fold"
 )
 
-const navHint = "↑↓ move · → open / in · ← close / out · Enter go in · F2 rename"
+const navHint = "click a row to select · double-click to open · two-finger scroll to pan"
 
 func (m Model) allLinks() []Links.Link {
 	var out []Links.Link
@@ -89,7 +91,9 @@ func linksTree(m Model) tree {
 		seqRows(&t, m)
 		t.put(Group{Rows: [][]Cell{{Text(navHint).Dimmed(true)}}, Wraps: true})
 	} else {
-		scoreView(&t, m)
+		t.put(Group{Rows: [][]Cell{{Button("← back to steps", Act{Op: OpNetFold}, false).Tipped("back to the step cards")}}})
+		networkRows(&t, m)
+		startRows(&t, m)
 	}
 	if m.Refused != "" {
 		t.put(Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
@@ -98,5 +102,9 @@ func linksTree(m Model) tree {
 }
 
 func LinksPill(m Model) Pill {
+	if !m.AtSeqs && !m.NetworkOpen {
+		d := boardData(m)
+		return Pill{Label: LinksLabel, Bottom: true, Board: func(box Sheet.Rect, sx, sy float32) Sheet.Board { return LinksBoard.Lay(box, sx, sy, d) }}
+	}
 	return Pill{Label: LinksLabel, Bottom: true, Groups: linksTree(m).groups}
 }
