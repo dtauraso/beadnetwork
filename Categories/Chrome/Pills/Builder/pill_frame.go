@@ -2,8 +2,6 @@ package Builder
 
 import "strconv"
 
-const FrameLabel = "Frame"
-
 const (
 	OpFrame  = "frame"
 	OpTickMs = "tick-ms"
@@ -15,20 +13,25 @@ const (
 	FrameS      = "s"
 )
 
-func FramePill(m Model) Pill {
+func frameAct(k string) Act { return Act{Op: OpFrame, K: k} }
+
+func allSeqsGroup(m Model) Group {
 	f := m.Frame
-	act := func(k string) Act { return Act{Op: OpFrame, K: k} }
-	return Pill{Label: FrameLabel, Bottom: true, Groups: []Group{
-		{Title: "the frame every node is placed in — a change reloads the scene", Rows: [][]Cell{
-			{Field("ρ", Num(f.Rho), act(FrameRho), true, false), Text("length of one unit of a link's r")},
-			{Field("T_φ", strconv.Itoa(f.Tphi), act(FrameTphi), true, false), Text("index steps a turn in φ")},
-			{Field("T_θ", strconv.Itoa(f.Ttheta), act(FrameTtheta), true, false), Text("index steps a turn in θ")},
-			{Field("c_r", Num(f.Cr), act(FrameCr), true, false), Text("length of one radial index step")},
-			{Field("s", strconv.Itoa(m.SceneS()), act(FrameS), true, false), Text("ticks a twelfth of a turn, one s every node uses — it rises when a start needs more")},
-			{Text(""), Text(m.SNote)},
-		}},
-		{Title: "time — each node loops at machine speed; its machine ticks become one human tick", Rows: [][]Cell{
-			{Field("Δt", strconv.Itoa(m.TickMs), Act{Op: OpTickMs}, true, true), Text("ms one human tick lasts")},
-		}},
+	return Group{Title: "all sequences — the frame every node is placed in (a change reloads the scene), and time", Rows: [][]Cell{
+		{Field("ρ", Num(f.Rho), frameAct(FrameRho), true, false), Text("length of one unit of a link's r")},
+		{Field("T_φ", strconv.Itoa(f.Tphi), frameAct(FrameTphi), true, false), Text("index steps a turn in φ")},
+		{Field("T_θ", strconv.Itoa(f.Ttheta), frameAct(FrameTtheta), true, false), Text("index steps a turn in θ")},
+		{Field("c_r", Num(f.Cr), frameAct(FrameCr), true, false), Text("length of one radial index step")},
+		{Field("Δt", strconv.Itoa(m.TickMs), Act{Op: OpTickMs}, true, true), Text("ms one human tick lasts — each node's machine ticks become one human tick")},
 	}}
+}
+
+func seqFrameGroup(m Model) Group {
+	rows := [][]Cell{
+		{Field("s", strconv.Itoa(m.SceneS()), frameAct(FrameS), true, false), Text("ticks a twelfth of a turn, one s every node uses — it rises when a start needs more")},
+	}
+	if m.SNote != "" {
+		rows = append(rows, []Cell{Text(""), Text(m.SNote)})
+	}
+	return Group{Title: "this sequence", Rows: rows}
 }
