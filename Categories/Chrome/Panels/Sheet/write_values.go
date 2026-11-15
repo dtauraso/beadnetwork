@@ -64,6 +64,9 @@ func (s *State) Write(lay Layout) {
 		w.U8("cellDim", flag(cb.Cell.Dim))
 		w.U8("cellBare", flag(cb.Cell.Bare))
 		w.U8("cellInk", uint8(cb.Cell.Ink))
+		w.U8("cellDial", uint8(cb.Cell.Dial.Axis))
+		w.F32("dialStart", cb.Cell.Dial.Start)
+		w.F32("dialTurn", cb.Cell.Dial.Turn)
 		if cb.Up.W > 0 {
 			w.U8("upSlides", flag(cb.Slides))
 			w.U8("upLit", flag(cb.Cell.Locked && cb.Cell.LockSign > 0))

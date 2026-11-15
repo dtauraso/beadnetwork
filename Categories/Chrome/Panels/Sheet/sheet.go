@@ -64,6 +64,7 @@ type Cell struct {
 	Bare          bool
 	Tip           string
 	Ink           Ink
+	Dial          Dial
 }
 
 type Ink uint8
@@ -90,6 +91,30 @@ const (
 func (c Cell) Tipped(s string) Cell { c.Tip = s; return c }
 
 func (c Cell) Inked(i Ink) Cell { c.Ink = i; return c }
+
+func (c Cell) Dialed(d Dial) Cell { c.Dial = d; return c }
+
+type DialAxis uint8
+
+const (
+	DialNone DialAxis = iota
+	DialPhi
+	DialTheta
+)
+
+type Dial struct {
+	Axis        DialAxis
+	Start, Turn float32
+}
+
+const DialGap = 4
+
+func dialW(c Cell) float32 {
+	if c.Dial.Axis == DialNone {
+		return 0
+	}
+	return Panel.LineHeight(ValFontPx) + DialGap
+}
 
 func (c Cell) Plain() Cell { c.Boxed, c.Bare = true, true; return c }
 

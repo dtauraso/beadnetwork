@@ -38,7 +38,7 @@ func cellW(c Cell) float32 {
 	case CellButton:
 		return Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
 	}
-	w := textW(c)
+	w := textW(c) + dialW(c)
 	if c.Fit != "" {
 		w = max(w, Panel.TextWidth(c.Fit, KeyFontPx)+2)
 	}
