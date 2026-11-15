@@ -69,6 +69,8 @@ func panelTookPointerDown(
 		md.UI.PlacingKind, md.UI.PlacingPending = h.KindID, true
 		md.UI.EmitViewFrame(nil)
 		return true
+	case NodesDropdown.HitInert:
+		return true
 	case NodesDropdown.HitPlus:
 		md.UI.PlacingKind, md.UI.PlacingPending = h.KindID, true
 		return true
