@@ -132,13 +132,19 @@ func (ui *UIState) SetSelectionUI(sendMove func(id string, msg Node.Msg), node, 
 	if node != "" && node != prevNode {
 		sendMove(node, Node.Msg{NodeID: node, Body: Node.Select{On: true}})
 	}
-	if node != "" && node != ui.LatchedNode {
+	latch := node
+	if node == "" && edge != "" {
+		latch = ui.LatchedNode
+	}
+	if latch != ui.LatchedNode {
 		prevLatched := ui.LatchedNode
-		ui.LatchedNode = node
+		ui.LatchedNode = latch
 		if prevLatched != "" {
 			sendMove(prevLatched, Node.Msg{NodeID: prevLatched, Body: Node.Latched{On: false}})
 		}
-		sendMove(node, Node.Msg{NodeID: node, Body: Node.Latched{On: true}})
+		if latch != "" {
+			sendMove(latch, Node.Msg{NodeID: latch, Body: Node.Latched{On: true}})
+		}
 	}
 }
 
