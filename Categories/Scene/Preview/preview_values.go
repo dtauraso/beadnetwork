@@ -14,6 +14,18 @@ var PreviewValueNames = []string{
 	"hotSrc", "hotDst",
 	"edgePick",
 	"ghostX", "ghostY", "ghostZ",
+	"edgeSrc", "edgeDst", "edgeState",
+}
+
+const (
+	EdgeUnpicked uint8 = 1
+	EdgePicked   uint8 = 2
+	EdgeOpen     uint8 = 3
+)
+
+type EdgeMark struct {
+	Src, Dst int32
+	State    uint8
 }
 
 func ValueRelPath() string { return ValueRelFile }
@@ -22,6 +34,7 @@ type Preview struct {
 	HotSrc, HotDst int32
 	EdgePick       bool
 	Ghosts         []Vectors.Vec3
+	Edges          []EdgeMark
 }
 
 func None() Preview { return Preview{HotSrc: -1, HotDst: -1} }
@@ -45,6 +58,11 @@ func (s *State) Write(p Preview) {
 		w.F32("ghostX", float32(g.X))
 		w.F32("ghostY", float32(g.Y))
 		w.F32("ghostZ", float32(g.Z))
+	}
+	for _, e := range p.Edges {
+		w.I32("edgeSrc", e.Src)
+		w.I32("edgeDst", e.Dst)
+		w.U8("edgeState", e.State)
 	}
 	if err := w.Flush(); err != nil {
 		fmt.Fprintf(os.Stderr, "links_preview_values: %v\n", err)

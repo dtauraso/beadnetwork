@@ -9,4 +9,6 @@ const values = makeLeafValues<PreviewValueName>(
 
 export const previewI32 = values.i32;
 export const previewU8 = values.u8;
+export const previewI32Run = values.i32Run;
+export const previewBytes = values.bytes;
 export const previewF32Run = values.f32Run;
