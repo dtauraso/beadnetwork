@@ -155,8 +155,10 @@ func linksTree(m Model) tree {
 	refused := m.Refused
 	if m.AtSeqs {
 		seqRows(&t, m)
+	} else if m.Score {
+		t.put(viewGroup(m), seqFrameGroup(m), scoreGroup(m))
 	} else {
-		t.put(seqFrameGroup(m))
+		t.put(viewGroup(m), seqFrameGroup(m))
 		networkRows(&t, m)
 		startRows(&t, m)
 		refused = stepRows(&t, m, refused)
@@ -165,7 +167,7 @@ func linksTree(m Model) tree {
 	}
 	if m.DragStep != 0 {
 		t.put(Group{Rows: [][]Cell{{Text("moving step " + m.StepLabel(m.DragStep) + ": let go on another step's row").Dimmed(true)}}})
-	} else {
+	} else if !m.Score || m.AtSeqs {
 		t.put(Group{Rows: [][]Cell{{Text(navHint).Dimmed(true)}}, Wraps: true})
 	}
 	if refused != "" {
