@@ -29,7 +29,7 @@
     </div>
     <table class="doc">
       <tbody>
-        <tr><td><b>Mini dial</b></td><td>Grey arc: where the link starts this step. Blue arc: this step's turn. Same drawing as the inspector and as the scene's angle arcs.</td></tr>
+        <tr><td><b>Mini dial</b></td><td>Grey arc: where the link starts this step. Coloured arc: this step's turn — orange for φ, green for θ. Same drawing as the inspector and as the scene's angle arcs.</td></tr>
         <tr><td><b>+2φ</b></td><td>The pressed Δ on the main axis, in twelfths. A second axis shows smaller. Empty cell: <span class="off">—</span>.</td></tr>
         <tr><td><b>● / ○</b></td><td>Picked: this link moves its target in this step. Tinted background repeats it.</td></tr>
         <tr><td><b>Ring</b></td><td>Keyboard / pointer focus, the cell the inspector edits.</td></tr>
@@ -40,26 +40,28 @@
   <h2>Rows: grouped by the node they point into</h2>
   <div class="scroll">
   <svg class="diagram" viewBox="0 0 1000 220" style="min-width:780px">
+    <g class="scene"><rect class="bg" x="40" y="14" width="270" height="192" rx="8"/>
     <circle cx="90" cy="110" r="28" class="box accent"/><text x="90" y="115" text-anchor="middle" class="bold">1</text>
     <circle cx="260" cy="50" r="24" class="box"/><text x="260" y="55" text-anchor="middle" class="bold">2</text>
     <circle cx="260" cy="170" r="24" class="box"/><text x="260" y="175" text-anchor="middle" class="bold">3</text>
-    <path d="M236 58L118 100" stroke="#e8833a" stroke-width="3" fill="none"/><text x="150" y="66" class="small">2→1</text>
-    <path d="M236 162L118 120" stroke="#4ec98f" stroke-width="3" fill="none"/><text x="150" y="168" class="small">3→1</text>
-    <path d="M260 74V146" stroke="#c678dd" stroke-width="3" fill="none"/><text x="270" y="114" class="small">2→3</text>
+    <path d="M236 58L118 100" stroke="#a7dfe5" stroke-width="3" fill="none"/><text x="150" y="66" class="small">2→1</text>
+    <path d="M236 162L118 120" stroke="#a7dfe5" stroke-width="3" fill="none"/><text x="150" y="168" class="small">3→1</text>
+    <path d="M260 74V146" stroke="#a7dfe5" stroke-width="3" fill="none"/><text x="270" y="114" class="small">2→3</text>
+    </g>
     <path class="wire dash" d="M330 110h80"/>
     <rect x="420" y="30" width="540" height="160" rx="10" class="box"/>
     <text x="440" y="60" class="small muted bold">INTO 1   — at most one ● per column</text>
-    <rect x="440" y="72" width="10" height="10" fill="#e8833a"/><text x="458" y="82" class="small">2 → 1</text>
-    <rect x="440" y="94" width="10" height="10" fill="#4ec98f"/><text x="458" y="104" class="small">3 → 1</text>
+    <text x="440" y="82" class="small">2 → 1</text>
+    <text x="440" y="104" class="small">3 → 1</text>
     <text x="440" y="140" class="small muted bold">INTO 3</text>
-    <rect x="440" y="152" width="10" height="10" fill="#c678dd"/><text x="458" y="162" class="small">2 → 3</text>
+    <text x="440" y="162" class="small">2 → 3</text>
     <text x="620" y="82" class="small">●</text><text x="720" y="82" class="small muted">○</text>
     <text x="620" y="104" class="small muted">○</text><text x="720" y="104" class="small">●</text>
     <text x="620" y="162" class="small">●</text><text x="720" y="162" class="small">●</text>
     <text x="604" y="50" class="small bold">step 1</text><text x="704" y="50" class="small bold">step 2</text>
   </svg>
   </div>
-  <p class="cap">The swatch is the edge's colour in the 3D scene, so a row and its edge are matched by eye. The pick rule lives on the group: one ● per group per column, which the layout makes obvious before any rule is broken.</p>
+  <p class="cap">Every edge in the 3D scene is the same colour, so a row is matched to its edge by hovering: the hovered row thickens its edge. The pick rule lives on the group: one ● per group per column, which the layout makes obvious before any rule is broken.</p>
 
   <h2>Columns: steps, with their HEAD locks</h2>
   <div class="grid2">
@@ -86,8 +88,8 @@
         <tr><th class="now">a</th><th>b</th><th>c</th></tr>
       </thead>
       <tbody>
-        <tr><td class="rowhead"><span class="sw" style="background:#e8833a"></span> 2 → 1</td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="3" data-delta="2"></svg>+2φ</div></td><td class="cell picked focus"><div class="c"><svg data-dial data-size="22" data-start="5" data-delta="1"></svg>+1φ</div></td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="6" data-delta="1"></svg>+1φ</div></td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="7" data-delta="1"></svg>+1φ</div></td><td class="cell"><span class="off">—</span></td></tr>
-        <tr><td class="rowhead"><span class="sw" style="background:#c678dd"></span> 2 → 3</td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="6" data-delta="1"></svg>+1θ</div></td><td class="cell ghost"><span class="off">—</span></td><td class="cell ghost"><span class="off">—</span></td><td class="cell ghost"><span class="off">—</span></td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="7" data-delta="-1"></svg>−1θ</div></td></tr>
+        <tr><td class="rowhead">2 → 1</td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="3" data-delta="2"></svg>+2φ</div></td><td class="cell picked focus"><div class="c"><svg data-dial data-size="22" data-start="5" data-delta="1"></svg>+1φ</div></td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="6" data-delta="1"></svg>+1φ</div></td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="7" data-delta="1"></svg>+1φ</div></td><td class="cell"><span class="off">—</span></td></tr>
+        <tr><td class="rowhead">2 → 3</td><td class="cell picked"><div class="c"><svg data-dial data-axis="theta" data-size="22" data-start="6" data-delta="1"></svg>+1θ</div></td><td class="cell ghost"><span class="off">—</span></td><td class="cell ghost"><span class="off">—</span></td><td class="cell ghost"><span class="off">—</span></td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="7" data-delta="-1"></svg>−1θ</div></td></tr>
       </tbody>
     </table>
   </div>
