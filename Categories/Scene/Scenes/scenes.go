@@ -32,6 +32,8 @@ type Scene struct {
 	OverlaysDock bool
 
 	HiddenOverlays []string
+
+	RemovedOverlays []string
 }
 
 var All = []Scene{
@@ -44,7 +46,8 @@ var All = []Scene{
 		}},
 
 	{Name: "φ, θ", Dir: "topology-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: true, Kinds: []string{"PhiTheta"}, PlusButton: true,
-		OverlaysDock: true, HiddenOverlays: []string{"nodeBody", "nodeRing", "ringPick", "selectionRing", "hoverRing", "edgeVectors", "ruleChannels"}},
+		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors", "ruleChannels"},
+		RemovedOverlays: []string{"nodeBody", "nodeRing", "ringPick", "selectionRing", "hoverRing"}},
 }
 
 var Unlisted = Scene{ClockDivisor: 1, PolarRules: true, SpeedSlider: true, AnglesPill: true}

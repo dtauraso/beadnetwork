@@ -9,7 +9,7 @@ import (
 
 func InstallOverlays(ui *View.UIState, topologyPath string) {
 	ov, _ := Flags.LoadSceneOverlays(topologyPath)
-	ui.OV.SetGuideVisibility(ov)
+	ui.OV.SetGuideVisibility(Flags.Without(ov, ui.SceneRemovedOverlays))
 
 	if err := Flags.WriteSceneOverlays(topologyPath, ui.OV); err != nil {
 		LogPersistErr("install_overlays", topologyPath, err)

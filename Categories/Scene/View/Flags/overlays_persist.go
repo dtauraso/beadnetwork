@@ -17,6 +17,13 @@ func WriteSceneOverlays(sceneRoot string, ov OverlayState) error {
 	return w.Flush()
 }
 
+func Without(ov OverlayState, flags []string) OverlayState {
+	for _, flag := range flags {
+		OverlayFlagWrite[flag](&ov, false)
+	}
+	return ov
+}
+
 func LoadSceneOverlays(sceneRoot string) (OverlayState, bool) {
 	ov := DefaultOverlayState()
 	r, ok := ReadBlob(BlockPath(sceneRoot), FlagNames)
