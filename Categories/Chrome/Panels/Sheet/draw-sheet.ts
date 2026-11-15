@@ -62,6 +62,7 @@ export function sheetKey(): string {
     bytesOf("cellDial").join(""),
     Array.from(sheetF32Run("dialStart") ?? []).join("."),
     Array.from(sheetF32Run("dialTurn") ?? []).join("."),
+    Array.from(sheetF32Run("dialGhost") ?? []).join("."),
     strings("keyText", "keyLen").join("|"),
     strings("valueText", "valueLen").join("|"),
     draftText(),
@@ -141,7 +142,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const cellSlides = bytesOf("cellSlides"), upSlides = bytesOf("upSlides");
   const upLit = bytesOf("upLit"), downLit = bytesOf("downLit"), upDim = bytesOf("upDim");
   const cardBox = sheetU32Run("cardBox"), cards = rects("cardX", "cardY", "cardW", "cardH");
-  const dial = bytesOf("cellDial"), dialStart = sheetF32Run("dialStart"), dialTurn = sheetF32Run("dialTurn");
+  const dial = bytesOf("cellDial"), dialStart = sheetF32Run("dialStart"), dialTurn = sheetF32Run("dialTurn"), dialGhost = sheetF32Run("dialGhost");
   const cardPop = bytesOf("cardPop"), cardCell = sheetU32Run("cardCell"), cardBand = bytesOf("cardBand"), ink = bytesOf("cellInk");
   let popFrom = cells.length;
   cards.forEach((_, i) => { if (cardPop[i]) popFrom = Math.min(popFrom, cardCell?.[i] ?? popFrom); });
@@ -166,7 +167,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
         slid(c, b, sx, sw, (cellSlides[i] ?? 0) !== 0, () => drawCell(c, r, {
           kind: kinds[i] ?? 0, key: keys[i] ?? "", value: isEditing ? `${draft}_` : vals[i] ?? "", editing: isEditing,
           outlined: (outlined[i] ?? 0) !== 0, boxed: (boxed[i] ?? 0) !== 0, lit: (lit[i] ?? 0) !== 0, dim: (dimCell[i] ?? 0) !== 0,
-          bare: (bare[i] ?? 0) !== 0, ink: ink[i] ?? 0, dial: dial[i] ?? 0, dialStart: dialStart?.[i] ?? 0, dialTurn: dialTurn?.[i] ?? 0,
+          bare: (bare[i] ?? 0) !== 0, ink: ink[i] ?? 0, dial: dial[i] ?? 0, dialStart: dialStart?.[i] ?? 0, dialTurn: dialTurn?.[i] ?? 0, dialGhost: dialGhost?.[i] ?? 0,
         }));
       });
       drawCards(false);

@@ -78,6 +78,13 @@ func scoreCell(m Model, step int, l Links.Link) Cell {
 
 func dialOf(l Links.Link) Sheet.Dial {
 	if l.Delta.Phi == 0 && l.Delta.Theta != 0 {
+		return axisDial(l, Links.KTheta)
+	}
+	return axisDial(l, Links.KPhi)
+}
+
+func axisDial(l Links.Link, k string) Sheet.Dial {
+	if k == Links.KTheta {
 		return Sheet.Dial{Axis: Sheet.DialTheta, Start: float32(l.Start.Theta) + float32(l.Total.Theta), Turn: float32(l.Delta.Theta)}
 	}
 	return Sheet.Dial{Axis: Sheet.DialPhi, Start: float32(l.Start.Phi) + float32(l.Total.Phi), Turn: float32(l.Delta.Phi)}
