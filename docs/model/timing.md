@@ -29,16 +29,15 @@
 
 ## Driver
 
-**Self-scheduling node goroutines.** A node is four goroutines, each paced by a different
+**Self-scheduling node goroutines.** A node is three goroutines, each paced by a different
 thing:
 
 - the **kind** goroutine — the kind's `Update`, paced by the sim clock; it decides values
 - the **animation** goroutine — `BeadAnimation.RunBeadAnimation`, one per node with outputs;
   it advances every bead the node owns by one slot per wake and writes its bead stream
 - the **geometry** goroutine — `RunGeometry`
-- the **rule** goroutine — `Node.RuleNode.Run`, which fans out one forwarder per peer
 
-A `BeadLine` is state one of them owns, not a fifth goroutine: it holds the segment, the step
+A `BeadLine` is state one of them owns, not a fourth goroutine: it holds the segment, the step
 count and the beads on it, and the animation goroutine steps it.
 
 There is no central walker and no play/pause gate.

@@ -5,8 +5,6 @@ import type { OverlayEditMsg } from "../Scene/View/Flags/edits";
 import type { PanelEditMsg } from "../Chrome/Panels/Panel/edits";
 import type { ClockEditMsg } from "../Chrome/Panels/SliderPanel/edits";
 import type { SceneEditMsg } from "../Scene/edits";
-import type { NodeEditMsg } from "../Node/edits";
-import type { EdgeEditMsg } from "../Node/Edge/edits";
 import type { OverlayFlag } from "../Scene/View/Flags/flags";
 import type { PanelFlag } from "../Chrome/Panels/Panel/flags";
 
@@ -16,9 +14,7 @@ type EditMsg =
   | OverlayEditMsg
   | PanelEditMsg
   | ClockEditMsg
-  | SceneEditMsg
-  | NodeEditMsg
-  | EdgeEditMsg;
+  | SceneEditMsg;
 
 export type WebviewToHostMsg =
   | { type: "ready" }

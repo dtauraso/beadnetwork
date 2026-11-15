@@ -17,7 +17,6 @@ type OverlayState struct {
 	NodeBodyVisible       bool
 	NodeRingVisible       bool
 	EdgeVectorsVisible    bool
-	RuleChannelsVisible   bool
 	NodePoleSphereVisible bool
 	AllPoleSpheresVisible bool
 }
@@ -72,11 +71,6 @@ func (o *OverlayState) ToggleNodeRing() {
 // ToggleEdgeVectors flips EdgeVectorsVisible.
 func (o *OverlayState) ToggleEdgeVectors() {
 	o.setFlag(&o.EdgeVectorsVisible)
-}
-
-// ToggleRuleChannels flips RuleChannelsVisible.
-func (o *OverlayState) ToggleRuleChannels() {
-	o.setFlag(&o.RuleChannelsVisible)
 }
 
 // ToggleNodePoleSphere flips NodePoleSphereVisible.

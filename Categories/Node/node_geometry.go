@@ -3,7 +3,6 @@ package Node
 import (
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
@@ -31,7 +30,6 @@ type NodeGeometry struct {
 
 	tilt TiltVectors.Tilt
 
-	channels ChannelVectors.PeerCenters
 
 	outTargets []string
 
@@ -51,7 +49,6 @@ type NodeGeometry struct {
 
 	kindPosts KindPosts
 
-	rule Link
 }
 
 func NewNodeGeometry(id string, geom NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {

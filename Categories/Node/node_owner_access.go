@@ -2,7 +2,6 @@ package Node
 
 import (
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 	"slices"
 
@@ -58,7 +57,6 @@ func (m *NodeGeometry) OutEdges() *OutEdges { return &m.outEdges }
 
 func (m *NodeGeometry) Tilt() *TiltVectors.Tilt { return &m.tilt }
 
-func (m *NodeGeometry) Channels() *ChannelVectors.PeerCenters { return &m.channels }
 
 func (m *NodeGeometry) ScenePolar() polar.Polar { return ScenePolarOf(m.geom) }
 
@@ -70,20 +68,6 @@ func (m *NodeGeometry) SceneCenter() Vec3 { return m.geom.SceneCenter }
 
 func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
 	return slices.Contains(m.outTargets, neighborID)
-}
-
-func (m *NodeGeometry) KindRuleActive() bool {
-	if m.RuleNode() == nil {
-		return true
-	}
-	return m.RuleNode().KindActive()
-}
-
-func (m *NodeGeometry) EdgeRuleActive(otherID string) bool {
-	if m.RuleNode() == nil {
-		return true
-	}
-	return m.RuleNode().EdgeActive(otherID)
 }
 
 func (m *NodeGeometry) CommitIndex() {

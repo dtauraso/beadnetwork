@@ -8,11 +8,7 @@ import (
 )
 
 func trimOwnDrag(delta polarindex.Offset, st NodeDrag.State) polarindex.Offset {
-	if !st.KindOn {
-		return NodeDrag.TrimToDragRule(delta, st)
-	}
 	delta = snapDeltaTheta(delta, st.Constants)
-	delta = NodeDrag.TrimToDragRule(delta, st)
 	return holdEqualOutLengths(delta, st)
 }
 

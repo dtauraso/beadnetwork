@@ -4,8 +4,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
-
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
@@ -40,69 +38,6 @@ func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.Scene
 		}
 	}
 	return nil
-}
-
-func WriteDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
-	return writeRuleDir(filepath.Join(nodeBaseDir(root, id), DirDragRule), rule)
-}
-
-const (
-	FileDragActive = "drag.bin"
-	FileKindActive = "kind.bin"
-	FileSelfActive = "self.bin"
-	DirEdgeActive  = "edges"
-)
-
-func ruleActiveFilePath(root, id, name string) string {
-	return filepath.Join(root, "nodes", id, "rule-active", name)
-}
-
-func edgeActiveFilePath(root, id, target string) string {
-	return filepath.Join(root, "nodes", id, "rule-active", DirEdgeActive, target+".json")
-}
-
-func readActive(path string) bool {
-	var v bool
-	if !ReadIfExists(path, &v) {
-		return true
-	}
-	return v
-}
-
-func WriteKindRuleActive(root, id string, active bool) error {
-	return WriteAtomic(ruleActiveFilePath(root, id, FileKindActive), active)
-}
-
-func LoadKindRuleActive(root, id string) bool {
-	return readActive(ruleActiveFilePath(root, id, FileKindActive))
-}
-
-func WriteEdgeRuleActive(root, id, target string, active bool) error {
-	return WriteAtomic(edgeActiveFilePath(root, id, target), active)
-}
-
-func LoadEdgeRuleActive(root, id, target string) bool {
-	return readActive(edgeActiveFilePath(root, id, target))
-}
-
-func WriteSelfDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
-	return writeRuleDir(filepath.Join(nodeBaseDir(root, id), DirSelfRule), rule)
-}
-
-func WriteSelfRuleActive(root, id string, active bool) error {
-	return WriteAtomic(ruleActiveFilePath(root, id, FileSelfActive), active)
-}
-
-func LoadSelfRuleActive(root, id string) bool {
-	return readActive(ruleActiveFilePath(root, id, FileSelfActive))
-}
-
-func WriteDragActive(root, id string, active bool) error {
-	return WriteAtomic(ruleActiveFilePath(root, id, FileDragActive), active)
-}
-
-func LoadDragActive(root, id string) bool {
-	return readActive(ruleActiveFilePath(root, id, FileDragActive))
 }
 
 func WriteNewPlaceNode(root, id, kind string, p polarindex.Place) error {

@@ -2,8 +2,6 @@ package Node
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 )
 
 const (
@@ -20,56 +18,6 @@ const (
 	FileRefTheta   = "ref-theta.bin"
 	FileRefS       = "ref-s.bin"
 	FileTiltIdx    = "top-tilt-vector-phi-idx.bin"
-
-	DirDragRule = "drag-rule"
-	DirSelfRule = "self-rule"
-
-	FileRuleR        = "r.bin"
-	FileRulePhi      = "phi.bin"
-	FileRuleMaxTheta = "max-theta.bin"
 )
 
 func BaseDir(nodeDir string) string { return filepath.Join(nodeDir, "base") }
-
-func ReadDragRule(dir string) *PolarRulesPanel.DragRule {
-	var rule PolarRulesPanel.DragRule
-	any := false
-	read := func(name string, dst **float64) {
-		var v float64
-		if ReadIfExists(filepath.Join(dir, name), &v) {
-			*dst = &v
-			any = true
-		}
-	}
-	read(FileRuleR, &rule.R)
-	read(FileRulePhi, &rule.Phi)
-	read(FileRuleMaxTheta, &rule.MaxTheta)
-	if !any {
-		return nil
-	}
-	return &rule
-}
-
-func writeRuleDir(dir string, rule *PolarRulesPanel.DragRule) error {
-	for _, name := range []string{FileRuleR, FileRulePhi, FileRuleMaxTheta} {
-		if err := removeIfPresent(filepath.Join(dir, name)); err != nil {
-			return err
-		}
-	}
-	if rule == nil {
-		return nil
-	}
-	write := func(name string, v *float64) error {
-		if v == nil {
-			return nil
-		}
-		return WriteAtomic(filepath.Join(dir, name), *v)
-	}
-	if err := write(FileRuleR, rule.R); err != nil {
-		return err
-	}
-	if err := write(FileRulePhi, rule.Phi); err != nil {
-		return err
-	}
-	return write(FileRuleMaxTheta, rule.MaxTheta)
-}

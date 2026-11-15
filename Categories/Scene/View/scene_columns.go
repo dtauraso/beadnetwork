@@ -9,7 +9,6 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 		return
 	}
 	ui.sceneRoot = sceneRoot
-	ui.Rules.Arm(sceneRoot)
 	ui.Nodes.Arm(sceneRoot)
 	ui.Angle.Arm(sceneRoot)
 	ui.TabStrip.Arm(sceneRoot)

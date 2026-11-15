@@ -9,7 +9,6 @@ func (ui *UIState) PanelLayout() Chrome.Layout {
 		ViewW: ui.ViewW, ViewH: ui.ViewH,
 		SceneEditable: ui.SceneEditable,
 		SceneKinds:    ui.SceneKinds,
-		PolarRules:    ui.ScenePolarRules,
 		SpeedSlider:   ui.SceneSpeedSlider,
 		AnglesPill:    ui.SceneAnglesPill,
 		PlusButton:    ui.ScenePlusButton,
@@ -23,7 +22,6 @@ func (ui *UIState) PanelLayout() Chrome.Layout {
 		Angle:         ui.Angle,
 		Nodes:         ui.Nodes,
 		Tabs:          ui.TabStrip,
-		Rules:         ui.Rules,
 		PillsBar:      ui.OverlaysPill,
 	})
 }

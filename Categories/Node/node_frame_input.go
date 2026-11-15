@@ -2,7 +2,6 @@ package Node
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/AngleArcs"
-	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 )
 
@@ -41,7 +40,6 @@ type NodeFrameInput struct {
 
 	TiltArrows []TiltVectors.TiltArrow
 
-	ChannelVectors []ChannelVectors.ChannelVector
 
 	TickMarks []TickMark
 
@@ -51,16 +49,7 @@ type NodeFrameInput struct {
 
 	LatticePoints uint8
 
-	DragRLocked, DragPhiLocked uint8
-	DragThetaMax               float32
-	DragActive                 uint8
-	HasKindRule                uint8
-	KindRuleActive             uint8
-	SelfRLocked, SelfPhiLocked uint8
-	SelfThetaMax               float32
-	SelfActive                 uint8
 
-	RuleGroupID, RuleGroupSize int32
 
 	Label string
 }

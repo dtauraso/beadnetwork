@@ -8,10 +8,10 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 )
 
 func CreateNode(scenes *Scenes.SceneSwitch, ui *View.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(View.Vec3) (string, bool), kindID uint8, drop View.Vec3) {

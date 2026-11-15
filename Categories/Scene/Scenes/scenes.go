@@ -21,8 +21,6 @@ type Scene struct {
 
 	Kinds []string
 
-	PolarRules bool
-
 	SpeedSlider bool
 
 	AnglesPill bool
@@ -40,7 +38,7 @@ type Scene struct {
 
 var All = []Scene{
 
-	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, Editable: true, NodesDraggable: true, PolarRules: true, SpeedSlider: true, AnglesPill: true,
+	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, Editable: true, NodesDraggable: true, SpeedSlider: true, AnglesPill: true,
 		Kinds: []string{
 			"Input", "Time", "TimeStart", "TimeEnd",
 			"Pulse", "PulseLeft", "PulseRight",
@@ -50,12 +48,12 @@ var All = []Scene{
 		FixedOverlays:   []string{"nodeBody", "nodeRing"}},
 
 	{Name: "φ, θ", Dir: "topology-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: true, Kinds: []string{"PhiTheta"}, PlusButton: true,
-		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors", "ruleChannels"},
+		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors"},
 		RemovedOverlays: []string{"nodePoles", "scenePoles", "allPoleSpheres"},
-		FixedOverlays: []string{"nodeBody", "nodeRing"}},
+		FixedOverlays:   []string{"nodeBody", "nodeRing"}},
 }
 
-var Unlisted = Scene{ClockDivisor: 1, PolarRules: true, SpeedSlider: true, AnglesPill: true}
+var Unlisted = Scene{ClockDivisor: 1, SpeedSlider: true, AnglesPill: true}
 
 func Declared(path string) (Scene, bool) {
 	base := filepath.Base(filepath.Clean(path))

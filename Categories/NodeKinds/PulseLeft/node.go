@@ -55,7 +55,7 @@ func (g *PulseLeft) Update(ctx context.Context) {
 
 	clk := g.Clock.Copy()
 	clk.SpeedFrom(g.SpeedCh)
-	g.Self.StartRule(ctx, clk)
+	g.Self.Start(ctx, clk)
 
 	for {
 		if ctx.Err() != nil {

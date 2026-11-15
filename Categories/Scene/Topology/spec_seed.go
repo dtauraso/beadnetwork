@@ -1,8 +1,6 @@
 package Topology
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
-
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
@@ -11,37 +9,9 @@ import (
 func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {
 	m.SetSelfKind(n.Type)
 
-	if rn := m.RuleNode(); rn != nil {
-		seedRules(m, rn, n, sceneRoot)
-	}
-
 	if n.TopTiltVectorPhiIdx != nil {
 		m.Tilt().SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
 	}
-}
-
-func seedRules(m *NodeBuf.NodeGeometry, rn *NodeBuf.RuleNode, n Node, sceneRoot string) {
-	rn.SetPersist(NodeBuf.Persist{
-		Rule:       func(r *PolarRulesPanel.DragRule) error { return NodeBuf.WriteDragRule(sceneRoot, n.ID, r) },
-		SelfRule:   func(r *PolarRulesPanel.DragRule) error { return NodeBuf.WriteSelfDragRule(sceneRoot, n.ID, r) },
-		SelfActive: func(a bool) error { return NodeBuf.WriteSelfRuleActive(sceneRoot, n.ID, a) },
-		DragActive: func(a bool) error { return NodeBuf.WriteDragActive(sceneRoot, n.ID, a) },
-		KindActive: func(a bool) error { return NodeBuf.WriteKindRuleActive(sceneRoot, n.ID, a) },
-		EdgeActive: func(target string, a bool) error {
-			return NodeBuf.WriteEdgeRuleActive(sceneRoot, n.ID, target, a)
-		},
-	})
-
-	active := NodeBuf.LoadDragActive(sceneRoot, n.ID)
-	m.Topo().SetDragRule(n.Drag)
-	m.Topo().SetDragActive(active)
-	rn.SeedRule(n.Drag, active)
-	rn.SeedKindActive(NodeBuf.LoadKindRuleActive(sceneRoot, n.ID))
-
-	selfActive := NodeBuf.LoadSelfRuleActive(sceneRoot, n.ID)
-	m.Topo().SetSelfRule(n.SelfDrag)
-	m.Topo().SetSelfRuleActive(selfActive)
-	rn.SeedSelfRule(n.SelfDrag, selfActive)
 }
 
 func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind string, otherRest polarindex.Place, sceneRoot string) {
@@ -51,9 +21,6 @@ func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind string, other
 	}
 
 	m.Deltas().SetRestOf(other, otherRest)
-	if rn := m.RuleNode(); rn != nil {
-		rn.SeedEdgeActive(other, NodeBuf.LoadEdgeRuleActive(sceneRoot, e.Source, e.Target))
-	}
 	m.Topo().AddNeighborKind(other, otherKind)
 	if src {
 		m.AddOutTarget(e.Target)

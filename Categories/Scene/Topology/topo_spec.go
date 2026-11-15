@@ -6,7 +6,6 @@ import (
 
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
@@ -30,10 +29,6 @@ type Node struct {
 	DragIndexR     *int
 
 	Gate bool
-
-	Drag *PolarRulesPanel.DragRule
-
-	SelfDrag *PolarRulesPanel.DragRule
 
 	TopTiltVectorPhiIdx *int32
 }

@@ -16,7 +16,6 @@ var FlagNames = []string{
 	"nodeShape",
 	"nodeState",
 	"nodePoles",
-	"nodeRules",
 	"scene",
 	"sceneGuides",
 	"scenePoles",

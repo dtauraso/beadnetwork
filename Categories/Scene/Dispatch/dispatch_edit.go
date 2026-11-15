@@ -6,13 +6,10 @@ import (
 
 	Chrome "github.com/dtauraso/beadnetwork/Categories/Chrome"
 
-	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
-
 	Panels "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
-	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
@@ -35,7 +32,6 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			applySheetNav(ctx, md, ev.Key)
 			return
 		}
-		applyRuleKey(ctx, md, ev.Key)
 		return
 	}
 	if ev.Kind == "delete" {
@@ -81,7 +77,7 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			md.UI.EmitViewFrame(nil)
 		}
 	}
-	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Rules.Scroll, &md.UI.Sheet, ev.X, ev.Y, ev.DeltaX, ev.DeltaY, md.redraw) {
+	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Sheet, ev.X, ev.Y, ev.DeltaX, ev.DeltaY, md.redraw) {
 		return
 	}
 	if ev.Kind == "pointerdown" && panelTookPointerDown(ctx, ev, md, speedSinks) {
@@ -143,14 +139,8 @@ func applyUpdate(ctx context.Context, entity, attr byte, payload []byte, md *Mov
 // EDIT_UPDATE_KINDS_START
 func (md *MoveDispatch) updateOwners(speedSinks SliderPanel.Sinks) map[string]func(context.Context, byte, []byte) {
 	return map[string]func(context.Context, byte, []byte){
-		"node": func(ctx context.Context, attr byte, payload []byte) {
-			NodeKind.ApplyUpdate(ctx, attr, payload, &md.Rules)
-		},
-		"edge": func(ctx context.Context, attr byte, payload []byte) {
-			edge.ApplyUpdate(ctx, attr, payload, md.Rules.TogglesByEdgeRow)
-		},
 		"overlays": func(_ context.Context, attr byte, payload []byte) {
-			Flags.ApplyUpdate(attr, payload, &md.UI.OV, &md.ChannelVectorsOn, &md.UI, md.persistOverlays)
+			Flags.ApplyUpdate(attr, payload, &md.UI.OV, &md.UI, md.persistOverlays)
 		},
 		"panels": func(_ context.Context, attr byte, payload []byte) {
 			Panel.ApplyUpdate(attr, payload, &md.UI.PN, md.persistPanels, md.redraw)

@@ -93,17 +93,12 @@ and none is a source of truth.
   so they are applied to the triple directly, with no holder frame to convert in and out of
   (`Categories/Node/node_drag_trim.go`).
 
-  **The rule is carried by the node it binds, by id, and is applied BY that node.** Each node
-  states its own `drag`; absent means free, and
-  most nodes say nothing. No node reads another's rule: a neighbour that wants a node moved
-  computes the `Δ` from ITS OWN numbers — its own point before and after, and its own side of
-  the edge before and after (`Categories/NodeKinds/input/drag.go`) — and TELLS it, and the node told
-  trims that `Δ` against its own rules before committing it (`TrimOwnDrag`). A `Δ` an input
-  node states to equalise its outgoing paths is therefore a request, not an imposition: a
-  target whose own rule holds `D.r` keeps its distance and takes only the angles.
-  A rule also holds `D.r`, so a node with one is DRAG-HELD by its holder — its own drag cannot change
-  the distance between them, which is what keeps an input node's two outgoing paths equal
-  without anything being moved afterwards to repair them.
+  **A drag is applied BY the node it moves.** No node reads another's state: a neighbour that
+  wants a node moved computes the `Δ` from ITS OWN numbers — its own point before and after,
+  and its own side of the edge before and after (`Categories/NodeKinds/input/drag.go`) — and
+  TELLS it, and the node told commits it. There are no per-node drag rules: the editable
+  per-node and per-edge rules, their panel and the rule-channel overlay were removed, and a
+  node with no kind behaviour moves freely.
 
   **Do not key a node's constraint on the HOLDER's kind** — "constrained because something of
   kind `Input` points at it" cannot name the node it is about, so every target inherits the
@@ -113,7 +108,7 @@ and none is a source of truth.
   and the half-turn snap on its own drag — and it is no longer a kind CHECK inside shared
   code. **A node owns the function that trims it, not only the numbers it trims to.** The
   kind states its own drag behaviour from its own package, exactly as it states its ports; a kind that
-  registers nothing is trimmed by its own drag rule alone. `Categories/Node` composes the delta,
+  registers nothing is not trimmed at all. `Categories/Node` composes the delta,
   asks the node to trim it, and commits — it does not know what an `Input` is.
 
   `D.r` is a genuine DISTANCE — the length of the vector to the neighbour — so it is always

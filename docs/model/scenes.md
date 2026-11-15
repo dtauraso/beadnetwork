@@ -35,7 +35,7 @@ noticed the respawn, which raced.
 Creating or deleting a node writes the scene's files and rebuilds THAT scene in the same
 process: its goroutines are cancelled and waited for, and it is loaded again from its files.
 Other open scenes are untouched. The rebuilt scene's in-memory state (beads in flight) starts
-over, because a running scene cannot take on or drop a node — its ports, rule mesh and row
+over, because a running scene cannot take on or drop a node — its ports and row
 tables are all built once at load.
 
 **A scene may fork small pieces of node behavior, and each fork is a named, reasoned

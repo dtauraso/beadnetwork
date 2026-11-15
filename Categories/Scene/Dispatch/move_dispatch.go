@@ -11,7 +11,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node"
-	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
@@ -40,10 +39,6 @@ type MoveDispatch struct {
 	Inboxes TiltVectors.TiltEditInboxes
 
 	Links *Links.Mesh
-
-	ChannelVectorsOn ChannelVectors.OnSwitch
-
-	Rules Node.RuleChannels
 }
 
 func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
@@ -62,7 +57,7 @@ func (md *MoveDispatch) bindUIClosures() {
 	md.UI.NodeRowFor = md.RT.NodeRowFor
 }
 
-func NewMoveDispatch(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *SliderPanel.Sinks, rowCount int, constants polarindex.SceneConstants, polarRules bool) (*MoveDispatch, error) {
+func NewMoveDispatch(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *SliderPanel.Sinks, rowCount int, constants polarindex.SceneConstants) (*MoveDispatch, error) {
 	nodeOrder, edgeOrder = resolveSeedOrders(geoms, edgeEndpoints, nodeOrder, edgeOrder)
 
 	md := &MoveDispatch{}
@@ -73,14 +68,10 @@ func NewMoveDispatch(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]ed
 		return nil, err
 	}
 	md.buildNodeMovers(geoms, clk, constants)
-	if polarRules {
-		md.wireRuleMesh()
-	}
 	md.wireMutualPairs(edgeEndpoints)
 	md.buildEdgeTable(edgeEndpoints)
 	md.wireNodeEdgeIDs()
 	md.buildRowTables(rowCount)
-	md.wireRuleEditRows()
 	md.bindUIClosures()
 
 	return md, nil

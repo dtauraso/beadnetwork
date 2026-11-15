@@ -20,7 +20,7 @@ topology/
 │                                          (largest node id), not a live-node count
 ├── constants/                             constant-r, max-index-phi, max-index-theta — read once
 ├── nodes/<id>/
-│   ├── base/                               one value per file: type/gate/index + drag-rule/ and self-rule/ — TRACKED
+│   ├── base/                               one value per file: type/gate/index — TRACKED
 │   ├── drag/                               index-phi/-theta/-r — the node's position DELTA — GITIGNORED
 │   ├── data/ links/<from>To<to>/           data: init/<n>, repeat, state/<k>, send-rules/<port>; links: a links node's OUTGOING links (start, Δ, increment, lock, pick) — both TRACKED; a links node's edits write the whole link set to the GITIGNORED drag/links/, which REPLACES links/ at load, as drag/at-*.bin replace base/'s (Links/link_files.go, nodefile_place.go). A node stores NO s: every node and link in a sequence uses view/s.bin
 │   ├── edges/<label>/                     OUTGOING only, one value per file: wiring + delta — TRACKED

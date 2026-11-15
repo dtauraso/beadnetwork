@@ -78,7 +78,7 @@ func (n *Node) Update(ctx context.Context) {
 
 func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() bool) {
 	clk.SpeedFrom(n.SpeedCh)
-	n.Self.StartRule(ctx, clk)
+	n.Self.Start(ctx, clk)
 	for {
 		if ctx.Err() != nil {
 			return

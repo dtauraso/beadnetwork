@@ -4,7 +4,6 @@ import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { buildDeleteRaw, buildKeyRaw } from "../../../../Categories/Scene/Drag/raw-input-build";
 import { sendRawInput } from "../vscode-api";
-import { rulesDraftOpen } from "../../../../Categories/Chrome/Panels/PolarRulesPanel/draw-rules-panel";
 import { sheetDraftOpen, sheetNavOn } from "../../../../Categories/Chrome/Panels/Sheet/draw-sheet";
 import { useInteractionControls } from "./interaction-controls";
 import type { PickFn } from "../../../../Categories/Scene/Drag/pick-types";
@@ -31,7 +30,7 @@ export function ThreeView() {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      if ((rulesDraftOpen() || sheetDraftOpen()) && consumedByDraft(e.key)) {
+      if (sheetDraftOpen() && consumedByDraft(e.key)) {
         e.preventDefault();
         sendRawInput(buildKeyRaw(e.key));
         return;

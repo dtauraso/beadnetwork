@@ -5,7 +5,6 @@ import (
 
 	Panels "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
@@ -14,9 +13,6 @@ import (
 
 func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 
-	if h := pl.Rules.Hit(x, y); h.Kind != PolarRulesPanel.HitNone {
-		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
-	}
 	if Panel.HitRect(pl.Fit, x, y) {
 		return Panels.PointerTarget{
 			Rect: pl.Fit, Kind: Panels.PointerInteractive, Tip: "Frame the whole diagram",
@@ -58,7 +54,7 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	return Panels.PointerTarget{}
 }
 
-func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, sheet *Sheet.State, x, y, deltaX, deltaY float64, redraw func()) bool {
+func TakeWheel(pl Layout, overlaysScroll *float32, sheet *Sheet.State, x, y, deltaX, deltaY float64, redraw func()) bool {
 	if label, most, ok := pl.Sheet.PopAt(x, y); ok {
 		v := sheet.PopScrollOf(label)
 		return scrollBy(v, most, deltaY, func() {
@@ -82,9 +78,6 @@ func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, sheet *Sheet.Sta
 	}
 	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, x, y) {
 		return scrollBy(overlaysScroll, pl.Overlays.MaxScroll, deltaY, redraw)
-	}
-	if pl.Rules.Open && Panel.HitRect(pl.Rules.RowsClip, x, y) {
-		return scrollBy(rulesScroll, pl.Rules.MaxScroll, deltaY, redraw)
 	}
 	return false
 }

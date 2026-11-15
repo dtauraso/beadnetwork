@@ -16,13 +16,11 @@ func NewSelf(geom *NodeCat.NodeGeometry) *Self {
 	return &Self{geom: geom}
 }
 
-func (p *Self) StartRule(ctx context.Context, clk clock.Clock) {
+func (p *Self) Start(ctx context.Context, clk clock.Clock) {
 	if p == nil || p.geom == nil {
 		return
 	}
-	p.geom.StartRuleNode(ctx)
 	p.geom.Anim().StartBeadAnimation(ctx)
-	clk.WakeOn(p.geom.RuleWake())
 	p.geom.Clocks().Use(clk)
 }
 

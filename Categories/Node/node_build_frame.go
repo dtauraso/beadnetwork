@@ -1,9 +1,7 @@
 package Node
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Node/AngleArcs"
-	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 	"math"
@@ -30,18 +28,9 @@ type FrameInputs struct {
 	Selected   uint8
 	LatchedSel uint8
 
-	DragRule *PolarRulesPanel.DragRule
-	SelfRule *PolarRulesPanel.DragRule
 
-	DragActive     bool
-	SelfActive     bool
-	KindRuleActive bool
-	HasKindRule    bool
 
-	RuleGroupID   int32
-	RuleGroupSize int32
 
-	ChannelVectors []ChannelVectors.ChannelVector
 
 	TickCount int32
 
@@ -72,8 +61,6 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		label = in.ID
 	}
 
-	dragRLocked, dragPhiLocked, dragThetaMax := lockedAxes(in.DragRule)
-	selfRLocked, selfPhiLocked, selfThetaMax := lockedAxes(in.SelfRule)
 
 	return NodeFrameInput{
 		Tick:             in.Tick,
@@ -99,44 +86,14 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		TopTiltVectorLen: float32(fg.TopTiltVectorLen),
 		TopTiltVectorIdx: fg.TopTiltVectorIdx,
 		TiltArrows:       append(fg.TiltArrows, append(startArrows(in.Geom, fg.Center, in.StartVectors, in.StartPicked), refArrows(in.Geom, fg.Center, in.RefVectors)...)...),
-		ChannelVectors:   in.ChannelVectors,
 		TickMarks:        TickMarks(fg.Center, in.Geom.Kind, in.TickCount),
 		AngleArcs:        AngleArcs.Build(in.Selected != 0, fg.Center, NodeTorusOuterR(in.Geom.Kind), in.Arcs),
 		Selected:         in.Selected,
 		KindID:           in.KindID,
 		LatchedSel:       in.LatchedSel,
 		LatticePoints:    uint8(fg.LatticePoints),
-		HasKindRule:      boolU8(in.HasKindRule),
-		KindRuleActive:   boolU8(in.KindRuleActive),
-		SelfRLocked:      selfRLocked,
-		SelfPhiLocked:    selfPhiLocked,
-		SelfThetaMax:     selfThetaMax,
-		SelfActive:       boolU8(in.SelfActive),
-		RuleGroupID:      in.RuleGroupID,
-		RuleGroupSize:    in.RuleGroupSize,
-		DragRLocked:      dragRLocked,
-		DragPhiLocked:    dragPhiLocked,
-		DragThetaMax:     dragThetaMax,
-		DragActive:       boolU8(in.DragActive),
 		Label:            label,
 	}
-}
-
-func lockedAxes(rule *PolarRulesPanel.DragRule) (rLocked, phiLocked uint8, thetaMax float32) {
-	thetaMax = -1
-	if rule == nil {
-		return 0, 0, thetaMax
-	}
-	if rule.R != nil {
-		rLocked = 1
-	}
-	if rule.Phi != nil {
-		phiLocked = 1
-	}
-	if rule.MaxTheta != nil {
-		thetaMax = float32(*rule.MaxTheta)
-	}
-	return rLocked, phiLocked, thetaMax
 }
 
 func navTubeR(kind string) float64 {

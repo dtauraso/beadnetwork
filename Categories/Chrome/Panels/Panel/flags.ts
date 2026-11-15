@@ -5,7 +5,6 @@ const PANEL_FLAG_NAMES = [
   "nodeShape",
   "nodeState",
   "nodePoles",
-  "nodeRules",
   "scene",
   "sceneGuides",
   "scenePoles",

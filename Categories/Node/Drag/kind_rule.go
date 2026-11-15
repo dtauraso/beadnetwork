@@ -12,7 +12,6 @@ func (k *KindRule) SetKindRule(trim Trim, request Request) {
 	k.trim, k.request = trim, request
 }
 
-func (k *KindRule) HasKindRule() bool { return k.trim != nil || k.request != nil }
 
 func (k *KindRule) Trim() Trim { return k.trim }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
-type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, shown uint8)
+type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, label string, shown uint8)
 
 type outEdge struct {
 	label      string
@@ -28,8 +28,6 @@ type outEdge struct {
 
 	persistedDragIdx polarindex.Offset
 	hasPersisted     bool
-
-	ruleInactive bool
 
 	hidden bool
 }
@@ -78,9 +76,6 @@ func (o *OutEdges) BindWire(label, targetID, targetKind string, port *beadanimat
 	}
 }
 
-func (o *OutEdges) SetEdgeRuleActive(label string, active bool) {
-	o.edgeFor(label).ruleInactive = !active
-}
 
 func (o *OutEdges) ShowOnly(to map[string]bool) {
 	for i := range o.edges {
@@ -174,6 +169,6 @@ func (o *OutEdges) WriteFrames(tick int64, self NodeGeom, deltas *Deltas) {
 		o.buildFrame(uint32(tick), e.edgeRow,
 			float32(start.X), float32(start.Y), float32(start.Z),
 			float32(end.X), float32(end.Y), float32(end.Z),
-			o.nodeRow, e.dstNodeRow, e.deltaR, activeByte(e.ruleInactive), e.label, activeByte(e.hidden))
+			o.nodeRow, e.dstNodeRow, e.deltaR, e.label, activeByte(e.hidden))
 	}
 }

@@ -26,12 +26,7 @@ func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*NodeGeo
 	}
 
 	sc := nm.Constants()
-	var targetIdx polarindex.Index
-	if rule := nm.Topo().SelfRule(); rule != nil && nm.Topo().SelfRuleActive() && rule.MaxTheta != nil {
-		targetIdx = IndexAtTheta(nm.SceneCenter(), Vec3(target), nm.ScenePolar().Theta, sc)
-	} else {
-		targetIdx = polarindex.MeasureIndex(polar.Cart2polar(polar.Vec3(target.Sub(nm.SceneCenter()))), sc)
-	}
+	targetIdx := polarindex.MeasureIndex(polar.Cart2polar(polar.Vec3(target.Sub(nm.SceneCenter()))), sc)
 
 	nm.Msg().SendExternal(ctx, Msg{NodeID: nodeID, Body: Drag{Target: &targetIdx}})
 	return true
