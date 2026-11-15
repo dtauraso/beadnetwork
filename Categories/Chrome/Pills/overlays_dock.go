@@ -66,7 +66,7 @@ func DockPill(ov *Flags.OverlayState, hidden []string) Sheet.Pill {
 		}
 		name := r.Name
 		if len(buttons) > 0 && len(rows) > 1 {
-			rows = append(rows, []Sheet.Cell{Sheet.Text("")})
+			rows = append(rows, nil)
 		}
 		for len(buttons) > 0 {
 			n := min(dockPerRow, len(buttons))
