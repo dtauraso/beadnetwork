@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
@@ -172,6 +173,15 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
 	case Builder.OpFrameFold:
 		md.UI.Builder.FrameFolded = !md.UI.Builder.FrameFolded
+		if root := md.Scenes.TreeRoot; root != "" {
+			v := int32(0)
+			if md.UI.Builder.FrameFolded {
+				v = 1
+			}
+			if err := Sheet.WriteScalar(Scenes.FrameFoldedFilePath(root), v); err != nil {
+				View.LogPersistErr("sheet_frame_fold", root, err)
+			}
+		}
 	case Pills.OpOverlay:
 		Flags.ToggleFlag(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, a.K)
 		md.UI.PersistOverlays(md.UI.OV)
