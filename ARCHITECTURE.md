@@ -26,7 +26,7 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 `Start/extension/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
 encoded editor→Go record built by the concern that owns the edit — `Categories/Scene/View/Flags/encode.ts`,
-`Categories/Scene/encode.ts`, `Categories/Node/encode.ts` and their siblings, each beside that concern's
+`Categories/Scene/encode.ts` and their siblings, each beside that concern's
 Go decoder — and written FRAMED to Go's stdin by `runCommand.ts`). Extension-side dispatch is
 `Start/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the block
 FILES and nothing else; TS → Go is framed binary records
