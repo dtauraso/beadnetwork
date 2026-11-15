@@ -68,6 +68,7 @@ type Model struct {
 	FramePop    bool
 	FrameDraft  map[string]float64
 	Turning     Turning
+	Hot         Act
 	ScoreAxis   string
 	Touched     StepEdge
 	DragStep    int

@@ -14,6 +14,7 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	ui.TabStrip.Arm(sceneRoot)
 	ui.Fit.Arm(sceneRoot)
 	ui.Sheet.Arm(sceneRoot)
+	ui.LinksPreview.Arm(sceneRoot)
 	ui.OverlaysPill.Arm(sceneRoot)
 	ui.NodeRingPoints.Arm(sceneRoot)
 	ui.BeadRingPoints.Arm(sceneRoot)

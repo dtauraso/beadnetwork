@@ -22,6 +22,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Preview"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
@@ -90,6 +91,8 @@ type UIState struct {
 	Sheet Sheet.State
 
 	Builder Builder.Model
+
+	LinksPreview Preview.State
 
 	ViewW, ViewH float64
 
