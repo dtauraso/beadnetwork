@@ -151,12 +151,15 @@ func pathGroup(m Model) Group {
 
 func linksTree(m Model) tree {
 	t := tree{sel: m.Sel}
-	t.put(allSeqsGroup(m), pathGroup(m))
 	refused := m.Refused
-	if m.AtSeqs {
+	inScore := m.Score && !m.AtSeqs
+	if !inScore {
+		t.put(allSeqsGroup(m), pathGroup(m))
+	}
+	if inScore {
+		scoreView(&t, m)
+	} else if m.AtSeqs {
 		seqRows(&t, m)
-	} else if m.Score {
-		t.put(viewGroup(m), seqFrameGroup(m), scoreGroup(m), inspectorGroup(m))
 	} else {
 		t.put(viewGroup(m), seqFrameGroup(m))
 		networkRows(&t, m)

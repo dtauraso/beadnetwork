@@ -65,6 +65,8 @@ type Model struct {
 	FrameFolded bool
 	Score       bool
 	ScoreCell   StepEdge
+	FramePop    bool
+	FrameDraft  map[string]float64
 	Touched     StepEdge
 	DragStep    int
 	Level       string
