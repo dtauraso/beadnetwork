@@ -1,6 +1,7 @@
 ---
 paths:
-  - "docs/planning/**"
+  - "docs/**"
+  - "scripts/strip-branch-local-docs.sh"
 ---
 
 # Planning docs are branch-local
