@@ -72,7 +72,7 @@
   processing windows are tick counts. There is no separate render cadence — the tick IS the
   animation clock.
 
-  **Exception — machine ticks (`NodePhiTheta3`).** The φ, θ 3 tab's node does not sleep. Its
+  **Exception — machine ticks (`PhiTheta`).** The φ, θ tab's node does not sleep. Its
   goroutine loops at machine speed, counting each pass as a **machine tick** in a plain local
   `k`, and reads `clock.HumanTick(Δt)` (`Categories/Clock/human_tick.go`), which counts whole
   Δt periods since the one shared epoch and is NOT scaled by speed. When the human tick
@@ -105,6 +105,6 @@
 **INVARIANT: no position update may be gated on the human clock, and no animation step may
 run on the system clock.** `MsPerTick` (`Categories/Clock/`) names the human-speed clock; it exists so
 a person can watch a bead cross, and geometry must never run on it — one propagation hop per
-tick would make even a straight traversal visibly slow. (`NodePhiTheta3` publishes its place
+tick would make even a straight traversal visibly slow. (`PhiTheta` publishes its place
 once per human tick by design — it is a card node with no beads; see the machine-ticks exception
 under Clock.)

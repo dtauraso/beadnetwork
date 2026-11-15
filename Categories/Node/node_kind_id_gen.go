@@ -12,16 +12,16 @@ const KindIDUnknown uint8 = 0xFF
 // order. Id i here ↔ NODE_DEFS_ARRAY[i] on the TS side (gaps left by a removed
 // kind get an undefined placeholder there, not a shift).
 var kindIDMap = map[string]uint8{
-	"TimeEnd":       0,
-	"Time":          2,
-	"Input":         3,
-	"Pulse":         5,
-	"SelectRight":   6,
-	"SelectLeft":    7,
-	"PulseLeft":     8,
-	"PulseRight":    9,
-	"TimeStart":     10,
-	"NodePhiTheta3": 13,
+	"TimeEnd":     0,
+	"Time":        2,
+	"Input":       3,
+	"Pulse":       5,
+	"SelectRight": 6,
+	"SelectLeft":  7,
+	"PulseLeft":   8,
+	"PulseRight":  9,
+	"TimeStart":   10,
+	"PhiTheta":    13,
 }
 
 // NodeKindID returns the KindId for a node's Go kind string.
@@ -46,16 +46,16 @@ type KindAppearance struct {
 }
 
 var kindAppearance = map[string]KindAppearance{
-	"TimeEnd":       {Fill: "#fff3e0", Stroke: "#7f0000", Desc: "The end of a time chain: holds what arrives and sends nothing on."},
-	"Time":          {Fill: "#fff3e0", Stroke: "#e65100", Desc: "Holds what arrives and sends on what it was holding, so a value comes out one arrival late."},
-	"Input":         {Fill: "#e0e0e0", Stroke: "#666", Desc: "The source: emits its own authored list of values, last one first, optionally repeating."},
-	"Pulse":         {Fill: "#e1f5fe", Stroke: "#2196f3", Desc: "Holds the last value it received and drives it out continuously, from the moment it starts."},
-	"SelectRight":   {Fill: "#fce4ec", Stroke: "#f06292", Desc: "Passes a value on only when both inputs arrive within one window, favouring the RIGHT one."},
-	"SelectLeft":    {Fill: "#fce4ec", Stroke: "#880e4f", Desc: "Passes a value on only when both inputs arrive within one window, favouring the LEFT one."},
-	"PulseLeft":     {Fill: "#e1f5fe", Stroke: "#90caf9", Desc: "Holds and drives a value like Pulse, feeding the LEFT input of a select gate."},
-	"PulseRight":    {Fill: "#e1f5fe", Stroke: "#01579b", Desc: "Holds and drives a value like Pulse, feeding the RIGHT input of a select gate."},
-	"TimeStart":     {Fill: "#fff3e0", Stroke: "#ffc400", Desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once."},
-	"NodePhiTheta3": {Fill: "#e3f2fd", Stroke: "#1565c0", Desc: "A node of the pair φ, θ 3 tab: holds its own place and the links into it, and recovers its own point from its picked link in when that link's source sends its point."},
+	"TimeEnd":     {Fill: "#fff3e0", Stroke: "#7f0000", Desc: "The end of a time chain: holds what arrives and sends nothing on."},
+	"Time":        {Fill: "#fff3e0", Stroke: "#e65100", Desc: "Holds what arrives and sends on what it was holding, so a value comes out one arrival late."},
+	"Input":       {Fill: "#e0e0e0", Stroke: "#666", Desc: "The source: emits its own authored list of values, last one first, optionally repeating."},
+	"Pulse":       {Fill: "#e1f5fe", Stroke: "#2196f3", Desc: "Holds the last value it received and drives it out continuously, from the moment it starts."},
+	"SelectRight": {Fill: "#fce4ec", Stroke: "#f06292", Desc: "Passes a value on only when both inputs arrive within one window, favouring the RIGHT one."},
+	"SelectLeft":  {Fill: "#fce4ec", Stroke: "#880e4f", Desc: "Passes a value on only when both inputs arrive within one window, favouring the LEFT one."},
+	"PulseLeft":   {Fill: "#e1f5fe", Stroke: "#90caf9", Desc: "Holds and drives a value like Pulse, feeding the LEFT input of a select gate."},
+	"PulseRight":  {Fill: "#e1f5fe", Stroke: "#01579b", Desc: "Holds and drives a value like Pulse, feeding the RIGHT input of a select gate."},
+	"TimeStart":   {Fill: "#fff3e0", Stroke: "#ffc400", Desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once."},
+	"PhiTheta":    {Fill: "#e3f2fd", Stroke: "#1565c0", Desc: "A node of the φ, θ tab: holds its own place and the links into it, and recovers its own point from its picked link in when that link's source sends its point."},
 }
 
 // AppearanceOf returns a kind's palette appearance, and false when the kind is unknown.
