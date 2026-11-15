@@ -63,6 +63,7 @@ type Model struct {
 	PlaceOpen   map[string]bool
 	StartOpen   bool
 	FrameFolded bool
+	Score       bool
 	Touched     StepEdge
 	DragStep    int
 	Level       string
