@@ -28,7 +28,6 @@ type FrameInputs struct {
 	LatticePoints        int32
 
 	Selected   uint8
-	Hovered    uint8
 	LatchedSel uint8
 
 	DragRule *PolarRulesPanel.DragRule
@@ -105,7 +104,6 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		AngleArcs:        AngleArcs.Build(in.Selected != 0, fg.Center, NodeTorusOuterR(in.Geom.Kind), in.Arcs),
 		Selected:         in.Selected,
 		KindID:           in.KindID,
-		Hovered:          in.Hovered,
 		LatchedSel:       in.LatchedSel,
 		LatticePoints:    uint8(fg.LatticePoints),
 		HasKindRule:      boolU8(in.HasKindRule),

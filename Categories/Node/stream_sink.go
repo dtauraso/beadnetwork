@@ -70,7 +70,6 @@ func nodeStateFrom(f NodeFrameInput) NodeState {
 		AngleArcs:        f.AngleArcs,
 		Selected:         f.Selected,
 		KindID:           f.KindID,
-		Hovered:          f.Hovered,
 		LatchedSel:       f.LatchedSel,
 		LatticePoints:    f.LatticePoints,
 		DragRLocked:      f.DragRLocked,

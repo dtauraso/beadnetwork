@@ -31,7 +31,7 @@ type NodeState struct {
 
 	TopTiltVectorIdx int32
 
-	Selected, KindID, Hovered, LatchedSel uint8
+	Selected, KindID, LatchedSel uint8
 
 	LatticePoints uint8
 

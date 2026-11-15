@@ -52,7 +52,6 @@ export const NODE_VALUE_NAMES = [
   "selected",
   "kindId",
   "label",
-  "hovered",
   "latchedSel",
   "dragRLocked",
   "dragPhiLocked",

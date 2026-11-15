@@ -32,7 +32,7 @@ func (m *NodeGeometry) writeStreamFrame(events []RowEvent) {
 func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 	coplanarEdges, upAxis := m.flags.Flags()
 	topIdx, bottomIdx, normalIdx, receivedIdx, receivedSet, latticePoints := m.tilt.FrameGeometryFields()
-	selected, hovered, latchedSel := m.ui.Flags()
+	selected, latchedSel := m.ui.Flags()
 	ruleGroupID, ruleGroupSize := m.RuleGroup()
 	startVectors, startPicked := m.tilt.StartVectors()
 
@@ -55,7 +55,6 @@ func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 		LatticePoints:        latticePoints,
 
 		Selected:   selected,
-		Hovered:    hovered,
 		LatchedSel: latchedSel,
 
 		DragRule: m.topo.DragRule(),

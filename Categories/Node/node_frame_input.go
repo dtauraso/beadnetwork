@@ -47,7 +47,7 @@ type NodeFrameInput struct {
 
 	AngleArcs AngleArcs.Arcs
 
-	Selected, KindID, Hovered, LatchedSel uint8
+	Selected, KindID, LatchedSel uint8
 
 	LatticePoints uint8
 
