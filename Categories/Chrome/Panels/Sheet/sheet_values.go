@@ -26,6 +26,7 @@ var SheetValueNames = []string{
 	"slideX", "slideW", "cellSlides", "upSlides",
 	"upLit", "downLit", "upDim",
 	"cellDim", "cellBare", "cellInk",
+	"cellDial", "dialStart", "dialTurn",
 	"cardBox", "cardX", "cardY", "cardW", "cardH", "cardPop", "cardCell", "cardBand",
 	"navOn",
 }

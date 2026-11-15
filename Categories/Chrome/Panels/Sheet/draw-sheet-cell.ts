@@ -26,9 +26,15 @@ const BAND_GUIDE = 2;
 const INK_STRONG = 1;
 const INK_HEAD = 2;
 
+const DIAL_GAP = 4;
+const DIAL_INK = ["", "#FF9F1C", "#3DDC84"];
+const DIAL_TRACK = "#c8ccd2";
+const DIAL_START = "#8a9099";
+const TURN = 12;
+
 export type R = { x: number; y: number; w: number; h: number };
 
-export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean; bare: boolean; ink: number };
+export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean; bare: boolean; ink: number; dial: number; dialStart: number; dialTurn: number };
 
 export function drawBand(c: CanvasRenderingContext2D, r: R, band: number): void {
   if (band === BAND_GUIDE) {
@@ -74,7 +80,53 @@ function drawText(c: CanvasRenderingContext2D, r: R, text: string, dim: boolean,
   label(c, text, r.x + 1, r.y + r.h / 2, "left", dim ? MUTED_INK : TEXT_INK, FONT_PX, ink === INK_STRONG ? STRONG_WEIGHT : WEIGHT);
 }
 
+function angle(u: number): number {
+  return (u / TURN) * 2 * Math.PI - Math.PI / 2;
+}
+
+function arc(c: CanvasRenderingContext2D, x: number, y: number, rad: number, from: number, span: number): void {
+  const s = Math.max(-TURN + 1e-3, Math.min(TURN - 1e-3, span));
+  c.beginPath();
+  c.arc(x, y, rad, angle(from), angle(from + s), s < 0);
+  c.stroke();
+}
+
+function drawDial(c: CanvasRenderingContext2D, r: R, l: CellLook): number {
+  const size = r.h - 2, x = r.x + 1 + size / 2, y = r.y + r.h / 2, rad = size / 2 - 2;
+  c.lineCap = "round";
+  c.setLineDash([]);
+  c.strokeStyle = DIAL_TRACK;
+  c.lineWidth = 1.5;
+  c.beginPath();
+  c.arc(x, y, rad, 0, 2 * Math.PI);
+  c.stroke();
+  c.strokeStyle = DIAL_START;
+  if (l.dialStart) arc(c, x, y, rad, 0, l.dialStart);
+  const ink = DIAL_INK[l.dial] ?? DIAL_INK[1]!;
+  c.strokeStyle = ink;
+  c.lineWidth = 2.5;
+  if (l.dialTurn < 0) c.setLineDash([2, 2]);
+  if (l.dialTurn) arc(c, x, y, rad, l.dialStart, l.dialTurn);
+  c.setLineDash([]);
+  const end = angle(l.dialStart + l.dialTurn);
+  c.strokeStyle = TEXT_INK;
+  c.lineWidth = 1.2;
+  c.beginPath();
+  c.moveTo(x, y);
+  c.lineTo(x + rad * 0.95 * Math.cos(end), y + rad * 0.95 * Math.sin(end));
+  c.stroke();
+  c.fillStyle = l.dialTurn ? ink : DIAL_START;
+  c.beginPath();
+  c.arc(x + rad * Math.cos(end), y + rad * Math.sin(end), 2.2, 0, 2 * Math.PI);
+  c.fill();
+  return size + 1 + DIAL_GAP;
+}
+
 export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
+  if (l.kind === CELL_TEXT && l.dial && !l.boxed) {
+    const w = drawDial(c, r, l);
+    r = { x: r.x + w, y: r.y, w: r.w - w, h: r.h };
+  }
   if (l.kind === CELL_FIELD && l.bare && !l.editing) drawText(c, r, l.value || l.key, l.dim, l.ink);
   else if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value || l.key, false, l.editing, l.dim || !l.value);
   else if (l.kind === CELL_FIELD) drawField(c, r, l.key, l.value, l.editing);
