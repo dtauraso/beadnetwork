@@ -73,7 +73,7 @@ func applySelect(d Deps, ev Drag.RawInputMsg) {
 	}
 
 	var node string
-	if ev.Hit.Kind == "node" {
+	if ev.Hit.Kind == "node" || ev.Hit.Kind == "torus" {
 		if n, ok := d.RT.NodeFromHit(ev.Hit); ok {
 			node = n
 		}
