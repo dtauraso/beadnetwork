@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- branch: task/links-tab-ux -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links Tab · Build</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Links tab, redesigned</a> <span>φ,θ tab · a proposal with mockups</span></div>
+    <nav class="tabs" id="tabs" aria-label="Pages"></nav>
+  </div>
+</header>
+<main>
+<section id="build">
+  <div class="eyebrow">Implementation</div>
+  <h1>How it would be built</h1>
+  <p class="lede">Nothing here changes the model or the bridge. Go still computes every rect and hit region and writes them to the sheet's block file; the TS only draws them. The work is new Sheet layout primitives and a new arrangement of the same Builder edits.</p>
+
+  <h2>Where each region lives</h2>
+  <table class="doc">
+    <thead><tr><th>Region</th><th>Today</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td>Scope bar</td><td><code>pill_links.go</code>, <code>pill_frame.go</code></td><td>Breadcrumb row; frame moves to a popover with an Apply act</td></tr>
+      <tr><td>Score</td><td><code>links_tree.go</code>, <code>step_links.go</code>, <code>pill_link_cards.go</code></td><td>Rows of cards become a matrix; <code>Nav</code> walks cells, not rows</td></tr>
+      <tr><td>Inspector</td><td><code>pill_link_cards.go</code></td><td>The open card's fields, relabeled, plus a dial cell</td></tr>
+      <tr><td>Network</td><td><code>pill_nodes.go</code>, <code>links_place.go</code></td><td>Unchanged; reached from the scope bar</td></tr>
+      <tr><td>Hits</td><td><code>Categories/Scene/Dispatch/sheet_hits.go</code></td><td>New parts (dial drag, cell) routed to the same <code>runSheetAct</code></td></tr>
+      <tr><td>Drawing</td><td><code>Categories/Chrome/Panels/Sheet/draw-*.ts</code></td><td>One new draw per primitive</td></tr>
+    </tbody>
+  </table>
+
+  <h2>New Sheet primitives</h2>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Dial cell</h3><p>start, Δ, increment, optional ghost. Go writes the arcs' angles; TS strokes them. Drag is a new hit part whose angle Go snaps.</p></div>
+    <div class="card"><h3 style="margin-top:0">Matrix group</h3><p>A grid with a sticky row head and column head, grouped rows, and horizontal scroll, all laid out in Go.</p></div>
+    <div class="card"><h3 style="margin-top:0">Switch</h3><p>A labeled on/off with the reason text when dimmed (the fixed-r lock).</p></div>
+    <div class="card"><h3 style="margin-top:0">Popover</h3><p>A floating group anchored to a button, with Apply and Cancel acts (the frame).</p></div>
+  </div>
+
+  <h2>Ship order: each step stands alone</h2>
+  <div class="scroll">
+  <svg class="diagram" viewBox="0 0 1000 120" style="min-width:860px">
+    <g>
+      <rect x="6" y="30" width="128" height="60" rx="10" class="box accent"/><text x="70" y="56" text-anchor="middle" class="small bold">1 scope bar</text><text x="70" y="74" text-anchor="middle" class="small muted">frame popover</text>
+      <rect x="148" y="30" width="128" height="60" rx="10" class="box"/><text x="212" y="56" text-anchor="middle" class="small bold">2 score</text><text x="212" y="74" text-anchor="middle" class="small muted">read-only</text>
+      <rect x="290" y="30" width="128" height="60" rx="10" class="box"/><text x="354" y="56" text-anchor="middle" class="small bold">3 select</text><text x="354" y="74" text-anchor="middle" class="small muted">+ inspector</text>
+      <rect x="432" y="30" width="128" height="60" rx="10" class="box"/><text x="496" y="56" text-anchor="middle" class="small bold">4 dial</text><text x="496" y="74" text-anchor="middle" class="small muted">draw, then drag</text>
+      <rect x="574" y="30" width="128" height="60" rx="10" class="box"/><text x="638" y="56" text-anchor="middle" class="small bold">5 prevention</text><text x="638" y="74" text-anchor="middle" class="small muted">radio pick, locks</text>
+      <rect x="716" y="30" width="128" height="60" rx="10" class="box"/><text x="780" y="56" text-anchor="middle" class="small bold">6 keyboard</text><text x="780" y="74" text-anchor="middle" class="small muted">cell nav, keys</text>
+      <rect x="858" y="30" width="136" height="60" rx="10" class="box"/><text x="926" y="56" text-anchor="middle" class="small bold">7 scene sync</text><text x="926" y="74" text-anchor="middle" class="small muted">hover, ghosts</text>
+      <path class="wire" d="M134 60h14M276 60h14M418 60h14M560 60h14M702 60h14M844 60h14"/>
+    </g>
+  </svg>
+  </div>
+  <p>Step 2 can ship beside the current tree (a second view of the same data) so the old panel stays usable until the score can edit.</p>
+
+  <h2>Verification</h2>
+  <p>No tests, per the repo. Each step is checked by driving the editor on <code>topology-phi-theta</code>: sequence 2 for the small case and sequence 5 (6 nodes) for the dense one, comparing the scene before and after the same edits made in the old tree.</p>
+
+  <h2>Risks</h2>
+  <table class="doc">
+    <tbody>
+      <tr><td><b>Ghost preview cost</b></td><td>Computing downstream places on hover means a StepAll dry run in Go. If it's slow, ghost only the target node.</td></tr>
+      <tr><td><b>Key collisions</b></td><td><kbd>+</kbd>/<kbd>−</kbd>/<kbd>[</kbd>/<kbd>]</kbd> may already mean zoom or camera. Gate them on the score having focus.</td></tr>
+      <tr><td><b>Width</b></td><td>The panel is narrow by default; the drawer layout has to be good, not a fallback.</td></tr>
+      <tr><td><b>Nested steps</b></td><td>Deep nesting makes many sub-columns. Expand one level at a time.</td></tr>
+    </tbody>
+  </table>
+</section>
+</main>
+<script src="site.js"></script>
+</body>
+</html>
