@@ -1,4 +1,3 @@
-// branch-local: task/links-tab-ux — remove with the pages before merging
 (function () {
   const PAGES = [
     {
