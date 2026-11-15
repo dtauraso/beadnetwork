@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	Label = "Angles"
+	Label = "Tilt ring"
 
-	LatticeName = "Lattice points"
+	LatticeName = "Points per turn"
 
 	LatticePointsMin  = 4
 	LatticePointsMax  = 64
