@@ -67,9 +67,6 @@ type Model struct {
 	Trail       []TreeRow
 	Tree        []TreeRow
 
-	Cards    Cards
-	CardsDir string
-
 	TickMs  int
 	Now     int64
 	Timings map[string]NodeTiming
@@ -133,7 +130,7 @@ func Pills(m Model) []Pill {
 	if !m.On() {
 		return nil
 	}
-	return []Pill{FramePill(m), NodesPill(m), LinksPill(m), PlacePill(m), TreePill(m)}
+	return []Pill{FramePill(m), NodesPill(m), LinksPill(m), TreePill(m)}
 }
 
 func Num(v float64) string {

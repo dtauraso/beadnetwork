@@ -165,8 +165,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
 	case Builder.OpStartFold:
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
-	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
-		setCards(md, a)
 	case Pills.OpOverlay:
 		Flags.ToggleFlag(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, a.K)
 		md.UI.PersistOverlays(md.UI.OV)
@@ -181,27 +179,5 @@ func (md *MoveDispatch) stepFrom(ctx context.Context, from, k string, sign int) 
 	h := clock.HumanTick(m.TickMs)
 	for _, id := range m.Nodes {
 		md.sendLink(ctx, id, Links.StepAll{Round: m.Step.Round, H: h, K: k, Sign: sign, From: from, LockAll: m.StepOf(from).Locks(), FixedR: m.ManyIn()})
-	}
-}
-
-func setCards(md *MoveDispatch, a Sheet.Act) {
-	m := &md.UI.Builder
-	c := &m.Cards
-	switch a.Op {
-	case Builder.OpItem:
-		c.Item = a.Node
-	case Builder.OpMethod:
-		if c.Methods == nil {
-			c.Methods = map[string]bool{}
-		}
-		c.Methods[a.K] = !c.Methods[a.K]
-	case Builder.OpCard:
-		c.Card = m.CardShown() + a.Sign
-	}
-	c.Card = m.CardShown()
-	if m.CardsDir != "" {
-		if err := Builder.WriteCards(m.CardsDir, *c); err != nil {
-			View.LogPersistErr("sheet_cards_persist", m.CardsDir, err)
-		}
 	}
 }

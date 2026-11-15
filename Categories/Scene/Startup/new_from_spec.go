@@ -77,8 +77,6 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.UI.Builder.Root = Scenes.NodesRoot(scenePath)
 	md.UI.Builder.Step = Builder.ReadStep(Builder.PressDir(md.UI.Builder.Root))
 	Dispatch.LoadSequences(md, scenePath)
-	md.UI.Builder.CardsDir = Builder.CardsDir(Scenes.NodesRoot(scenePath))
-	md.UI.Builder.Cards = Builder.ReadCards(md.UI.Builder.CardsDir)
 
 	if s.PolarRules {
 		md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
