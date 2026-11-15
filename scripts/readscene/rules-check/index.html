@@ -10,7 +10,7 @@
 <body>
 <div class="wrap">
   <header class="prose">
-    <span class="label">Bead network · phi-theta-3 scene</span>
+    <span class="label">Bead network · phi-theta scene</span>
     <h1>Link Rules Check</h1>
     <p>The editor draws nodes moving as links are stepped. A drawing can be faked, so this page sets the drawing aside and checks the numbers instead. Three separate things are involved:</p>
     <ul class="parts">
@@ -18,7 +18,7 @@
       <li><b>The editor</b> is Go. It applies the rules and made every number in <code>data/</code>, run outside the editor by <code>scripts/readscene</code>. Under each rule is the Go function that does it.</li>
       <li><b>This page's checker</b> is JavaScript in <code>rules-check/rules/</code>, written from the words alone. It is not a port of the Go: it sends no messages between nodes and never works angles back out of positions, as the editor does. It only predicts what the words say should happen and compares that with the numbers the Go recorded.</li>
     </ul>
-    <p class="muted">The loaded data is the export of all six sequences, taken on 2026-10-31 with <code>go run ./scripts/readscene -json topology-pair-phi-theta-3</code> and kept in <code>data/scene-export.js</code>. Edit any number, or paste your own export, and press Check.</p>
+    <p class="muted">The loaded data is the export of all six sequences, taken on 2026-10-31 with <code>go run ./scripts/readscene -json topology-phi-theta</code> and kept in <code>data/scene-export.js</code>. Edit any number, or paste your own export, and press Check.</p>
   </header>
 
   <section class="prose">
@@ -52,7 +52,7 @@ z = r·ρ·sin a(φ)·sin a(θ)</span>
         <span class="go">In the editor (Go): <a class="gofn" data-go="Link.Step"></a> adds to Δ, and <a class="gofn" data-go="Link.Remeasure"></a> writes a new start and leaves Δ as it was.</span>
         <details class="rulecode"><summary>How this page checks it (JavaScript written for this page, not the editor's code)</summary><pre class="code" data-fn="startRewritten sameButtons orderCheck"></pre></details></li>
     </ol>
-    <p class="muted">Rules 1–5 are checked on one state. Rule 6 needs a before and an after. <code>data/scene-steps.js</code> holds 48 of them: each of the eight step buttons pressed once on each sequence, made with <code>go run ./scripts/readscene -steps topology-pair-phi-theta-3</code>. Rule 7 uses <code>data/scene-orders.js</code>, made with <code>-orders</code>: the six orders of φ+, θ+ and r+ on every sequence. Both files start in the Runs box below, where every run is checked against rule 6 and every group of runs pressing the same buttons in different orders against rule 7. Any run can be edited there, or replaced with your own <code>-steps</code> or <code>-orders</code> output, and any one can be loaded into Before and After.</p>
+    <p class="muted">Rules 1–5 are checked on one state. Rule 6 needs a before and an after. <code>data/scene-steps.js</code> holds 48 of them: each of the eight step buttons pressed once on each sequence, made with <code>go run ./scripts/readscene -steps topology-phi-theta</code>. Rule 7 uses <code>data/scene-orders.js</code>, made with <code>-orders</code>: the six orders of φ+, θ+ and r+ on every sequence. Both files start in the Runs box below, where every run is checked against rule 6 and every group of runs pressing the same buttons in different orders against rule 7. Any run can be edited there, or replaced with your own <code>-steps</code> or <code>-orders</code> output, and any one can be loaded into Before and After.</p>
   </section>
 
   <section class="panel" aria-labelledby="data-h">
