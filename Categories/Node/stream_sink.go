@@ -18,6 +18,9 @@ func NewSinks(sceneRoot string, rows int) Sinks {
 	nodeValues := make([]*ValueWriter, rows)
 	for row := range beadValues {
 		beadValues[row] = BeadB.NewValueWriter(sceneRoot, row)
+		if err := edge.WriteEdgeBeadValues(beadValues[row], nil); err != nil {
+			fmt.Fprintf(os.Stderr, "bead values clear (node row %d): %v\n", row, err)
+		}
 		nodeValues[row] = NewValueWriter(sceneRoot, row)
 	}
 
