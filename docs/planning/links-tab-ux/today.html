@@ -1,0 +1,93 @@
+<!doctype html>
+<!-- branch: task/links-tab-ux -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links Tab · Today</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Links tab, redesigned</a> <span>φ,θ tab · a proposal with mockups</span></div>
+    <nav class="tabs" id="tabs" aria-label="Pages"></nav>
+  </div>
+</header>
+<main>
+<section id="today">
+  <div class="eyebrow">Audit</div>
+  <h1>The Links tab today</h1>
+  <p class="lede">A faithful reconstruction of the current tree, from <code>Categories/Chrome/Pills/Builder/</code>: <code>linksTree</code> stacks the frame, the path, the sequence's <i>s</i>, the network, the start and every step into one scrolling list. The numbered pins match the issues below.</p>
+
+  <div class="grid2" style="align-items:start">
+    <div class="figure" style="margin-top:0">
+      <div class="ed">
+        <div class="tabstrip"><span>Nodes</span><span class="on">Links</span><span>Frame</span><span>Overlays</span></div>
+        <div class="row"><span class="tw">›</span><span class="dim">all sequences — the frame every node is placed in (a change reloads the scene), and time</span><span class="pin">1</span></div>
+        <div class="row"><span class="dim">Sequences</span><span class="dim">›</span><span class="strong">sequence 5</span></div>
+        <div class="row"><span class="head">this sequence</span></div>
+        <div class="row"><span class="dim">s</span><span class="field">4</span><span class="dim">ticks a twelfth of a turn, one s every node uses — it rises when a start needs more</span></div>
+        <div class="row"><span class="tw">›</span>network<span class="dim">what runs now · 5 links</span><span class="sp"></span><span class="btn">+ node</span></div>
+        <div class="row"><span class="tw">›</span>start<span class="dim">where the sequence begins · each link's START and 1</span><span class="pin">2</span></div>
+        <div class="row"><span class="tw">⌄</span>step 1<span class="sp"></span><span class="btn">→</span><span class="btn">✎</span><span class="btn">+</span><span class="btn">⧉</span><span class="btn">×</span></div>
+        <div class="row"><span class="ind"></span><span class="head" style="color:#7fa7d9">HEAD</span><span class="chip">φ ·</span><span class="chip lit">θ ↑</span><span class="chip">r ·</span><span class="pin">6</span></div>
+        <div class="row"><span class="ind"></span><span class="tw">⌄</span>node 1</div>
+        <div class="row sel"><span class="ind"></span><span class="ind"></span><span class="tw">⌄</span>●<span>2→1</span><span class="dim">φ 3 + total 2 + 1 → tick 6</span><span class="pin">4</span></div>
+        <div class="row"><span class="ind"></span><span class="ind"></span><span class="ind"></span>
+          <div class="box" style="display:grid;grid-template-columns:auto repeat(3,auto);gap:3px 10px;align-items:center">
+            <span></span><span class="head">Δ</span><span class="head">nΔ</span><span class="head">total</span>
+            <span class="dim">φ</span><span class="field">1</span><span class="field">1</span><span class="dim">2</span>
+            <span class="dim">θ</span><span class="field">0</span><span class="field">1</span><span class="dim">0</span>
+            <span class="dim">r</span><span class="field off">0</span><span class="field">1</span><span class="dim">0</span>
+          </div><span class="pin">7</span></div>
+        <div class="row"><span class="ind"></span><span class="ind"></span><span class="tw"></span>○<span>3→1</span></div>
+        <div class="row"><span class="ind"></span><span class="tw">⌄</span>node 2</div>
+        <div class="row"><span class="ind"></span><span class="ind"></span><span class="tw"></span>○<span>1→2</span></div>
+        <div class="row"><span class="ind"></span><span class="tw">›</span>node 3<span class="dim">2 links</span></div>
+        <div class="row"><span class="tw">›</span>step 2<span class="pin">3</span></div>
+        <div class="row dim">+  add step</div>
+        <div class="row dim" style="white-space:normal">↑↓ move · → open / in · ← close / out · Enter go in · F2 rename · drag a row to reorder<span class="pin">8</span></div>
+        <div class="row warnline" style="white-space:normal">3→1: 1 already has a picked link into it, from 2<span class="pin">5</span></div>
+      </div>
+      <div class="cap">Reconstructed from <code>linksTree</code>, <code>stepRows</code>, <code>stepBody</code>, <code>headRow</code>, <code>linkCard</code> and <code>pressSummary</code>. The values come from a typical sequence: 3 nodes, 2 steps.</div>
+    </div>
+
+    <div>
+      <ol class="issues">
+        <li><span class="pin">1</span><div><b>Four scopes share one scroll.</b> The frame (ρ, T_φ, T_θ, c_r, Δt) reloads the scene when it changes, <i>s</i> belongs to the sequence, the network is "what runs now", and steps are the sequence's content. The only thing that tells them apart is a fold title. <span class="tag warn">high</span></div></li>
+        <li><span class="pin">2</span><div><b>The same link appears up to N + 2 times:</b> under network, under start, and under every step. Seeing what 2→1 does across the whole sequence means opening each of them. <span class="tag warn">high</span></div></li>
+        <li><span class="pin">3</span><div><b>Only one step is open at a time.</b> <code>stepOpen</code> is true only for the step shown, so comparing step 1 and step 2 means toggling back and forth. Nested steps hide behind <kbd>→</kbd> and a breadcrumb. <span class="tag warn">high</span></div></li>
+        <li><span class="pin">4</span><div><b>Arithmetic instead of a picture.</b> "φ 3 + total 2 + 1 → tick 6" asks you to add numbers on a 0–12 wrap-around circle in your head, where 11 + 1 is 0. <span class="tag warn">high</span></div></li>
+        <li><span class="pin">5</span><div><b>Rules are only learned when they refuse.</b> "One picked link into a node", "links out of a node share nΔ" and "fixed radius" all surface as text at the bottom of the list, far from the field that caused them. <span class="tag">medium</span></div></li>
+        <li><span class="pin">6</span><div><b>HEAD locks are unlabeled glyphs.</b> <code>·</code>, <code>↑</code> and <code>↓</code> cycle on click, with no word for what a lock does to the StepAll. <span class="tag">medium</span></div></li>
+        <li><span class="pin">7</span><div><b>Three numbers look alike but edit differently.</b> Δ is a press field (±, not typed), nΔ is typed, and total is read-only. Nothing in their appearance says which is which. <span class="tag">medium</span></div></li>
+        <li><span class="pin">8</span><div><b>Navigation is explained by a 15-word hint</b>, and → means three things: open, go in, and the button that enters nested steps. <span class="tag">low</span></div></li>
+      </ol>
+      <div class="note">What already works and should be kept: the pick glyph's meaning, the per-step HEAD locks, nested steps, renaming in place, row drag to reorder, and keyboard navigation. The redesign changes how these are shown, not what they do.</div>
+    </div>
+  </div>
+
+  <h2>The cost of one ordinary edit</h2>
+  <p>Task: <i>"in step 2, turn 3→1 a quarter turn further in φ."</i> Counting the interactions needed today, read from the fold rules:</p>
+  <div class="scroll">
+  <svg class="diagram" viewBox="0 0 980 120" style="min-width:760px">
+    <g>
+      <rect class="box" x="0" y="30" width="110" height="56" rx="8"/><text x="55" y="55" text-anchor="middle">open step 2</text><text x="55" y="73" text-anchor="middle" class="muted small">step 1 closes</text>
+      <rect class="box" x="125" y="30" width="110" height="56" rx="8"/><text x="180" y="55" text-anchor="middle">unfold node 1</text><text x="180" y="73" text-anchor="middle" class="muted small">if folded</text>
+      <rect class="box" x="250" y="30" width="110" height="56" rx="8"/><text x="305" y="55" text-anchor="middle">pick 3→1</text><text x="305" y="73" text-anchor="middle" class="muted small">refused if 2→1 is</text>
+      <rect class="box warn" x="375" y="30" width="110" height="56" rx="8"/><text x="430" y="55" text-anchor="middle">unpick 2→1</text><text x="430" y="73" text-anchor="middle" class="muted small">then pick again</text>
+      <rect class="box" x="500" y="30" width="110" height="56" rx="8"/><text x="555" y="55" text-anchor="middle">open the card</text><text x="555" y="73" text-anchor="middle" class="muted small">a separate fold</text>
+      <rect class="box" x="625" y="30" width="110" height="56" rx="8"/><text x="680" y="55" text-anchor="middle">press Δφ +</text><text x="680" y="73" text-anchor="middle" class="muted small">× 3 for a quarter</text>
+      <rect class="box" x="750" y="30" width="110" height="56" rx="8"/><text x="805" y="55" text-anchor="middle">read the summary</text><text x="805" y="73" text-anchor="middle" class="muted small">"… → tick 9"</text>
+      <path class="wire" d="M110 58h15M235 58h15M360 58h15M485 58h15M610 58h15M735 58h15"/>
+      <text x="880" y="52" class="bold">≈ 9 actions</text><text x="880" y="72" class="muted small">and 1 refusal</text>
+    </g>
+  </svg>
+  </div>
+  <p class="cap">The <a href="flows.html">Flows</a> page does the same task in the proposed design in 4 actions, with no refusal.</p>
+</section>
+</main>
+<script src="site.js"></script>
+</body>
+</html>

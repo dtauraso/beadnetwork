@@ -1,0 +1,100 @@
+<!doctype html>
+<!-- branch: task/links-tab-ux -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links Tab · Score</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Links tab, redesigned</a> <span>φ,θ tab · a proposal with mockups</span></div>
+    <nav class="tabs" id="tabs" aria-label="Pages"></nav>
+  </div>
+</header>
+<main>
+<section id="score">
+  <div class="eyebrow">Region B</div>
+  <h1>The score</h1>
+  <p class="lede">Like a music score or a tracker: time runs left to right, one row per voice. Here a voice is a link and time is the step list. You read a whole sequence at a glance and compare steps by looking sideways.</p>
+
+  <h2>Anatomy of a cell</h2>
+  <div class="grid2" style="align-items:center">
+    <div class="ed" style="padding:18px;display:flex;justify-content:center">
+      <table class="score"><tbody><tr><td class="cell picked focus" style="padding:10px 14px"><div class="c" style="gap:10px">
+        <svg data-dial data-size="30" data-start="3" data-delta="2"></svg><span style="font-size:14px">+2φ</span><span class="sub">+1θ</span><span class="dot on"></span>
+      </div></td></tr></tbody></table>
+    </div>
+    <table class="doc">
+      <tbody>
+        <tr><td><b>Mini dial</b></td><td>Grey arc: where the link starts this step. Blue arc: this step's turn. Same drawing as the inspector and as the scene's angle arcs.</td></tr>
+        <tr><td><b>+2φ</b></td><td>The pressed Δ on the main axis, in twelfths. A second axis shows smaller. Empty cell: <span class="off">—</span>.</td></tr>
+        <tr><td><b>● / ○</b></td><td>Picked: this link moves its target in this step. Tinted background repeats it.</td></tr>
+        <tr><td><b>Ring</b></td><td>Keyboard / pointer focus, the cell the inspector edits.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Rows: grouped by the node they point into</h2>
+  <div class="scroll">
+  <svg class="diagram" viewBox="0 0 1000 220" style="min-width:780px">
+    <circle cx="90" cy="110" r="28" class="box accent"/><text x="90" y="115" text-anchor="middle" class="bold">1</text>
+    <circle cx="260" cy="50" r="24" class="box"/><text x="260" y="55" text-anchor="middle" class="bold">2</text>
+    <circle cx="260" cy="170" r="24" class="box"/><text x="260" y="175" text-anchor="middle" class="bold">3</text>
+    <path d="M236 58L118 100" stroke="#e8833a" stroke-width="3" fill="none"/><text x="150" y="66" class="small">2→1</text>
+    <path d="M236 162L118 120" stroke="#4ec98f" stroke-width="3" fill="none"/><text x="150" y="168" class="small">3→1</text>
+    <path d="M260 74V146" stroke="#c678dd" stroke-width="3" fill="none"/><text x="270" y="114" class="small">2→3</text>
+    <path class="wire dash" d="M330 110h80"/>
+    <rect x="420" y="30" width="540" height="160" rx="10" class="box"/>
+    <text x="440" y="60" class="small muted bold">INTO 1   — at most one ● per column</text>
+    <rect x="440" y="72" width="10" height="10" fill="#e8833a"/><text x="458" y="82" class="small">2 → 1</text>
+    <rect x="440" y="94" width="10" height="10" fill="#4ec98f"/><text x="458" y="104" class="small">3 → 1</text>
+    <text x="440" y="140" class="small muted bold">INTO 3</text>
+    <rect x="440" y="152" width="10" height="10" fill="#c678dd"/><text x="458" y="162" class="small">2 → 3</text>
+    <text x="620" y="82" class="small">●</text><text x="720" y="82" class="small muted">○</text>
+    <text x="620" y="104" class="small muted">○</text><text x="720" y="104" class="small">●</text>
+    <text x="620" y="162" class="small">●</text><text x="720" y="162" class="small">●</text>
+    <text x="604" y="50" class="small bold">step 1</text><text x="704" y="50" class="small bold">step 2</text>
+  </svg>
+  </div>
+  <p class="cap">The swatch is the edge's colour in the 3D scene, so a row and its edge are matched by eye. The pick rule lives on the group: one ● per group per column, which the layout makes obvious before any rule is broken.</p>
+
+  <h2>Columns: steps, with their HEAD locks</h2>
+  <div class="grid2">
+    <div class="ed" style="padding:10px">
+      <table class="score"><thead><tr>
+        <th class="now">step 1<div class="sub"><span class="chip">φ ·</span> <span class="chip lit">θ ↑</span> <span class="chip">r ·</span></div></th>
+        <th>step 2<div class="sub"><span class="chip">φ ·</span> <span class="chip">θ ·</span> <span class="chip lit">r ↓</span></div></th>
+        <th>▸ approach <span class="sub">3 steps</span></th>
+      </tr></thead></table>
+    </div>
+    <div>
+      <p>Each header names the step (F2 renames) and shows its HEAD locks as three labeled chips: <b>·</b> free, <b>↑</b> hold up, <b>↓</b> hold down. Today's unlabeled glyphs get their axis letter.</p>
+      <p>Clicking a header <b>scrubs the scene</b> to that step (the existing <code>ShowStep</code>); the underline marks the one shown. A step holding steps shows as <b>▸ approach</b> and expands in place into grouped sub-columns.</p>
+      <p>Drag a header to reorder (<code>MoveStep</code>). The trailing <b>＋</b> appends a step; <kbd>⌘D</kbd> duplicates the focused one.</p>
+    </div>
+  </div>
+
+  <h2>Nested steps, expanded</h2>
+  <div class="scroll">
+  <div class="ed" style="padding:8px;min-width:620px">
+    <table class="score">
+      <thead>
+        <tr><th class="rowhead" rowspan="2">link</th><th rowspan="2">step 1</th><th colspan="3" style="text-align:center">▾ approach</th><th rowspan="2">step 3</th></tr>
+        <tr><th class="now">a</th><th>b</th><th>c</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="rowhead"><span class="sw" style="background:#e8833a"></span> 2 → 1</td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="3" data-delta="2"></svg>+2φ</div></td><td class="cell picked focus"><div class="c"><svg data-dial data-size="22" data-start="5" data-delta="1"></svg>+1φ</div></td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="6" data-delta="1"></svg>+1φ</div></td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="7" data-delta="1"></svg>+1φ</div></td><td class="cell"><span class="off">—</span></td></tr>
+        <tr><td class="rowhead"><span class="sw" style="background:#c678dd"></span> 2 → 3</td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="6" data-delta="1"></svg>+1θ</div></td><td class="cell ghost"><span class="off">—</span></td><td class="cell ghost"><span class="off">—</span></td><td class="cell ghost"><span class="off">—</span></td><td class="cell picked"><div class="c"><svg data-dial data-size="22" data-start="7" data-delta="-1"></svg>−1θ</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  </div>
+  <p class="cap">Hatched cells: the link is not picked in that sub-step. Alt+→ enters a nested step, Alt+← leaves it, matching today's level-up.</p>
+</section>
+</main>
+<script src="site.js"></script>
+</body>
+</html>

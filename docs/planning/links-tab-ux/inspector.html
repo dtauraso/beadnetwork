@@ -1,0 +1,78 @@
+<!doctype html>
+<!-- branch: task/links-tab-ux -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links Tab · Inspector</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Links tab, redesigned</a> <span>φ,θ tab · a proposal with mockups</span></div>
+    <nav class="tabs" id="tabs" aria-label="Pages"></nav>
+  </div>
+</header>
+<main>
+<section id="inspector">
+  <div class="eyebrow">Region C</div>
+  <h1>The inspector</h1>
+  <p class="lede">One cell, every control it has, with each number named. Δ, nΔ and total look alike today but are edited differently. Here they are three different things: a hand you turn, a step size, and a read-out.</p>
+
+  <div class="grid2" style="align-items:start">
+    <div class="ed" style="padding:12px 14px;max-width:360px">
+      <div class="row" style="padding:0 0 8px"><span class="sw" style="background:#e8833a"></span><span class="strong">2 → 1</span><span class="dim">· step 1</span><span class="sp"></span><span class="dim">moves in this step</span><span class="chip lit">● on</span></div>
+      <div style="display:flex;gap:14px;align-items:center">
+        <svg data-dial data-size="132" data-start="3" data-delta="2" data-inc="1" data-ghost="1" data-labels></svg>
+        <div>
+          <div class="head">φ turn</div>
+          <div class="row" style="padding:4px 0"><span class="btn">−</span><span class="field focus" style="min-width:40px">+2</span><span class="btn">＋</span></div>
+          <div class="row" style="padding:2px 0"><span class="dim">Δ per press</span><span class="field">1</span></div>
+          <div class="sub" style="margin-top:4px">start 3 → ends at 5</div>
+          <div class="sub">5 × s4 = 20 ticks</div>
+        </div>
+      </div>
+      <div class="box" style="margin-top:10px"><span class="dim">Dashed ring = what one more <span class="kbd">+</span> press would do. Drag the hand: it snaps to every 1.</span></div>
+    </div>
+    <div>
+      <table class="doc">
+        <thead><tr><th>Today</th><th>Here</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Δ field</td><td><b>φ turn</b> + hand on the dial</td><td>It's a rotation; show it as one.</td></tr>
+          <tr><td>nΔ field</td><td><b>Δ per press</b></td><td>Says what it does, not its symbol.</td></tr>
+          <tr><td>total field</td><td><b>ends at 5</b>, read-only text</td><td>Derived values shouldn't look editable.</td></tr>
+          <tr><td>"φ 3 + total 2 + 1 → tick 6"</td><td>start 3 → ends at 5 and "× s" small print</td><td>Answer first, arithmetic second.</td></tr>
+          <tr><td>pick toggle at row end</td><td><b>moves in this step</b> switch in the header</td><td>It decides if the rest matters.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <h2>Dial states</h2>
+  <div class="grid3">
+    <div class="card" style="text-align:center"><svg data-dial data-size="104" data-start="4" data-labels style="margin:auto"></svg><p class="cap"><b>No turn.</b> Grey arc only; the hand sits at start.</p></div>
+    <div class="card" style="text-align:center"><svg data-dial data-size="104" data-start="2" data-delta="3" data-inc="1" data-labels style="margin:auto"></svg><p class="cap"><b>Positive.</b> Blue arc clockwise; one dot per press.</p></div>
+    <div class="card" style="text-align:center"><svg data-dial data-size="104" data-start="10" data-delta="4" data-inc="2" data-labels style="margin:auto"></svg><p class="cap"><b>Wraps past 12.</b> 10 + 4 ends at 2; the arc just keeps going.</p></div>
+    <div class="card" style="text-align:center"><svg data-dial data-size="104" data-start="6" data-delta="-2" data-inc="1" data-labels style="margin:auto"></svg><p class="cap"><b>Negative.</b> Dashed and anticlockwise.</p></div>
+    <div class="card" style="text-align:center"><svg data-dial data-size="104" data-start="3" data-delta="2" data-inc="1" data-ghost="2" data-labels style="margin:auto"></svg><p class="cap"><b>Dragging.</b> Hollow handle shows where it will land on release.</p></div>
+    <div class="card" style="text-align:center"><svg data-dial data-size="104" data-start="3" data-delta="6" data-inc="3" data-labels style="margin:auto"></svg><p class="cap"><b>Coarse step.</b> Δ per press 3: only quarter turns are reachable.</p></div>
+  </div>
+
+  <h2>r is a length, so it gets a ruler</h2>
+  <div class="ed" style="padding:12px 14px;max-width:520px">
+    <div class="row" style="padding:0"><span class="head">r</span><span class="sub">tenths of a bead slot · never below 0</span></div>
+    <div style="position:relative;height:30px;margin:8px 4px">
+      <div style="position:absolute;left:0;right:0;top:13px;height:4px;background:#4a4a55;border-radius:2px"></div>
+      <div style="position:absolute;left:0;width:40%;top:13px;height:4px;background:#8d8d99;border-radius:2px"></div>
+      <div style="position:absolute;left:40%;width:20%;top:12px;height:6px;background:var(--ed-accent);border-radius:2px;opacity:.9"></div>
+      <div style="position:absolute;left:60%;top:5px;width:12px;height:20px;margin-left:-6px;background:var(--ed-accent);border-radius:3px"></div>
+      <div style="position:absolute;left:0;top:24px" class="sub">0</div><div style="position:absolute;left:40%;top:24px" class="sub">start 12</div><div style="position:absolute;left:60%;top:24px" class="sub">18</div>
+    </div>
+    <div class="row" style="padding:8px 0 0"><span class="btn">−</span><span class="field focus">+6</span><span class="btn">＋</span><span class="dim">Δ per press</span><span class="field">2</span><span class="sp"></span><span class="dim">ends at 18</span></div>
+  </div>
+</section>
+</main>
+<script src="site.js"></script>
+</body>
+</html>
