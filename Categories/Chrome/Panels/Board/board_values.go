@@ -55,7 +55,7 @@ func (s *State) Write(l *Laid, e Sheet.Edit) {
 				if m.Kind == KBox {
 					m.Fill, m.Edge = On, Accent
 				} else {
-					m.Text = e.Draft + "_"
+					m.Text = e.Shown()
 					if m.Align == Right {
 						m.R.X = m.R.X + m.R.W - W(m.Text, m.Px)
 					}

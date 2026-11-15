@@ -161,7 +161,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
         if (i < from || i >= to || cellBox?.[i] !== bi || r.w <= 0) return;
         const isEditing = editing[i] !== 0;
         slid(c, b, sx, sw, (cellSlides[i] ?? 0) !== 0, () => drawCell(c, r, {
-          kind: kinds[i] ?? 0, key: keys[i] ?? "", value: isEditing ? `${draft}_` : vals[i] ?? "", editing: isEditing,
+          kind: kinds[i] ?? 0, key: keys[i] ?? "", value: isEditing ? draft : vals[i] ?? "", editing: isEditing,
           outlined: (outlined[i] ?? 0) !== 0, boxed: (boxed[i] ?? 0) !== 0, lit: (lit[i] ?? 0) !== 0, dim: (dimCell[i] ?? 0) !== 0,
           bare: (bare[i] ?? 0) !== 0, ink: ink[i] ?? 0, dial: dial[i] ?? 0, dialStart: dialStart?.[i] ?? 0, dialTurn: dialTurn?.[i] ?? 0, dialGhost: dialGhost?.[i] ?? 0,
         }));
