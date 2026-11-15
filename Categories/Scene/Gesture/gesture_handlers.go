@@ -14,6 +14,8 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 )
 
+const clickSlopPx = 4
+
 func gestHome(d Deps, ev Drag.RawInputMsg) {
 	centers := heldCenters(d)
 	radius := make(map[string]float64, len(centers))
@@ -63,7 +65,7 @@ func gestPointerMove(d Deps, ev Drag.RawInputMsg) {
 	dy := ev.Y - g.DownY
 	dist := math.Hypot(dx, dy)
 
-	if g.Phase == Drag.GestPending && dist > 0 && !g.Secondary {
+	if g.Phase == Drag.GestPending && dist > clickSlopPx && !g.Secondary {
 		for _, edge := range commitEdges {
 			if edge.guard(g) {
 				edge.action(d, g, ev)
