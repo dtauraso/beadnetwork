@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- branch: task/links-tab-ux -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links Tab · States</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Links tab, redesigned</a> <span>φ,θ tab · a proposal with mockups</span></div>
+    <nav class="tabs" id="tabs" aria-label="Pages"></nav>
+  </div>
+</header>
+<main>
+<section id="states">
+  <div class="eyebrow">Edge cases</div>
+  <h1>States the panel must handle</h1>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Empty sequence</h3>
+      <div class="ed" style="padding:16px;text-align:center"><div class="dim">No links yet.</div><div style="margin-top:8px"><span class="btn lit">Open Network…</span></div><div class="sub" style="margin-top:6px">add nodes and links, then come back here to animate them</div></div></div>
+    <div class="card"><h3 style="margin-top:0">One node, no links</h3>
+      <div class="ed" style="padding:16px;text-align:center"><div class="dim">Node 1 has nothing to turn against.</div><div class="sub" style="margin-top:6px">A link needs two nodes.</div></div></div>
+    <div class="card"><h3 style="margin-top:0">Many links</h3>
+      <div class="ed" style="padding:6px;overflow:hidden"><table class="score"><thead><tr><th class="rowhead">link</th><th>1</th><th class="now">2</th><th>3</th><th>4</th><th class="dim">…12 ›</th></tr></thead><tbody>
+      <tr class="group"><td class="rowhead" colspan="6">into 4 · 3 links</td></tr>
+      <tr><td class="rowhead">1 → 4</td><td class="cell picked"><span>+1φ</span></td><td class="cell"><span class="off">—</span></td><td class="cell"><span class="off">—</span></td><td class="cell picked"><span>−2θ</span></td><td></td></tr>
+      <tr class="group"><td class="rowhead" colspan="6">▸ into 5 · 4 links <span class="sub">collapsed</span></td></tr>
+      <tr class="group"><td class="rowhead" colspan="6">▸ into 6 · 2 links</td></tr></tbody></table></div>
+      <p class="cap">Sticky header row and link column; groups collapse; the step axis scrolls.</p></div>
+    <div class="card"><h3 style="margin-top:0">Nodes behind</h3>
+      <div class="ed"><div class="bar" style="border-bottom:0"><span class="dim">showing step 2 · h 418</span><span class="warnline">● 2 behind: 4, 6</span><span class="sp"></span><span class="btn ghost">select them</span></div></div>
+      <p class="cap">Edits still work; the strip names who is late instead of the panel freezing.</p></div>
+    <div class="card"><h3 style="margin-top:0">Reloading after a frame edit</h3>
+      <div class="ed" style="padding:16px;text-align:center;opacity:.75"><div class="dim">Reloading scene with ρ 40…</div><div class="sub">your selection (2 → 1 · step 1) comes back after</div></div></div>
+    <div class="card"><h3 style="margin-top:0">Step in progress</h3>
+      <div class="ed" style="padding:6px"><table class="score"><thead><tr><th class="now">step 2 <span class="sub">moving… 3 of 6 placed</span></th></tr></thead></table></div>
+      <p class="cap">Presses during a step queue behind it; the header says so.</p></div>
+  </div>
+</section>
+</main>
+<script src="site.js"></script>
+</body>
+</html>
