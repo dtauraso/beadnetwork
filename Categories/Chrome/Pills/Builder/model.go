@@ -64,6 +64,7 @@ type Model struct {
 	StartOpen   bool
 	FrameFolded bool
 	Score       bool
+	ScoreCell   StepEdge
 	Touched     StepEdge
 	DragStep    int
 	Level       string

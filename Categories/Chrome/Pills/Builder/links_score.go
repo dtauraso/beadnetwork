@@ -64,11 +64,15 @@ func locksText(m Model, step int) string {
 }
 
 func scoreCell(m Model, step int, l Links.Link) Cell {
-	sl, ok := m.gridLink(StepEdge{step, l.From, l.To})
-	if !ok || !m.StepPicked(step, sl) {
-		return Text("— " + pickMark(false)).Dimmed(true)
+	e := StepEdge{step, l.From, l.To}
+	sl, ok := m.gridLink(e)
+	if !ok {
+		return Text("").Dimmed(true)
 	}
-	return Text(turnText(sl) + " " + pickMark(true)).Tipped(pressSummary(sl))
+	if !sl.Picked {
+		return LitText("— "+pickMark(false), cellAct(step, l), m.ScoreCell == e).Tipped("select to edit")
+	}
+	return LitText(turnText(sl)+" "+pickMark(true), cellAct(step, l), m.ScoreCell == e).Tipped(pressSummary(sl))
 }
 
 func scoreGroup(m Model) Group {

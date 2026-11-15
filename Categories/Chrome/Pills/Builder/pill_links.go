@@ -156,7 +156,7 @@ func linksTree(m Model) tree {
 	if m.AtSeqs {
 		seqRows(&t, m)
 	} else if m.Score {
-		t.put(viewGroup(m), seqFrameGroup(m), scoreGroup(m))
+		t.put(viewGroup(m), seqFrameGroup(m), scoreGroup(m), inspectorGroup(m))
 	} else {
 		t.put(viewGroup(m), seqFrameGroup(m))
 		networkRows(&t, m)

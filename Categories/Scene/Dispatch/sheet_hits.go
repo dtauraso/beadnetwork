@@ -169,6 +169,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 	case Builder.OpLinksView:
 		md.UI.Builder.SetView(a)
+	case Builder.OpScoreCell:
+		md.UI.Builder.SelectCell(a)
 	case Builder.OpNetFold:
 		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
 	case Builder.OpPlaceFold:
