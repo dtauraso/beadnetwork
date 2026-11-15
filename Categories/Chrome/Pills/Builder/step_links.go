@@ -81,6 +81,7 @@ func IsStepEdit(a Act) bool {
 const (
 	startPart   = -1
 	OpStartFold = "start-fold"
+	OpInspTab   = "insp-tab"
 )
 
 func startRows(t *tree, m Model) {
@@ -104,8 +105,8 @@ func startRows(t *tree, m Model) {
 		}
 		for _, l := range links {
 			e := StepEdge{startPart, l.From, l.To}
-			t.add(m.cardRow(linkRowOf(l, false, Act{}, 2), e, false))
-			if m.CardOpen(e, false) {
+			t.add(m.cardRow(linkRowOf(l, false, Act{}, 2), e))
+			if m.CardOpen(e) {
 				t.put(startCard(m.Grids[id].Base[l.From], l, 3))
 			}
 		}

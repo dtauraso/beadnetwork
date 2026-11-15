@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
@@ -89,6 +90,8 @@ type UIState struct {
 	NodeRowFor func(id string) (int32, bool)
 
 	Sheet Sheet.State
+
+	Board Board.State
 
 	Builder Builder.Model
 

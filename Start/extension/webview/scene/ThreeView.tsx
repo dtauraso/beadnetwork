@@ -4,7 +4,8 @@ import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { buildDeleteRaw, buildKeyRaw } from "../../../../Categories/Scene/Drag/raw-input-build";
 import { sendRawInput } from "../vscode-api";
-import { sheetDraftOpen, sheetNavOn } from "../../../../Categories/Chrome/Panels/Sheet/draw-sheet";
+import { sheetDraftOpen } from "../../../../Categories/Chrome/Panels/Sheet/draw-sheet";
+import { boardDraftOpen } from "../../../../Categories/Chrome/Panels/Board/draw-board";
 import { useInteractionControls } from "./interaction-controls";
 import type { PickFn } from "../../../../Categories/Scene/Drag/pick-types";
 import { Scene } from "./scene-content";
@@ -17,7 +18,6 @@ function consumedByDraft(key: string): boolean {
   return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace";
 }
 
-const SHEET_NAV_KEYS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "F2", "Backspace", "Escape", " ", "+", "=", "-", "1", "2", "3"]);
 
 export function ThreeView() {
   bootPhase("ThreeView body");
@@ -30,12 +30,7 @@ export function ThreeView() {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      if (sheetDraftOpen() && consumedByDraft(e.key)) {
-        e.preventDefault();
-        sendRawInput(buildKeyRaw(e.key));
-        return;
-      }
-      if (sheetNavOn() && SHEET_NAV_KEYS.has(e.key)) {
+      if ((sheetDraftOpen() || boardDraftOpen()) && consumedByDraft(e.key)) {
         e.preventDefault();
         sendRawInput(buildKeyRaw(e.key));
         return;

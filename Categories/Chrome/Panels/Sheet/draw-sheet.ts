@@ -8,7 +8,7 @@ import { sheetBytes, sheetF32Run, sheetU32Run, sheetText } from "./sheet-leaves"
 const TITLE_FONT_PX = 12;
 const TITLE_INK = "#222";
 
-function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "pillBar" | "tabOn" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "upDim" | "cellDim" | "cellBare" | "cellInk" | "cellDial" | "pillOpen" | "cardPop" | "cardBand" | "navOn"): number[] {
+function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "pillBar" | "tabOn" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "upDim" | "cellDim" | "cellBare" | "cellInk" | "cellDial" | "pillOpen" | "cardPop" | "cardBand"): number[] {
   const v = sheetBytes(name);
   const out: number[] = [];
   if (v) for (let i = 0; i < v.byteLength; i++) out.push(v.getUint8(i));
@@ -35,10 +35,6 @@ function draftText(): string {
 
 export function sheetDraftOpen(): boolean {
   return bytesOf("cellEditing").some((b) => b !== 0);
-}
-
-export function sheetNavOn(): boolean {
-  return bytesOf("navOn").some((b) => b !== 0);
 }
 
 export function sheetKey(): string {

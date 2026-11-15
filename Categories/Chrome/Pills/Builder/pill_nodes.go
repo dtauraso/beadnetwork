@@ -37,10 +37,10 @@ func networkRows(t *tree, m Model) {
 		placeRows(t, m, id)
 		for _, l := range m.linksTo(id) {
 			e := StepEdge{0, l.From, l.To}
-			lr := m.cardRow(linkRowOf(l, l.Picked, Act{}, 2), e, l.Picked)
+			lr := m.cardRow(linkRowOf(l, l.Picked, Act{}, 2), e)
 			lr.acts = []Cell{Button("×", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false).Tipped("remove this link")}
 			t.add(lr)
-			if m.CardOpen(e, l.Picked) {
+			if m.CardOpen(e) {
 				t.put(netCard(l, 3))
 			}
 		}

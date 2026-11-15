@@ -6,7 +6,7 @@ import { nodeF32 } from "../../Node/node-leaves";
 import { checkEdgeLandsOnNode } from "../../Node/Edge/check-edge-lands-on-node";
 import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../../Ring/Bead/bead-style";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
-import { previewI32, previewU8 } from "../../Scene/Preview/preview-leaves";
+import { previewBytes, previewI32, previewI32Run, previewU8 } from "../../Scene/Preview/preview-leaves";
 
 import { DIRECTION_ZERO_EPS, SCENE_EDGE_TAG } from "../../../Start/extension/webview/scene/scene-tags";
 
@@ -17,12 +17,34 @@ const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2;
 const AXIS_DEFAULT = new THREE.Vector3(0, 1, 0);
 const HOT_WIDTH = 2.5;
 const HOT_COLOR = "#ffd54a";
+const EDGE_UNPICKED = 1, EDGE_PICKED = 2, EDGE_OPEN = 3;
+const STATE_STYLE: Record<number, { color: string; width: number }> = {
+  [EDGE_UNPICKED]: { color: "#d5d8dd", width: 0.001 },
+  [EDGE_PICKED]: { color: "#a7dfe5", width: 1.5 },
+  [EDGE_OPEN]: { color: "#1565c0", width: 2 },
+};
+const DASH_COLOR = "#d5d8dd";
+const DASH_WIDTH = 0.7;
+const DASHES = 8;
 const noRaycast = () => {};
+
+function edgeStates(): Map<number, number> {
+  const out = new Map<number, number>();
+  const src = previewI32Run("edgeSrc"), dst = previewI32Run("edgeDst"), st = previewBytes("edgeState");
+  if (!src || !dst || !st) return out;
+  for (let i = 0; i < src.length && i < dst.length && i < st.byteLength; i++) {
+    const s = st.getUint8(i);
+    out.set(src[i]! * 65536 + dst[i]!, s);
+    out.set(dst[i]! * 65536 + src[i]!, s);
+  }
+  return out;
+}
 
 
 export function EdgeVectors({ capacity }: { capacity: number }) {
   const lineRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
+  const dashRef = useRef<THREE.InstancedMesh>(null);
   const mat = useRef(new THREE.Matrix4());
   const pos = useRef(new THREE.Vector3());
   const dir = useRef(new THREE.Vector3());
@@ -30,24 +52,31 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
   const scl = useRef(new THREE.Vector3());
   const col = useRef(new THREE.Color());
   const rows = useRef<number[]>([]);
+  const dashRows = useRef<number[]>([]);
 
   useFrame(() => {
     const line = lineRef.current;
     const head = headRef.current;
-    if (!line || !head) return;
+    const dash = dashRef.current;
+    if (!line || !head || !dash) return;
 
-    if (!overlayFlag("edgeVectors")) { line.count = 0; head.count = 0; return; }
+    if (!overlayFlag("edgeVectors")) { line.count = 0; head.count = 0; dash.count = 0; return; }
 
     checkEdgeLandsOnNode();
 
     const edges = getEdgeStreamAccessor();
-    if (!edges) { line.count = 0; head.count = 0; return; }
+    if (!edges) { line.count = 0; head.count = 0; dash.count = 0; return; }
+    const states = edgeStates();
+    let dashes = 0;
 
     const n = Math.min(edges.edgeCount, capacity);
     const hotSrc = previewI32("hotSrc", -1);
     const hotDst = previewI32("hotDst", -1);
-    line.raycast = previewU8("edgePick") === 1 ? (rc, out) => { THREE.InstancedMesh.prototype.raycast.call(line, rc, out); } : noRaycast;
+    const pick = previewU8("edgePick") === 1;
+    line.raycast = pick ? (rc, out) => { THREE.InstancedMesh.prototype.raycast.call(line, rc, out); } : noRaycast;
+    dash.raycast = pick ? (rc, out) => { THREE.InstancedMesh.prototype.raycast.call(dash, rc, out); } : noRaycast;
     rows.current.length = 0;
+    dashRows.current.length = 0;
     let drawn = 0;
     for (let row = 0; row < n; row++) {
       if (!edges.shown(row)) continue;
@@ -75,33 +104,55 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
 
       pos.current.set(sx, sy, sz).addScaledVector(dir.current, tail + shaft / 2);
       const hot = hotSrc >= 0 && ((src === hotSrc && dst === hotDst) || (src === hotDst && dst === hotSrc));
-      const w = hot ? HOT_WIDTH : 1;
+      const state = states.get(src * 65536 + dst) ?? 0;
+      const style = STATE_STYLE[state];
+      const w = hot ? HOT_WIDTH : style ? style.width : 1;
+      const hw = !hot && state === EDGE_UNPICKED ? DASH_WIDTH : w;
+      if (!hot && state === EDGE_UNPICKED && shaft > 0) {
+        const piece = shaft / (DASHES * 2 - 1);
+        for (let k = 0; k < DASHES && dashes < capacity * DASHES; k++) {
+          pos.current.set(sx, sy, sz).addScaledVector(dir.current, tail + piece * (2 * k + 0.5));
+          scl.current.set(DASH_WIDTH, piece, DASH_WIDTH);
+          mat.current.compose(pos.current, quat.current, scl.current);
+          dash.setMatrixAt(dashes, mat.current);
+          col.current.set(DASH_COLOR);
+          dash.setColorAt(dashes, col.current);
+          dashRows.current[dashes] = row;
+          dashes++;
+        }
+      }
       scl.current.set(w, shaft, w);
       mat.current.compose(pos.current, quat.current, scl.current);
       line.setMatrixAt(drawn, mat.current);
 
       pos.current.set(sx, sy, sz).addScaledVector(dir.current, headBase + ARROW_HEAD_LENGTH / 2);
-      scl.current.set(w, w, w);
+      scl.current.set(hw, hw, hw);
       mat.current.compose(pos.current, quat.current, scl.current);
       head.setMatrixAt(drawn, mat.current);
 
-      col.current.set(hot ? HOT_COLOR : EDGE_LINE_COLOR);
-      rows.current[drawn] = row;
-      line.setColorAt(drawn, col.current);
+      const shaftColor = hot ? HOT_COLOR : style ? style.color : EDGE_LINE_COLOR;
+      col.current.set(!hot && state === EDGE_UNPICKED ? DASH_COLOR : shaftColor);
       head.setColorAt(drawn, col.current);
+      col.current.set(shaftColor);
+      line.setColorAt(drawn, col.current);
+      rows.current[drawn] = row;
 
       drawn++;
     }
     line.count = drawn;
     head.count = drawn;
+    dash.count = dashes;
     line.instanceMatrix.needsUpdate = true;
     head.instanceMatrix.needsUpdate = true;
+    dash.instanceMatrix.needsUpdate = true;
     if (line.instanceColor) line.instanceColor.needsUpdate = true;
     if (head.instanceColor) head.instanceColor.needsUpdate = true;
+    if (dash.instanceColor) dash.instanceColor.needsUpdate = true;
     if (drawn > 0) {
       line.computeBoundingSphere();
       head.computeBoundingSphere();
     }
+    if (dashes > 0) dash.computeBoundingSphere();
   });
 
   return (
@@ -115,6 +166,10 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
       </instancedMesh>
       <instancedMesh ref={headRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
         <coneGeometry args={[ARROW_HEAD_RADIUS, ARROW_HEAD_LENGTH, 12]} />
+        <meshBasicMaterial color={INSTANCE_TINT_BASE} toneMapped={false} transparent={false} opacity={1} />
+      </instancedMesh>
+      <instancedMesh ref={dashRef} args={[undefined, undefined, capacity * DASHES]} frustumCulled={false} raycast={noRaycast} userData={{ [SCENE_EDGE_TAG]: dashRows.current }}>
+        <cylinderGeometry args={[EDGE_LINE_RADIUS, EDGE_LINE_RADIUS, 1, 6]} />
         {}
         {}
         <meshBasicMaterial color={INSTANCE_TINT_BASE} toneMapped={false} transparent={false} opacity={1} />

@@ -62,13 +62,14 @@ type Model struct {
 	NetworkOpen bool
 	PlaceOpen   map[string]bool
 	StartOpen   bool
+	InspOpen    bool
 	FrameFolded bool
-	ScoreCell   StepEdge
+	StepsOpen   map[StepNode]bool
 	FramePop    bool
 	FrameDraft  map[string]float64
 	Turning     Turning
 	Hot         Act
-	ScoreAxis   string
+	UndoPick    Act
 	Touched     StepEdge
 	Level       string
 	Trail       []TreeRow

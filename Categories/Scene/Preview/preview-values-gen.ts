@@ -12,6 +12,9 @@ export const PREVIEW_VALUE_NAMES = [
   "ghostX",
   "ghostY",
   "ghostZ",
+  "edgeSrc",
+  "edgeDst",
+  "edgeState",
 ] as const;
 
 export type PreviewValueName = (typeof PREVIEW_VALUE_NAMES)[number];

@@ -44,7 +44,7 @@ func (m Model) stepActive(step int) []StepEdge {
 }
 
 func IsStepHead(a Act) bool {
-	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock || a.Op == OpAllInc || a.Op == OpAllOne)
+	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock || a.Op == OpAllLockCycle || a.Op == OpAllInc || a.Op == OpAllOne)
 }
 
 type HeadEdit struct {
@@ -68,6 +68,18 @@ func (m *Model) stepHeadEdits(step int, op, k string, sign int, locks Links.Lock
 func (m *Model) StepHeadEdit(a Act, sign int) []HeadEdit {
 	st := m.StepHead(a.I)
 	switch a.Op {
+	case OpAllLockCycle:
+		way, on := st.At(a.K)
+		switch {
+		case !*on:
+			*on, *way = true, 1
+		case *way > 0:
+			*way = -1
+		default:
+			*on, *way = false, 1
+		}
+		st.Both = st.Both && !*on
+		return nil
 	case OpAllLocks:
 		st.ToggleBoth()
 		return nil

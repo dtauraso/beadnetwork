@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
-
-const OpScoreCell = "score-cell"
 
 type Turning struct {
 	Act        Act
@@ -51,84 +51,80 @@ func (m *Model) EndTurn() (Act, int, bool) {
 	return t.Act, t.presses(), t.Act.Op != ""
 }
 
-func (m Model) dialCell(l Links.Link, k string, press Act) Cell {
-	d := axisDial(l, k)
-	if m.Turning.Act == press {
-		d.Ghost = float32(m.Turning.presses() * m.Turning.Inc)
+func stepper(value string, a Act, typed bool) Board.Stepper {
+	s := Board.Stepper{Steps: a, Plain: value}
+	if typed {
+		s.Field = Board.Field{Value: value, Fit: "-00", Act: a}
 	}
-	return Text("").Acting(press).Dialed(d).Tipped("drag around the dial to set the turn · it snaps to Δ per press")
+	return s
 }
 
-func (m *Model) SelectCell(a Act) { m.ScoreCell = StepEdge{a.I, a.Node, a.To} }
-
-func cellAct(step int, l Links.Link) Act {
-	return Act{Op: OpScoreCell, Node: l.From, To: l.To, I: step}
-}
-
-func endsAt(l Links.Link, a axis) string {
-	sum := l.Sum()
-	switch a.k {
+func totalOf(l Links.Link, k string) int {
+	switch k {
 	case Links.KPhi:
-		return strconv.Itoa(l.Start.Tick.Phi + sum.Phi)
+		return l.Total.Phi
 	case Links.KTheta:
-		return strconv.Itoa(l.Start.Tick.Theta + sum.Theta)
+		return l.Total.Theta
 	}
-	return tenths(l.Start.R + float64(sum.R))
+	return l.Total.R
 }
 
-func inspectorGroup(m Model) Group {
-	e := m.ScoreCell
-	l, ok := m.gridLink(e)
-	if e.Step == 0 || !ok {
-		return Group{Rows: [][]Cell{{Text("select a cell in the score to edit it here").Dimmed(true)}}, Card: true}
-	}
-	pick := Act{Op: OpStepPick, Node: l.From, To: l.To, I: e.Step}
-	moves := "off"
-	if l.Picked {
-		moves = "on"
-	}
-	rows := [][]Cell{{
-		Text(l.From + " → " + l.To).Inked(inkStrong),
-		Text("· " + m.StepLabel(e.Step)).Dimmed(true),
-		Text("moves in this step").Dimmed(true),
-		Button(pickMark(l.Picked)+" "+moves, pick, l.Picked).Tipped("pick or unpick this link for this step"),
-	}}
+func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 	if !l.Picked {
-		rows = append(rows, []Cell{Text("turn it on to give this link a turn in this step").Dimmed(true)})
-		return Group{Rows: rows, Card: true}
+		return &LinksBoard.Card{Note: "Not picked in this step. Pick it (●) to give it a turn."}
 	}
-	head := func(s string) Cell { return Text(s).AboveLastDigit().Inked(inkHead) }
-	rows = append(rows, []Cell{Text(""), head("turn"), Text(""), head("Δ per press"), head("start"), head("ends at")})
-	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: e.Step} }
+	c := &LinksBoard.Card{Heads: [3]string{"Δ", "nΔ", "total"}}
+	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	for _, a := range axes {
-		dim := a.k == Links.KR && m.FixedR(l)
-		dial := Text("")
-		if a.k != Links.KR {
-			dial = m.dialCell(l, a.k, act(OpLinkPress, a.k))
+		press := act(OpLinkPress, a.k)
+		r := LinksBoard.CardRow{Axis: a.label, A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
+		if a.k == Links.KR {
+			m.rRow(c, &r, l)
+		} else {
+			d := boardDial(axisDial(l, a.k))
+			if m.Turning.Act == press {
+				d.Ghost = float32(m.Turning.presses() * m.Turning.Inc)
+			}
+			d.Inc = float32(a.times(l))
+			r.Dial, r.DialAct = &d, press
 		}
-		rows = append(rows, []Cell{
-			axisLabel(m, a),
-			Field("", signed(a.delta(l)), act(OpLinkPress, a.k), false, true).Fitting(cardFit).Outline(false).Dimmed(dim),
-			dial,
-			Field("", strconv.Itoa(a.times(l)), act(OpIncrement, a.k), true, true).Fitting(cardFit).Outline(false),
-			Text(a.at(l)).Dimmed(true),
-			Text(endsAt(l, a)).Inked(inkStrong),
-		})
+		c.Rows = append(c.Rows, r)
 	}
-	if note := m.rNote(l); note != "" {
-		rows = append(rows, []Cell{Text(note).Dimmed(true)})
-	}
-	return Group{Rows: rows, Card: true, Wraps: true}
+	return c
 }
 
-func axisLabel(m Model, a axis) Cell {
-	if a.k == m.scoreAxis() {
-		return Text(a.label).Inked(inkStrong).Tipped("+ and − press this axis · 1 2 3 choose φ θ r")
+func (m Model) rRow(c *LinksBoard.Card, r *LinksBoard.CardRow, l Links.Link) {
+	start, end := l.Start.R, l.Start.R+float64(l.Sum().R)
+	fixed := m.FixedR(l)
+	r.Ruler = &Board.Ruler{Start: float32(start), Delta: float32(end - start), Most: float32(max(start, end) * 1.25), Fixed: fixed}
+	atZero := end < 1e-9
+	r.A.DownDim, r.A.UpDim = fixed || atZero, fixed
+	if fixed {
+		c.Fixed = m.fixedWhy(l)
+	} else if atZero {
+		c.Foot = "r is at 0, the closest it can go"
 	}
-	return Text(a.label).Dimmed(true)
 }
 
-func (m Model) rNote(l Links.Link) string {
+func (m Model) startBoardCard(id string, l Links.Link) *LinksBoard.Card {
+	b := m.Grids[id].Base[l.From]
+	l.Start = b.Origin
+	c := &LinksBoard.Card{Heads: [3]string{"start", "1", ""}}
+	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: startPart} }
+	for _, a := range axes {
+		r := LinksBoard.CardRow{Axis: a.label, A: stepper(a.at(l), act(OpLinkStart, a.k), true), B: stepper(itoa(a.one(l)), act(OpLinkOne, a.k), false)}
+		switch a.k {
+		case Links.KPhi:
+			r.Dial = &Board.Dial{Axis: Board.Phi, Start: float32(l.Start.Tick.Phi)}
+		case Links.KTheta:
+			r.Dial = &Board.Dial{Axis: Board.Theta, Start: float32(l.Start.Tick.Theta)}
+		}
+		c.Rows = append(c.Rows, r)
+	}
+	return c
+}
+
+func (m Model) fixedWhy(l Links.Link) string {
 	for _, id := range m.ManyIn() {
 		if id != l.From && id != l.To {
 			continue
@@ -137,10 +133,7 @@ func (m Model) rNote(l Links.Link) string {
 		for _, f := range m.linksTo(id) {
 			in = append(in, f.Name())
 		}
-		return "🔒 r is fixed: " + id + " has " + strconv.Itoa(len(in)) + " links in (" + strings.Join(in, ", ") + "), so its distance is held"
-	}
-	if l.Start.R+float64(l.Delta.R) < 1e-9 {
-		return "r is at 0, the closest it can go"
+		return id + " has " + strconv.Itoa(len(in)) + " links in (" + strings.Join(in, ", ") + "), so its distance is held."
 	}
 	return ""
 }

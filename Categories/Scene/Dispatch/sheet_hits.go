@@ -19,6 +19,7 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 	sh := &md.UI.Sheet
 	if h.Part == Sheet.PartBody || h.Part == Sheet.PartUp || h.Part == Sheet.PartDown {
 		md.UI.Builder.Touch(h.Cell.ArrowAct())
+		md.UI.Builder.NotePick(h.Cell.ArrowAct())
 	}
 	if h.Row.Op != "" {
 		md.UI.Builder.Select(h.Row)
@@ -59,19 +60,6 @@ func pressRow(ctx context.Context, md *MoveDispatch, id Sheet.Act) {
 	if a := md.UI.Builder.Press(id, time.Now().UnixMilli()); a.Op != "" {
 		runSheetAct(ctx, md, a, 0, nil)
 	}
-}
-
-func navKey(md *MoveDispatch, key string) bool {
-	return Builder.NavKey(key) && (md.UI.Builder.Sel.Op != "" || md.UI.Builder.ScoreFocused()) && md.UI.PanelLayout().Sheet.Nav
-}
-
-func applySheetNav(ctx context.Context, md *MoveDispatch, key string) {
-	if a := md.UI.Builder.Nav(key); a.Op == Builder.OpRename {
-		md.UI.Builder.Rename(a, &md.UI.Sheet.Edit)
-	} else if a.Op != "" {
-		runSheetAct(ctx, md, a, 0, nil)
-	}
-	md.UI.EmitViewFrame(nil)
 }
 
 func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
@@ -144,8 +132,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if md.UI.Builder.StepShown() != was {
 			md.ShowStep(ctx)
 		}
-	case Builder.OpScoreCell:
-		md.UI.Builder.SelectCell(a)
+	case Builder.OpToastClose:
+		md.UI.Builder.Refused = ""
 	case Builder.OpNetFold:
 		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
 	case Builder.OpPlaceFold:
@@ -155,6 +143,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.PlaceOpen[a.Node] = !md.UI.Builder.PlaceOpen[a.Node]
 	case Builder.OpStartFold:
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
+	case Builder.OpInspTab:
+		md.UI.Builder.InspOpen = !md.UI.Builder.InspOpen
 	case Builder.OpFrameFold:
 		md.UI.Builder.FrameFolded = !md.UI.Builder.FrameFolded
 		if root := md.Scenes.TreeRoot; root != "" {

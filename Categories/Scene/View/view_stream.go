@@ -43,10 +43,24 @@ func (ui *UIState) EmitBreadcrumb(ev RowEvent) {
 	ui.EmitViewFrame([]RowEvent{ev})
 }
 
-func (ui *UIState) linksPreview() Preview.Preview {
+func (ui *UIState) linksPreview(board bool) Preview.Preview {
 	p := Preview.None()
 	if !ui.Builder.On() || ui.NodeRowFor == nil {
 		return p
+	}
+	for _, e := range ui.Builder.EdgeStates() {
+		a, ok := ui.NodeRowFor(e.From)
+		b, ok2 := ui.NodeRowFor(e.To)
+		if !board || !ok || !ok2 {
+			continue
+		}
+		st := Preview.EdgeUnpicked
+		if e.Open {
+			st = Preview.EdgeOpen
+		} else if e.Picked {
+			st = Preview.EdgePicked
+		}
+		p.Edges = append(p.Edges, Preview.EdgeMark{Src: a, Dst: b, State: st})
 	}
 	p.EdgePick = !ui.Builder.AtSeqs
 	from, to, ghosts := ui.Builder.Preview()
@@ -69,16 +83,18 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 
 	ui.writeSceneColumns()
 	ui.writePointerTargetColumns()
-	ui.LinksPreview.Write(ui.linksPreview())
 
 	if ui.ViewW <= 0 || ui.ViewH <= 0 {
+		ui.LinksPreview.Write(ui.linksPreview(false))
 		ui.ViewBuildFrame(ui.viewTick, events)
 		return
 	}
 
 	pl := ui.PanelLayout()
+	ui.LinksPreview.Write(ui.linksPreview(boardOf(pl.Sheet) != nil))
 	ui.Slider.Write(pl.Speed, ui.Speed)
 	ui.Sheet.Write(pl.Sheet)
+	ui.Board.Write(boardOf(pl.Sheet), ui.Sheet.Edit)
 	ui.Angle.Write(pl.Angle)
 	ui.Nodes.Write(pl.Nodes, ui.EditRefused)
 	ui.OverlaysPill.Write(pl.Overlays)

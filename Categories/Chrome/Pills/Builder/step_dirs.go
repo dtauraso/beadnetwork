@@ -66,11 +66,13 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 			err = os.MkdirAll(stepDir(m.lvl(), n+1), 0o755)
 		}
 		m.ShownStep = n + 1
+		m.setStepOpen(n+1, true)
 	case OpStepCopy:
 		if err = m.shiftSteps(ns, n, 1); err == nil {
 			err = os.CopyFS(stepDir(m.lvl(), n+1), os.DirFS(stepDir(m.lvl(), n)))
 		}
 		m.ShownStep = n + 1
+		m.setStepOpen(n+1, true)
 	case OpStepDrop:
 		if len(ns) == 1 {
 			return fmt.Sprintf("step %d is the only step, so it stays", n), nil

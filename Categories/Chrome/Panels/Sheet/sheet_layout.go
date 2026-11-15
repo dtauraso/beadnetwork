@@ -155,6 +155,12 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			stack.EndGroup()
 		}
 		pb.Popover, pb.MaxScroll = popover, maxScroll
+		if p.Board != nil {
+			pb.Board = p.Board(popover, st.ScrollX[slideKey(p.Label, BoardTable)], st.Scroll[p.Label])
+			mx, my := pb.Board.Most()
+			pb.MaxScroll = my
+			pb.Slides = []SlideBox{{Table: BoardTable, Rect: popover, Max: mx}}
+		}
 		lay.Pills = append(lay.Pills, pb)
 		top := y
 		for gi, g := range p.Groups {
@@ -187,11 +193,9 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 				lay.Rows = append(lay.Rows, RowBox{Box: box, Rect: band, Row: g.Row})
 				if g.Band == BandSelected {
 					lay.Cards = append(lay.Cards, CardBox{Box: box, Rect: band, Cell: len(lay.Cells), Band: BandSelected})
-					lay.Nav = true
 				}
 				right = band.X + band.W - BandPad
 			}
-			lay.Nav = lay.Nav || g.Keys
 			lay.place(box, g, x+in, y, dx, right)
 		}
 		if p.Bottom {
