@@ -37,6 +37,7 @@ export function nodesPillKey(): string {
 export function drawNodesPill(c: CanvasRenderingContext2D): void {
   if (pillF32("plusW") > 0) {
     drawPlusButton(c);
+    if (pillU8("open") !== 0) drawPopover(c);
     if (noticeShowing()) drawNotice(c);
     return;
   }
@@ -50,16 +51,18 @@ export function drawNodesPill(c: CanvasRenderingContext2D): void {
 
   drawPill(c, px, py, pw, ph, decodeAt(labelText, 0, labelText.length), open);
 
-  if (open) {
-    drawPopoverBox(
-      c,
-      pillF32("popoverX"), pillF32("popoverY"),
-      pillF32("popoverW"), pillF32("popoverH"),
-    );
-    drawRows(c);
-  }
+  if (open) drawPopover(c);
 
   if (noticeShowing()) drawNotice(c);
+}
+
+function drawPopover(c: CanvasRenderingContext2D): void {
+  drawPopoverBox(
+    c,
+    pillF32("popoverX"), pillF32("popoverY"),
+    pillF32("popoverW"), pillF32("popoverH"),
+  );
+  drawRows(c);
 }
 
 function drawNotice(c: CanvasRenderingContext2D): void {

@@ -15,6 +15,7 @@ func (ui *UIState) PanelLayout() Chrome.Layout {
 		OverlaysDock:  ui.SceneOverlaysDock,
 		HiddenFlags:   ui.SceneUntoggledOverlays(),
 		LatticePoints: ui.LatticePoints,
+		Speed:         ui.Speed,
 		Overlays:      &ui.OV,
 		Panels:        &ui.PN,
 		Sheet:         &ui.Sheet,

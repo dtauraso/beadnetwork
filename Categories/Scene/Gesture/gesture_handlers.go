@@ -84,6 +84,9 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 	case g.Phase == Drag.GestDragging:
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
 		NodeGesture.ApplyDragTarget(d.UI, func(id string, target Node.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
+		if n := g.NodeDrag.Node; n != "" {
+			setSelectionUI(d.UI, d.MR, d.Ctx, n, "")
+		}
 	case g.Phase == Drag.GestHandhold, g.Phase == Drag.GestRotating:
 
 	case g.Phase == Drag.GestPending:
