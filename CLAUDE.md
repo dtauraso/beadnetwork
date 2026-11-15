@@ -112,8 +112,8 @@ There is **no `cmd/`** either, and **no `gen/`**: both grouped code by technique
   coordinator — it constructs and starts, and the network runs itself from there.
 - **`Categories/Ring/`** — the ring, the shape a node and a bead are both drawn as: canonical torus
   points computed in Go, meshed in TS. `Categories/Ring/NodeShape/` and `Categories/Ring/Bead/` are the two that
-  share it. "Categories/Ring" over "torus" because the codebase already votes that way — `ringM0`,
-  `ringPick` and `ringBand` against a handful of torus names in the low-level math.
+  share it. "Categories/Ring" over "torus" because the codebase already votes that way — `ringM0`
+  and `copyRingMatrix` against a handful of torus names in the low-level math.
 - **`Categories/Ring/Bead/`** — ONE bead: ring surface, style, its block file. SEVERAL beads — spacing, chaining, framing — is what a node does with beads, and belongs to the next bullet.
 - **`Categories/Node/BeadAnimation/`** — the whole bead process, which is what a node uses beads
   for: `BeadLine` (the line beads travel, state with no goroutine of its own), the `Sender`

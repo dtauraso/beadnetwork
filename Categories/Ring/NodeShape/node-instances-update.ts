@@ -76,8 +76,6 @@ function copyMatrix(
 export interface NodeInstanceRefs {
   body: THREE.InstancedMesh;
   ring: THREE.InstancedMesh;
-  ringPick: THREE.InstancedMesh;
-  ringBand: THREE.InstancedMesh;
   selRing: THREE.InstancedMesh;
   selHalo: THREE.InstancedMesh;
   hoverRing: THREE.InstancedMesh;
@@ -89,21 +87,19 @@ export interface NodeInstanceRefs {
 }
 
 export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, camera: THREE.Camera): void {
-  const { body, ring, ringPick, ringBand, selRing, selHalo, hoverRing, mat, pos, quat, scl, col } = refs;
+  const { body, ring, selRing, selHalo, hoverRing, mat, pos, quat, scl, col } = refs;
 
   logDrawnPositions();
 
   const n0 = nodeCount();
   if (n0 <= 0) {
-    body.count = 0; ring.count = 0; ringPick.count = 0; ringBand.count = 0;
+    body.count = 0; ring.count = 0;
     selRing.count = 0; selHalo.count = 0; hoverRing.count = 0;
     return;
   }
 
   const showBody = overlayFlag("nodeBody");
   const showRing = overlayFlag("nodeRing");
-
-  const showPickBand = overlayFlag("ringPick");
 
   const n = Math.min(n0, capacity);
 
@@ -120,8 +116,6 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
 
     copyMatrix(row, NODE_BODY_NAMES, body, slot);
     copyRingMatrix(row, ring, slot);
-    copyRingMatrix(row, ringPick, slot);
-    copyRingMatrix(row, ringBand, slot);
 
     const { fill, stroke } = nodeRowColors(row);
     body.setColorAt(slot, col.set(fill));
@@ -129,14 +123,8 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   }
   body.count = showBody ? n : 0;
   ring.count = showRing ? n : 0;
-
-  ringPick.count = n;
-
-  ringBand.count = showPickBand ? n : 0;
   body.instanceMatrix.needsUpdate = true;
   ring.instanceMatrix.needsUpdate = true;
-  ringPick.instanceMatrix.needsUpdate = true;
-  ringBand.instanceMatrix.needsUpdate = true;
   if (body.instanceColor) body.instanceColor.needsUpdate = true;
   if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
 
@@ -149,7 +137,7 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   placeHighlight(n, hoveredFlag, hoverRing, overlayFlag("hoverRing") && !hoverSuppressed, 1, mat, pos, quat, scl);
 
   if (showBody) body.computeBoundingSphere();
-  ringPick.computeBoundingSphere();
+  if (showRing) ring.computeBoundingSphere();
 }
 
 const selectedFlag = (row: number): boolean => readSelectedNodeRow() === row;

@@ -49,7 +49,7 @@ var All = []Scene{
 
 	{Name: "φ, θ", Dir: "topology-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: true, Kinds: []string{"PhiTheta"}, PlusButton: true,
 		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors", "ruleChannels"},
-		RemovedOverlays: []string{"ringPick", "selectionRing", "hoverRing", "nodePoles", "nodePoleSphere"},
+		RemovedOverlays: []string{"selectionRing", "hoverRing", "nodePoles", "nodePoleSphere"},
 		FixedOverlays: []string{"nodeBody", "nodeRing"}},
 }
 

@@ -30,7 +30,6 @@ var Tree = []Group{
 				Items: []Item{
 					{Flag: "nodeBody", Icon: "●", Label: "body"},
 					{Flag: "nodeRing", Icon: "○", Label: "ring"},
-					{Flag: "ringPick", Icon: "◌", Label: "ring band"},
 				},
 			},
 			{

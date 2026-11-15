@@ -16,8 +16,7 @@ import {
 } from "./shading-params";
 import {
   SCENE_NODE_TAG, SCENE_RING_TAG,
-  RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
-  RING_BAND_MAJOR, RING_BAND_TUBE, HOVER_COLOR, HOVER_RING_TUBE_RATIO,
+  HOVER_COLOR, HOVER_RING_TUBE_RATIO,
 } from "../../../Start/extension/webview/scene/scene-tags";
 import { updateNodeInstances } from "./node-instances-update";
 import { getCanonicalRingSurfaceGeometry } from "../../Ring/NodeShape/ring-surface-geometry";
@@ -31,8 +30,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   const envTex = useContext(EnvTexContext);
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
-  const ringPickRef = useRef<THREE.InstancedMesh>(null);
-  const ringBandRef = useRef<THREE.InstancedMesh>(null);
   const selRingRef = useRef<THREE.InstancedMesh>(null);
   const selHaloRef = useRef<THREE.InstancedMesh>(null);
   const hoverRingRef = useRef<THREE.InstancedMesh>(null);
@@ -46,12 +43,10 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   useFrame(({ camera }) => {
     const body = bodyRef.current;
     const ring = ringRef.current;
-    const ringPick = ringPickRef.current;
-    const ringBand = ringBandRef.current;
     const selRing = selRingRef.current;
     const selHalo = selHaloRef.current;
     const hoverRing = hoverRingRef.current;
-    if (!body || !ring || !ringPick || !ringBand || !selRing || !selHalo || !hoverRing) return;
+    if (!body || !ring || !selRing || !selHalo || !hoverRing) return;
 
     if (!ringGeomAppliedRef.current) {
       const geom = getCanonicalRingSurfaceGeometry();
@@ -63,7 +58,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
 
     updateNodeInstances(
       {
-        body, ring, ringPick, ringBand, selRing, selHalo, hoverRing,
+        body, ring, selRing, selHalo, hoverRing,
         mat: matRef.current,
         pos: posRef.current,
         quat: quatRef.current,
@@ -99,21 +94,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
         {}
         <bufferGeometry />
         <meshStandardMaterial roughness={SHADING_PARAM_RING_ROUGHNESS} metalness={0} depthWrite={false} transparent={false} opacity={1} />
-      </instancedMesh>
-      {}
-      <instancedMesh ref={ringPickRef} args={[undefined, undefined, capacity]} userData={{ [SCENE_RING_TAG]: true }} frustumCulled={false}>
-        <torusGeometry args={[1, RING_PICK_TUBE_RATIO, 8, 32]} />
-        <meshBasicMaterial transparent opacity={0} colorWrite={false} depthWrite={false} />
-      </instancedMesh>
-      {}
-      <instancedMesh ref={ringBandRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
-        <torusGeometry args={[RING_BAND_MAJOR, RING_BAND_TUBE, 8, 32]} />
-        <meshBasicMaterial
-          color={RING_PICK_COLOR}
-          transparent
-          opacity={RING_PICK_OPACITY}
-          depthWrite={false}
-        />
       </instancedMesh>
       {}
       <instancedMesh ref={selRingRef} args={[undefined, undefined, 1]} frustumCulled={false} raycast={() => null}>
