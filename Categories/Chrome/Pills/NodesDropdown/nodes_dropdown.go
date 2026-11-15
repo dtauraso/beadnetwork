@@ -143,8 +143,8 @@ type Hit struct {
 
 func (l Layout) Hit(x, y float64) Hit {
 	if l.Plus.Rect.W > 0 && Panel.HitRect(l.Plus.Rect, x, y) {
-		if caret := l.Plus.Caret(); caret.W > 0 && Panel.HitRect(caret, x, y) {
-			return Hit{Kind: HitPill, Rect: caret}
+		if l.Plus.Menu {
+			return Hit{Kind: HitPill, Rect: l.Plus.Rect}
 		}
 		return Hit{Kind: HitPlus, KindID: l.Plus.KindID, Rect: l.Plus.Rect}
 	}

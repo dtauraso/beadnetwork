@@ -48,13 +48,6 @@ func BuildPlus(viewW float32, strip Rect, open bool, kinds []Kind) Layout {
 	return lay
 }
 
-func (p Plus) Caret() Rect {
-	if !p.Menu {
-		return Rect{}
-	}
-	return Rect{X: p.Rect.X + p.Rect.W - Panel.CaretW, Y: p.Rect.Y, W: Panel.CaretW, H: p.Rect.H}
-}
-
 func menuWidth(kinds []Kind) float32 {
 	var t float32
 	for _, k := range kinds {
