@@ -1,6 +1,10 @@
 package View
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Preview"
+)
 
 type ViewOverlayFlags struct {
 	SceneTori, ScenePoles, NodePoles, Handholds, LabelsGlobal, OverlaysVis uint8
@@ -39,6 +43,24 @@ func (ui *UIState) EmitBreadcrumb(ev RowEvent) {
 	ui.EmitViewFrame([]RowEvent{ev})
 }
 
+func (ui *UIState) linksPreview() Preview.Preview {
+	p := Preview.None()
+	if !ui.Builder.On() || ui.NodeRowFor == nil {
+		return p
+	}
+	p.EdgePick = ui.Builder.Score && !ui.Builder.AtSeqs
+	from, to, ghosts := ui.Builder.Preview()
+	if a, ok := ui.NodeRowFor(from); ok {
+		if b, ok := ui.NodeRowFor(to); ok {
+			p.HotSrc, p.HotDst = a, b
+		}
+	}
+	for _, g := range ghosts {
+		p.Ghosts = append(p.Ghosts, ui.SceneSphere.Center.Add(g))
+	}
+	return p
+}
+
 func (ui *UIState) EmitViewFrame(events []RowEvent) {
 	if ui.ViewBuildFrame == nil {
 		return
@@ -47,6 +69,7 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 
 	ui.writeSceneColumns()
 	ui.writePointerTargetColumns()
+	ui.LinksPreview.Write(ui.linksPreview())
 
 	if ui.ViewW <= 0 || ui.ViewH <= 0 {
 		ui.ViewBuildFrame(ui.viewTick, events)

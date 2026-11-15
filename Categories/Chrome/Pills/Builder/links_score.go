@@ -21,7 +21,7 @@ func viewGroup(m Model) Group {
 	return Group{Rows: [][]Cell{{
 		Text("view").Dimmed(true),
 		Button(viewTree, Act{Op: OpLinksView, K: viewTree}, !m.Score).Tipped("one folding list"),
-		Button(viewScore, Act{Op: OpLinksView, K: viewScore}, m.Score).Tipped("links down, steps across · read-only for now"),
+		Button(viewScore, Act{Op: OpLinksView, K: viewScore}, m.Score).Tipped("links down, steps across"),
 	}}}
 }
 
@@ -96,7 +96,7 @@ func scoreGroup(m Model) Group {
 	head := []Cell{Text("link").Inked(inkHead), Text("START").Inked(inkHead)}
 	locks := []Cell{Text(""), Text("")}
 	for _, n := range ns {
-		head = append(head, Text(m.StepLabel(n)).Inked(inkStrong))
+		head = append(head, LitText(m.StepLabel(n), Act{Op: OpStepShow, I: n}, n == m.StepShown()).Tipped("show this step in the scene · hover to ghost its places"))
 		locks = append(locks, Text(locksText(m, n)).Dimmed(true).Tipped("HEAD locks for this step"))
 	}
 	rows := [][]Cell{head, locks}
@@ -107,7 +107,11 @@ func scoreGroup(m Model) Group {
 		}
 		rows = append(rows, []Cell{Text("into " + id).Inked(inkHead)})
 		for _, l := range links {
-			row := []Cell{Text(l.From + " → " + l.To), Text(startText(m.Grids[id].Base[l.From].Origin)).Dimmed(true)}
+			pick := m.ScoreCell.Step
+			if pick == 0 {
+				pick = m.StepShown()
+			}
+			row := []Cell{LitText(l.From+" → "+l.To, cellAct(pick, l), false).Tipped("select this link · hover to mark its edge"), Text(startText(m.Grids[id].Base[l.From].Origin)).Dimmed(true)}
 			for _, n := range ns {
 				row = append(row, scoreCell(m, n, l))
 			}

@@ -11,9 +11,12 @@ import { resolveNodeDrawSlot } from "../../../../Categories/Ring/NodeShape/node-
 
 function pickEdge(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {
-    const row: unknown = (hit.object as THREE.Mesh).userData?.[SCENE_EDGE_TAG];
-    if (typeof row !== "number") continue;
-    return String(row);
+    const data = (hit.object as THREE.Mesh).userData;
+    if (data?.[SCENE_NODE_TAG] === true || data?.[SCENE_RING_TAG] === true) return null;
+    const rows: unknown = data?.[SCENE_EDGE_TAG];
+    if (!Array.isArray(rows) || hit.instanceId === undefined) continue;
+    const row: unknown = rows[hit.instanceId];
+    return typeof row === "number" ? String(row) : null;
   }
   return null;
 }

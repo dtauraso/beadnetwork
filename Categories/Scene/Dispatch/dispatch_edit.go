@@ -86,8 +86,19 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		return
 	}
 	if ev.Kind == "pointermove" {
-		if t := Chrome.TargetAt(md.UI.PanelLayout(), ev.X, ev.Y); t != md.UI.Pointer {
+		t := Chrome.TargetAt(md.UI.PanelLayout(), ev.X, ev.Y)
+		hot := Sheet.Act{}
+		if h := md.UI.PanelLayout().Sheet.Hit(ev.X, ev.Y); md.UI.Builder.Score && h.Part == Sheet.PartBody {
+			hot = h.Cell.Act
+		}
+		if hovered := md.UI.Builder.Hover(hot); t != md.UI.Pointer || hovered {
 			md.UI.Pointer = t
+			md.UI.EmitViewFrame(nil)
+		}
+	}
+	if ev.Kind == "pointerdown" && ev.Hit.Kind == "edge" && ev.Hit.EdgeRow >= 0 && int(ev.Hit.EdgeRow) < len(md.RT.EdgeEndpointRowTable) {
+		e := md.RT.EdgeEndpointRowTable[ev.Hit.EdgeRow]
+		if md.UI.Builder.SelectEdge(e.SrcNode, e.DstNode) {
 			md.UI.EmitViewFrame(nil)
 		}
 	}

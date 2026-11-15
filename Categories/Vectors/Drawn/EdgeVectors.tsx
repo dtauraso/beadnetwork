@@ -6,14 +6,18 @@ import { nodeF32 } from "../../Node/node-leaves";
 import { checkEdgeLandsOnNode } from "../../Node/Edge/check-edge-lands-on-node";
 import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../../Ring/Bead/bead-style";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
+import { previewI32, previewU8 } from "../../Scene/Preview/preview-leaves";
 
-import { DIRECTION_ZERO_EPS } from "../../../Start/extension/webview/scene/scene-tags";
+import { DIRECTION_ZERO_EPS, SCENE_EDGE_TAG } from "../../../Start/extension/webview/scene/scene-tags";
 
 const EDGE_LINE_RADIUS = 1.5;
 const ARROW_HEAD_RADIUS = 3;
 const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2;
 
 const AXIS_DEFAULT = new THREE.Vector3(0, 1, 0);
+const HOT_WIDTH = 2.5;
+const HOT_COLOR = "#ffd54a";
+const noRaycast = () => {};
 
 
 export function EdgeVectors({ capacity }: { capacity: number }) {
@@ -25,6 +29,7 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
   const quat = useRef(new THREE.Quaternion());
   const scl = useRef(new THREE.Vector3());
   const col = useRef(new THREE.Color());
+  const rows = useRef<number[]>([]);
 
   useFrame(() => {
     const line = lineRef.current;
@@ -39,6 +44,10 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
     if (!edges) { line.count = 0; head.count = 0; return; }
 
     const n = Math.min(edges.edgeCount, capacity);
+    const hotSrc = previewI32("hotSrc", -1);
+    const hotDst = previewI32("hotDst", -1);
+    line.raycast = previewU8("edgePick") === 1 ? (rc, out) => { THREE.InstancedMesh.prototype.raycast.call(line, rc, out); } : noRaycast;
+    rows.current.length = 0;
     let drawn = 0;
     for (let row = 0; row < n; row++) {
       if (!edges.shown(row)) continue;
@@ -65,16 +74,19 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
       const shaft = Math.max(headBase - tail, 0);
 
       pos.current.set(sx, sy, sz).addScaledVector(dir.current, tail + shaft / 2);
-      scl.current.set(1, shaft, 1);
+      const hot = hotSrc >= 0 && ((src === hotSrc && dst === hotDst) || (src === hotDst && dst === hotSrc));
+      const w = hot ? HOT_WIDTH : 1;
+      scl.current.set(w, shaft, w);
       mat.current.compose(pos.current, quat.current, scl.current);
       line.setMatrixAt(drawn, mat.current);
 
       pos.current.set(sx, sy, sz).addScaledVector(dir.current, headBase + ARROW_HEAD_LENGTH / 2);
-      scl.current.set(1, 1, 1);
+      scl.current.set(w, w, w);
       mat.current.compose(pos.current, quat.current, scl.current);
       head.setMatrixAt(drawn, mat.current);
 
-      col.current.set(EDGE_LINE_COLOR);
+      col.current.set(hot ? HOT_COLOR : EDGE_LINE_COLOR);
+      rows.current[drawn] = row;
       line.setColorAt(drawn, col.current);
       head.setColorAt(drawn, col.current);
 
@@ -95,7 +107,7 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
   return (
     <>
       {}
-      <instancedMesh ref={lineRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
+      <instancedMesh ref={lineRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={noRaycast} userData={{ [SCENE_EDGE_TAG]: rows.current }}>
         <cylinderGeometry args={[EDGE_LINE_RADIUS, EDGE_LINE_RADIUS, 1, 8]} />
         {}
         {}

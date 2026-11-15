@@ -1,6 +1,10 @@
 package Builder
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+)
 
 const (
 	OpFramePop   = "frame-pop"
@@ -56,4 +60,79 @@ func scoreView(t *tree, m Model) {
 		t.put(Group{Rows: [][]Cell{{Text(scoreKeysHint).Dimmed(true)}}, Wraps: true})
 	}
 	t.put(inspectorGroup(m))
+}
+
+func (m *Model) Hover(a Act) bool {
+	if m.Hot == a {
+		return false
+	}
+	m.Hot = a
+	return true
+}
+
+func (m Model) Preview() (from, to string, ghosts []Links.Vec3) {
+	if t := m.Turning; t.Act.Op != "" {
+		return t.Act.Node, t.Act.To, m.turnGhosts(t)
+	}
+	if !m.Score || m.AtSeqs {
+		return "", "", nil
+	}
+	if h := m.Hot; h.Op == OpStepShow && h.I != m.StepShown() {
+		for _, id := range m.Nodes {
+			if c, ok := m.StepCol(h.I, id); ok {
+				ghosts = append(ghosts, c.Pos)
+			}
+		}
+		return "", "", ghosts
+	}
+	return m.Hot.Node, m.Hot.To, nil
+}
+
+func (m Model) turnGhosts(t Turning) []Links.Vec3 {
+	l, ok := m.gridLink(StepEdge{t.Act.I, t.Act.Node, t.Act.To})
+	src, ok2 := m.StepCol(t.Act.I, t.Act.Node)
+	if !ok || !ok2 || t.presses() == 0 {
+		return nil
+	}
+	g := l
+	*g.Delta.At(t.Act.K) = t.From + t.presses()*t.Inc
+	ref := Links.RefTurn(src.Ref)
+	d := m.Frame.LinkVec(g, ref).Sub(m.Frame.LinkVec(l, ref))
+	var out []Links.Vec3
+	for _, id := range m.downstream(t.Act.I, l.To) {
+		if c, ok := m.StepCol(t.Act.I, id); ok {
+			out = append(out, c.Pos.Add(d))
+		}
+	}
+	return out
+}
+
+func (m Model) downstream(step int, root string) []string {
+	out, seen := []string{root}, map[string]bool{root: true}
+	for i := 0; i < len(out); i++ {
+		for _, id := range m.Nodes {
+			if l, ok := m.gridLink(StepEdge{step, out[i], id}); ok && l.Picked && !seen[id] {
+				seen[id] = true
+				out = append(out, id)
+			}
+		}
+	}
+	return out
+}
+
+func (m *Model) SelectEdge(a, b string) bool {
+	if !m.Score || m.AtSeqs {
+		return false
+	}
+	step := m.ScoreCell.Step
+	if step == 0 {
+		step = m.StepShown()
+	}
+	for _, e := range []StepEdge{{step, a, b}, {step, b, a}} {
+		if _, ok := m.gridLink(e); ok {
+			m.ScoreCell = e
+			return true
+		}
+	}
+	return false
 }
