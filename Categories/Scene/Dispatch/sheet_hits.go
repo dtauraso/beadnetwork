@@ -2,8 +2,6 @@ package Dispatch
 
 import (
 	"context"
-	"slices"
-	"strings"
 	"time"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
@@ -15,7 +13,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
-	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
 func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, h Sheet.Hit) {
@@ -190,14 +187,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 				View.LogPersistErr("sheet_frame_fold", root, err)
 			}
 		}
-	case Pills.OpOverlay:
-		Flags.ToggleFlag(&md.UI.OV, &md.UI, a.K)
-		md.UI.PersistOverlays(md.UI.OV)
-	case Pills.OpOverlayBoth:
-		flags := strings.Split(a.K, ",")
-		allOn := !slices.ContainsFunc(flags, func(f string) bool { read, ok := Flags.OverlayFlagRead[f]; return !ok || !read(&md.UI.OV) })
-		Flags.SetCount(&md.UI.OV, &md.UI, flags, !allOn)
-		md.UI.PersistOverlays(md.UI.OV)
+	case Pills.OpOverlay, Pills.OpOverlayBoth:
+		applyOverlayAct(md, a)
 	}
 }
 
