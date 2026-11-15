@@ -45,7 +45,9 @@ var All = []Scene{
 			"Input", "Time", "TimeStart", "TimeEnd",
 			"Pulse", "PulseLeft", "PulseRight",
 			"SelectLeft", "SelectRight",
-		}},
+		},
+		RemovedOverlays: []string{"selectionRing", "hoverRing", "nodePoles", "nodePoleSphere"},
+		FixedOverlays:   []string{"nodeBody", "nodeRing"}},
 
 	{Name: "φ, θ", Dir: "topology-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: true, Kinds: []string{"PhiTheta"}, PlusButton: true,
 		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors", "ruleChannels"},
