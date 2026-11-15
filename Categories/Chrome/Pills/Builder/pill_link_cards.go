@@ -116,63 +116,6 @@ func netCard(l Links.Link, depth int) Group {
 	return Group{Rows: rows, Card: true, Depth: depth}
 }
 
-const GridLabel = "Node grid"
-
-func nodeGrid(m Model, id string) Group {
-	g := m.Grids[id]
-	head := []Cell{Text("")}
-	for _, n := range g.Steps() {
-		cell := Text(m.StepLabel(n)).Inked(inkHead)
-		if n == g.Shown {
-			cell = cell.Inked(inkStrong)
-		}
-		head = append(head, cell)
-	}
-	rows := [][]Cell{head}
-	band, present := "", []float64(nil)
-	for _, r := range g.Rows() {
-		if r.Band != band {
-			band = r.Band
-			rows = append(rows, []Cell{Text(bandTitle(id, band)).Inked(inkStrong)})
-		}
-		if r.Name == "present" {
-			present = r.V
-			continue
-		}
-		row := []Cell{Text(r.Name).Dimmed(true)}
-		for i, v := range r.V {
-			s := n3(v)
-			if band != Links.BandNode && i < len(present) && present[i] == 0 {
-				s = "—"
-			}
-			row = append(row, Text(s).Outline(false))
-		}
-		rows = append(rows, row)
-	}
-	if len(g.Cols) == 0 {
-		rows = append(rows, []Cell{Text("node " + id + " has not reported its grid yet").Dimmed(true)})
-	}
-	return Group{Title: "node " + id, Rows: rows, Slides: true, Table: "grid node " + id}
-}
-
-func bandTitle(id, band string) string {
-	switch {
-	case strings.HasPrefix(band, Links.BandIn):
-		return "in · " + strings.TrimPrefix(band, Links.BandIn) + "→" + id
-	case strings.HasPrefix(band, Links.BandOut):
-		return "out · " + id + "→" + strings.TrimPrefix(band, Links.BandOut)
-	}
-	return "node " + id
-}
-
-func GridPill(m Model) Pill {
-	var groups []Group
-	for _, id := range m.Nodes {
-		groups = append(groups, nodeGrid(m, id))
-	}
-	return Pill{Label: GridLabel, Bottom: true, Groups: groups}
-}
-
 func linkCard(m Model, step int, l Links.Link, depth int) Group {
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	head := func(s string) Cell { return Text(s).AboveLastDigit().Inked(inkHead) }
