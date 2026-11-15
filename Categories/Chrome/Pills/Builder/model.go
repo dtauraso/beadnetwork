@@ -65,7 +65,6 @@ type Model struct {
 	DragStep    int
 	Level       string
 	Trail       []TreeRow
-	Tree        []TreeRow
 
 	TickMs  int
 	Now     int64
@@ -130,7 +129,7 @@ func Pills(m Model) []Pill {
 	if !m.On() {
 		return nil
 	}
-	return []Pill{FramePill(m), NodesPill(m), LinksPill(m), TreePill(m)}
+	return []Pill{FramePill(m), NodesPill(m), LinksPill(m)}
 }
 
 func Num(v float64) string {

@@ -17,7 +17,6 @@ const (
 type TreeRow struct {
 	Level string
 	Step  int
-	Depth int
 	Label string
 }
 
@@ -75,16 +74,6 @@ func (m *Model) readLevels() {
 	for _, a := range m.ancestors() {
 		m.Trail = append(m.Trail, TreeRow{Level: a.Level, Step: a.Step, Label: stepLabelAt(filepath.Join(m.Root, a.Level), a.Step)})
 	}
-	m.Tree = nil
-	m.readTree("", 0)
-}
-
-func (m *Model) readTree(level string, depth int) {
-	dir := filepath.Join(m.Root, level)
-	for _, n := range ReadStepNumbers(dir) {
-		m.Tree = append(m.Tree, TreeRow{Level: level, Step: n, Depth: depth, Label: stepLabelAt(dir, n)})
-		m.readTree(filepath.Join(level, DirSteps, strconv.Itoa(n)), depth+1)
-	}
 }
 
 func (m Model) StepShown() int {
@@ -128,19 +117,4 @@ func stepIn(trail []TreeRow, i int) int {
 		return trail[i].Step
 	}
 	return 0
-}
-
-func stepTree(m Model) Group {
-	rows := [][]Cell{{Text("steps").Dimmed(true)}}
-	if len(m.Tree) == 0 {
-		rows = append(rows, []Cell{Text("this sequence has no step folders yet")})
-	}
-	for _, t := range m.Tree {
-		here := t.Level == m.Level && t.Step == m.StepShown()
-		rows = append(rows, []Cell{
-			Text(strings.Repeat("    ", t.Depth)),
-			LitText(t.Label, Act{Op: OpLevelGo, Node: t.Level, I: t.Step}, here).Tipped("open this step in the Links tab"),
-		})
-	}
-	return Group{Rows: rows, Slides: true, Table: "step tree"}
 }
