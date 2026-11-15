@@ -51,5 +51,9 @@ func scoreView(t *tree, m Model) {
 	if m.FramePop {
 		t.put(framePop(m))
 	}
-	t.put(scoreGroup(m), inspectorGroup(m))
+	t.put(scoreGroup(m))
+	if m.ScoreFocused() {
+		t.put(Group{Rows: [][]Cell{{Text(scoreKeysHint).Dimmed(true)}}, Wraps: true})
+	}
+	t.put(inspectorGroup(m))
 }

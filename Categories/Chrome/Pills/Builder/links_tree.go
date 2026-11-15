@@ -111,7 +111,7 @@ func (m *Model) Press(id Act, now int64) Act {
 
 func NavKey(key string) bool {
 	switch key {
-	case "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "F2", "Backspace", "Escape":
+	case "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "F2", "Backspace", "Escape", " ", "+", "=", "-", "1", "2", "3":
 		return true
 	}
 	return false
@@ -124,6 +124,9 @@ func (m Model) Rename(a Act, e *Sheet.Edit) {
 }
 
 func (m *Model) Nav(key string) Act {
+	if m.ScoreFocused() {
+		return m.scoreKey(key)
+	}
 	rows := m.linkRows()
 	i := -1
 	for j, r := range rows {

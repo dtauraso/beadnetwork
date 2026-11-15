@@ -85,7 +85,7 @@ func pressRow(ctx context.Context, md *MoveDispatch, id Sheet.Act) {
 }
 
 func navKey(md *MoveDispatch, key string) bool {
-	return Builder.NavKey(key) && md.UI.Builder.Sel.Op != "" && md.UI.PanelLayout().Sheet.Nav
+	return Builder.NavKey(key) && (md.UI.Builder.Sel.Op != "" || md.UI.Builder.ScoreFocused()) && md.UI.PanelLayout().Sheet.Nav
 }
 
 func applySheetNav(ctx context.Context, md *MoveDispatch, key string) {
