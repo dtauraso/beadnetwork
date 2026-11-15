@@ -1,21 +1,15 @@
 import * as THREE from "three";
 import { ownerCounts } from "../../Scene/owner-counts";
 import {
-  nodeF32, nodeU8, NODE_RING_NAMES, NODE_BODY_NAMES,
+  nodeF32, NODE_RING_NAMES, NODE_BODY_NAMES,
 } from "../../Node/node-leaves";
 import { type NodeValueName } from "../../Node/node-values-gen";
-import { NODE_SPHERE_RADIUS } from "../../../Start/extension/webview/scene/scene-tags";
-import { readSelectedNodeRow } from "../../Scene/View/Flags/overlay-flags-selection";
 import { sceneValue } from "../../Scene/scene-leaves";
 import { postLog } from "../../../Start/extension/webview/log/post";
 
 function nodeCenterX(row: number): number { return nodeF32(row, "bodyM12"); }
 function nodeCenterY(row: number): number { return nodeF32(row, "bodyM13"); }
 function nodeCenterZ(row: number): number { return nodeF32(row, "bodyM14"); }
-
-function nodeRadius(row: number): number {
-  return nodeF32(row, "radius") || NODE_SPHERE_RADIUS;
-}
 
 function nodeCount(): number { return ownerCounts().nodes; }
 
@@ -52,10 +46,8 @@ function logDrawnPositions(): void {
   postLog("node-drawn", { at: lines.join("  ~  ") });
 }
 
-const hoveredFlag = (row: number): boolean => nodeU8(row, "hovered") !== 0;
 import { nodeRowColors } from "../../Node/node-kind";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
-import { SELECTION_HALO_R_RATIO } from "./node-highlight-shape";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 
 function copyRingMatrix(row: number, ring: THREE.InstancedMesh, slot: number): void {
@@ -76,34 +68,22 @@ function copyMatrix(
 export interface NodeInstanceRefs {
   body: THREE.InstancedMesh;
   ring: THREE.InstancedMesh;
-  ringPick: THREE.InstancedMesh;
-  ringBand: THREE.InstancedMesh;
-  selRing: THREE.InstancedMesh;
-  selHalo: THREE.InstancedMesh;
-  hoverRing: THREE.InstancedMesh;
-  mat: THREE.Matrix4;
-  pos: THREE.Vector3;
-  quat: THREE.Quaternion;
-  scl: THREE.Vector3;
   col: THREE.Color;
 }
 
 export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, camera: THREE.Camera): void {
-  const { body, ring, ringPick, ringBand, selRing, selHalo, hoverRing, mat, pos, quat, scl, col } = refs;
+  const { body, ring, col } = refs;
 
   logDrawnPositions();
 
   const n0 = nodeCount();
   if (n0 <= 0) {
-    body.count = 0; ring.count = 0; ringPick.count = 0; ringBand.count = 0;
-    selRing.count = 0; selHalo.count = 0; hoverRing.count = 0;
+    body.count = 0; ring.count = 0;
     return;
   }
 
   const showBody = overlayFlag("nodeBody");
   const showRing = overlayFlag("nodeRing");
-
-  const showPickBand = overlayFlag("ringPick");
 
   const n = Math.min(n0, capacity);
 
@@ -120,8 +100,6 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
 
     copyMatrix(row, NODE_BODY_NAMES, body, slot);
     copyRingMatrix(row, ring, slot);
-    copyRingMatrix(row, ringPick, slot);
-    copyRingMatrix(row, ringBand, slot);
 
     const { fill, stroke } = nodeRowColors(row);
     body.setColorAt(slot, col.set(fill));
@@ -129,54 +107,11 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   }
   body.count = showBody ? n : 0;
   ring.count = showRing ? n : 0;
-
-  ringPick.count = n;
-
-  ringBand.count = showPickBand ? n : 0;
   body.instanceMatrix.needsUpdate = true;
   ring.instanceMatrix.needsUpdate = true;
-  ringPick.instanceMatrix.needsUpdate = true;
-  ringBand.instanceMatrix.needsUpdate = true;
   if (body.instanceColor) body.instanceColor.needsUpdate = true;
   if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
 
-  placeHighlight(n, selectedFlag, selRing, overlayFlag("selectionRing"), 1, mat, pos, quat, scl);
-  placeHighlight(n, selectedFlag, selHalo, overlayFlag("selectionRing"), SELECTION_HALO_R_RATIO, mat, pos, quat, scl);
-
-  const hoveredRow = firstRowWhere(n, hoveredFlag);
-  const hoverSuppressed =
-    hoveredRow >= 0 && readSelectedNodeRow() === hoveredRow && overlayFlag("selectionRing");
-  placeHighlight(n, hoveredFlag, hoverRing, overlayFlag("hoverRing") && !hoverSuppressed, 1, mat, pos, quat, scl);
-
   if (showBody) body.computeBoundingSphere();
-  ringPick.computeBoundingSphere();
-}
-
-const selectedFlag = (row: number): boolean => readSelectedNodeRow() === row;
-
-function firstRowWhere(n: number, read: (row: number) => boolean): number {
-  for (let i = 0; i < n; i++) {
-    if (read(i)) return i;
-  }
-  return -1;
-}
-
-function placeHighlight(
-  n: number,
-  read: (row: number) => boolean,
-  mesh: THREE.InstancedMesh, visible: boolean, rRatio: number,
-  mat: THREE.Matrix4, pos: THREE.Vector3, quat: THREE.Quaternion, scl: THREE.Vector3,
-): void {
-  const row = visible ? firstRowWhere(n, read) : -1;
-  if (row < 0) {
-    mesh.count = 0;
-    return;
-  }
-  const r = nodeRadius(row) * rRatio;
-  pos.set(nodeCenterX(row), nodeCenterY(row), nodeCenterZ(row));
-  scl.setScalar(r);
-  mat.compose(pos, quat, scl);
-  mesh.setMatrixAt(0, mat);
-  mesh.count = 1;
-  mesh.instanceMatrix.needsUpdate = true;
+  if (showRing) ring.computeBoundingSphere();
 }

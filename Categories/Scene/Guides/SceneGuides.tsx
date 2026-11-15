@@ -10,12 +10,11 @@ import { navSignature } from "../../Node/nav-nodes";
 import { Tori } from "../Tori/Tori";
 import { Handholds } from "../Handholds/Handholds";
 import { ScenePoles } from "../Poles/ScenePoles";
-import { SceneVectors } from "../../Vectors/Drawn/SceneVectors";
 import { NodePoles } from "../../Node/Poles/NodePoles";
 import { NodePoleSphere } from "../../Node/Poles/NodePoleSphere";
 
 const GUIDE_FLAGS = [
-  "tori", "handholds", "sceneVectors", "scenePoles", "nodePoles", "nodePoleSphere",
+  "tori", "handholds", "scenePoles", "nodePoles", "nodePoleSphere",
 ] as const;
 
 export function SceneGuides() {
@@ -64,7 +63,6 @@ export function SceneGuides() {
     <>
       <Tori center={cs.center} radius={radiusKey} tube={tubeKey / 10} />
       <Handholds center={cs.center} radius={radiusKey} />
-      <SceneVectors center={cs.center} nodes={navNodes} tube={tube * 0.35} />
       <ScenePoles center={cs.center} scale={radiusKey} />
       <NodePoles nodes={navNodes} />
       <NodePoleSphere nodes={navNodes} />

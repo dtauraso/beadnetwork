@@ -23,7 +23,7 @@ func buildNodeValueNames() []string {
 		names = append(names, fmt.Sprintf("bodyM%d", m))
 	}
 	return append(names,
-		"selected", "kindId", "label", "hovered", "latchedSel",
+		"selected", "kindId", "label", "latchedSel",
 		"dragRLocked", "dragPhiLocked", "dragThetaMax", "dragActive", "kindRuleActive",
 		"selfRLocked", "selfPhiLocked", "selfThetaMax", "selfActive",
 		"ruleGroupId", "ruleGroupSize",
@@ -76,7 +76,6 @@ func WriteNodeValues(w *ValueWriter, f NodeState) {
 	w.U8("selected", f.Selected)
 	w.U8("kindId", f.KindID)
 	w.Text("label", f.Label)
-	w.U8("hovered", f.Hovered)
 	w.U8("latchedSel", f.LatchedSel)
 
 	w.U8("dragRLocked", f.DragRLocked)

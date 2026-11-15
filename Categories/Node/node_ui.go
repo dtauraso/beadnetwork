@@ -26,8 +26,8 @@ func (u *UI) SetHover(on bool, port string, isInput bool) {
 	}
 }
 
-func (u *UI) Flags() (selected, hovered, latchedSel uint8) {
-	return u.selected, u.hovered, u.latchedSel
+func (u *UI) Flags() (selected, latchedSel uint8) {
+	return u.selected, u.latchedSel
 }
 
 func (u *UI) SetLatched(on bool) {

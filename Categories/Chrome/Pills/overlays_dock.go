@@ -15,12 +15,11 @@ var dockRows = []struct {
 	Name  string
 	Flags []string
 }{
-	{"node", []string{"nodeBody", "nodeRing", "ringPick"}},
-	{"state", []string{"selectionRing", "hoverRing"}},
+	{"node", []string{"nodeBody", "nodeRing"}},
 	{"node poles", []string{"nodePoles", "nodePoleSphere"}},
 	{"scene poles", []string{"scenePoles", "allPoleSpheres"}},
 	{"guides", []string{"tori", "handholds"}},
-	{"vectors", []string{"sceneVectors", "edgeVectors", "ruleChannels"}},
+	{"vectors", []string{"edgeVectors", "ruleChannels"}},
 	{"labels", []string{"labelsGlobal"}},
 }
 

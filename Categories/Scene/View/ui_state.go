@@ -46,6 +46,10 @@ type UIState struct {
 
 	SceneHiddenOverlays []string
 
+	SceneRemovedOverlays []string
+
+	SceneFixedOverlays []string
+
 	SceneKinds uint32
 
 	SceneSphere polar.SceneSphere

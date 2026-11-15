@@ -4,8 +4,7 @@ import "fmt"
 
 type ViewOverlayFlags struct {
 	SceneTori, ScenePoles, NodePoles, Handholds, LabelsGlobal, OverlaysVis uint8
-	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing                 uint8
-	SceneVectors                                                           uint8
+	NodeBody, NodeRing                                                     uint8
 	RuleChannels                                                           uint8
 	NodePoleSphere                                                         uint8
 	AllPoleSpheres                                                         uint8

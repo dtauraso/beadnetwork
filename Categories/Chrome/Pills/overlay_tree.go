@@ -30,15 +30,6 @@ var Tree = []Group{
 				Items: []Item{
 					{Flag: "nodeBody", Icon: "●", Label: "body"},
 					{Flag: "nodeRing", Icon: "○", Label: "ring"},
-					{Flag: "ringPick", Icon: "◌", Label: "ring band"},
-				},
-			},
-			{
-				Heading: "STATE",
-				Panel:   "nodeState",
-				Items: []Item{
-					{Flag: "selectionRing", Icon: "◉", Label: "selection"},
-					{Flag: "hoverRing", Icon: "◍", Label: "hover"},
 				},
 			},
 			{
@@ -75,7 +66,6 @@ var Tree = []Group{
 				Heading: "VECTORS",
 				Panel:   "sceneVectors",
 				Items: []Item{
-					{Flag: "sceneVectors", Icon: "↗", Label: "scene vectors"},
 					{Flag: "edgeVectors", Icon: "➜", Label: "edge vectors"},
 					{Flag: "ruleChannels", Icon: "⇄", Label: "rule channels"},
 				},

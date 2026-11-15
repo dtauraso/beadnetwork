@@ -18,7 +18,10 @@ func armViewpoint(topologyPath string) *Camera.ViewpointPersister {
 
 func armEdit(ui *View.UIState, topologyPath string) {
 	overlays := &Persister[Flags.OverlayState]{
-		Path: topologyPath, Write: Flags.WriteSceneOverlays, Tag: "scene_overlays_persist",
+		Path: topologyPath, Tag: "scene_overlays_persist",
+		Write: func(path string, ov Flags.OverlayState) error {
+			return Flags.WriteSceneOverlays(path, ui.SceneOverlays(ov))
+		},
 	}
 	panels := &Persister[Panel.PanelState]{
 		Path: topologyPath, Write: Panel.WriteScenePanels, Tag: "scene_panels_persist",

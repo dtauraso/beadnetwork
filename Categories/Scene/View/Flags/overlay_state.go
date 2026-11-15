@@ -16,10 +16,6 @@ type OverlayState struct {
 	OverlaysVisible       bool
 	NodeBodyVisible       bool
 	NodeRingVisible       bool
-	RingPickVisible       bool
-	SelectionRingVisible  bool
-	HoverRingVisible      bool
-	SceneVectorsVisible   bool
 	EdgeVectorsVisible    bool
 	RuleChannelsVisible   bool
 	NodePoleSphereVisible bool
@@ -71,26 +67,6 @@ func (o *OverlayState) ToggleNodeBody() {
 // ToggleNodeRing flips NodeRingVisible.
 func (o *OverlayState) ToggleNodeRing() {
 	o.setFlag(&o.NodeRingVisible)
-}
-
-// ToggleRingPick flips RingPickVisible.
-func (o *OverlayState) ToggleRingPick() {
-	o.setFlag(&o.RingPickVisible)
-}
-
-// ToggleSelectionRing flips SelectionRingVisible.
-func (o *OverlayState) ToggleSelectionRing() {
-	o.setFlag(&o.SelectionRingVisible)
-}
-
-// ToggleHoverRing flips HoverRingVisible.
-func (o *OverlayState) ToggleHoverRing() {
-	o.setFlag(&o.HoverRingVisible)
-}
-
-// ToggleSceneVectors flips SceneVectorsVisible.
-func (o *OverlayState) ToggleSceneVectors() {
-	o.setFlag(&o.SceneVectorsVisible)
 }
 
 // ToggleEdgeVectors flips EdgeVectorsVisible.

@@ -32,6 +32,10 @@ type Scene struct {
 	OverlaysDock bool
 
 	HiddenOverlays []string
+
+	RemovedOverlays []string
+
+	FixedOverlays []string
 }
 
 var All = []Scene{
@@ -41,10 +45,14 @@ var All = []Scene{
 			"Input", "Time", "TimeStart", "TimeEnd",
 			"Pulse", "PulseLeft", "PulseRight",
 			"SelectLeft", "SelectRight",
-		}},
+		},
+		RemovedOverlays: []string{"nodePoles", "nodePoleSphere", "scenePoles", "allPoleSpheres"},
+		FixedOverlays:   []string{"nodeBody", "nodeRing"}},
 
 	{Name: "φ, θ", Dir: "topology-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: true, Kinds: []string{"PhiTheta"}, PlusButton: true,
-		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors", "ruleChannels"}},
+		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors", "ruleChannels"},
+		RemovedOverlays: []string{"nodePoles", "nodePoleSphere", "scenePoles", "allPoleSpheres"},
+		FixedOverlays: []string{"nodeBody", "nodeRing"}},
 }
 
 var Unlisted = Scene{ClockDivisor: 1, PolarRules: true, SpeedSlider: true, AnglesPill: true}
