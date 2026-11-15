@@ -18,8 +18,16 @@ func WriteSceneOverlays(sceneRoot string, ov OverlayState) error {
 }
 
 func Without(ov OverlayState, flags []string) OverlayState {
+	return setAll(ov, flags, false)
+}
+
+func With(ov OverlayState, flags []string) OverlayState {
+	return setAll(ov, flags, true)
+}
+
+func setAll(ov OverlayState, flags []string, v bool) OverlayState {
 	for _, flag := range flags {
-		OverlayFlagWrite[flag](&ov, false)
+		OverlayFlagWrite[flag](&ov, v)
 	}
 	return ov
 }

@@ -14,7 +14,7 @@ func (ui *UIState) PanelLayout() Chrome.Layout {
 		AnglesPill:    ui.SceneAnglesPill,
 		PlusButton:    ui.ScenePlusButton,
 		OverlaysDock:  ui.SceneOverlaysDock,
-		HiddenFlags:   append(append([]string{}, ui.SceneHiddenOverlays...), ui.SceneRemovedOverlays...),
+		HiddenFlags:   ui.SceneUntoggledOverlays(),
 		LatticePoints: ui.LatticePoints,
 		Overlays:      &ui.OV,
 		Panels:        &ui.PN,

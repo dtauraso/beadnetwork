@@ -87,6 +87,7 @@ func LoadSceneState(scenePath string, md *Dispatch.MoveDispatch, speedSinks Slid
 	md.UI.SceneOverlaysDock = s.OverlaysDock
 	md.UI.SceneHiddenOverlays = s.HiddenOverlays
 	md.UI.SceneRemovedOverlays = s.RemovedOverlays
+	md.UI.SceneFixedOverlays = s.FixedOverlays
 	md.UI.SceneKinds = SceneKindMask(s)
 
 	InstallOverlays(&md.UI, scenePath)

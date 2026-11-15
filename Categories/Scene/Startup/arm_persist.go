@@ -20,7 +20,7 @@ func armEdit(ui *View.UIState, topologyPath string) {
 	overlays := &Persister[Flags.OverlayState]{
 		Path: topologyPath, Tag: "scene_overlays_persist",
 		Write: func(path string, ov Flags.OverlayState) error {
-			return Flags.WriteSceneOverlays(path, Flags.Without(ov, ui.SceneRemovedOverlays))
+			return Flags.WriteSceneOverlays(path, ui.SceneOverlays(ov))
 		},
 	}
 	panels := &Persister[Panel.PanelState]{
