@@ -4,6 +4,24 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 )
 
+func rowStep(row []Cell) float32 {
+	if len(row) == 0 {
+		return (rowH() + RowGapY) / 2
+	}
+	return rowH() + RowGapY
+}
+
+func groupH(g Group) float32 {
+	var h float32
+	for _, row := range g.Rows {
+		h += rowStep(row)
+	}
+	if g.Title != "" {
+		h += titleH() + TitleGap
+	}
+	return h
+}
+
 func stepsIn(g Group, i int) bool {
 	for _, row := range g.Rows {
 		if i < len(row) && row[i].Kind == CellField && row[i].Steps {
@@ -72,6 +90,6 @@ func (lay *Layout) place(box int, g Group, x, y, dx, right float32) {
 			cx += cols[i] + CellGapX
 		}
 		lay.pinTrail(from, g.Trail, right)
-		y += rowH() + RowGapY
+		y += rowStep(row)
 	}
 }

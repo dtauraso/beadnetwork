@@ -106,14 +106,6 @@ func shownW(g Group, room float32) float32 {
 	return in + max(slideW(g, room-in), Panel.TextWidth(g.Title, TitleFontPx))
 }
 
-func groupH(g Group) float32 {
-	h := float32(len(g.Rows)) * (rowH() + RowGapY)
-	if g.Title != "" {
-		h += titleH() + TitleGap
-	}
-	return h
-}
-
 func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 	var lay Layout
 	var docked []string
