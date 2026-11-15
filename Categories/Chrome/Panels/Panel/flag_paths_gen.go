@@ -21,4 +21,5 @@ var FlagNames = []string{
 	"scenePoles",
 	"sceneVectors",
 	"sceneLabels",
+	"nodeTicks",
 }

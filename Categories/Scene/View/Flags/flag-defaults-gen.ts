@@ -18,4 +18,6 @@ export const OVERLAY_FLAG_DEFAULTS: Record<string, boolean> = {
   "edgeVectors": true,
   "nodePoleSphere": true,
   "allPoleSpheres": false,
+  "phiTicks": true,
+  "thetaTicks": true,
 };

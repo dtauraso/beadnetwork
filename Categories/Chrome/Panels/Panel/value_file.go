@@ -150,6 +150,9 @@ func ReadBlob(path string, names []string) (*BlobReader, bool) {
 	values := make(map[string][]byte, len(names))
 	off := 0
 	for _, name := range names {
+		if off == len(raw) {
+			break
+		}
 		if off+4 > len(raw) {
 			return nil, false
 		}

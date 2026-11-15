@@ -12,6 +12,8 @@ const OVERLAY_FLAG_NAMES = [
   "edgeVectors",
   "nodePoleSphere",
   "allPoleSpheres",
+  "phiTicks",
+  "thetaTicks",
 ] as const;
 // OVERLAY_FLAGS_END
 

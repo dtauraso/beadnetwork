@@ -17,6 +17,8 @@ func DefaultOverlayState() OverlayState {
 		NodeRingVisible:       true,
 		EdgeVectorsVisible:    true,
 		NodePoleSphereVisible: true,
+		PhiTicksVisible:       true,
+		ThetaTicksVisible:     true,
 	}
 }
 
@@ -36,6 +38,8 @@ var OverlayToggles = map[string]func(*OverlayState){
 	"edgeVectors":    (*OverlayState).ToggleEdgeVectors,
 	"nodePoleSphere": (*OverlayState).ToggleNodePoleSphere,
 	"allPoleSpheres": (*OverlayState).ToggleAllPoleSpheres,
+	"phiTicks":       (*OverlayState).TogglePhiTicks,
+	"thetaTicks":     (*OverlayState).ToggleThetaTicks,
 }
 
 // OVERLAY_TOGGLES_END
@@ -73,6 +77,8 @@ var OverlayFlagRead = map[string]func(*OverlayState) bool{
 	"edgeVectors":    func(o *OverlayState) bool { return o.EdgeVectorsVisible },
 	"nodePoleSphere": func(o *OverlayState) bool { return o.NodePoleSphereVisible },
 	"allPoleSpheres": func(o *OverlayState) bool { return o.AllPoleSpheresVisible },
+	"phiTicks":       func(o *OverlayState) bool { return o.PhiTicksVisible },
+	"thetaTicks":     func(o *OverlayState) bool { return o.ThetaTicksVisible },
 }
 
 var OverlayFlagWrite = map[string]func(*OverlayState, bool){
@@ -87,4 +93,6 @@ var OverlayFlagWrite = map[string]func(*OverlayState, bool){
 	"edgeVectors":    func(o *OverlayState, v bool) { o.EdgeVectorsVisible = v },
 	"nodePoleSphere": func(o *OverlayState, v bool) { o.NodePoleSphereVisible = v },
 	"allPoleSpheres": func(o *OverlayState, v bool) { o.AllPoleSpheresVisible = v },
+	"phiTicks":       func(o *OverlayState, v bool) { o.PhiTicksVisible = v },
+	"thetaTicks":     func(o *OverlayState, v bool) { o.ThetaTicksVisible = v },
 }

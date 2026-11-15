@@ -22,4 +22,6 @@ var FlagNames = []string{
 	"edgeVectors",
 	"nodePoleSphere",
 	"allPoleSpheres",
+	"phiTicks",
+	"thetaTicks",
 }

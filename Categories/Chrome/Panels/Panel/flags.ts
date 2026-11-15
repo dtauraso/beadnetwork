@@ -10,6 +10,7 @@ const PANEL_FLAG_NAMES = [
   "scenePoles",
   "sceneVectors",
   "sceneLabels",
+  "nodeTicks",
 ] as const;
 // PANEL_FLAGS_END
 

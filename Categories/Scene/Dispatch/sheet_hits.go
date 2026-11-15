@@ -2,6 +2,8 @@ package Dispatch
 
 import (
 	"context"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
@@ -190,6 +192,11 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 	case Pills.OpOverlay:
 		Flags.ToggleFlag(&md.UI.OV, &md.UI, a.K)
+		md.UI.PersistOverlays(md.UI.OV)
+	case Pills.OpOverlayBoth:
+		flags := strings.Split(a.K, ",")
+		allOn := !slices.ContainsFunc(flags, func(f string) bool { read, ok := Flags.OverlayFlagRead[f]; return !ok || !read(&md.UI.OV) })
+		Flags.SetCount(&md.UI.OV, &md.UI, flags, !allOn)
 		md.UI.PersistOverlays(md.UI.OV)
 	}
 }
