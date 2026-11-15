@@ -1,24 +1,14 @@
 package Node
 
-import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
-)
-
 type Topology struct {
 	edgeIDs       []string
 	neighborKinds map[string]string
 	mutualTargets map[string]bool
 	nodeRowFor    func(id string) (int32, bool)
-
-	dragRule   *PolarRulesPanel.DragRule
-	dragActive bool
-
-	selfRule   *PolarRulesPanel.DragRule
-	selfActive bool
 }
 
 func NewTopology() Topology {
-	return Topology{dragActive: true, selfActive: true}
+	return Topology{}
 }
 
 func (t *Topology) EdgeIDs() []string { return t.edgeIDs }
@@ -42,30 +32,6 @@ func (t *Topology) AddNeighborKind(toID, kind string) {
 	}
 	t.neighborKinds[toID] = kind
 }
-
-func (t *Topology) SetDragRule(rule *PolarRulesPanel.DragRule) {
-	t.dragRule = rule
-}
-
-func (t *Topology) DragRule() *PolarRulesPanel.DragRule { return t.dragRule }
-
-func (t *Topology) SetDragActive(active bool) {
-	t.dragActive = active
-}
-
-func (t *Topology) DragRuleActive() bool { return t.dragActive }
-
-func (t *Topology) SetSelfRule(rule *PolarRulesPanel.DragRule) {
-	t.selfRule = rule
-}
-
-func (t *Topology) SelfRule() *PolarRulesPanel.DragRule { return t.selfRule }
-
-func (t *Topology) SetSelfRuleActive(active bool) {
-	t.selfActive = active
-}
-
-func (t *Topology) SelfRuleActive() bool { return t.selfActive }
 
 func (t *Topology) NeighborKind(toID string) string {
 	return t.neighborKinds[toID]

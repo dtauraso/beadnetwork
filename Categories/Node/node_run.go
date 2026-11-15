@@ -34,8 +34,6 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 		g.applyKindPosts()
 		g.applyKindSteps()
 
-		g.pollChannelVectors()
-		g.drainRuleMesh()
 
 		g.DeriveOutEdgeGeometry()
 

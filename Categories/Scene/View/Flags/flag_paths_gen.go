@@ -20,7 +20,6 @@ var FlagNames = []string{
 	"nodeBody",
 	"nodeRing",
 	"edgeVectors",
-	"ruleChannels",
 	"nodePoleSphere",
 	"allPoleSpheres",
 }

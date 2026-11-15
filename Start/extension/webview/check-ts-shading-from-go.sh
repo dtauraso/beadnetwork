@@ -66,7 +66,6 @@ done
 SHADING_SOURCES=(
   "Categories/Node/Edge/shading_params.go"
   "Categories/Node/Interior/shading_params.go"
-  "Categories/Node/ChannelVectors/shading_params.go"
   "Categories/Node/Poles/shading_params.go"
   "Categories/Node/shading_params.go"
   "Categories/Ring/Bead/shading_params.go"

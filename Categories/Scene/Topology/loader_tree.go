@@ -163,8 +163,6 @@ func loadNodeBase(nodesDir, nodeID string) (Node, error) {
 		IndexTheta:          readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexTheta)),
 		IndexR:              readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexR)),
 		At:                  readOptPlace(baseDir),
-		Drag:                NodeBuf.ReadDragRule(filepath.Join(baseDir, NodeBuf.DirDragRule)),
-		SelfDrag:            NodeBuf.ReadDragRule(filepath.Join(baseDir, NodeBuf.DirSelfRule)),
 		TopTiltVectorPhiIdx: readOptInt32(filepath.Join(baseDir, NodeBuf.FileTiltIdx)),
 	}
 	readLeaf(filepath.Join(baseDir, NodeBuf.FileGate), &sn.Gate)

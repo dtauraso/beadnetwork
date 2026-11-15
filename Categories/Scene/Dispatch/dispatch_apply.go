@@ -3,7 +3,6 @@ package Dispatch
 import (
 	"context"
 
-	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
@@ -41,10 +40,6 @@ func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDi
 		nodeID, _ := md.RT.LookupNodeRow(e.Num)
 		DeleteNode(&md.Scenes, &md.UI, nodeID, e.Num)
 	}
-}
-
-func sendRuleEdit(ctx context.Context, md *MoveDispatch, row int, edit NodeKind.RuleEdit) {
-	NodeKind.SendRuleEdit(ctx, &md.Rules, row, edit)
 }
 
 func (md *MoveDispatch) persistOverlays(ov Flags.OverlayState) {

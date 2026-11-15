@@ -9,7 +9,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
@@ -33,8 +32,6 @@ type UIState struct {
 	SceneEditable bool
 
 	SceneNodesDraggable bool
-
-	ScenePolarRules bool
 
 	SceneSpeedSlider bool
 
@@ -111,8 +108,6 @@ type UIState struct {
 	Nodes NodesDropdown.State
 
 	TabStrip Tabs.State
-
-	Rules PolarRulesPanel.State
 
 	PlacingKind    uint8
 	PlacingPending bool

@@ -2,7 +2,6 @@ package Chrome
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
@@ -24,8 +23,6 @@ type Layout struct {
 	Fit Panel.Rect
 
 	Tabs Tabs.Layout
-
-	Rules PolarRulesPanel.Layout
 }
 
 type Of struct {
@@ -33,7 +30,6 @@ type Of struct {
 
 	SceneEditable bool
 	SceneKinds    uint32
-	PolarRules    bool
 	SpeedSlider   bool
 	AnglesPill    bool
 	PlusButton    bool
@@ -49,7 +45,6 @@ type Of struct {
 	Angle    AngleDropdown.State
 	Nodes    NodesDropdown.State
 	Tabs     Tabs.State
-	Rules    PolarRulesPanel.State
 	PillsBar Pills.State
 }
 
@@ -72,9 +67,6 @@ func LayoutOf(in Of) Layout {
 	lay := Layout{Fit: fit, Tabs: tabs}
 	if in.SpeedSlider {
 		lay.Speed = SliderPanel.Build(st)
-	}
-	if in.PolarRules {
-		lay.Rules = PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules)
 	}
 	if in.AnglesPill {
 		lay.Angle = AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints)

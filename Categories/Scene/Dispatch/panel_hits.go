@@ -8,7 +8,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
@@ -36,11 +35,6 @@ func panelTookPointerDown(
 
 	if h := pl.Sheet.Hit(ev.X, ev.Y); h.Part != Sheet.PartNone {
 		applySheetHit(ctx, md, h)
-		return true
-	}
-
-	if h := pl.Rules.Hit(ev.X, ev.Y); h.Kind != PolarRulesPanel.HitNone {
-		applyRulesHit(ctx, md, h)
 		return true
 	}
 
@@ -115,10 +109,10 @@ func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {
 		Panel.ToggleFlag(&md.UI.PN, h.Panel)
 		md.UI.PersistPanels(md.UI.PN)
 	case Pills.HitPillBody, Pills.HitFlag:
-		Flags.ToggleFlag(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, h.Flag)
+		Flags.ToggleFlag(&md.UI.OV, &md.UI, h.Flag)
 		md.UI.PersistOverlays(md.UI.OV)
 	case Pills.HitCount:
-		Flags.SetCount(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, h.Flags, h.Target)
+		Flags.SetCount(&md.UI.OV, &md.UI, h.Flags, h.Target)
 		md.UI.PersistOverlays(md.UI.OV)
 	}
 	md.UI.EmitViewFrame(nil)

@@ -80,7 +80,6 @@ func LoadSceneState(scenePath string, md *Dispatch.MoveDispatch, speedSinks Slid
 	s := Scenes.For(scenePath)
 	md.UI.SceneEditable = s.Editable
 	md.UI.SceneNodesDraggable = s.NodesDraggable
-	md.UI.ScenePolarRules = s.PolarRules
 	md.UI.SceneSpeedSlider = s.SpeedSlider
 	md.UI.SceneAnglesPill = s.AnglesPill
 	md.UI.ScenePlusButton = s.PlusButton

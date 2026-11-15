@@ -9,8 +9,8 @@ frame. Stop, re-read this file, and re-derive from the model.
 ## The network
 
 The network is **nodes and the edges between them**. A node id NAMES a thing that is drawn.
-**A node is FOUR goroutines, paced by four different things**, because it does
-four jobs that have four different clocks:
+**A node is THREE goroutines, paced by three different things**, because it does
+three jobs that have three different clocks:
 
 - The **kind goroutine** — the KIND's own `Update` — is paced by the sim
   clock. It owns the kind's logic and its interior slots. It writes its own
@@ -24,14 +24,11 @@ four jobs that have four different clocks:
   and writes its own bead stream. It is NOT the kind's loop: beads used to move
   only when the node's sim cycle came round, which tied how smoothly a bead drew
   to how fast the network was set to run.
-- The **rule goroutine** — `Node.RuleNode.Run` — blocks on its own inbox. It
-  fans out further, one forwarder per peer in the all-pairs rule mesh, so the
-  goroutine count per node grows with the size of the scene.
 - The **geometry goroutine** — `NodeGeometry.RunGeometry`, one per node id — is
   paced by nothing. It BLOCKS on its own inbox and runs when a message arrives,
   so a drag is served at the rate of the hand that is dragging. It owns the
   node's own polar position, its stored vectors to its neighbours
-  (`owners.Deltas`), interaction state, the rule mesh, and **its own OUT-EDGES**
+  (`owners.Deltas`), interaction state, and **its own OUT-EDGES**
   (each drawn from the node's own polar position composed with that edge's
   stored delta). It writes its own node stream and the edge stream of every
   edge leaving it.

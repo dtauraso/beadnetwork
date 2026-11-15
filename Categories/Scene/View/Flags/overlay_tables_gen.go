@@ -16,7 +16,6 @@ func DefaultOverlayState() OverlayState {
 		NodeBodyVisible:       true,
 		NodeRingVisible:       true,
 		EdgeVectorsVisible:    true,
-		RuleChannelsVisible:   true,
 		NodePoleSphereVisible: true,
 	}
 }
@@ -35,7 +34,6 @@ var OverlayToggles = map[string]func(*OverlayState){
 	"nodeBody":       (*OverlayState).ToggleNodeBody,
 	"nodeRing":       (*OverlayState).ToggleNodeRing,
 	"edgeVectors":    (*OverlayState).ToggleEdgeVectors,
-	"ruleChannels":   (*OverlayState).ToggleRuleChannels,
 	"nodePoleSphere": (*OverlayState).ToggleNodePoleSphere,
 	"allPoleSpheres": (*OverlayState).ToggleAllPoleSpheres,
 }
@@ -73,7 +71,6 @@ var OverlayFlagRead = map[string]func(*OverlayState) bool{
 	"nodeBody":       func(o *OverlayState) bool { return o.NodeBodyVisible },
 	"nodeRing":       func(o *OverlayState) bool { return o.NodeRingVisible },
 	"edgeVectors":    func(o *OverlayState) bool { return o.EdgeVectorsVisible },
-	"ruleChannels":   func(o *OverlayState) bool { return o.RuleChannelsVisible },
 	"nodePoleSphere": func(o *OverlayState) bool { return o.NodePoleSphereVisible },
 	"allPoleSpheres": func(o *OverlayState) bool { return o.AllPoleSpheresVisible },
 }
@@ -88,7 +85,6 @@ var OverlayFlagWrite = map[string]func(*OverlayState, bool){
 	"nodeBody":       func(o *OverlayState, v bool) { o.NodeBodyVisible = v },
 	"nodeRing":       func(o *OverlayState, v bool) { o.NodeRingVisible = v },
 	"edgeVectors":    func(o *OverlayState, v bool) { o.EdgeVectorsVisible = v },
-	"ruleChannels":   func(o *OverlayState, v bool) { o.RuleChannelsVisible = v },
 	"nodePoleSphere": func(o *OverlayState, v bool) { o.NodePoleSphereVisible = v },
 	"allPoleSpheres": func(o *OverlayState, v bool) { o.AllPoleSpheresVisible = v },
 }

@@ -24,13 +24,6 @@ func ReadIfExists(path string, dst any) bool {
 	return true
 }
 
-func removeIfPresent(path string) error {
-	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	return nil
-}
-
 func WriteAtomic(path string, v any) error {
 	out, err := encode(v)
 	if err != nil {

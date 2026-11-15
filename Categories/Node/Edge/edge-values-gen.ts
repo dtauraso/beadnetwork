@@ -14,7 +14,6 @@ export const EDGE_VALUE_NAMES = [
   "srcNodeRow",
   "dstNodeRow",
   "deltaR",
-  "dragActive",
   "label",
   "shown",
 ] as const;

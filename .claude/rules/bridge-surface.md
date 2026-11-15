@@ -5,7 +5,7 @@ paths:
   - "Start/extension/handle-message.ts"
   - "Start/extension/runCommand.ts"
   - "Categories/Scene/Drag/input-defs.ts"
-  - "Categories/Node/update-attrs.ts"
+  - "Categories/Scene/update-attrs.ts"
 ---
 
 # Bridge surface — TS → Go vocabulary detail
@@ -18,7 +18,7 @@ carries the TS → Go vocabulary.
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
   (see `Categories/Scene/Dispatch/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
   `EDIT_OPS_END`, and `Start/extension/messages.ts` `EditMsg`): **`update` sets
-  an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / panels /
+  an ATTRIBUTE on a typed entity** (`kind` = overlays / panels / clock /
   scene) — there is no per-feature op. New *addressed* capability is a new entity kind or
   attribute, NOT a new op. `panels` is its OWN entity kind, deliberately separate from
   `overlays`: it addresses the overlays popover's disclosure open/closed state, not overlay
@@ -90,5 +90,5 @@ the Go one. Two kinds of vocabulary, two kinds of generated file:
   either could disagree with the reader that decodes it.
 - **Which attributes that concern will accept** is the concern's own, declared in its
   `update_attrs.go`. Its `updateattrs` generator writes only that list, to its own
-  `update-attrs.ts`. These are deliberately per-concern: Node's attrs need agree with
-  nothing but Node.
+  `update-attrs.ts`. These are deliberately per-concern: Scene's attrs need agree with
+  nothing but Scene.

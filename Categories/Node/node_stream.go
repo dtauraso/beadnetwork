@@ -33,7 +33,6 @@ func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 	coplanarEdges, upAxis := m.flags.Flags()
 	topIdx, bottomIdx, normalIdx, receivedIdx, receivedSet, latticePoints := m.tilt.FrameGeometryFields()
 	selected, latchedSel := m.ui.Flags()
-	ruleGroupID, ruleGroupSize := m.RuleGroup()
 	startVectors, startPicked := m.tilt.StartVectors()
 
 	return FrameInputs{
@@ -57,18 +56,9 @@ func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 		Selected:   selected,
 		LatchedSel: latchedSel,
 
-		DragRule: m.topo.DragRule(),
-		SelfRule: m.topo.SelfRule(),
 
-		DragActive:     m.topo.DragRuleActive(),
-		SelfActive:     m.topo.SelfRuleActive(),
-		KindRuleActive: m.KindRuleActive(),
-		HasKindRule:    m.HasKindRule(),
 
-		RuleGroupID:   ruleGroupID,
-		RuleGroupSize: ruleGroupSize,
 
-		ChannelVectors: m.channelVectors(),
 
 		TickCount:    m.tilt.TickCount(),
 		StartVectors: startVectors,

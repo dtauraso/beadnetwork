@@ -34,7 +34,7 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		edgeOrder[i] = e.Label
 	}
 	s := Scenes.For(scenePath)
-	md, err := Dispatch.NewMoveDispatch(nodeGeoms, edgeEndpoints, nodeOrder, edgeOrder, clk, speedSinks, spec.RowCount, spec.Constants, s.PolarRules)
+	md, err := Dispatch.NewMoveDispatch(nodeGeoms, edgeEndpoints, nodeOrder, edgeOrder, clk, speedSinks, spec.RowCount, spec.Constants)
 	if err != nil {
 		return nil, fmt.Errorf("Dispatch.NewFromSpec: %w", err)
 	}
@@ -79,14 +79,6 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.UI.Builder.Step = Builder.ReadStep(Builder.PressDir(md.UI.Builder.Root))
 	Dispatch.LoadSequences(md, scenePath)
 
-	if s.PolarRules {
-		md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
-			ng, ok := md.MR.NodeGeoms()[id]
-			return ok && ng.HasKindRule()
-		})
-	}
-	md.UI.Rules.SharedRow = -1
-
 	kindByID := make(map[string]string, len(spec.Nodes))
 	restByID := make(map[string]polarindex.Place, len(spec.Nodes))
 	for _, n := range spec.Nodes {
@@ -94,32 +86,12 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		restByID[n.ID] = n.Rest()
 	}
 
-	targetByLabel := make(map[string]string, len(spec.Edges))
-	sourceByLabel := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
 			Topology.SeedEdge(src, e, true, kindByID[e.Target], restByID[e.Target], Scenes.NodesRoot(scenePath))
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
 			Topology.SeedEdge(dst, e, false, kindByID[e.Source], restByID[e.Source], Scenes.NodesRoot(scenePath))
-		}
-		targetByLabel[e.Label] = e.Target
-		sourceByLabel[e.Label] = e.Source
-	}
-
-	md.Rules.TogglesByEdgeRow = make([]chan<- struct{}, len(md.RT.EdgeRowTable))
-	for row, label := range md.RT.EdgeRowTable {
-		src, okS := md.MR.NodeGeoms()[sourceByLabel[label]]
-		target, okT := targetByLabel[label], true
-		if !okS || !okT || src.RuleNode() == nil {
-			continue
-		}
-		md.Rules.TogglesByEdgeRow[row] = src.RuleNode().EdgeToggleChannel(target)
-	}
-
-	for _, nm := range md.MR.NodeGeoms() {
-		if rn := nm.RuleNode(); rn != nil {
-			rn.BroadcastSelf()
 		}
 	}
 

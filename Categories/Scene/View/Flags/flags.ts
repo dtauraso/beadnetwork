@@ -10,7 +10,6 @@ const OVERLAY_FLAG_NAMES = [
   "nodeBody",
   "nodeRing",
   "edgeVectors",
-  "ruleChannels",
   "nodePoleSphere",
   "allPoleSpheres",
 ] as const;

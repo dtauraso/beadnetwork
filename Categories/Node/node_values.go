@@ -24,9 +24,6 @@ func buildNodeValueNames() []string {
 	}
 	return append(names,
 		"selected", "kindId", "label", "latchedSel",
-		"dragRLocked", "dragPhiLocked", "dragThetaMax", "dragActive", "kindRuleActive",
-		"selfRLocked", "selfPhiLocked", "selfThetaMax", "selfActive",
-		"ruleGroupId", "ruleGroupSize",
 	)
 }
 
@@ -77,18 +74,4 @@ func WriteNodeValues(w *ValueWriter, f NodeState) {
 	w.U8("kindId", f.KindID)
 	w.Text("label", f.Label)
 	w.U8("latchedSel", f.LatchedSel)
-
-	w.U8("dragRLocked", f.DragRLocked)
-	w.U8("dragPhiLocked", f.DragPhiLocked)
-	w.F32("dragThetaMax", f.DragThetaMax)
-	w.U8("dragActive", f.DragActive)
-	w.U8("kindRuleActive", f.KindRuleActive)
-
-	w.U8("selfRLocked", f.SelfRLocked)
-	w.U8("selfPhiLocked", f.SelfPhiLocked)
-	w.F32("selfThetaMax", f.SelfThetaMax)
-	w.U8("selfActive", f.SelfActive)
-
-	w.I32("ruleGroupId", f.RuleGroupID)
-	w.I32("ruleGroupSize", f.RuleGroupSize)
 }

@@ -33,40 +33,9 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]Node.NodeGeom, clk cloc
 			md.Mover.ApplyDerivedNodeMove(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
 		}
 		ng.Msg().WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal, applyDerived)
-		md.ChannelVectorsOn.ClaimChannelVectorsIn(id, ng.Channels().In())
 		md.MR.NodeGeoms()[id] = ng
 
 		md.MR.SeedCenter(id, Vec3(Node.NodeWorldPos(g)))
-	}
-}
-
-func (md *MoveDispatch) wireRuleMesh() {
-	geoms := md.MR.NodeGeoms()
-	for id, nm := range geoms {
-		nm.AttachRuleNode(Node.New(id))
-	}
-	for id, nm := range geoms {
-		for peerID, peer := range geoms {
-			if peerID == id {
-				continue
-			}
-
-			nm.RuleNode().LinkRuleDown(peerID, peer.RuleBackChannel(id))
-		}
-	}
-
-}
-
-func (md *MoveDispatch) wireRuleEditRows() {
-	geoms := md.MR.NodeGeoms()
-	md.Rules.SizeByNodeRows(len(md.RT.NodeRowTable))
-	for row, id := range md.RT.NodeRowTable {
-		nm, ok := geoms[id]
-		if !ok || nm.RuleNode() == nil {
-			continue
-		}
-		md.Rules.EditsByNodeRow[row] = nm.RuleNode().Edits()
-		md.Rules.KindTogglesByNodeRow[row] = nm.RuleNode().KindToggleChannel()
 	}
 }
 

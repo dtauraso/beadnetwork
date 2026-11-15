@@ -5,14 +5,13 @@ import "fmt"
 type ViewOverlayFlags struct {
 	SceneTori, ScenePoles, NodePoles, Handholds, LabelsGlobal, OverlaysVis uint8
 	NodeBody, NodeRing                                                     uint8
-	RuleChannels                                                           uint8
 	NodePoleSphere                                                         uint8
 	AllPoleSpheres                                                         uint8
 }
 
 type ViewPanelFlags struct {
 	Overlays                                                  uint8
-	Node, NodeShape, NodeState, NodePoles, NodeRules          uint8
+	Node, NodeShape, NodeState, NodePoles                     uint8
 	Scene, SceneGuides, ScenePoles, SceneVectors, SceneLabels uint8
 }
 
@@ -71,7 +70,6 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 		}})
 	}
 	ui.TabStrip.Write(pl.Tabs)
-	ui.Rules.Write(pl.Rules)
 
 	ui.ViewBuildFrame(ui.viewTick, events)
 }

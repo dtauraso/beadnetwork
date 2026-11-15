@@ -35,7 +35,7 @@ func (h *TimeEnd) Update(ctx context.Context) {
 
 	clk := h.Clock.Copy()
 	clk.SpeedFrom(h.SpeedCh)
-	h.Self.StartRule(ctx, clk)
+	h.Self.Start(ctx, clk)
 
 	for {
 		select {

@@ -82,7 +82,7 @@ func pressRow(ctx context.Context, md *MoveDispatch, id Sheet.Act) {
 }
 
 func navKey(md *MoveDispatch, key string) bool {
-	return Builder.NavKey(key) && !md.UI.Rules.Edit.Active && md.UI.Builder.Sel.Op != "" && md.UI.PanelLayout().Sheet.Nav
+	return Builder.NavKey(key) && md.UI.Builder.Sel.Op != "" && md.UI.PanelLayout().Sheet.Nav
 }
 
 func applySheetNav(ctx context.Context, md *MoveDispatch, key string) {
@@ -183,7 +183,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 			}
 		}
 	case Pills.OpOverlay:
-		Flags.ToggleFlag(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, a.K)
+		Flags.ToggleFlag(&md.UI.OV, &md.UI, a.K)
 		md.UI.PersistOverlays(md.UI.OV)
 	}
 }

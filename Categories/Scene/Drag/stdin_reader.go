@@ -138,6 +138,4 @@ var UpdateKinds = []string{
 	"clock",
 	"scene",
 	"panels",
-	"node",
-	"edge",
 }
