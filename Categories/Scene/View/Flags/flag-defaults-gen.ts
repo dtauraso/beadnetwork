@@ -15,8 +15,6 @@ export const OVERLAY_FLAG_DEFAULTS: Record<string, boolean> = {
   "overlays": true,
   "nodeBody": true,
   "nodeRing": true,
-  "selectionRing": true,
-  "hoverRing": true,
   "sceneVectors": true,
   "edgeVectors": true,
   "ruleChannels": true,

@@ -56,10 +56,7 @@ Go owns the clock.
   transit and interior
   beads (`Categories/Node/BeadAnimation/ChainBeadInstances.tsx`, `Categories/Node/Interior/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
-  edge's visual, `docs/model/entities.md`), the selection ring, its halo and the hover
-  ring (placed with everything else drawn at a node's own frame, in
-  `Categories/Ring/NodeShape/node-instances-update.ts`; their shape lives in
-  `Categories/Ring/NodeShape/node-highlight-shape.ts`), and the camera (`Categories/Scene/Camera/SceneCamera.tsx` maps the camera
+  edge's visual, `docs/model/entities.md`), and the camera (`Categories/Scene/Camera/SceneCamera.tsx` maps the camera
   block file onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
 - **Bridge surface — binary BOTH ways.** **Go → TS:** the block files. **TS → Go:** framed binary records on stdin (`[len:u32-LE][record]`) — `raw-input` (raw pointer/wheel + the stateless raycast

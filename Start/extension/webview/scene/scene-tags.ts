@@ -12,9 +12,6 @@ export const NODE_SPHERE_RADIUS = 12;
 
 export const NODE_RING_TUBE_RATIO = 0.08;
 
-export const HOVER_COLOR = "#aaddff";
-export const HOVER_RING_TUBE_RATIO = 0.14;
-
 export const DIRECTION_ZERO_EPS = 1e-6;
 
 

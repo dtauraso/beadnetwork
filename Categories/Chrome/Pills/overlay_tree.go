@@ -33,14 +33,6 @@ var Tree = []Group{
 				},
 			},
 			{
-				Heading: "STATE",
-				Panel:   "nodeState",
-				Items: []Item{
-					{Flag: "selectionRing", Icon: "◉", Label: "selection"},
-					{Flag: "hoverRing", Icon: "◍", Label: "hover"},
-				},
-			},
-			{
 				Heading: "POLES",
 				Panel:   "nodePoles",
 				Items: []Item{

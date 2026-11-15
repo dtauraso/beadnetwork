@@ -14,39 +14,21 @@ import {
   SHADING_PARAM_NODE_OPACITY,
   SHADING_PARAM_RING_ROUGHNESS,
 } from "./shading-params";
-import {
-  SCENE_NODE_TAG, SCENE_RING_TAG,
-  HOVER_COLOR, HOVER_RING_TUBE_RATIO,
-} from "../../../Start/extension/webview/scene/scene-tags";
+import { SCENE_NODE_TAG, SCENE_RING_TAG } from "../../../Start/extension/webview/scene/scene-tags";
 import { updateNodeInstances } from "./node-instances-update";
 import { getCanonicalRingSurfaceGeometry } from "../../Ring/NodeShape/ring-surface-geometry";
-import {
-  SELECTION_RING_TUBE_RATIO, SELECTION_RING_RADIAL_SEGMENTS, SELECTION_RING_TUBULAR_SEGMENTS,
-  SELECTION_HALO_WIDTH_SEGMENTS, SELECTION_HALO_HEIGHT_SEGMENTS,
-  SELECTION_COLOR, SELECTION_EMISSIVE_INTENSITY, HALO_COLOR, HALO_OPACITY,
-} from "./node-highlight-shape";
 
 export function NodeInstances({ capacity }: { capacity: number }) {
   const envTex = useContext(EnvTexContext);
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
-  const selRingRef = useRef<THREE.InstancedMesh>(null);
-  const selHaloRef = useRef<THREE.InstancedMesh>(null);
-  const hoverRingRef = useRef<THREE.InstancedMesh>(null);
-  const matRef  = useRef(new THREE.Matrix4());
-  const posRef  = useRef(new THREE.Vector3());
-  const quatRef = useRef(new THREE.Quaternion());
-  const sclRef  = useRef(new THREE.Vector3());
   const colRef  = useRef(new THREE.Color());
   const ringGeomAppliedRef = useRef(false);
 
   useFrame(({ camera }) => {
     const body = bodyRef.current;
     const ring = ringRef.current;
-    const selRing = selRingRef.current;
-    const selHalo = selHaloRef.current;
-    const hoverRing = hoverRingRef.current;
-    if (!body || !ring || !selRing || !selHalo || !hoverRing) return;
+    if (!body || !ring) return;
 
     if (!ringGeomAppliedRef.current) {
       const geom = getCanonicalRingSurfaceGeometry();
@@ -56,18 +38,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       }
     }
 
-    updateNodeInstances(
-      {
-        body, ring, selRing, selHalo, hoverRing,
-        mat: matRef.current,
-        pos: posRef.current,
-        quat: quatRef.current,
-        scl: sclRef.current,
-        col: colRef.current,
-      },
-      capacity,
-      camera,
-    );
+    updateNodeInstances({ body, ring, col: colRef.current }, capacity, camera);
   });
 
   return (
@@ -94,19 +65,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
         {}
         <bufferGeometry />
         <meshStandardMaterial roughness={SHADING_PARAM_RING_ROUGHNESS} metalness={0} depthWrite={false} transparent={false} opacity={1} />
-      </instancedMesh>
-      {}
-      <instancedMesh ref={selRingRef} args={[undefined, undefined, 1]} frustumCulled={false} raycast={() => null}>
-        <torusGeometry args={[1, SELECTION_RING_TUBE_RATIO, SELECTION_RING_RADIAL_SEGMENTS, SELECTION_RING_TUBULAR_SEGMENTS]} />
-        <meshStandardMaterial color={SELECTION_COLOR} emissive={SELECTION_COLOR} emissiveIntensity={SELECTION_EMISSIVE_INTENSITY} />
-      </instancedMesh>
-      <instancedMesh ref={selHaloRef} args={[undefined, undefined, 1]} frustumCulled={false} raycast={() => null}>
-        <sphereGeometry args={[1, SELECTION_HALO_WIDTH_SEGMENTS, SELECTION_HALO_HEIGHT_SEGMENTS]} />
-        <meshBasicMaterial color={HALO_COLOR} transparent opacity={HALO_OPACITY} side={THREE.DoubleSide} depthWrite={false} />
-      </instancedMesh>
-      <instancedMesh ref={hoverRingRef} args={[undefined, undefined, 1]} frustumCulled={false} raycast={() => null}>
-        <torusGeometry args={[1, HOVER_RING_TUBE_RATIO, 8, 32]} />
-        <meshStandardMaterial color={HOVER_COLOR} emissive={HOVER_COLOR} emissiveIntensity={SELECTION_EMISSIVE_INTENSITY} />
       </instancedMesh>
     </>
   );
