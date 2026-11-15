@@ -170,6 +170,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.PlaceOpen[a.Node] = !md.UI.Builder.PlaceOpen[a.Node]
 	case Builder.OpStartFold:
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
+	case Builder.OpFrameFold:
+		md.UI.Builder.FrameFolded = !md.UI.Builder.FrameFolded
 	case Pills.OpOverlay:
 		Flags.ToggleFlag(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, a.K)
 		md.UI.PersistOverlays(md.UI.OV)

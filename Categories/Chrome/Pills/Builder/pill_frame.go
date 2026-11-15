@@ -6,6 +6,8 @@ const (
 	OpFrame  = "frame"
 	OpTickMs = "tick-ms"
 
+	OpFrameFold = "frame-fold"
+
 	FrameRho    = "rho"
 	FrameTphi   = "tphi"
 	FrameTtheta = "ttheta"
@@ -16,8 +18,13 @@ const (
 func frameAct(k string) Act { return Act{Op: OpFrame, K: k} }
 
 func allSeqsGroup(m Model) Group {
+	const title = "all sequences — the frame every node is placed in (a change reloads the scene), and time"
+	fold := Act{Op: OpFrameFold}
+	if m.FrameFolded {
+		return Group{Title: "›  " + title, Fold: fold}
+	}
 	f := m.Frame
-	return Group{Title: "all sequences — the frame every node is placed in (a change reloads the scene), and time", Rows: [][]Cell{
+	return Group{Title: "⌄  " + title, Fold: fold, Rows: [][]Cell{
 		{Field("ρ", Num(f.Rho), frameAct(FrameRho), true, false), Text("length of one unit of a link's r")},
 		{Field("T_φ", strconv.Itoa(f.Tphi), frameAct(FrameTphi), true, false), Text("index steps a turn in φ")},
 		{Field("T_θ", strconv.Itoa(f.Ttheta), frameAct(FrameTtheta), true, false), Text("index steps a turn in θ")},
