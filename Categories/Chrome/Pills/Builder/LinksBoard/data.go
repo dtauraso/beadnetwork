@@ -8,9 +8,11 @@ import (
 type Act = Sheet.Act
 
 type Crumb struct {
-	Label string
-	Short string
-	Act   Act
+	Label  string
+	Short  string
+	Act    Act
+	Edit   Act
+	Rename Act
 }
 
 type Lock struct {

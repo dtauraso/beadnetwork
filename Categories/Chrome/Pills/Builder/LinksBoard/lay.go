@@ -62,6 +62,15 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data) {
 		if i > 0 && !(narrow && i == 1) {
 			x += l.Text(x, y, h, clip, "›", Board.Px, Board.Mute, false, Board.Left) + Board.Gap
 		}
+		if c.Edit.Op != "" {
+			w := l.Editable(x-Board.PadX, y, 0, clip, c.Label, Board.Px, Board.Ink, c.Edit)
+			if c.Act.Op != "" {
+				l.Spot(Rect{X: x - Board.PadX, Y: y, W: w, H: h}, clip, Sheet.Cell{Act: c.Act, Tip: "go here"}, Sheet.PartBody)
+			}
+			x += w - Board.PadX + Board.Gap
+			x += l.Chip(x, y, clip, Board.Chip{Label: "✎", Act: c.Rename, Px: Board.BtnPx, Ghost: true, Tip: "rename this sequence"}) + Board.Gap
+			continue
+		}
 		if c.Act.Op == "" {
 			x += l.Text(x, y, h, clip, c.Label, Board.Px, Board.Ink, true, Board.Left) + Board.Gap
 			continue
