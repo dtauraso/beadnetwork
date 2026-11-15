@@ -1,0 +1,79 @@
+<!doctype html>
+<!-- branch: task/links-tab-ux -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links Tab · Rules</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Links tab, redesigned</a> <span>φ,θ tab · a proposal with mockups</span></div>
+    <nav class="tabs" id="tabs" aria-label="Pages"></nav>
+  </div>
+</header>
+<main>
+<section id="constraints">
+  <div class="eyebrow">Prevent, don't refuse</div>
+  <h1>Each rule, before and after</h1>
+  <p class="lede">Today a rule shows up as a red sentence after you broke it (the "before" messages are paraphrased). Each rule below gets a control shape that can't express the broken state, or explains itself before you try.</p>
+
+  <h2>1 · At most one picked link into a node</h2>
+  <div class="vs">
+    <div><div class="label before">Before</div>
+      <div class="ed" style="padding:8px"><div class="row"><span class="dot on"></span> 3 → 1 <span class="sp"></span><span class="chip">pick</span></div><div class="row warnline">3→1: 1 already has a picked link into it, from 2</div></div></div>
+    <div><div class="label after">After</div>
+      <div class="ed" style="padding:8px"><div class="row"><span class="head">into 1 · step 1</span></div>
+        <div class="row"><span class="dot"></span> 2 → 1</div><div class="row sel"><span class="dot on"></span> 3 → 1</div>
+        <div class="row" style="padding-top:6px"><span class="toast">Moved the pick from 2→1 to 3→1 <span class="chip">Undo ⌘Z</span></span></div></div>
+      <p class="cap">Picks inside a group act like radio buttons. Picking 3→1 un-picks 2→1 and says so, with undo.</p></div>
+  </div>
+
+  <h2>2 · Links out of one source share Δ per press</h2>
+  <div class="vs">
+    <div><div class="label before">Before</div>
+      <div class="ed" style="padding:8px"><div class="row">2 → 3 nΔ <span class="field">2</span></div><div class="row warnline">nΔ must match 2→1 (1)</div></div></div>
+    <div><div class="label after">After</div>
+      <div class="ed" style="padding:8px"><div class="row"><span class="dim">Δ per press</span><span class="field">1</span><span class="sub">🔗 shared by everything out of 2: 2→1, 2→3</span></div>
+      <div class="row"><span class="dim">Changing it changes both. Hover highlights them.</span></div></div>
+      <p class="cap">The field states that it is shared before you edit it, and editing it edits the group.</p></div>
+  </div>
+
+  <h2>3 · A node with several links in keeps a fixed r</h2>
+  <div class="vs">
+    <div><div class="label before">Before</div>
+      <div class="ed" style="padding:8px"><div class="row">r Δ <span class="field">+2</span></div><div class="row warnline">r is fixed for 1</div></div></div>
+    <div><div class="label after">After</div>
+      <div class="ed" style="padding:8px"><div class="row"><span class="head">r</span><span class="btn" style="opacity:.4">−</span><span class="field off">0</span><span class="btn" style="opacity:.4">＋</span><span class="chip">🔒 fixed</span></div><div class="row dim">1 has 2 links in (2→1, 3→1), so its distance is held.</div></div></div>
+  </div>
+
+  <h2>4 · r + Δr never goes below 0</h2>
+  <div class="vs">
+    <div><div class="label before">Before</div><div class="ed" style="padding:8px"><div class="row">r Δ <span class="field">−14</span></div><div class="row warnline">refused: r would be −2</div></div></div>
+    <div><div class="label after">After</div><div class="ed" style="padding:8px"><div class="row"><span class="btn" style="opacity:.4">−</span><span class="field">−12</span><span class="btn">＋</span><span class="sub">at 0, the closest it can go</span></div></div></div>
+  </div>
+
+  <h2>5 · A frame edit reloads the scene</h2>
+  <div class="vs">
+    <div><div class="label before">Before</div><div class="ed" style="padding:8px"><div class="row">ρ <span class="field focus">40</span></div><div class="row dim">(scene reloads on Enter, unannounced)</div></div></div>
+    <div><div class="label after">After</div>
+      <div class="ed" style="padding:10px"><div class="pop" style="max-width:300px">
+        <div class="row" style="padding:0"><span class="strong">Frame</span><span class="sp"></span><span class="tag warn" style="font-size:10px">shared by all 9 sequences</span></div>
+        <div class="row">ρ <span class="field focus">40</span><span class="dim">was 36</span></div>
+        <div class="row">T_φ <span class="field">12</span> T_θ <span class="field">12</span></div>
+        <div class="row" style="padding-top:6px"><span class="warnline">Applying reloads the scene.</span><span class="sp"></span><span class="btn ghost">Cancel</span><span class="btn lit">Apply &amp; reload</span></div>
+      </div></div></div>
+  </div>
+
+  <h2>6 · Editing a step that is not the one shown</h2>
+  <div class="vs">
+    <div><div class="label before">Before</div><div class="ed" style="padding:8px"><div class="row warnline">step 2 is not the step shown</div></div></div>
+    <div><div class="label after">After</div><div class="ed" style="padding:8px"><div class="row">Selecting any cell in step 2 scrubs the scene to step 2 first, so the edit is always on the step shown. The column underline moves with it.</div></div></div>
+  </div>
+</section>
+</main>
+<script src="site.js"></script>
+</body>
+</html>
