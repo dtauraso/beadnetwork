@@ -58,6 +58,7 @@ func (s *State) Write(lay Layout, refusedCount uint32) {
 	w.Rect("plusX", "plusY", "plusW", "plusH", lay.Plus.Rect)
 	w.Text("plusFill", lay.Plus.Fill)
 	w.Text("plusStroke", lay.Plus.Stroke)
+	w.Bool("plusMenu", lay.Plus.Menu)
 
 	if err := w.Flush(); err != nil {
 		fmt.Fprintf(os.Stderr, "nodes_pill_values: %v\n", err)

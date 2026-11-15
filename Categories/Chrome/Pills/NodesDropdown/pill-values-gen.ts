@@ -48,6 +48,7 @@ export const NODES_PILL_VALUE_NAMES = [
   "plusH",
   "plusFill",
   "plusStroke",
+  "plusMenu",
 ] as const;
 
 export type NodesPillValueName = (typeof NODES_PILL_VALUE_NAMES)[number];

@@ -33,6 +33,9 @@ func BuildPlus(viewW float32, strip Rect, open bool, kinds []Kind) Layout {
 		Stroke: a.Stroke,
 		Menu:   len(kinds) > 1,
 	}
+	if plus.Menu {
+		plus.Rect.W += Panel.CaretW
+	}
 	lay := Layout{Plus: plus}
 	if !plus.Menu || !open {
 		return lay

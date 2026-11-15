@@ -1,7 +1,8 @@
-import { roundRect } from "../../canvas-box";
+import { canvasFont, roundRect } from "../../canvas-box";
 import { decodeAt } from "../../leaf-text";
 import * as T from "../../chrome-theme";
-import { pillF32, pillText } from "./pill-leaves";
+import { CARET_W } from "../pill";
+import { pillF32, pillText, pillU8 } from "./pill-leaves";
 
 function textOf(name: "plusFill" | "plusStroke"): string {
   const t = pillText(name);
@@ -22,10 +23,20 @@ export function drawPlusButton(c: CanvasRenderingContext2D): void {
   c.lineWidth = 1;
   c.stroke();
 
+  const menu = pillU8("plusMenu") !== 0;
+  const gw = menu ? w - CARET_W : w;
+  if (menu) {
+    c.fillStyle = T.TEXT;
+    c.font = canvasFont(T.FONT_SIZE_GLYPH);
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillText(pillU8("open") !== 0 ? "▲" : "▼", x + gw + CARET_W / 2 - 3, y + h / 2);
+  }
+
   const fill = textOf("plusFill") || "#e3f2fd";
   const stroke = textOf("plusStroke") || "#1565c0";
-  const s = Math.min(w, h) * 0.46;
-  const nx = x + (w - s) / 2 - s * 0.08;
+  const s = Math.min(gw, h) * 0.46;
+  const nx = x + (gw - s) / 2 - s * 0.08;
   const ny = y + (h - s) / 2 + s * 0.08;
 
   c.save();
