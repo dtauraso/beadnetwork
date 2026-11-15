@@ -142,7 +142,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.ShowStep(ctx)
 		return
 	}
-	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) {
+	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) || runFramePop(md, a, typed) {
 		return
 	}
 	switch a.Op {

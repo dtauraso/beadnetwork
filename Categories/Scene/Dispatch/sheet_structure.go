@@ -11,7 +11,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
-	SceneB "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
@@ -65,39 +64,6 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		return false
 	}
 	return true
-}
-
-func setFrame(md *MoveDispatch, k string, v float64) {
-	m := &md.UI.Builder
-	f, s := m.Frame, m.S
-	ok := v > 0
-	switch k {
-	case Builder.FrameRho:
-		f.Rho = v
-	case Builder.FrameCr:
-		f.Cr = v
-	case Builder.FrameTphi:
-		f.Tphi, ok = int(v), ok && whole(v)
-	case Builder.FrameTtheta:
-		f.Ttheta, ok = int(v), ok && whole(v)
-	}
-	if !ok {
-		m.Refused = fmt.Sprintf("%s %v: must be above 0 (and whole for T_φ and T_θ), so the frame stays as it is", k, v)
-		return
-	}
-	root := md.Scenes.TreeRoot
-	if root == "" || md.Scenes.Reload == nil {
-		return
-	}
-	if err := SceneB.WriteFrame(root, f.Tphi, f.Ttheta, f.Cr, f.Rho); err != nil {
-		m.Refused = fmt.Sprintf("could not write the frame: %v", err)
-		return
-	}
-	if err := Sheet.WriteScalar(Scenes.OpenSFilePath(root), int32(s)); err != nil {
-		m.Refused = fmt.Sprintf("could not write s: %v", err)
-		return
-	}
-	md.Scenes.Reload()
 }
 
 func addLinkNode(md *MoveDispatch) { addLinkNodeAt(md, Links.Place{}) }
