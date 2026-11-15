@@ -1,0 +1,45 @@
+/*
+branch: task/links-mockup-ui
+*/
+.ed .cols { display: flex; align-items: flex-start; gap: 8px; padding: 8px; overflow-x: auto; background: #fafafa; }
+.ed .col { flex: none; width: 300px; background: #fff; border: 1px solid var(--ed-guide); border-radius: 6px; overflow: hidden; }
+.ed .col.now { border-color: var(--a); box-shadow: inset 0 2px 0 var(--a); }
+.ed .col.shut { width: 34px; background: var(--ed-card); align-self: stretch; display: flex; flex-direction: column; align-items: center; padding-top: 6px; gap: 8px; color: var(--ed-mute); font-weight: 700; }
+.ed .col.shut .vert { writing-mode: vertical-rl; font-size: 11px; font-weight: 600; }
+.ed .addcol { flex: none; align-self: flex-start; }
+.ed .chead { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: var(--ed-card); border-bottom: 1px solid var(--ed-guide); }
+.ed .chead .name { font-weight: 700; }
+.ed .chead .eye { font-size: 11px; color: var(--a); font-weight: 600; }
+.ed .tools { display: flex; gap: 3px; padding: 4px 8px; border-bottom: 1px solid var(--ed-guide); flex-wrap: wrap; }
+.ed .tools .btn { padding: 0 6px; }
+.ed .headrow { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-bottom: 1px solid var(--ed-guide); font-size: 12px; flex-wrap: wrap; }
+.ed .lock { display: inline-flex; align-items: stretch; border: 1px solid var(--ed-edge); border-radius: 3px; overflow: hidden; background: #fff; }
+.ed .lock > span { padding: 0 5px; line-height: 18px; }
+.ed .lock .a { border-left: 1px solid var(--ed-edge); color: var(--ed-mute); font-size: 10px; padding: 0 4px; }
+.ed .lock.on .g { background: var(--ed-on); color: var(--a); font-weight: 700; }
+.ed .noderow { display: flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 12px; font-weight: 600; color: var(--ed-mute); border-top: 1px solid #f0f1f3; }
+.ed .linkrow { display: flex; align-items: center; gap: 6px; padding: 3px 8px 3px 22px; min-height: 26px; }
+.ed .linkrow.open { background: var(--ed-on); box-shadow: inset 2px 0 0 var(--a); }
+.ed .linkrow .sum { margin-left: auto; color: var(--ed-mute); font-size: 12px; }
+.ed .lcard { margin: 0 8px 6px 22px; border: 1px solid var(--ed-guide); border-top: 0; border-radius: 0 0 6px 6px; padding: 6px 8px; background: #fff; display: grid; grid-template-columns: 40px 14px auto auto auto; gap: 4px 6px; align-items: center; font-variant-numeric: tabular-nums; justify-content: start; }
+.ed .lcard .h { font-size: 10.5px; color: var(--ed-mute); font-weight: 600; }
+.ed .lcard .ax { font-weight: 700; }
+.ed .lcard .tot { color: var(--ed-mute); font-size: 12px; }
+.ed .step { display: inline-flex; align-items: stretch; }
+.ed .step .b { border: 1px solid var(--ed-edge); background: #fff; width: 17px; text-align: center; font-size: 11px; line-height: 18px; }
+.ed .step .b:first-child { border-radius: 3px 0 0 3px; }
+.ed .step .b:last-child { border-radius: 0 3px 3px 0; }
+.ed .step .v { border-top: 1px solid var(--ed-edge); border-bottom: 1px solid var(--ed-edge); padding: 0 5px; min-width: 28px; text-align: right; line-height: 18px; font-size: 12px; background: #fff; }
+.ed .step .b.dim { color: #c4c7cc; }
+.ed .ruler { height: 14px; position: relative; width: 40px; }
+.ed .ruler .t { position: absolute; left: 0; right: 0; top: 5px; height: 3px; background: var(--ed-guide); border-radius: 2px; }
+.ed .ruler .s { position: absolute; left: 0; top: 5px; height: 3px; background: #9aa0a8; border-radius: 2px; }
+.ed .ruler .d { position: absolute; top: 5px; height: 3px; background: var(--a); }
+.ed .ruler .k { position: absolute; top: 1px; width: 10px; height: 10px; border-radius: 50%; background: var(--a); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--a); }
+.ed .lfoot { grid-column: 1 / -1; font-size: 11px; color: var(--ed-mute); }
+.ed .strip { display: flex; gap: 12px; padding: 5px 8px; border-top: 1px solid var(--ed-guide); background: var(--ed-card); font-size: 11.5px; color: var(--ed-mute); flex-wrap: wrap; }
+.ed .strip .sp { flex: 1; }
+.ed .chip.fixed { background: var(--ed-on); font-size: 10.5px; padding: 0 5px; }
+.hl { outline: 2px dashed #f5a524; outline-offset: 2px; border-radius: 4px; }
+.wire.sel { stroke: var(--ed-edit) !important; stroke-width: 4 !important; }
+.wire.off { stroke: #d5d8dd !important; stroke-dasharray: 3 4; }

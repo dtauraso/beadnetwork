@@ -1,0 +1,56 @@
+<!doctype html>
+<!-- branch: task/links-mockup-ui -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links Tab · Build</title>
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="steps.css">
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <div class="brand"><a href="index.html" style="color:inherit;text-decoration:none">Links tab, rebuilt around open steps</a> <span>φ,θ tab · mockups before building</span></div>
+  <nav class="tabs" id="tabs" aria-label="Pages"></nav>
+</div></header>
+<main>
+<section>
+  <div class="eyebrow">Build</div>
+  <h1>Mostly state that already exists, laid out differently</h1>
+  <p class="lede">No model change. The nodes receive the same edits they do today. What changes is the Links tab's own state (in Go) and the layout code that turns it into marks.</p>
+
+  <h2>State</h2>
+  <table class="doc">
+    <tr><th>Needed</th><th>Where it is</th></tr>
+    <tr><td>Which steps are open</td><td><b>New</b>: a set of step numbers on <code>Builder.Model</code>, saved per level like the node folds. Replaces the single <code>ScoreCell</code>.</td></tr>
+    <tr><td>Which nodes are open in which step</td><td><b>Exists</b>: <code>StepFolds map[StepNode]bool</code>, already per step and node.</td></tr>
+    <tr><td>Which link cards are open</td><td><b>Exists</b>: <code>CardsOpen map[StepEdge]bool</code>, already a set.</td></tr>
+    <tr><td>Step in the scene</td><td><b>Exists</b>: <code>StepShown()</code>.</td></tr>
+    <tr><td>HEAD locks and presses</td><td><b>Exists</b>: <code>StepHead</code>, <code>OpAllLock</code> with a sign (▲▼), and the new <code>OpAllLockCycle</code> for the chip.</td></tr>
+    <tr><td>Picks, presses, nΔ, start, 1</td><td><b>Exists</b>: <code>OpStepPick</code>, <code>OpLinkPress</code>, <code>OpIncrement</code>, <code>OpLinkStart</code>, <code>OpLinkOne</code>.</td></tr>
+    <tr><td>Dial drag</td><td><b>Exists</b>: <code>StartTurn</code>/<code>TurnTo</code>/<code>EndTurn</code>; each card's dial is its own spot, so any open card can be dragged.</td></tr>
+  </table>
+
+  <h2>Code</h2>
+  <ul>
+    <li><b>Kept:</b> <code>Categories/Chrome/Panels/Board/</code> (marks, spots, widgets, the block file and its drawer) and the Sheet hook that lets a pill be a board.</li>
+    <li><b>Rewritten:</b> <code>Categories/Chrome/Pills/Builder/LinksBoard/</code>: the score grid and inspector files are replaced by a step column, a node row, a link row and a link card, laid out top to bottom inside each column.</li>
+    <li><b>Rewritten:</b> the Builder files that fill its data (<code>links_score.go</code>, <code>links_inspector.go</code>), from the open sets instead of one selected cell.</li>
+    <li><b>Changed:</b> clicking an edge in the scene toggles that link's card in the shown step instead of selecting one cell.</li>
+  </ul>
+
+  <h2>Order</h2>
+  <ol>
+    <li>Open-steps set on the model; columns with headers, tools and closed strips.</li>
+    <li>Node rows inside a column, folding through <code>StepFolds</code>.</li>
+    <li>Link rows and cards through <code>CardsOpen</code>: pick dot, dials, steppers, r ruler, fixed and at-0 notes.</li>
+    <li>HEAD row with ▲▼ and the cycling chip.</li>
+    <li>START column.</li>
+    <li>Scene: edge click toggles a card; hover links row and edge.</li>
+    <li>Narrow layout. Then build, checks, and a pass comparing every page here against the editor.</li>
+  </ol>
+</section>
+</main>
+<script src="site.js"></script>
+</body>
+</html>
