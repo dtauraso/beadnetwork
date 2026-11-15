@@ -15,6 +15,7 @@ const (
 	OpLinkOne   = "link-one"
 	OpStepShow  = "step-show"
 	OpNetFold   = "network-fold"
+	OpPlaceFold = "place-fold"
 )
 
 const navHint = "↑↓ move · → open / in · ← close / out · Enter go in · F2 rename · drag a row to reorder"
@@ -69,6 +70,7 @@ func networkRows(t *tree, m Model) {
 		if m.StepFolded(0, id) {
 			continue
 		}
+		placeRows(t, m, id)
 		for _, l := range m.linksTo(id) {
 			e := StepEdge{0, l.From, l.To}
 			lr := m.cardRow(linkRowOf(l, l.Picked, Act{}, 2), e, l.Picked)

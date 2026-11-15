@@ -60,6 +60,7 @@ type Model struct {
 	ShownStep   int
 	StepClosed  bool
 	NetworkOpen bool
+	PlaceOpen   map[string]bool
 	StartOpen   bool
 	Touched     StepEdge
 	DragStep    int
