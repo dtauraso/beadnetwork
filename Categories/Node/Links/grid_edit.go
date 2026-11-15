@@ -78,10 +78,10 @@ func editLink(l *Link, m StepEdit, name string) string {
 		}
 		l.StepOne(k, sign)
 	case EditPress:
-		if k == KR && l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0 {
-			return fmt.Sprintf("%s Δr: r + Δr would be below 0, so Δr stays at %d", name, l.Delta.R)
-		}
 		l.Step(k, sign)
+		if k == KR && l.Start.R+float64(l.Delta.R) < 0 {
+			l.Delta.R = int(math.Ceil(-l.Start.R - 1e-9))
+		}
 	case EditInc, EditHeadInc:
 		inc := *l.Increment.At(k)
 		v := inc + sign
