@@ -60,6 +60,7 @@ type Model struct {
 	ShownStep   int
 	StepClosed  bool
 	NetworkOpen bool
+	PlaceOpen   map[string]bool
 	StartOpen   bool
 	Touched     StepEdge
 	DragStep    int
@@ -129,7 +130,7 @@ func Pills(m Model) []Pill {
 	if !m.On() {
 		return nil
 	}
-	return []Pill{FramePill(m), NodesPill(m), LinksPill(m)}
+	return []Pill{FramePill(m), LinksPill(m)}
 }
 
 func Num(v float64) string {

@@ -1,11 +1,5 @@
 package Builder
 
-import (
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
-)
-
-const NodesLabel = "Node places"
-
 const (
 	OpNodeIdx    = "node-idx"
 	OpNodeRef    = "node-ref"
@@ -15,25 +9,42 @@ const (
 	OpDisconnect = "disconnect"
 )
 
-func NodesPill(m Model) Pill {
-	var rows [][]Cell
-	for _, id := range m.Nodes {
-		r := m.Col(id)
-		act := func(op, k string) Act { return Act{Op: op, Node: id, K: k} }
-		c := m.Frame.At(r.At)
-		rows = append(rows, []Cell{
-			Text(id),
-			Field("I_r", Num(r.At.R), act(OpNodeIdx, Links.KR), true, true),
-			Field("I_φ", Num(r.At.Phi), act(OpNodeIdx, Links.KPhi), true, true),
-			Field("I_θ", Num(r.At.Theta), act(OpNodeIdx, Links.KTheta), true, true), Text("C x " + Num(c.X) + " y " + Num(c.Y) + " z " + Num(c.Z)),
-			Text("n " + m.NOf(id)),
-			Button("remove", act(OpRemoveNode, ""), false),
-		})
+func networkRows(t *tree, m Model) {
+	t.add(linkRow{
+		id:     Act{Op: OpNetFold},
+		open:   openOf(m.NetworkOpen),
+		fold:   Act{Op: OpNetFold},
+		name:   Text("network"),
+		detail: []Cell{Text("what runs now · " + linkCount(len(m.allLinks()))).Dimmed(true)},
+		acts:   []Cell{Button("+ node", Act{Op: OpAddNode}, false).Tipped("add a node")},
+	})
+	if !m.NetworkOpen {
+		return
 	}
-	rows = append(rows, []Cell{Button("+ add node", Act{Op: OpAddNode}, false)})
-	return Pill{Label: NodesLabel, Bottom: true, Groups: []Group{
-		{Title: "nodes — the place I, an index on the frame", Rows: rows},
-	}}
+	for _, id := range m.Nodes {
+		fold := Act{Op: OpStepFold, Node: id}
+		r := linkRow{id: fold, depth: 1, open: openOf(!m.StepFolded(0, id)), fold: fold, name: Text("node " + id), table: "network node " + id}
+		if m.StepFolded(0, id) {
+			r.detail = []Cell{Text(linkCount(len(m.linksTo(id)))).Dimmed(true)}
+		} else {
+			r.more = refCells(m, id)
+		}
+		r.acts = append(connectRow(m, id, "link to"), Button("×", Act{Op: OpRemoveNode, Node: id}, false).Tipped("remove this node"))
+		t.add(r)
+		if m.StepFolded(0, id) {
+			continue
+		}
+		placeRows(t, m, id)
+		for _, l := range m.linksTo(id) {
+			e := StepEdge{0, l.From, l.To}
+			lr := m.cardRow(linkRowOf(l, l.Picked, Act{}, 2), e, l.Picked)
+			lr.acts = []Cell{Button("×", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false).Tipped("remove this link")}
+			t.add(lr)
+			if m.CardOpen(e, l.Picked) {
+				t.put(netCard(l, 3))
+			}
+		}
+	}
 }
 
 func connectRow(m Model, from, label string) []Cell {
