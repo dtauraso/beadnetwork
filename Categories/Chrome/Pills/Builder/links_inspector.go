@@ -3,6 +3,7 @@ package Builder
 import (
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -114,5 +115,25 @@ func inspectorGroup(m Model) Group {
 			Text(endsAt(l, a)).Inked(inkStrong),
 		})
 	}
-	return Group{Rows: rows, Card: true}
+	if note := m.rNote(l); note != "" {
+		rows = append(rows, []Cell{Text(note).Dimmed(true)})
+	}
+	return Group{Rows: rows, Card: true, Wraps: true}
+}
+
+func (m Model) rNote(l Links.Link) string {
+	for _, id := range m.ManyIn() {
+		if id != l.From && id != l.To {
+			continue
+		}
+		var in []string
+		for _, f := range m.linksTo(id) {
+			in = append(in, f.Name())
+		}
+		return "🔒 r is fixed: " + id + " has " + strconv.Itoa(len(in)) + " links in (" + strings.Join(in, ", ") + "), so its distance is held"
+	}
+	if l.Start.R+float64(l.Delta.R) < 1e-9 {
+		return "r is at 0, the closest it can go"
+	}
+	return ""
 }

@@ -7,13 +7,14 @@ func (p *Peer) pickReq(m PickReq) []Envelope {
 	if !ok {
 		return nil
 	}
+	var out []Envelope
 	if on := p.pickedIn(); on != nil && on.From != m.From {
-		p.Changed.Refused = fmt.Sprintf("%s→%s: %s already has a picked link into it, from %s", m.From, p.ID, p.ID, on.From)
-		return nil
+		p.Changed.Refused = fmt.Sprintf("moved the pick from %s→%s to %s→%s: one picked link into a node at a time", on.From, p.ID, m.From, p.ID)
+		out = p.unpick(Unpick{From: on.From})
 	}
 	l.Picked = true
 	p.touched(m.From)
-	return []Envelope{{To: m.From, Msg: PickSet{From: p.ID, On: true}}}
+	return append(out, Envelope{To: m.From, Msg: PickSet{From: p.ID, On: true}})
 }
 
 func (p *Peer) pickSet(m PickSet) []Envelope {
