@@ -9,6 +9,8 @@ import (
 
 const OpOverlay = "overlay"
 
+const dockPerRow = 2
+
 var dockRows = []struct {
 	Name  string
 	Flags []string
@@ -49,7 +51,7 @@ func DockPill(ov *Flags.OverlayState, hidden []string) Sheet.Pill {
 	}
 	rows := [][]Sheet.Cell{{Sheet.Button(all, Sheet.Act{Op: OpOverlay, K: GuidelinesFlag}, active)}}
 	for _, r := range dockRows {
-		row := []Sheet.Cell{Sheet.Text(r.Name)}
+		var buttons []Sheet.Cell
 		for _, f := range r.Flags {
 			it, ok := itemOf(f, Tree)
 			if !ok || slices.Contains(hidden, f) {
@@ -60,10 +62,13 @@ func DockPill(ov *Flags.OverlayState, hidden []string) Sheet.Pill {
 			if f == "labelsGlobal" {
 				icon = LabelsIcon(on)
 			}
-			row = append(row, Sheet.Button(icon+" "+it.Label, Sheet.Act{Op: OpOverlay, K: f}, on).Dimmed(!active))
+			buttons = append(buttons, Sheet.Button(icon+" "+it.Label, Sheet.Act{Op: OpOverlay, K: f}, on).Dimmed(!active))
 		}
-		if len(row) > 1 {
-			rows = append(rows, row)
+		name := r.Name
+		for len(buttons) > 0 {
+			n := min(dockPerRow, len(buttons))
+			rows = append(rows, append([]Sheet.Cell{Sheet.Text(name)}, buttons[:n]...))
+			buttons, name = buttons[n:], ""
 		}
 	}
 	return Sheet.Pill{Label: Label, Bottom: true, Groups: []Sheet.Group{
