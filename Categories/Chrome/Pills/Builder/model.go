@@ -62,6 +62,7 @@ type Model struct {
 	NetworkOpen bool
 	PlaceOpen   map[string]bool
 	StartOpen   bool
+	FrameFolded bool
 	Touched     StepEdge
 	DragStep    int
 	Level       string
