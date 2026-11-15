@@ -14,7 +14,7 @@ func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintln(os.Stderr, "usage: readgrid <grid.bin> [more.bin ...]")
 		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, "Prints a node's grid.bin as the table the Node grid tab shows: one column per step.")
+		fmt.Fprintln(os.Stderr, "Prints a node's grid.bin as a table: one column per step.")
 		os.Exit(2)
 	}
 	status := 0
