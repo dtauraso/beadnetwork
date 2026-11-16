@@ -39,6 +39,8 @@ for f in "${matched[@]}"; do
   git rm "$f"
   echo "  removed: $f"
 done
+git commit -q -m "Strip ${BRANCH}'s branch-local docs before merging" -- "${matched[@]}"
+echo "  committed the removal on $(git branch --show-current)"
 
 for f in "${matched[@]}"; do
 
