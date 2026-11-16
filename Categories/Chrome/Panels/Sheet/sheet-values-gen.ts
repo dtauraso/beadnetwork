@@ -70,7 +70,6 @@ export const SHEET_VALUE_NAMES = [
   "cellDial",
   "dialStart",
   "dialTurn",
-  "dialGhost",
   "cardBox",
   "cardX",
   "cardY",

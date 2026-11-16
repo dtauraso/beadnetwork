@@ -27,7 +27,6 @@ export const BOARD_VALUE_NAMES = [
   "dialAxis",
   "dialStart",
   "dialTurn",
-  "dialGhost",
   "dialInc",
   "dialLabels",
   "clipX",

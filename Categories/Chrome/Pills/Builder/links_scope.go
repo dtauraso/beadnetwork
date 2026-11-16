@@ -6,7 +6,6 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
 const (
@@ -68,8 +67,8 @@ func boardData(m Model) LinksBoard.Data {
 		S:     Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "00", Act: frameAct(FrameS), Tip: "ticks a twelfth of a turn, one s every node uses — it rises when a start needs more"},
 		Doors: []Board.Chip{net, {Label: "Frame ⚙", Act: Act{Op: OpFramePop}, Lit: m.FramePop, Tip: "ρ, T_φ, T_θ, c_r, Δt — shared by every sequence; applying reloads the scene"}},
 		More:  Act{Op: OpMenu, K: menuMore}, MoreOpen: m.Menu == Act{Op: OpMenu, K: menuMore}, Cols: boardCols(m), Insp: boardInspector(m), InspOpen: m.InspOpen, InspTab: Act{Op: OpInspTab},
-		Status: "showing step " + itoa(m.StepShown()), Ghost: m.GhostNote(),
-		Toast: m.Refused, At: m.Pressed, Dismiss: Act{Op: OpToastClose}}
+		Status: "showing step " + itoa(m.StepShown()),
+		Toast:  m.Refused, At: m.Pressed, Dismiss: Act{Op: OpToastClose}}
 	if ns := m.stepNums(); len(ns) > 0 {
 		d.Add = Act{Op: OpStepAdd, I: ns[len(ns)-1]}
 	}
@@ -114,69 +113,14 @@ func (m *Model) Hover(a Act) bool {
 	return true
 }
 
-func (m Model) Preview() (from, to string, ghosts []Links.Vec3) {
+func (m Model) Preview() (from, to string) {
 	if t := m.Turning; t.Act.Op != "" {
-		return t.Act.Node, t.Act.To, m.turnGhosts(t)
+		return t.Act.Node, t.Act.To
 	}
 	if m.AtSeqs {
-		return "", "", nil
+		return "", ""
 	}
-	if h := m.Hot; h.Op == OpStepShow && h.I != m.StepShown() {
-		for _, id := range m.Nodes {
-			if c, ok := m.StepCol(h.I, id); ok {
-				ghosts = append(ghosts, c.Pos)
-			}
-		}
-		return "", "", ghosts
-	}
-	return m.Hot.Node, m.Hot.To, nil
-}
-
-func (m Model) GhostNote() string {
-	_, _, ghosts := m.Preview()
-	if len(ghosts) == 0 {
-		return ""
-	}
-	n := itoa(len(ghosts)) + " faint node"
-	if len(ghosts) > 1 {
-		n += "s"
-	}
-	if t := m.Turning; t.Act.Op != "" {
-		return "ghost: the " + n + " in the scene show where " + t.Act.To + " and what follows it land when you let go"
-	}
-	return "ghost: the " + n + " in the scene show where every node sits at the end of step " + itoa(m.Hot.I)
-}
-
-func (m Model) turnGhosts(t Turning) []Links.Vec3 {
-	l, ok := m.gridLink(StepEdge{t.Act.I, t.Act.Node, t.Act.To})
-	src, ok2 := m.StepCol(t.Act.I, t.Act.Node)
-	if !ok || !ok2 || t.presses() == 0 {
-		return nil
-	}
-	g := l
-	*g.Delta.At(t.Act.K) = t.From + t.presses()*t.Inc
-	ref := Links.RefTurn(src.Ref)
-	d := m.Frame.LinkVec(g, ref).Sub(m.Frame.LinkVec(l, ref))
-	var out []Links.Vec3
-	for _, id := range m.downstream(t.Act.I, l.To) {
-		if c, ok := m.StepCol(t.Act.I, id); ok {
-			out = append(out, c.Pos.Add(d))
-		}
-	}
-	return out
-}
-
-func (m Model) downstream(step int, root string) []string {
-	out, seen := []string{root}, map[string]bool{root: true}
-	for i := 0; i < len(out); i++ {
-		for _, id := range m.Nodes {
-			if l, ok := m.gridLink(StepEdge{step, out[i], id}); ok && l.Picked && !seen[id] {
-				seen[id] = true
-				out = append(out, id)
-			}
-		}
-	}
-	return out
+	return m.Hot.Node, m.Hot.To
 }
 
 func (m *Model) SelectEdge(a, b string) bool {

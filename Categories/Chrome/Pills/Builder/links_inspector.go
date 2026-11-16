@@ -87,9 +87,6 @@ func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 			m.rRow(c, &r, l)
 		} else {
 			d := boardDial(axisDial(l, a.k))
-			if m.Turning.Act == press {
-				d.Ghost = float32(m.Turning.presses() * m.Turning.Inc)
-			}
 			d.Inc = float32(a.times(l))
 			r.Dial, r.DialAct = &d, press
 		}

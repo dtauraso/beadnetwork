@@ -103,8 +103,8 @@ const (
 )
 
 type Dial struct {
-	Axis               DialAxis
-	Start, Turn, Ghost float32
+	Axis        DialAxis
+	Start, Turn float32
 }
 
 const DialGap = 4

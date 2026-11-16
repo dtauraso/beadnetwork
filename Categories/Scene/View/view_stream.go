@@ -63,14 +63,11 @@ func (ui *UIState) linksPreview(board bool) Preview.Preview {
 		p.Edges = append(p.Edges, Preview.EdgeMark{Src: a, Dst: b, State: st})
 	}
 	p.EdgePick = !ui.Builder.AtSeqs
-	from, to, ghosts := ui.Builder.Preview()
+	from, to := ui.Builder.Preview()
 	if a, ok := ui.NodeRowFor(from); ok {
 		if b, ok := ui.NodeRowFor(to); ok {
 			p.HotSrc, p.HotDst = a, b
 		}
-	}
-	for _, g := range ghosts {
-		p.Ghosts = append(p.Ghosts, ui.SceneSphere.Center.Add(g))
 	}
 	return p
 }

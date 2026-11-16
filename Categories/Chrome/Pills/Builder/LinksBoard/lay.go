@@ -76,10 +76,6 @@ func strip(l *Board.Laid, r Rect, d Data) {
 	h := Board.RowH()
 	x, y := r.X+pad, r.Y+stripPad/2
 	x += l.Text(x, y, h, clip, d.Status, 11.5, Board.Mute, false, Board.Left) + 12
-	if d.Ghost != "" {
-		l.Text(x, y, h, clip, d.Ghost, 11.5, Board.Accent, true, Board.Left)
-		return
-	}
 	hint := "click to open · drag a dial · two-finger scroll"
 	if w := Board.W(hint, 11.5); r.X+r.W-pad-w > x+12 {
 		l.Text(r.X+r.W-pad, y, h, clip, hint, 11.5, Board.Mute, false, Board.Right)

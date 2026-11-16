@@ -3,7 +3,7 @@ import { canvasFont } from "../../canvas-box";
 type R = { x: number; y: number; w: number; h: number };
 const TURN = 12;
 
-export type DialLook = { axis: number; start: number; turn: number; ghost: number; inc: number; labels: boolean };
+export type DialLook = { axis: number; start: number; turn: number; inc: number; labels: boolean };
 
 const GUIDE = "#dde1e6", TICK = "#c8ccd2", LABEL = "#555", START = "#9aa0a8", INK = "#222", ACCENT = "#1565c0";
 
@@ -66,13 +66,6 @@ export function drawDial(c: CanvasRenderingContext2D, r: R, d: DialLook, col: st
   const end = d.start + d.turn;
   c.strokeStyle = col;
   c.lineWidth = sw;
-  if (d.ghost) {
-    c.globalAlpha = 0.7;
-    c.setLineDash([3, 3]);
-    arc(end, d.ghost, track);
-    c.setLineDash([]);
-    c.globalAlpha = 1;
-  }
   if (d.turn) {
     c.lineCap = "round";
     if (d.turn < 0) c.setLineDash([3, 3]);
@@ -90,15 +83,6 @@ export function drawDial(c: CanvasRenderingContext2D, r: R, d: DialLook, col: st
       c.fillStyle = ACCENT;
       c.fill();
     }
-  }
-  if (d.ghost && size >= 40) {
-    const [x, y] = at(end + d.ghost, reach);
-    disc(x, y, knob);
-    c.fillStyle = "#fff";
-    c.fill();
-    c.strokeStyle = ACCENT;
-    c.lineWidth = 1.5;
-    c.stroke();
   }
   disc(cx, cy, Math.max(1.2, size / 28));
   c.fillStyle = INK;

@@ -6,7 +6,6 @@ import { INTERIOR_SLOTS_PER_NODE } from "../../../../Categories/Node/Interior/in
 
 import { ChainBeadInstances } from "../../../../Categories/Node/BeadAnimation/ChainBeadInstances";
 import { EdgeVectors } from "../../../../Categories/Vectors/Drawn/EdgeVectors";
-import { GhostNodes } from "../../../../Categories/Scene/Preview/GhostNodes";
 import { getEdgeStreamAccessor } from "../../../../Categories/Node/Edge/edge-stream-blocks";
 import { TiltVectors } from "../../../../Categories/Node/TiltVectors/TiltVectors";
 import { TickMarks } from "../../../../Categories/Node/TickMarks/TickMarks";
@@ -65,7 +64,6 @@ export function SceneRoot({ cameraRef }: {
         onCount={(n) => { if (n > chainBeadCap) setChainBeadCap(Math.ceil(n * 1.5)); }}
       />
       <NodeInstances capacity={nodeCap} />
-      <GhostNodes capacity={nodeCap} />
       {}
       {}
       <TiltVectors capacity={nodeCap * 3} receivedCapacity={nodeCap} startCapacity={nodeCap * 2} />

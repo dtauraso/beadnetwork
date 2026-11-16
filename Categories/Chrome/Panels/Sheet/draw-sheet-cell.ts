@@ -34,7 +34,7 @@ const TURN = 12;
 
 export type R = { x: number; y: number; w: number; h: number };
 
-export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean; bare: boolean; ink: number; caret: number; dial: number; dialStart: number; dialTurn: number; dialGhost: number };
+export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean; bare: boolean; ink: number; caret: number; dial: number; dialStart: number; dialTurn: number };
 
 export function drawBand(c: CanvasRenderingContext2D, r: R, band: number): void {
   if (band === BAND_GUIDE) {
@@ -121,17 +121,6 @@ function drawDial(c: CanvasRenderingContext2D, r: R, l: CellLook): number {
   c.beginPath();
   c.arc(x + rad * Math.cos(end), y + rad * Math.sin(end), 2.2, 0, 2 * Math.PI);
   c.fill();
-  if (l.dialGhost) {
-    const to = angle(l.dialStart + l.dialTurn + l.dialGhost);
-    c.globalAlpha = 0.45;
-    c.lineWidth = 2.5;
-    arc(c, x, y, rad, l.dialStart + l.dialTurn, l.dialGhost);
-    c.globalAlpha = 1;
-    c.lineWidth = 1.5;
-    c.beginPath();
-    c.arc(x + rad * Math.cos(to), y + rad * Math.sin(to), 2.6, 0, 2 * Math.PI);
-    c.stroke();
-  }
   return size + 1 + DIAL_GAP;
 }
 

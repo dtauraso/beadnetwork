@@ -62,7 +62,7 @@ export function drawBoard(c: CanvasRenderingContext2D): void {
   const clip = u8s("markClip"), fill = u8s("markFill"), edge = u8s("markEdge"), ink = u8s("markInk");
   const radius = f32s("markRadius"), stroke = f32s("markStroke"), px = f32s("markPx"), alpha = f32s("markAlpha");
   const bold = u8s("markBold"), dash = u8s("markDash"), corner = u8s("markCorner"), labels = texts();
-  const dAxis = u8s("dialAxis"), dStart = f32s("dialStart"), dTurn = f32s("dialTurn"), dGhost = f32s("dialGhost"), dInc = f32s("dialInc"), dLabels = u8s("dialLabels");
+  const dAxis = u8s("dialAxis"), dStart = f32s("dialStart"), dTurn = f32s("dialTurn"), dInc = f32s("dialInc"), dLabels = u8s("dialLabels");
   const cx = f32s("clipX"), cy = f32s("clipY"), cw = f32s("clipW"), ch = f32s("clipH");
   const n = kind.length, caretMark = boardU32Run("caretMark")?.[0] ?? 0, caretAt = boardU32Run("caretAt")?.[0] ?? 0;
   if ([mx, my, mw, mh, clip, fill, edge, radius, alpha].some((a) => a.length !== n)) return;
@@ -102,7 +102,7 @@ export function drawBoard(c: CanvasRenderingContext2D): void {
       if (fill[i]) { c.fillStyle = PAINT[fill[i]!]!; c.fill(); }
       if (edge[i]) { c.strokeStyle = PAINT[edge[i]!]!; c.lineWidth = stroke[i] || 1; c.stroke(); }
     } else if (kind[i] === K_DIAL) {
-      drawDial(c, r, { axis: dAxis[i]!, start: dStart[i]!, turn: dTurn[i]!, ghost: dGhost[i]!, inc: dInc[i]!, labels: !!dLabels[i] }, PAINT[dAxis[i]!] || PAINT[8]!);
+      drawDial(c, r, { axis: dAxis[i]!, start: dStart[i]!, turn: dTurn[i]!, inc: dInc[i]!, labels: !!dLabels[i] }, PAINT[dAxis[i]!] || PAINT[8]!);
     }
     c.restore();
   }

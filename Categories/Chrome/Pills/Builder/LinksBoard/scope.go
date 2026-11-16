@@ -79,7 +79,7 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 			}
 			rw := chipW(Board.Chip{Label: "✎"})
 			rx, ry := f.at(rw)
-			l.Chip(rx, ry, clip, Board.Chip{Label: "✎", Act: c.Rename, Ghost: true, Tip: "rename this sequence"})
+			l.Chip(rx, ry, clip, Board.Chip{Label: "✎", Act: c.Rename, Tip: "rename this sequence"})
 		case c.Act.Op == "":
 			l.Text(x, y, h, clip, c.Label, Board.Px, Board.Ink, true, Board.Left)
 		default:
@@ -112,7 +112,7 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 	}
 	doors := d.Doors
 	if d.Insp.Title != "" {
-		insp := Board.Chip{Label: "◂ inspect", Act: d.InspTab, Ghost: true, Tip: "open the inspector for the selected link"}
+		insp := Board.Chip{Label: "◂ inspect", Act: d.InspTab, Tip: "open the inspector for the selected link"}
 		if d.InspOpen {
 			insp = Board.Chip{Label: "▸ inspect", Act: d.InspTab, Lit: true, Tip: "hide the inspector · the link stays selected"}
 		}
@@ -138,9 +138,6 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 		_, y := f.at(dw)
 		x := f.right - dw
 		for _, c := range doors {
-			if !c.Lit {
-				c.Ghost = true
-			}
 			x += l.Chip(x, y, clip, c) + Board.Gap
 		}
 	}
@@ -157,7 +154,7 @@ func stepBar(l *Board.Laid, r Rect, steps []Board.Chip) float32 {
 		x, y := f.at(chipW(c))
 		l.Chip(x, y, clip, c)
 	}
-	hint := "click a step to show it · hover to ghost it"
+	hint := "click a step to show it"
 	hw := Board.W(hint, tinyPx)
 	if f.x+hw <= f.right {
 		l.Text(f.right, f.y, h, clip, hint, tinyPx, Board.Mute, false, Board.Right)

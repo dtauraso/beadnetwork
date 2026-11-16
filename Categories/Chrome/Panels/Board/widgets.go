@@ -59,7 +59,6 @@ type Chip struct {
 	Label string
 	Act   Sheet.Act
 	Lit   bool
-	Ghost bool
 	Dim   bool
 	Pri   bool
 	Bad   bool
@@ -80,8 +79,6 @@ func (l *Laid) Chip(x, y float32, clip uint8, c Chip) float32 {
 		fill, edge, ink = Accent, Accent, White
 	case c.Lit:
 		fill, edge, ink = On, Accent, Accent
-	case c.Ghost:
-		fill, edge = None, None
 	}
 	if c.Bad {
 		ink = Bad
@@ -161,4 +158,3 @@ type Stepper struct {
 func (l *Laid) Stepper(x, y float32, clip uint8, s Stepper) float32 {
 	return l.Seg(x, y, clip, s)
 }
-
