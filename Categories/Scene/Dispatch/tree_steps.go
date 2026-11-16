@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
@@ -21,6 +22,9 @@ func runSheetTree(ctx context.Context, md *MoveDispatch, a Sheet.Act) bool {
 			View.LogPersistErr("sheet_tree_fold", m.Scene, err)
 		}
 	case Builder.OpTreeGo:
+		if slices.Equal(p, m.OpenPath()) {
+			return true
+		}
 		if m.Crosses(p) {
 			crossTo(md, p)
 			return true

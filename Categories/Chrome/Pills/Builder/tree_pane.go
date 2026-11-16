@@ -138,6 +138,9 @@ func (m Model) Crumbs() ([]Board.Chip, Act) {
 	for i := range p {
 		out[i] = Board.Chip{Label: stepLabelAt(m.pathDir(p[:i]), p[i]), Act: Act{Op: OpTreeGo, Node: PathKey(p[:i+1])}}
 	}
+	if ns := ReadStepNumbers(m.pathDir(p[:1])); m.OpenTop > 0 && len(p) > 1 && len(ns) > 0 {
+		out[0].Act.Node = PathKey([]int{p[0], ns[0]})
+	}
 	if len(p) == 0 {
 		return out, Act{}
 	}
