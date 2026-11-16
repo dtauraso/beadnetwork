@@ -41,7 +41,15 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 	if narrow && d.More.Op != "" {
 		f.right -= Board.W("⋯", Board.BtnPx) + 12 + Board.Gap
 	}
-	if d.Where != "" {
+	if narrow && d.PathMenu.Op != "" {
+		w := min(Board.W(d.Where+" ▾", Board.ChipPx)+14, f.right-f.x0)
+		x, y := f.at(w)
+		c := Board.Chip{Label: fitText(d.Where, w-14-Board.W(" ▾", Board.ChipPx), false) + " ▾", Act: d.PathMenu, Lit: d.PathOpen}
+		l.Chip(x, y, clip, c)
+		if d.PathOpen {
+			*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: w, H: h}, pane: true})
+		}
+	} else if d.Where != "" {
 		w := min(Board.TextW(d.Where, Board.Px, 7), f.right-f.x0)
 		x, y := f.at(w)
 		l.Text(x, y, h, clip, fitText(d.Where, w, true), Board.Px, Board.Ink, true, Board.Left)

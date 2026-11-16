@@ -54,6 +54,10 @@ func boardData(m Model) LinksBoard.Data {
 	}
 	m.treeData(&d)
 	d.Where = m.PathLabel()
+	if d.TreeFind != nil {
+		d.PathMenu = Act{Op: OpMenu, K: menuPath}
+		d.PathOpen = m.Menu == d.PathMenu
+	}
 	if strings.HasPrefix(m.Refused, "moved the pick") {
 		d.Undo = m.UndoPick
 	}

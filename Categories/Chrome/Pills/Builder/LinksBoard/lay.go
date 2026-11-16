@@ -42,6 +42,10 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 		popover(l, box, bar, *d.Pop)
 	}
 	for _, p := range menus {
+		if p.pane {
+			treePop(l, box, p.at, d)
+			continue
+		}
 		drawMenu(l, box, p)
 	}
 	return l

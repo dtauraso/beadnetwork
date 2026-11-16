@@ -125,6 +125,8 @@ type Empty struct {
 
 type Data struct {
 	Where    string
+	PathMenu Act
+	PathOpen bool
 	S        Board.Field
 	SNote    string
 	Doors    []Board.Chip

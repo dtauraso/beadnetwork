@@ -76,6 +76,31 @@ func treePane(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float3
 	return max(0, y+pad+sy-(r.Y+r.H))
 }
 
+func treePop(l *Board.Laid, box, at Rect, d Data) {
+	h := Board.RowH()
+	n := len(d.Tree)
+	if d.TreeFind != nil {
+		n++
+	}
+	if len(d.Tree) == 0 {
+		n++
+	}
+	r := Rect{X: at.X, Y: at.Y + at.H + 2, W: min(treeW+60, box.W-2*pad), H: float32(n)*h + 4 + 2*pad}
+	r.X = max(box.X+pad, min(r.X, box.X+box.W-pad-r.W))
+	r.H = min(r.H, box.Y+box.H-pad-r.Y)
+	clip := l.Clip(Rect{X: r.X - 4, Y: r.Y - 4, W: r.W + 8, H: r.H + 8})
+	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: r.X, Y: r.Y + 2, W: r.W, H: r.H}, Clip: clip, Fill: Board.Edge, Radius: 6, Alpha: 0.4})
+	l.Block(r, clip)
+	rows := make([]TreeRow, len(d.Tree))
+	for i, t := range d.Tree {
+		t.Menu, t.MenuOpen = Act{}, false
+		rows[i] = t
+	}
+	d.Tree = rows
+	var none []placed
+	treePane(l, r, 0, d, &none)
+}
+
 func fitText(s string, w float32, bold bool) string {
 	wt := map[bool]uint8{true: 7, false: 4}[bold]
 	if Board.TextW(s, Board.Px, wt) <= w {

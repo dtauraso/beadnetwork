@@ -20,12 +20,13 @@ const (
 const (
 	menuStep = "step"
 	menuMore = "more"
+	menuPath = "path"
 	menuNode = "node"
 )
 
 func (m *Model) PressMenu(a Act) {
 	if a.Op != OpMenu {
-		if a.Op != OpTreeFind && a.Op != OpFrame {
+		if a.Op != OpTreeFind && a.Op != OpFrame && !(a.Op == OpTreeFold && m.Menu.K == menuPath) {
 			m.Menu = Act{}
 		}
 		return
