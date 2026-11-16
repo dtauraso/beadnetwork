@@ -37,25 +37,25 @@ func chipW(c Board.Chip) float32 { return Board.W(c.Label, Board.ChipPx) + 14 }
 
 func crumbs(l *Board.Laid, f *flow, clip uint8, cs []Board.Chip, name Act) {
 	h := Board.RowH()
-	sep := Board.W("›", Board.Px)
+	sep := Board.W("›", Board.ChipPx)
 	for i, c := range cs {
 		if i > 0 {
 			x, y := f.at(sep)
-			l.Text(x, y, h, clip, "›", Board.Px, Board.Mute, false, Board.Left)
+			l.Text(x, y, h, clip, "›", Board.ChipPx, Board.Mute, false, Board.Left)
 		}
-		w := min(Board.TextW(c.Label, Board.Px, map[bool]uint8{true: 7, false: 4}[c.Lit]), f.right-f.x0)
-		x, y := f.at(w)
-		ink := Board.Accent
-		if c.Lit {
-			ink = Board.Ink
+		if !c.Lit {
+			x, y := f.at(chipW(c))
+			l.Chip(x, y, clip, c)
+			continue
 		}
-		l.Text(x, y, h, clip, fitText(c.Label, w, c.Lit), Board.Px, ink, c.Lit, Board.Left)
-		if c.Lit {
-			l.Marks[len(l.Marks)-1].Edit = name
-		}
-		if c.Act.Op != "" {
-			l.Spot(Rect{X: x, Y: y, W: w, H: h}, clip, Sheet.Cell{Act: c.Act}, Sheet.PartBody)
-		}
+		lw := min(Board.TextW(c.Label, Board.Px, 7), f.right-f.x0-chipW(Board.Chip{Label: "✎"})-Board.Gap-2*Board.PadX)
+		x, y := f.at(lw + 2*Board.PadX)
+		ew := l.Editable(x, y, lw+2*Board.PadX, clip, fitText(c.Label, lw, true), Board.Px, Board.Ink, name)
+		l.Marks[len(l.Marks)-1].Bold = true
+		l.Spot(Rect{X: x, Y: y, W: ew, H: h}, clip, Sheet.Cell{Act: c.Act}, Sheet.PartBody)
+		pen := Board.Chip{Label: "✎", Act: c.Act}
+		rx, ry := f.at(chipW(pen))
+		l.Chip(rx, ry, clip, pen)
 	}
 }
 
