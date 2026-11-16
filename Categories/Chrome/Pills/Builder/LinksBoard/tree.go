@@ -101,11 +101,18 @@ func treePop(l *Board.Laid, box, at Rect, d Data, menus *[]placed) {
 	}
 	r := Rect{X: at.X, Y: at.Y + at.H + 2, W: min(treeW+60, box.W-2*pad), H: float32(n)*h + 4 + 2*pad}
 	r.X = max(box.X+pad, min(r.X, box.X+box.W-pad-r.W))
+	full := r.H
 	r.H = min(r.H, box.Y+box.H-pad-r.Y)
+	most := max(0, full-r.H)
 	clip := l.Clip(Rect{X: r.X - 4, Y: r.Y - 4, W: r.W + 8, H: r.H + 8})
 	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: r.X, Y: r.Y + 2, W: r.W, H: r.H}, Clip: clip, Fill: Board.Edge, Radius: 6, Alpha: 0.4})
 	l.Block(r, clip)
-	treePane(l, r, 0, d, menus)
+	if d.TreeScroll.Op != "" {
+		a := d.TreeScroll
+		a.I = int(most)
+		l.Spot(r, clip, Sheet.Cell{Act: a}, Sheet.PartInside)
+	}
+	treePane(l, r, min(d.TreeSY, most), d, menus)
 }
 
 func fitText(s string, w float32, bold bool) string {

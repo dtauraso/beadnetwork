@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
@@ -124,6 +126,25 @@ func (m *Model) ToggleTreeFold(p []int) error {
 	}
 	m.ReadTree()
 	return nil
+}
+
+func (m *Model) TreeWheel(pl Sheet.Layout, x, y, dy float64) bool {
+	if !m.TreePop {
+		return false
+	}
+	for _, p := range pl.Pills {
+		l, ok := p.Board.(*Board.Laid)
+		if !ok {
+			continue
+		}
+		for _, s := range l.Spots {
+			if s.Cell.Act.Op == OpTreeScroll && x >= float64(s.R.X) && x < float64(s.R.X+s.R.W) && y >= float64(s.R.Y) && y < float64(s.R.Y+s.R.H) {
+				m.TreeSY = min(max(0, m.TreeSY+float32(dy)), float32(s.Cell.Act.I))
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (m Model) Crosses(p []int) bool { return m.OpenTop > 0 && (len(p) == 0 || p[0] != m.OpenTop) }

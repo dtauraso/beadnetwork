@@ -50,6 +50,7 @@ type Model struct {
 	NetworkOpen bool
 	StartOpen   bool
 	TreePop     bool
+	TreeSY      float32
 	InspOpen    bool
 	StepsOpen   map[StepNode]bool
 	FramePop    bool

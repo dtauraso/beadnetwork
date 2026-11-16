@@ -98,6 +98,10 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			md.UI.EmitViewFrame(nil)
 		}
 	}
+	if ev.Kind == "wheel" && md.UI.Builder.TreeWheel(md.UI.PanelLayout().Sheet, ev.X, ev.Y, ev.DeltaY) {
+		md.UI.EmitViewFrame(nil)
+		return
+	}
 	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Sheet, ev.X, ev.Y, ev.DeltaX, ev.DeltaY, md.redraw) {
 		return
 	}
