@@ -156,7 +156,7 @@ func nameSequence(md *MoveDispatch, k int, name string) {
 		return
 	}
 	if name = strings.TrimSpace(name); name == "" {
-		name = "sequence " + strconv.Itoa(k)
+		name = "sequence " + strconv.Itoa(Scenes.SequenceID(scene, k))
 	}
 	if err := Scenes.WriteSequenceName(scene, k, name); err != nil {
 		View.LogPersistErr("sheet_seq_name", scene, err)
@@ -168,8 +168,11 @@ func nameSequence(md *MoveDispatch, k int, name string) {
 func LoadSequences(md *MoveDispatch, scene string) {
 	m := &md.UI.Builder
 	m.Seqs = nil
+	if err := Scenes.EnsureSequenceIDs(scene); err != nil {
+		View.LogPersistErr("sheet_seq_ids", scene, err)
+	}
 	for _, k := range Scenes.Sequences(scene) {
-		m.Seqs = append(m.Seqs, Builder.Seq{K: k, Name: Scenes.SequenceName(scene, k)})
+		m.Seqs = append(m.Seqs, Builder.Seq{K: k, ID: Scenes.SequenceID(scene, k), Name: Scenes.SequenceName(scene, k)})
 	}
 	m.OpenSeq = Scenes.OpenSequence(scene)
 }

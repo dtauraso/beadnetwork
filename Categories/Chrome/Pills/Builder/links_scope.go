@@ -35,6 +35,7 @@ func crumbs(m Model) []LinksBoard.Crumb {
 			c.Act = Act{Op: OpLevelGo, Node: m.Trail[i].Level, I: m.Trail[i].Step}
 		}
 		if i == 0 && len(m.Seqs) > 0 {
+			c.Tag = m.openSeqTag()
 			c.Edit, c.Rename = Act{Op: OpSeqName, I: m.OpenSeq}, Act{Op: OpRename, K: renameSeq, I: m.OpenSeq}
 		}
 		out = append(out, c)

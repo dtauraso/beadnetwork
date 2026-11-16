@@ -71,7 +71,7 @@ func pathGroup(m Model) Group {
 	} else {
 		name = name.Inked(inkStrong)
 	}
-	row = append(row, sep, name)
+	row = append(row, sep, Text(m.openSeqTag()).Dimmed(true), name)
 	for i, s := range m.Trail {
 		c := Text(s.Label)
 		if i+1 < len(m.Trail) {

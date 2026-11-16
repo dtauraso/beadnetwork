@@ -21,7 +21,19 @@ const (
 
 type Seq struct {
 	K    int
+	ID   int
 	Name string
+}
+
+func (q Seq) Tag() string { return "#" + itoa(q.ID) }
+
+func (m Model) openSeqTag() string {
+	for _, q := range m.Seqs {
+		if q.K == m.OpenSeq {
+			return q.Tag()
+		}
+	}
+	return ""
 }
 
 func IsSeqOp(a Act) bool {
@@ -57,7 +69,7 @@ func (m *Model) ToSeqs() {
 
 func (q Seq) matches(find string) bool {
 	find = strings.ToLower(strings.TrimSpace(find))
-	return strings.Contains(strings.ToLower(q.Name), find) || strings.Contains("sequence "+itoa(q.K), find)
+	return strings.Contains(strings.ToLower(q.Name), find) || strings.Contains(q.Tag(), find) || find == itoa(q.ID)
 }
 
 func (m *Model) Find(e Sheet.Edit, key string) {
@@ -97,7 +109,7 @@ func seqRows(t *tree, m Model) {
 			continue
 		}
 		shown++
-		detail := []Cell{}
+		detail := []Cell{Text(q.Tag()).Dimmed(true).Tipped("this sequence's id · it stays the same when sequences are added, copied or deleted")}
 		if q.K == m.OpenSeq {
 			detail = append(detail, Text("open").Dimmed(true))
 		}
@@ -114,7 +126,7 @@ func seqRows(t *tree, m Model) {
 			id:     Act{Op: OpSeqOpen, I: q.K},
 			in:     Act{Op: OpSeqIn, I: q.K},
 			rename: Act{Op: OpRename, K: renameSeq, I: q.K},
-			name:   Field("sequence "+itoa(q.K), q.Name, Act{Op: OpSeqName, I: q.K}, true, false).Plain().Wording(),
+			name:   Field("sequence "+itoa(q.ID), q.Name, Act{Op: OpSeqName, I: q.K}, true, false).Plain().Wording(),
 			detail: detail,
 			acts:   acts,
 		})
