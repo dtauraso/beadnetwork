@@ -62,6 +62,9 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data) {
 		if i > 0 && !(narrow && i == 1) {
 			x += l.Text(x, y, h, clip, "›", Board.Px, Board.Mute, false, Board.Left) + Board.Gap
 		}
+		if c.Tag != "" {
+			x += l.Text(x, y, h, clip, c.Tag, Board.Px, Board.Mute, false, Board.Left) + Board.Gap
+		}
 		if c.Edit.Op != "" {
 			w := l.Editable(x-Board.PadX, y, 0, clip, c.Label, Board.Px, Board.Ink, c.Edit)
 			if c.Act.Op != "" {

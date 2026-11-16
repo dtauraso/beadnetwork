@@ -4,7 +4,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"sort"
 	"strconv"
@@ -13,7 +12,44 @@ import (
 const (
 	DirSequences = "sequences"
 	FileSeqName  = "name.bin"
+	FileSeqID    = "id.bin"
 )
+
+func SequenceID(scenePath string, k int) int {
+	var id int
+	ReadIfExists(filepath.Join(SequenceDir(scenePath, k), FileSeqID), &id)
+	return id
+}
+
+func nextSequenceID(scenePath string) int {
+	most := 0
+	for _, k := range Sequences(scenePath) {
+		most = max(most, SequenceID(scenePath, k))
+	}
+	return most + 1
+}
+
+func EnsureSequenceIDs(scenePath string) error {
+	seqs := Sequences(scenePath)
+	used := map[int]bool{}
+	for _, k := range seqs {
+		used[SequenceID(scenePath, k)] = true
+	}
+	for _, k := range seqs {
+		if SequenceID(scenePath, k) > 0 {
+			continue
+		}
+		id := k
+		if used[id] {
+			id = nextSequenceID(scenePath)
+		}
+		if err := WriteAtomic(filepath.Join(SequenceDir(scenePath, k), FileSeqID), id); err != nil {
+			return err
+		}
+		used[id] = true
+	}
+	return nil
+}
 
 func SequencesDir(scenePath string) string { return filepath.Join(scenePath, DirSequences) }
 
@@ -62,7 +98,11 @@ func NodesRoot(scenePath string) string {
 func OpenSFilePath(scenePath string) string { return SFilePath(NodesRoot(scenePath)) }
 
 func SequenceName(scenePath string, k int) string {
-	name := "sequence " + strconv.Itoa(k)
+	id := SequenceID(scenePath, k)
+	if id == 0 {
+		id = k
+	}
+	name := "sequence " + strconv.Itoa(id)
 	ReadIfExists(filepath.Join(SequenceDir(scenePath, k), FileSeqName), &name)
 	return name
 }
@@ -75,10 +115,8 @@ func WriteSequenceName(scenePath string, k int, name string) error {
 	return WriteAtomic(filepath.Join(SequenceDir(scenePath, k), FileSeqName), name)
 }
 
-var numbered = regexp.MustCompile(`^sequence \d+$`)
-
 func CopySequence(scenePath string, from int) (int, error) {
-	seqs := Sequences(scenePath)
+	seqs, id := Sequences(scenePath), nextSequenceID(scenePath)
 	to := 1
 	if len(seqs) > 0 {
 		to = seqs[len(seqs)-1] + 1
@@ -102,7 +140,10 @@ func CopySequence(scenePath string, from int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return to, WriteSequenceName(scenePath, to, "sequence "+strconv.Itoa(len(seqs)+1))
+	if err := WriteAtomic(filepath.Join(dst, FileSeqID), id); err != nil {
+		return 0, err
+	}
+	return to, WriteSequenceName(scenePath, to, "sequence "+strconv.Itoa(id))
 }
 
 func RemoveSequence(scenePath string, k int) error {
@@ -110,14 +151,8 @@ func RemoveSequence(scenePath string, k int) error {
 		return err
 	}
 	for i, s := range Sequences(scenePath) {
-		want := i + 1
-		if s != want {
+		if want := i + 1; s != want {
 			if err := os.Rename(SequenceDir(scenePath, s), SequenceDir(scenePath, want)); err != nil {
-				return err
-			}
-		}
-		if numbered.MatchString(SequenceName(scenePath, want)) {
-			if err := WriteSequenceName(scenePath, want, "sequence "+strconv.Itoa(want)); err != nil {
 				return err
 			}
 		}
@@ -148,13 +183,6 @@ func InsertSequence(scenePath string, after int, drop string) (int, error) {
 		}
 		if err := os.Rename(tmp, SequenceDir(scenePath, to)); err != nil {
 			return 0, err
-		}
-	}
-	for _, s := range Sequences(scenePath) {
-		if numbered.MatchString(SequenceName(scenePath, s)) {
-			if err := WriteSequenceName(scenePath, s, "sequence "+strconv.Itoa(s)); err != nil {
-				return 0, err
-			}
 		}
 	}
 	return to, nil

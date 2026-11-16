@@ -10,6 +10,7 @@ type Act = Sheet.Act
 type Crumb struct {
 	Label  string
 	Short  string
+	Tag    string
 	Act    Act
 	Edit   Act
 	Rename Act
