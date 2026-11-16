@@ -67,7 +67,6 @@ func boardInspector(m Model) LinksBoard.Inspector {
 		}
 		in.Axes = append(in.Axes, x)
 	}
-	in.Hint = "Dashed ring = what one more ＋ press would do. Drag the hand: it snaps to every " + itoa(l.Increment.Phi) + "."
 	if t := m.Turning; t.Act.Node == l.From && t.Act.To == l.To {
 		in.Hint = "Dragging: the hollow handle is where the hand lands when you let go. In the scene, the faint copies are where the nodes downstream of " + l.To + " will move."
 	}
@@ -80,9 +79,8 @@ func (m Model) rAxis(x *LinksBoard.Axis, l Links.Link) {
 	x.Ruler = &Board.Ruler{Start: float32(start), Delta: float32(end - start), Most: float32(max(start, end, 1) * 1.25), Fixed: fixed}
 	x.Sub = "tenths of a bead slot · never below 0"
 	x.RulerTags = [3]string{"0", "start " + tenths(start), tenths(end)}
-	x.Ends = "ends at " + tenths(end)
+	x.Ends = "r " + tenths(start) + " → " + tenths(end)
 	atZero := end < 1e-9
-	x.Turn.DownDim, x.Turn.UpDim = fixed || atZero, fixed
 	if fixed {
 		x.Fixed = m.fixedWhy(l)
 	} else if atZero {

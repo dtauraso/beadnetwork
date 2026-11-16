@@ -92,9 +92,9 @@ func (in *ins) axis(a Axis) {
 	l, h := in.l, Board.RowH()
 	inc := fieldW(a.Inc.Field)
 	if a.Inc.Act.Op == "" {
-		inc = stepW(a.Inc)
+		inc = segW(a.Inc)
 	}
-	ctrl := max(stepW(a.Turn), Board.W(a.IncTag, Board.Px)+6+inc, Board.W(a.Label, 11))
+	ctrl := max(segW(a.Turn), Board.W(a.IncTag, Board.Px)+6+inc, Board.W(a.Label, 11))
 	size, beside := a.DialSize, true
 	if size > 0 && in.w()-10-ctrl < size {
 		size = in.w() - 10 - ctrl

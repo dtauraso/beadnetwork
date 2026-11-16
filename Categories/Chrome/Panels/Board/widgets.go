@@ -159,31 +159,6 @@ type Stepper struct {
 }
 
 func (l *Laid) Stepper(x, y float32, clip uint8, s Stepper) float32 {
-	h := RowH()
-	bw := W("＋", BtnPx) + 14
-	down := Rect{X: x, Y: y, W: bw, H: h}
-	l.arrow(down, clip, "−", s.Steps, s.DownDim, s.DownTip, Sheet.PartDown)
-	x += bw + Gap
-	if s.Act.Op != "" {
-		x += l.Field(x, y, clip, s.Field) + Gap
-	} else {
-		w := max(26, W(s.Plain, Px)+2*PadX)
-		l.Box(Rect{X: x, Y: y, W: w, H: h}, clip, White, Edge)
-		l.Text(x+w-PadX, y, h, clip, s.Plain, Px, Ink, false, Right)
-		x += w + Gap
-	}
-	l.arrow(Rect{X: x, Y: y, W: bw, H: h}, clip, "＋", s.Steps, s.UpDim, s.UpTip, Sheet.PartUp)
-	return x + bw - down.X
-}
-
-func (l *Laid) arrow(r Rect, clip uint8, glyph string, a Sheet.Act, dim bool, tip string, p Sheet.Part) {
-	ink, alpha := Ink, float32(1)
-	if dim {
-		alpha = 0.4
-	}
-	l.Box(r, clip, White, Edge)
-	l.Text(r.X+r.W/2, r.Y, r.H, clip, glyph, BtnPx, ink, false, Center)
-	l.Marks[len(l.Marks)-1].Alpha, l.Marks[len(l.Marks)-2].Alpha = alpha, alpha
-	l.Spot(r, clip, Sheet.Cell{Act: a, Dim: dim, Tip: tip}, p)
+	return l.Seg(x, y, clip, s)
 }
 

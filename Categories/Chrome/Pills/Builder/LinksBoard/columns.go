@@ -160,7 +160,8 @@ func (k *col) lock(x, y float32, lk Lock) float32 {
 	l.Spot(Rect{X: x, Y: y, W: gw, H: h}, k.clip, Sheet.Cell{Act: lk.Cycle, Tip: "lock: click to cycle · off → ↑ → ↓"}, Sheet.PartBody)
 	sx := x + gw + lockGap
 	ew, mw := pressW(), Board.W(lk.Axis, 12)+10
-	l.Box(Rect{X: sx, Y: y, W: 2*ew + mw, H: h}, k.clip, Board.White, Board.Edge)
+	l.Box(Rect{X: sx, Y: y, W: 2*ew + mw, H: h}, k.clip, Board.Card, Board.Edge)
+	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: sx + ew, Y: y + 1, W: mw, H: h - 2}, Clip: k.clip, Fill: Board.White, Alpha: 1})
 	l.Line(Rect{X: sx + ew + 0.5, Y: y, W: 0, H: h}, k.clip, Board.Edge, 1, false)
 	l.Line(Rect{X: sx + ew + mw - 0.5, Y: y, W: 0, H: h}, k.clip, Board.Edge, 1, false)
 	l.Text(sx+ew+mw/2, y, h, k.clip, lk.Axis, 12, Board.Mute, false, Board.Center)
@@ -170,7 +171,7 @@ func (k *col) lock(x, y float32, lk Lock) float32 {
 		part  Sheet.Part
 		tip   string
 	}{{"−", sx, Sheet.PartDown, "press every picked link in this step down on " + lk.Axis}, {"＋", sx + ew + mw, Sheet.PartUp, "press every picked link in this step up on " + lk.Axis}} {
-		l.Text(a.at+ew/2, y, h, k.clip, a.glyph, 11, Board.Ink, false, Board.Center)
+		l.Text(a.at+ew/2, y, h, k.clip, a.glyph, 12, Board.Mute, false, Board.Center)
 		l.Spot(Rect{X: a.at, Y: y, W: ew, H: h}, k.clip, Sheet.Cell{Act: lk.Press, Tip: a.tip}, a.part)
 	}
 	return gw + lockGap + 2*ew + mw
