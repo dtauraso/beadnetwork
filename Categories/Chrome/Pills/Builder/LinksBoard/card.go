@@ -64,23 +64,30 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 		for _, r := range d.Rows {
 			aw, bw = max(aw, segW(r.A)), max(bw, segW(r.B))
 		}
-		var tw float32
+		var tw, sw float32
 		for _, r := range d.Rows {
-			tw = max(tw, Board.W(r.Total, 12))
+			tw, sw = max(tw, Board.W(r.Total, 12)), max(sw, Board.W(r.Start, Board.Px))
+		}
+		if sw > 0 {
+			sw = max(sw, Board.W(d.StartHead, 10.5)) + gapX
 		}
 		d0 := float32(col0)
-		if d0+col1+aw+bw+tw+4*gapX > cw {
+		if d0+col1+sw+aw+bw+tw+4*gapX > cw {
 			d0 = smallCol0
 		}
-		a := cx + d0 + gapX + col1 + gapX
+		s := cx + d0 + gapX + col1 + gapX
+		a := s + sw
 		b := a + aw + gapX
+		if sw > 0 {
+			l.Weighted(s, cy, headTxtH, clip, d.StartHead, 10.5, Board.Mute, Board.Semi, Board.Left)
+		}
 		t := b + bw + gapX
 		for i, s := range [3]float32{a, b, t} {
 			l.Weighted(s, cy, headTxtH, clip, d.Heads[i], 10.5, Board.Mute, Board.Semi, Board.Left)
 		}
 		cy += headTxtH + gapY
 		for _, r := range d.Rows {
-			cy += row(l, clip, cx, cy, d0, a, b, t, r) + gapY
+			cy += row(l, clip, cx, cy, d0, s, a, b, t, r) + gapY
 		}
 		cy -= gapY
 	}
@@ -107,7 +114,7 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	return h
 }
 
-func row(l *Board.Laid, clip uint8, x, y, d0, a, b, t float32, r CardRow) float32 {
+func row(l *Board.Laid, clip uint8, x, y, d0, s, a, b, t float32, r CardRow) float32 {
 	h := float32(Board.SegH)
 	dial := min(float32(dialPx), d0)
 	if r.Dial != nil {
@@ -129,6 +136,9 @@ func row(l *Board.Laid, clip uint8, x, y, d0, a, b, t float32, r CardRow) float3
 		l.Ruler(Rect{X: x, Y: mid - 7, W: d0, H: 14}, clip, *r.Ruler)
 	}
 	l.Text(x+d0+gapX, y, h, clip, r.Axis, Board.Px, Board.Ink, true, Board.Left)
+	if r.Start != "" {
+		l.Text(s, y, h, clip, r.Start, Board.Px, Board.Mute, false, Board.Left)
+	}
 	l.Seg(a, mid-Board.SegH/2, clip, r.A)
 	if r.B.Steps.Op != "" {
 		l.Seg(b, mid-Board.SegH/2, clip, r.B)

@@ -30,6 +30,7 @@ type Head struct {
 
 type CardRow struct {
 	Axis    string
+	Start   string
 	Dial    *Board.Dial
 	DialAct Act
 	Ruler   *Board.Ruler
@@ -38,11 +39,12 @@ type CardRow struct {
 }
 
 type Card struct {
-	Heads [3]string
-	Rows  []CardRow
-	Note  string
-	Fixed string
-	Foot  string
+	Heads     [3]string
+	StartHead string
+	Rows      []CardRow
+	Note      string
+	Fixed     string
+	Foot      string
 }
 
 type Link struct {
