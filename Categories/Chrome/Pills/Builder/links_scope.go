@@ -53,7 +53,7 @@ func boardData(m Model) LinksBoard.Data {
 		d.Add = Act{Op: OpStepAdd, I: ns[len(ns)-1]}
 	}
 	m.treeData(&d)
-	d.Where = m.PathLabel()
+	d.Crumbs = m.Crumbs()
 	if d.TreeFind != nil {
 		d.PathMenu, d.PathOpen = Act{Op: OpTreePop}, m.TreePop
 	}

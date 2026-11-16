@@ -124,7 +124,7 @@ type Empty struct {
 }
 
 type Data struct {
-	Where    string
+	Crumbs   []Board.Chip
 	PathMenu Act
 	PathOpen bool
 	S        Board.Field

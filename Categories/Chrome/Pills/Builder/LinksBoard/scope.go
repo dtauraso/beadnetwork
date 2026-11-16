@@ -2,6 +2,7 @@ package LinksBoard
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 )
 
 type flow struct {
@@ -34,6 +35,27 @@ func closeBand(l *Board.Laid, r Rect, clip uint8, bg int, f flow) float32 {
 
 func chipW(c Board.Chip) float32 { return Board.W(c.Label, Board.ChipPx) + 14 }
 
+func crumbs(l *Board.Laid, f *flow, clip uint8, cs []Board.Chip) {
+	h := Board.RowH()
+	sep := Board.W("›", Board.Px)
+	for i, c := range cs {
+		if i > 0 {
+			x, y := f.at(sep)
+			l.Text(x, y, h, clip, "›", Board.Px, Board.Mute, false, Board.Left)
+		}
+		w := min(Board.TextW(c.Label, Board.Px, map[bool]uint8{true: 7, false: 4}[c.Lit]), f.right-f.x0)
+		x, y := f.at(w)
+		ink := Board.Accent
+		if c.Lit {
+			ink = Board.Ink
+		}
+		l.Text(x, y, h, clip, fitText(c.Label, w, c.Lit), Board.Px, ink, c.Lit, Board.Left)
+		if !c.Lit && c.Act.Op != "" {
+			l.Spot(Rect{X: x, Y: y, W: w, H: h}, clip, Sheet.Cell{Act: c.Act}, Sheet.PartBody)
+		}
+	}
+}
+
 func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float32 {
 	clip, bg := band(l, r, Board.White)
 	h := Board.RowH()
@@ -42,18 +64,14 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 		f.right -= Board.W("⋯", Board.BtnPx) + 12 + Board.Gap
 	}
 	if narrow && d.PathMenu.Op != "" {
-		w := min(Board.W(d.Where+" ▾", Board.ChipPx)+14, f.right-f.x0)
-		x, y := f.at(w)
-		c := Board.Chip{Label: fitText(d.Where, w-14-Board.W(" ▾", Board.ChipPx), false) + " ▾", Act: d.PathMenu, Lit: d.PathOpen}
+		c := Board.Chip{Label: "steps ▾", Act: d.PathMenu, Lit: d.PathOpen}
+		x, y := f.at(chipW(c))
 		l.Chip(x, y, clip, c)
 		if d.PathOpen {
-			*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: w, H: h}, pane: true})
+			*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: chipW(c), H: h}, pane: true})
 		}
-	} else if d.Where != "" {
-		w := min(Board.TextW(d.Where, Board.Px, 7), f.right-f.x0)
-		x, y := f.at(w)
-		l.Text(x, y, h, clip, fitText(d.Where, w, true), Board.Px, Board.Ink, true, Board.Left)
 	}
+	crumbs(l, &f, clip, d.Crumbs)
 	if d.S.Act.Op != "" && !narrow {
 		s := d.S
 		s.Label = "s"
