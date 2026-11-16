@@ -124,27 +124,28 @@ type Empty struct {
 }
 
 type Data struct {
-	Crumbs   []Board.Chip
-	PathMenu Act
-	PathOpen bool
-	S        Board.Field
-	SNote    string
-	Doors    []Board.Chip
-	More     Act
-	MoreOpen bool
-	Cols     []Column
-	Add      Act
-	Insp     Inspector
-	InspOpen bool
-	InspTab  Act
-	Status   string
-	Toast    string
-	At       Act
-	Undo     Act
-	Dismiss  Act
-	Pop      *Pop
-	Empty    *Empty
-	Net      *Net
+	Crumbs    []Board.Chip
+	CrumbName Act
+	PathMenu  Act
+	PathOpen  bool
+	S         Board.Field
+	SNote     string
+	Doors     []Board.Chip
+	More      Act
+	MoreOpen  bool
+	Cols      []Column
+	Add       Act
+	Insp      Inspector
+	InspOpen  bool
+	InspTab   Act
+	Status    string
+	Toast     string
+	At        Act
+	Undo      Act
+	Dismiss   Act
+	Pop       *Pop
+	Empty     *Empty
+	Net       *Net
 
 	Tree      []TreeRow
 	TreeFind  *Board.Field

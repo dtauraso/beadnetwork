@@ -125,19 +125,24 @@ func (m Model) treeRow(r StepRow) LinksBoard.TreeRow {
 	return t
 }
 
-func (m Model) Crumbs() []Board.Chip {
+func (m Model) Crumbs() ([]Board.Chip, Act) {
 	p := m.OpenPath()
 	if m.Scene == "" {
 		if n := m.StepShown(); n > 0 {
-			return []Board.Chip{{Label: "step " + m.StepLabel(n)}}
+			return []Board.Chip{{Label: "step " + m.StepLabel(n), Act: Act{Op: OpRename, K: renameStep, I: n}, Lit: true}}, Act{Op: OpStepName, I: n}
 		}
-		return nil
+		return nil, Act{}
 	}
 	out := make([]Board.Chip, len(p))
 	for i := range p {
-		out[i] = Board.Chip{Label: stepLabelAt(m.pathDir(p[:i]), p[i]), Act: Act{Op: OpTreeGo, Node: PathKey(p[:i+1])}, Lit: i == len(p)-1}
+		out[i] = Board.Chip{Label: stepLabelAt(m.pathDir(p[:i]), p[i]), Act: Act{Op: OpTreeGo, Node: PathKey(p[:i+1])}}
 	}
-	return out
+	if len(p) == 0 {
+		return out, Act{}
+	}
+	key := PathKey(p)
+	out[len(p)-1].Act, out[len(p)-1].Lit = Act{Op: OpRename, K: renamePath, Node: key}, true
+	return out, Act{Op: OpTreeName, Node: key}
 }
 
 func (m *Model) FindStep(e Sheet.Edit, key string) {

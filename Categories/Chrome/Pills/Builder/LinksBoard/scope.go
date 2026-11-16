@@ -35,7 +35,7 @@ func closeBand(l *Board.Laid, r Rect, clip uint8, bg int, f flow) float32 {
 
 func chipW(c Board.Chip) float32 { return Board.W(c.Label, Board.ChipPx) + 14 }
 
-func crumbs(l *Board.Laid, f *flow, clip uint8, cs []Board.Chip) {
+func crumbs(l *Board.Laid, f *flow, clip uint8, cs []Board.Chip, name Act) {
 	h := Board.RowH()
 	sep := Board.W("›", Board.Px)
 	for i, c := range cs {
@@ -50,7 +50,10 @@ func crumbs(l *Board.Laid, f *flow, clip uint8, cs []Board.Chip) {
 			ink = Board.Ink
 		}
 		l.Text(x, y, h, clip, fitText(c.Label, w, c.Lit), Board.Px, ink, c.Lit, Board.Left)
-		if !c.Lit && c.Act.Op != "" {
+		if c.Lit {
+			l.Marks[len(l.Marks)-1].Edit = name
+		}
+		if c.Act.Op != "" {
 			l.Spot(Rect{X: x, Y: y, W: w, H: h}, clip, Sheet.Cell{Act: c.Act}, Sheet.PartBody)
 		}
 	}
@@ -71,7 +74,7 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 			*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: chipW(c), H: h}, pane: true})
 		}
 	}
-	crumbs(l, &f, clip, d.Crumbs)
+	crumbs(l, &f, clip, d.Crumbs, d.CrumbName)
 	if d.S.Act.Op != "" && !narrow {
 		s := d.S
 		s.Label = "s"
