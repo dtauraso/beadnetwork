@@ -29,7 +29,28 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	mid := Rect{X: box.X, Y: bar.Y + bar.H, W: box.W, H: st.Y - bar.Y - bar.H}
 	narrow := box.W < narrowW
 	var menus []placed
-	scopeBar(l, bar, narrow, d, &menus)
+	if d.Net != nil {
+		netBar(l, bar, *d.Net)
+		l.MostY = network(l, mid, sy, *d.Net, &menus)
+	} else {
+		steps(l, box, bar, mid, sy, narrow, d, &menus)
+	}
+	strip(l, st, d)
+	if d.Toast != "" {
+		refusal(l, box, st, d)
+	}
+	if d.Pop != nil {
+		popover(l, box, bar, *d.Pop)
+	}
+	for _, p := range menus {
+		drawMenu(l, box, p)
+	}
+	return l
+}
+
+func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, menus *[]placed) {
+	h := Board.RowH()
+	scopeBar(l, bar, narrow, d, menus)
 	if len(d.Steps) > 0 && d.Empty == nil {
 		sb := Rect{X: mid.X, Y: mid.Y, W: mid.W, H: h + stripPad}
 		stepBar(l, sb, narrow, d.Steps)
@@ -44,19 +65,8 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 			stack.W -= iw
 			l.MostY = inspector(l, Rect{X: mid.X + stack.W, Y: mid.Y, W: iw, H: mid.H}, sy, d.Insp)
 		}
-		l.MostY = max(l.MostY, columns(l, stack, sy, stack.W < colNarrowW, d, &menus))
+		l.MostY = max(l.MostY, columns(l, stack, sy, stack.W < colNarrowW, d, menus))
 	}
-	strip(l, st, d)
-	if d.Toast != "" {
-		refusal(l, box, st, d)
-	}
-	if d.Pop != nil {
-		popover(l, box, bar, *d.Pop)
-	}
-	for _, p := range menus {
-		drawMenu(l, box, p)
-	}
-	return l
 }
 
 func stepBar(l *Board.Laid, r Rect, narrow bool, steps []Board.Chip) {

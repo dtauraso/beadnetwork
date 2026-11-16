@@ -118,12 +118,6 @@ func (m *Model) ToggleCard(a Act) {
 	m.CardsOpen[e] = !open
 }
 
-func (m Model) cardRow(r linkRow, e StepEdge) linkRow {
-	r.fold = Act{Op: OpCardFold, Node: e.From, To: e.To, I: e.Step}
-	r.open = openOf(m.CardOpen(e))
-	return r
-}
-
 func (m Model) StepPicked(step int, l Links.Link) bool {
 	c, ok := m.gridLink(StepEdge{step, l.From, l.To})
 	return ok && c.Picked

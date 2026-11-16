@@ -1,5 +1,13 @@
 package Builder
 
+import (
+	"strconv"
+
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+)
+
 const (
 	OpNodeIdx    = "node-idx"
 	OpNodeRef    = "node-ref"
@@ -9,53 +17,36 @@ const (
 	OpDisconnect = "disconnect"
 )
 
-func networkRows(t *tree, m Model) {
-	t.add(linkRow{
-		id:     Act{Op: OpNetFold},
-		open:   openOf(m.NetworkOpen),
-		fold:   Act{Op: OpNetFold},
-		name:   Text("network"),
-		detail: []Cell{Text("what runs now · " + linkCount(len(m.allLinks()))).Dimmed(true)},
-		acts:   []Cell{Button("+ node", Act{Op: OpAddNode}, false).Tipped("add a node")},
-	})
-	if !m.NetworkOpen {
-		return
-	}
+func netData(m Model) *LinksBoard.Net {
+	n := &LinksBoard.Net{Back: Act{Op: OpNetFold}, Add: Act{Op: OpAddNode}, IDs: m.Nodes}
 	for _, id := range m.Nodes {
-		fold := Act{Op: OpStepFold, Node: id}
-		r := linkRow{id: fold, depth: 1, open: openOf(!m.StepFolded(0, id)), fold: fold, name: Text("node " + id), table: "network node " + id}
-		if m.StepFolded(0, id) {
-			r.detail = []Cell{Text(linkCount(len(m.linksTo(id)))).Dimmed(true)}
-		} else {
-			r.more = refCells(m, id)
+		col := m.Col(id)
+		idx := func(k, v, label string) Board.Field {
+			return Board.Field{Value: v, Fit: "000.00", Act: Act{Op: OpNodeIdx, Node: id, K: k}, Tip: label}
 		}
-		r.acts = append(connectRow(m, id, "link to"), Button("×", Act{Op: OpRemoveNode, Node: id}, false).Tipped("remove this node"))
-		t.add(r)
-		if m.StepFolded(0, id) {
-			continue
+		ref := func(k string, v int, label string) Board.Field {
+			return Board.Field{Value: strconv.Itoa(v), Fit: "000", Act: Act{Op: OpNodeRef, Node: id, K: k}, Tip: label}
 		}
-		placeRows(t, m, id)
-		for _, l := range m.linksTo(id) {
-			e := StepEdge{0, l.From, l.To}
-			lr := m.cardRow(linkRowOf(l, l.Picked, Act{}, 2), e)
-			lr.acts = []Cell{Button("×", Act{Op: OpDisconnect, Node: l.From, To: l.To}, false).Tipped("remove this link")}
-			t.add(lr)
-			if m.CardOpen(e) {
-				t.put(netCard(l, 3))
+		c := m.Frame.At(col.At)
+		menu := Act{Op: OpMenu, K: menuNode, Node: id}
+		n.Nodes = append(n.Nodes, LinksBoard.NetNode{
+			Name: "node " + id, Sub: linkCount(len(m.linksTo(id))) + " in",
+			Menu: menu, MenuOpen: m.Menu == menu,
+			Drop:  Board.Chip{Label: "Remove node " + id, Act: Act{Op: OpRemoveNode, Node: id}, Tip: "and its links"},
+			Place: []Board.Field{idx(Links.KR, Num(col.At.R), "r"), idx(Links.KPhi, Num(col.At.Phi), "φ"), idx(Links.KTheta, Num(col.At.Theta), "θ")},
+			C:     "C " + Num(c.X) + " " + Num(c.Y) + " " + Num(c.Z),
+			Ref:   []Board.Field{ref(Links.KPhi, col.Ref.Phi, "Δφ"), ref(Links.KTheta, col.Ref.Theta, "Δθ")},
+		})
+		var row []LinksBoard.NetCell
+		for _, to := range m.Nodes {
+			_, has := m.Link(id, to)
+			cell := LinksBoard.NetCell{Self: to == id, Linked: has, Act: Act{Op: OpConnect, Node: id, To: to}}
+			if has {
+				cell.Act.Op = OpDisconnect
 			}
+			row = append(row, cell)
 		}
+		n.Cells = append(n.Cells, row)
 	}
-}
-
-func connectRow(m Model, from, label string) []Cell {
-	row := []Cell{Text(label)}
-	for _, to := range m.Nodes {
-		if _, has := m.Link(from, to); to != from && !has {
-			row = append(row, Button(to, Act{Op: OpConnect, Node: from, To: to}, false))
-		}
-	}
-	if len(row) == 1 {
-		return nil
-	}
-	return row
+	return n
 }

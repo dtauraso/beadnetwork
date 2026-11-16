@@ -110,8 +110,6 @@ func (m Model) startInspector(e StepEdge) LinksBoard.Inspector {
 	return in
 }
 
-const cardFit = "0.0"
-
 func tenths(v float64) string {
 	t := math.Round(v * 10)
 	s := strconv.FormatInt(int64(math.Abs(t))/10, 10)
@@ -146,24 +144,6 @@ func linkCount(n int) string {
 	return strconv.Itoa(n) + " links"
 }
 
-func refCells(m Model, id string) []Cell {
-	ref := m.Col(id).Ref
-	refAct := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
-	return []Cell{
-		Text("ref Δφ").Dimmed(true),
-		Field("", strconv.Itoa(ref.Phi), refAct(Links.KPhi), true, true).Fitting(cardFit).Outline(false),
-		Text("Δθ").Dimmed(true),
-		Field("", strconv.Itoa(ref.Theta), refAct(Links.KTheta), true, true).Fitting(cardFit).Outline(false),
-	}
-}
-
-func pickMark(on bool) string {
-	if on {
-		return "●"
-	}
-	return "○"
-}
-
 func pressSummary(l Links.Link) string {
 	var parts []string
 	term := func(k string, start, total, d int, end string) {
@@ -185,14 +165,4 @@ func pressSummary(l Links.Link) string {
 		return "no move"
 	}
 	return strings.Join(parts, " · ")
-}
-
-func netCard(l Links.Link, depth int) Group {
-	val := func(s string) Cell { return Text(s).Outline(false) }
-	head := func(s string) Cell { return Text(s).Inked(inkHead) }
-	rows := [][]Cell{{Text(""), head("START"), head("Δ"), head("nΔ"), head("1")}}
-	for _, a := range axes {
-		rows = append(rows, []Cell{Text(a.label).Dimmed(true), val(a.at(l)), val(strconv.Itoa(a.delta(l))), val(strconv.Itoa(a.times(l))), val(strconv.Itoa(a.one(l)))})
-	}
-	return Group{Rows: rows, Card: true, Depth: depth}
 }

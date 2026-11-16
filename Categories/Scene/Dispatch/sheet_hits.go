@@ -146,11 +146,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.Refused = ""
 	case Builder.OpNetFold:
 		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
-	case Builder.OpPlaceFold:
-		if md.UI.Builder.PlaceOpen == nil {
-			md.UI.Builder.PlaceOpen = map[string]bool{}
-		}
-		md.UI.Builder.PlaceOpen[a.Node] = !md.UI.Builder.PlaceOpen[a.Node]
 	case Builder.OpStartFold:
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
 	case Builder.OpInspTab:

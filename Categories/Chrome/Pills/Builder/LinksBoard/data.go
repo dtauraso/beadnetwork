@@ -156,4 +156,5 @@ type Data struct {
 	Dismiss  Act
 	Pop      *Pop
 	Empty    *Empty
+	Net      *Net
 }
