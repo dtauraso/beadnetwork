@@ -106,6 +106,7 @@ export function buildBinary(repoRoot: string, binPath: string): Promise<BuildRes
   }
 
   return new Promise<BuildResult>((resolve) => {
+    const startedAt = new Date();
     const proc = cp.spawn("go", ["build", "-o", binPath, "./Start"], { cwd: repoRoot });
     let stderr = "";
     proc.stderr?.on("data", (chunk: Buffer) => { stderr += chunk.toString(); });
@@ -115,7 +116,10 @@ export function buildBinary(repoRoot: string, binPath: string): Promise<BuildRes
     });
     proc.on("close", (code) => {
       building = false;
-      if (code === 0) resolve({ ok: true });
+      if (code === 0) {
+        try { fs.utimesSync(binPath, startedAt, startedAt); } catch { /* eslint-disable-line no-empty */ }
+        resolve({ ok: true });
+      }
       else resolve({ ok: false, error: stderr || `go build exited ${String(code)}` });
     });
   });
