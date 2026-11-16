@@ -57,6 +57,7 @@ func (s *State) Write(lay Layout) {
 		}
 	}
 	w.Text("draftText", s.Edit.Draft)
+	w.U32("draftAt", s.Edit.Caret())
 	for _, cb := range lay.Cells {
 		w.U8("cellOutlined", flag(cb.Cell.Outlined))
 		w.U8("cellBoxed", flag(cb.Cell.Boxed))

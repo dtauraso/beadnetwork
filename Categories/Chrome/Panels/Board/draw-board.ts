@@ -1,4 +1,4 @@
-import { canvasFont, roundRect } from "../../canvas-box";
+import { canvasFont, drawCaret, roundRect } from "../../canvas-box";
 import { decodeAt } from "../../leaf-text";
 import { BOARD_VALUE_NAMES, type BoardValueName } from "./board-values-gen";
 import { boardBytes, boardF32Run, boardText, boardU32Run } from "./board-leaves";
@@ -64,7 +64,7 @@ export function drawBoard(c: CanvasRenderingContext2D): void {
   const bold = u8s("markBold"), dash = u8s("markDash"), corner = u8s("markCorner"), labels = texts();
   const dAxis = u8s("dialAxis"), dStart = f32s("dialStart"), dTurn = f32s("dialTurn"), dGhost = f32s("dialGhost"), dInc = f32s("dialInc"), dLabels = u8s("dialLabels");
   const cx = f32s("clipX"), cy = f32s("clipY"), cw = f32s("clipW"), ch = f32s("clipH");
-  const n = kind.length;
+  const n = kind.length, caretMark = boardU32Run("caretMark")?.[0] ?? 0, caretAt = boardU32Run("caretAt")?.[0] ?? 0;
   if ([mx, my, mw, mh, clip, fill, edge, radius, alpha].some((a) => a.length !== n)) return;
   for (let i = 0; i < kind.length; i++) {
     const r = { x: mx[i]!, y: my[i]!, w: mw[i]!, h: mh[i]! }, k = clip[i] ?? 0;
@@ -87,6 +87,7 @@ export function drawBoard(c: CanvasRenderingContext2D): void {
       c.textAlign = "left";
       c.textBaseline = "middle";
       c.fillText(labels[i] ?? "", r.x, r.y + r.h / 2);
+      if (caretMark === i + 1) drawCaret(c, labels[i] ?? "", r.x, r.y, r.h, caretAt, PAINT[ink[i]!] || PAINT[1]!);
     } else if (kind[i] === K_LINE) {
       c.strokeStyle = PAINT[ink[i]!] || PAINT[1]!;
       c.lineWidth = stroke[i] || 1;

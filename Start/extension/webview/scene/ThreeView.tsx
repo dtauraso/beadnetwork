@@ -15,7 +15,7 @@ import { SceneGuides } from "../../../../Categories/Scene/Guides/SceneGuides";
 import { PaneSizeSync } from "./pane-size-sync";
 
 function consumedByDraft(key: string): boolean {
-  return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace";
+  return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace" || key === "Delete" || key === "ArrowLeft" || key === "ArrowRight" || key === "Home" || key === "End";
 }
 
 
