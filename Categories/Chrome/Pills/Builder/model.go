@@ -70,6 +70,7 @@ type Model struct {
 	Turning     Turning
 	Hot         Act
 	Menu        Act
+	Pressed     Act
 	UndoPick    Act
 	Touched     StepEdge
 	Level       string

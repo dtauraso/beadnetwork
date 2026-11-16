@@ -87,6 +87,9 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
 	md.UI.Builder.Refused = ""
+	if a.Op != Builder.OpToastClose {
+		md.UI.Builder.Pressed = a
+	}
 	if Builder.IsStepEdit(a) {
 		if !Builder.IsStartEdit(a) {
 			md.showFor(ctx, a.I)

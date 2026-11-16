@@ -48,7 +48,7 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	}
 	strip(l, st, d)
 	if d.Toast != "" {
-		toast(l, box, st, d)
+		refusal(l, box, st, d)
 	}
 	if d.Pop != nil {
 		popover(l, box, bar, *d.Pop)
@@ -165,26 +165,6 @@ func strip(l *Board.Laid, r Rect, d Data) {
 	if w := Board.W(hint, 11.5); r.X+r.W-pad-w > x+12 {
 		l.Text(r.X+r.W-pad, y, h, clip, hint, 11.5, Board.Mute, false, Board.Right)
 	}
-}
-
-func toast(l *Board.Laid, box, strip Rect, d Data) {
-	const bh = 20
-	h := float32(bh + 10)
-	w := Board.W(d.Toast, Board.Px) + 18 + 10 + Board.W("×", Board.Px)
-	if d.Undo.Op != "" {
-		w += Board.W("Undo", Board.BtnPx) + 14 + 10
-	}
-	r := Rect{X: box.X + pad, Y: strip.Y - h - pad, W: min(w, box.W-2*pad), H: h}
-	clip := l.Clip(Rect{X: r.X - 4, Y: r.Y - 4, W: r.W + 8, H: r.H + 8})
-	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: r.X, Y: r.Y + 2, W: r.W, H: r.H}, Clip: clip, Fill: Board.Edge, Radius: 6, Alpha: 0.5})
-	l.Add(Board.Mark{Kind: Board.KBox, R: r, Clip: clip, Fill: Board.White, Edge: Board.Edge, Radius: 6, Stroke: 1, Alpha: 1})
-	x, y := r.X+9, r.Y+5
-	x += l.Text(x, y, bh, clip, d.Toast, Board.Px, Board.Ink, false, Board.Left) + 10
-	if d.Undo.Op != "" {
-		x += l.Btn(x, y, bh, clip, "Undo", d.Undo, "put the pick back", false) + 10
-	}
-	xw := l.Text(x, y, bh, clip, "×", Board.Px, Board.Mute, false, Board.Left)
-	l.Spot(Rect{X: x - 4, Y: y, W: xw + 8, H: bh}, clip, Sheet.Cell{Act: d.Dismiss, Tip: "dismiss"}, Sheet.PartBody)
 }
 
 func empty(l *Board.Laid, r Rect, e Empty) {
