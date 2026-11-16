@@ -1,0 +1,210 @@
+<!-- branch: task/step-tree -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Step tree plan</title>
+<style>
+:root {
+  --bg: #fbfaf8; --card: #ffffff; --ink: #1d1d1f; --mute: #6b6b70; --line: #e4e2dd;
+  --accent: #2f6fde; --accent-soft: #e8effc; --warn: #b4521a; --warn-soft: #fbeee5;
+  --ok: #2e7d4f; --code: #f2f0ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #17171a; --card: #1f1f23; --ink: #ececef; --mute: #9a9aa2; --line: #33333a; --accent: #7aa7ff; --accent-soft: #22304a; --warn: #f0a070; --warn-soft: #3a281d; --ok: #7fcf9c; --code: #2a2a30; }
+}
+:root[data-theme="dark"] { --bg: #17171a; --card: #1f1f23; --ink: #ececef; --mute: #9a9aa2; --line: #33333a; --accent: #7aa7ff; --accent-soft: #22304a; --warn: #f0a070; --warn-soft: #3a281d; --ok: #7fcf9c; --code: #2a2a30; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 40px 16px 80px; }
+h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.01em; }
+h2 { font-size: 20px; margin: 44px 0 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+h3 { font-size: 15px; margin: 22px 0 6px; }
+p, li { max-width: 68ch; }
+.lede { color: var(--mute); font-size: 17px; margin: 0 0 20px; }
+code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code);
+  padding: 1px 5px; border-radius: 4px; }
+nav { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; margin: 18px 0 8px; }
+nav a { color: var(--accent); text-decoration: none; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin: 14px 0; }
+.note { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 680px) { .pair { grid-template-columns: 1fr; } }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--mute); margin: 0 0 8px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; color: var(--mute); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+td code { white-space: nowrap; }
+.tag { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 99px; font-weight: 600; }
+.new { background: var(--accent-soft); color: var(--accent); } .gone { background: var(--warn-soft); color: var(--warn); } .kept { background: var(--code); color: var(--mute); }
+/* outline mock-up */
+.outline { font-size: 13.5px; line-height: 1; }
+.row { display: flex; align-items: center; gap: 6px; height: 28px; border-radius: 6px; padding-right: 8px; }
+.row .tw { width: 14px; color: var(--mute); text-align: center; flex: none; }
+.row .tag { font-weight: 500; }
+.row.seq { font-weight: 600; } .row.on { background: var(--accent-soft); color: var(--accent); }
+.row .meta { margin-left: auto; color: var(--mute); font-size: 12px; }
+.d1 { padding-left: 18px; } .d2 { padding-left: 36px; } .d3 { padding-left: 54px; } .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; }
+.chip { border: 1px solid var(--line); border-radius: 5px; padding: 3px 8px; background: var(--card); }
+.chip.lit { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.crumb { color: var(--mute); font-size: 12.5px; margin-bottom: 10px; }
+ol.order > li { margin-bottom: 10px; }
+svg text { font: 12px -apple-system, system-ui, sans-serif; fill: var(--ink); } svg .m { fill: var(--mute); } svg .box { fill: var(--card); stroke: var(--line); }
+svg .hot { fill: var(--accent-soft); stroke: var(--accent); } svg .wire { stroke: var(--mute); fill: none; } svg .cross { stroke: var(--warn); fill: none; stroke-dasharray: 4 3; }
+</style>
+</head>
+<body>
+<main>
+<h1>Step tree</h1>
+<p class="lede">One outline of every sequence and its nested steps replaces the four ways you move between them today:
+the step chips, “Go inside”, the trail, and the Sequences page.</p>
+<nav>
+  <a href="#target">Target</a><a href="#model">Model</a><a href="#reverses">What it reverses</a>
+  <a href="#disk">On disk</a><a href="#ripple">Ripple list</a><a href="#order">Order</a>
+  <a href="#verify">Verification</a><a href="#risks">Risks</a><a href="#open">Open questions</a>
+</nav>
+
+<h2 id="target">Target</h2>
+<p>The Links tab gets a tree pane on its left. Each sequence is a top-level row, its steps are the rows under it,
+and a step’s own steps sit under that step. Clicking a row opens it. No other control moves you between levels or sequences.</p>
+<div class="pair">
+  <div class="card">
+    <p class="label">Today</p>
+    <div class="crumb">Sequences ▾ › #10 rotate triangle › step 1 · lift</div>
+    <div class="chips">
+      <span class="chip">step 1</span><span class="chip lit">step 2</span><span class="chip">step 3</span><span class="chip">＋</span>
+    </div>
+    <p style="font-size:13px;color:var(--mute);margin:12px 0 0">To see a step’s inner steps: open its ⋯ menu, choose “Go inside”, then climb back out with the trail.
+    Other sequences: open the Sequences ▾ menu or the Sequences page.</p>
+  </div>
+  <div class="card">
+    <p class="label">After</p>
+    <div class="outline">
+      <div class="row seq"><span class="tw">▸</span><span class="tag kept">#8</span> lift and settle<span class="meta">3</span></div>
+      <div class="row seq"><span class="tw">▾</span><span class="tag kept">#10</span> rotate triangle<span class="meta">3</span></div>
+      <div class="row d1"><span class="tw">▾</span>step 1 · lift<span class="meta">2</span></div>
+      <div class="row d2"><span class="tw"></span>step 1</div>
+      <div class="row d2 on"><span class="tw"></span>step 2</div>
+      <div class="row d1"><span class="tw"></span>step 2</div>
+      <div class="row d1"><span class="tw"></span>step 3</div>
+      <div class="row d1"><span class="tw" style="color:var(--accent)">＋</span><span style="color:var(--mute)">add step</span></div>
+      <div class="row seq"><span class="tw">▸</span><span class="tag kept">#11</span> sequence 11<span class="meta">1</span></div>
+    </div>
+  </div>
+</div>
+
+<h2 id="model">Model</h2>
+<p><strong>Sequences are the top level of the step tree.</strong> A step can hold steps, and the scene holds sequences in the same way.
+Nodes are not part of this hierarchy. Which node set a sequence uses is a storage fact, not something the tree shows.</p>
+<div class="card scroll">
+<svg viewBox="0 0 640 210" width="100%" style="min-width:520px" role="img" aria-label="Scene holds sequences, sequences hold steps, steps hold steps">
+  <rect class="box" x="10" y="85" width="90" height="36" rx="6"/><text x="55" y="108" text-anchor="middle">scene</text>
+  <rect class="box" x="150" y="40" width="120" height="36" rx="6"/><text x="210" y="63" text-anchor="middle">#8 lift and settle</text>
+  <rect class="hot" x="150" y="130" width="120" height="36" rx="6"/><text x="210" y="153" text-anchor="middle">#10 rotate triangle</text>
+  <rect class="box" x="320" y="100" width="90" height="30" rx="6"/><text x="365" y="120" text-anchor="middle">step 1</text>
+  <rect class="box" x="320" y="146" width="90" height="30" rx="6"/><text x="365" y="166" text-anchor="middle">step 2</text>
+  <rect class="box" x="460" y="80" width="90" height="30" rx="6"/><text x="505" y="100" text-anchor="middle">step 1</text>
+  <rect class="hot" x="460" y="120" width="90" height="30" rx="6"/><text x="505" y="140" text-anchor="middle">step 2</text>
+  <path class="wire" d="M100 103 C125 103 125 58 150 58"/><path class="wire" d="M100 103 C125 103 125 148 150 148"/>
+  <path class="wire" d="M270 148 C295 148 295 115 320 115"/><path class="wire" d="M270 148 C295 148 295 161 320 161"/>
+  <path class="wire" d="M410 115 C435 115 435 95 460 95"/><path class="wire" d="M410 115 C435 115 435 135 460 135"/>
+  <text class="m" x="150" y="25">level 0: sequences</text>
+  <text class="m" x="320" y="25">level 1: steps</text>
+  <text class="m" x="460" y="25">level 2: inner steps</text>
+  <path class="cross" d="M210 76 L210 130"/><text class="m" x="218" y="106">reload</text>
+</svg>
+</div>
+<p>The dashed line is the one visible cost. Moving within a sequence is in-process: the nodes call
+<code>loadGrid(level)</code>, at <code>Categories/NodeKinds/PhiTheta/grid.go:82</code>. Moving to another sequence rewrites
+<code>view/sequence.bin</code> and reloads the network, at <code>Categories/Scene/Dispatch/sheet_structure.go:148</code>.
+In the tree both are a single click.</p>
+
+<h2 id="reverses">What it reverses</h2>
+<ul>
+  <li><strong>Navigating by descent.</strong> Today you see one level at a time, enter a child with “Go inside” and climb back with the trail.
+  After, every level stays visible at once, and where you are is the highlighted row, not a breadcrumb.</li>
+  <li><strong>Sequences as a separate place.</strong> Today sequences have their own page (<code>AtSeqs</code>) and a crumb menu.
+  After, they are the tree’s top rows. Add, duplicate, delete and rename move into each sequence row’s menu.</li>
+  <li><strong>The step chip bar as the step list.</strong> <code>stepBar</code> shows only the current level, as a flat list.
+  After, the tree is the step list. The “showing step N” status line stays.</li>
+</ul>
+<div class="note">The step <em>columns</em> (the score) and the inspector do not change. The tree only chooses which level and step they show.</div>
+
+<h2 id="disk">On disk: no change</h2>
+<p>The tree reads the layout that exists today. A sequence folder and a nested level hold the same parts (<code>nodes/</code>, <code>steps/</code>),
+so the reader can walk them with one recursive function.</p>
+<div class="card scroll">
+<table>
+<tr><th>Tree row</th><th>Path</th><th>Read from</th></tr>
+<tr><td>sequence <em>k</em></td><td><code>sequences/k/</code></td><td><code>name.bin</code>, <code>id.bin</code> (<code>Scenes.SequenceName</code>, <code>SequenceID</code>)</td></tr>
+<tr><td>step <em>n</em> of a sequence</td><td><code>sequences/k/steps/n/</code></td><td>step name file (<code>stepLabelAt</code>)</td></tr>
+<tr><td>step <em>m</em> inside step <em>n</em></td><td><code>…/steps/n/steps/m/</code></td><td>same, one level down</td></tr>
+<tr><td>open row</td><td><code>view/sequence.bin</code> + <code>Model.Level</code> + <code>ShownStep</code></td><td>sequence on disk; level and step in memory only, see <a href="#risks">Risks</a></td></tr>
+</table>
+</div>
+<p>Turning <code>sequences/k</code> into a top-level <code>steps/k</code> on disk would also make the storage match the model.
+It is <strong>not</strong> part of this plan: it would touch scene load, <code>NodesRoot</code> and every sequence’s node copy, and no part of the tree needs it.</p>
+
+<h2 id="ripple">Ripple list</h2>
+<div class="card scroll">
+<table>
+<tr><th></th><th>Where</th><th>Change</th></tr>
+<tr><td><span class="tag new">new</span></td><td><code>Builder/step_tree.go</code></td><td>Walks the sequences and their <code>steps/</code> recursively into rows: <code>{Seq, Level, Step, Label, Depth, Kids, Open}</code>.</td></tr>
+<tr><td><span class="tag new">new</span></td><td><code>LinksBoard/tree.go</code></td><td>Draws the tree pane: indent, twisty, label, child count, highlighted row, ＋ add-step row, row ⋯ menu.</td></tr>
+<tr><td><span class="tag new">new</span></td><td>op <code>tree-go</code></td><td>One op that carries the target sequence, level and step. Same sequence: it does what <code>LevelOp</code> does now. Another sequence: write <code>sequence.bin</code>, reload, then restore the level and step.</td></tr>
+<tr><td><span class="tag new">new</span></td><td>op <code>tree-fold</code></td><td>Opens or collapses a row. Go owns this state, like <code>StepsOpen</code>.</td></tr>
+<tr><td>edit</td><td><code>LinksBoard/lay.go</code> <code>steps()</code></td><td>Splits <code>mid</code> into tree | columns | inspector. Below <code>narrowW</code> the tree folds into a single “≡ #10 › step 1 › step 2” chip that opens it as a popover.</td></tr>
+<tr><td>edit</td><td><code>Dispatch/sheet_structure.go</code></td><td>Keeps the level and step across the sequence reload (see risk 1). The sequence add/copy/delete handlers stay; only their buttons move.</td></tr>
+<tr><td><span class="tag gone">gone</span></td><td><code>links_score.go:95</code></td><td>The “Go inside” tool chip. Replaced by an “Add inner step” item in the step’s menu, which creates <code>steps/n/steps/1</code>.</td></tr>
+<tr><td><span class="tag gone">gone</span></td><td><code>links_scope.go</code> <code>crumbs()</code></td><td>The trail and “Sequences ▾” crumbs. The bar keeps S, Frame ⚙, Network… and More.</td></tr>
+<tr><td><span class="tag gone">gone</span></td><td><code>LinksBoard/scope.go</code> <code>stepBar</code>, <code>Data.Steps</code></td><td>The step chip bar.</td></tr>
+<tr><td><span class="tag gone">gone</span></td><td><code>pill_sequences.go</code> page, <code>AtSeqs</code>, <code>OpSeqs</code>, <code>menuSeqs</code></td><td>The Sequences page and menu. Search (<code>OpSeqFind</code>) moves to a filter field at the top of the tree.</td></tr>
+<tr><td><span class="tag gone">gone</span></td><td><code>pill_links.go</code> <code>pathGroup</code>, <code>links_tree.go</code> <code>LevelUp</code></td><td>The sheet-side “where you are” row and the level-up op.</td></tr>
+<tr><td><span class="tag kept">kept</span></td><td><code>step_levels.go</code> <code>LevelOp</code>, <code>Trail</code></td><td><code>tree-go</code> calls <code>LevelOp</code>. <code>Trail</code> stays as the list of the open row’s ancestors, used to auto-expand them.</td></tr>
+</table>
+</div>
+
+<h2 id="order">Order</h2>
+<p>One commit per step, each with stop-checks clean and driven in the editor before the next.</p>
+<ol class="order">
+  <li><strong>Rows.</strong> <code>step_tree.go</code> builds the rows, and a temporary breadcrumb prints their count so the walk can be checked against <code>find sequences -path '*steps*'</code>.</li>
+  <li><strong>Draw it beside what exists.</strong> The tree pane shows up with every old navigator still in place. Clicks do nothing yet.</li>
+  <li><strong><code>tree-go</code> within a sequence.</strong> Clicking a row in the open sequence changes level and step. The chips and trail still work, so the two can be compared directly.</li>
+  <li><strong><code>tree-go</code> across sequences.</strong> Persist the level and step through the reload. Clicking a step inside another sequence lands on that step, not on that sequence’s top level.</li>
+  <li><strong>Row menus.</strong> Sequence rows get add, duplicate, delete and rename. Step rows get the existing step tools plus “Add inner step”. Add the filter field.</li>
+  <li><strong>Remove the old navigators.</strong> Everything marked “gone” above goes in one commit, so there is never a state with two ways that disagree.</li>
+  <li><strong>Narrow width.</strong> Fold the tree into the chip-and-popover form below <code>narrowW</code>.</li>
+</ol>
+
+<h2 id="verify">Verification</h2>
+<p>There are no tests. Verification is driving the editor on <code>topology-phi-theta</code>, which already has nested levels in sequences 1 and 8.</p>
+<ul>
+  <li>The tree shows sequences 1–11, and sequences 1 and 8 expand two levels deep. The numbers match the folders on disk.</li>
+  <li>From sequence 10, step 1, click sequence 8 › step 1 › step 1. The diagram reloads, the inner step is highlighted, and the columns show that level.</li>
+  <li>Add an inner step to a step that has none. <code>steps/n/steps/1</code> appears, and the row gets a twisty.</li>
+  <li>Delete the open sequence. The tree highlights a neighbour, and nothing refuses or panics in <code>.probe/go-errors.log</code>.</li>
+  <li>Make the panel narrow. The tree becomes the chip, and choosing a row from its popover works the same.</li>
+  <li><code>grep -rn 'OpStepEnter\|AtSeqs\|stepBar' Categories</code> is empty after step 6.</li>
+</ul>
+
+<h2 id="risks">Risks</h2>
+<ol>
+  <li><strong>The level is lost on reload.</strong> <code>Model.Level</code> is memory only, and a sequence switch rebuilds the network. Step 4 has to write it somewhere the reload reads, such as the open sequence’s <code>view/</code>. Otherwise a cross-sequence click lands on the top level.</li>
+  <li><strong>Width.</strong> The Links tab already splits into columns and an inspector. A third pane squeezes the columns. The tree needs a hard cap (around 200px) and the narrow-width fold.</li>
+  <li><strong>Walking the disk on every redraw.</strong> Eleven sequences, each a few levels deep, is cheap, but the rows should be rebuilt on structure ops and reloads only, like <code>LoadSequences</code>, not on every layout.</li>
+  <li><strong>The 200-line file ceiling.</strong> <code>pill_sequences.go</code> (169) and <code>links_score.go</code> (189) are near the limit. The tree lives in new files, and moving the row menus may mean splitting what is left.</li>
+  <li><strong>Empty <code>steps/</code> folders.</strong> A “Go inside” that was never filled leaves a level with no steps. The tree should hide the twisty when there are no step folders, not when the folder is missing.</li>
+</ol>
+
+<h2 id="open">Open questions</h2>
+<ul>
+  <li>Where should fold state live? The proposal is per level, beside <code>open.bin</code>, so it survives reloads the same way step-card open state does.</li>
+  <li>What does clicking a sequence row show: its step 1, or the step that was last shown in it? The proposal is the last shown step, which needs the same storage as risk 1.</li>
+  <li>Should a row be draggable to reorder or reparent? Not in this plan. “Move earlier” and “Move later” stay as menu items.</li>
+</ul>
+</main>
+</body>
+</html>
