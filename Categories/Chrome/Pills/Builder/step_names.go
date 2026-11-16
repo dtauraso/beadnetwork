@@ -19,13 +19,7 @@ func (m Model) stepStrip(add Act) []Board.Chip {
 	out := []Board.Chip{{Label: "START", Act: Act{Op: OpStartFold}, Lit: m.StartOpen, Tip: "open or close where each link begins"}}
 	ns := m.stepNums()
 	for _, n := range ns {
-		c := Board.Chip{Label: itoa(n), Act: Act{Op: OpStepShow, I: n}, Tip: "show step " + itoa(n) + " in the scene · hover to ghost it"}
-		if n == m.StepShown() {
-			c.Lit, c.Label = true, "step "+itoa(n)+" of "+itoa(len(ns))
-			if name := m.StepNames[n]; name != "" {
-				c.Label += " · " + name
-			}
-		}
+		c := Board.Chip{Label: m.StepLabel(n), Act: Act{Op: OpStepShow, I: n}, Lit: n == m.StepShown(), Tip: "show step " + itoa(n) + " of " + itoa(len(ns)) + " in the scene · hover to ghost it"}
 		out = append(out, c)
 	}
 	if add.Op != "" {

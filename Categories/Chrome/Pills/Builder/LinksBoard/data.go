@@ -138,6 +138,7 @@ type Data struct {
 	SeqMenu  *Menu
 	SeqOpen  bool
 	Steps    []Board.Chip
+	Where    string
 	S        Board.Field
 	SNote    string
 	Doors    []Board.Chip

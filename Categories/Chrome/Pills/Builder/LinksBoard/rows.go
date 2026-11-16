@@ -27,7 +27,7 @@ func (k *col) node(n Node) {
 	l.Text(x+6, y, nodeH, k.clip, glyph, 11, Board.Mute, false, Board.Center)
 	x += 12 + 6
 	x += l.Weighted(x, y, nodeH, k.clip, n.Label+" ", 12, Board.Mute, Board.Semi, Board.Left)
-	l.Weighted(x, y, nodeH, k.clip, n.Sub, 12, Board.Mute, Board.Semi, Board.Left)
+	l.Text(x, y, nodeH, k.clip, n.Sub, 12, Board.Mute, false, Board.Left)
 	l.Spot(Rect{X: k.x, Y: y, W: k.w, H: nodeH}, k.clip, Sheet.Cell{Act: n.Fold, Tip: "open or fold this node's links in this step"}, Sheet.PartBody)
 	k.y += nodeH
 	if !n.Open {

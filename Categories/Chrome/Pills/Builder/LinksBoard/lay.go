@@ -2,7 +2,6 @@ package LinksBoard
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 )
 
 type Rect = Board.Rect
@@ -33,7 +32,7 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 		netBar(l, bar, *d.Net)
 		l.MostY = network(l, mid, sy, *d.Net, &menus)
 	} else {
-		steps(l, box, bar, mid, sy, narrow, d, &menus)
+		bar.H = steps(l, box, bar, mid, sy, narrow, d, &menus)
 	}
 	strip(l, st, d)
 	if d.Toast != "" {
@@ -48,14 +47,14 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	return l
 }
 
-func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, menus *[]placed) {
-	h := Board.RowH()
-	scopeBar(l, bar, narrow, d, menus)
+func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, menus *[]placed) float32 {
+	bar.H = scopeBar(l, bar, narrow, d, menus)
+	end := mid.Y + mid.H
+	mid.Y = bar.Y + bar.H
 	if len(d.Steps) > 0 && d.Empty == nil {
-		sb := Rect{X: mid.X, Y: mid.Y, W: mid.W, H: h + stripPad}
-		stepBar(l, sb, narrow, d.Steps)
-		mid.Y, mid.H = mid.Y+sb.H, mid.H-sb.H
+		mid.Y += stepBar(l, Rect{X: mid.X, Y: mid.Y, W: mid.W, H: mid.H}, d.Steps)
 	}
+	mid.H = end - mid.Y
 	if d.Empty != nil {
 		empty(l, mid, *d.Empty)
 	} else {
@@ -67,105 +66,7 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 		}
 		l.MostY = max(l.MostY, columns(l, stack, sy, stack.W < colNarrowW, d, menus))
 	}
-}
-
-func stepBar(l *Board.Laid, r Rect, narrow bool, steps []Board.Chip) {
-	clip := l.Clip(r)
-	l.Box(r, clip, Board.Card, Board.None)
-	l.Line(Rect{X: r.X, Y: r.Y + r.H - 0.5, W: r.W, H: 0}, clip, Board.Guide, 1, false)
-	x, y := r.X+pad, r.Y+stripPad/2
-	for _, c := range steps {
-		if narrow && !c.Lit && c.Label != "＋" {
-			continue
-		}
-		c.Px = Board.BtnPx
-		w := Board.W(c.Label, Board.BtnPx) + 2*Board.PadX
-		if x+w > r.X+r.W-pad {
-			break
-		}
-		x += l.Chip(x, y, clip, c) + 4
-	}
-}
-
-func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) {
-	clip := l.Clip(r)
-	h := Board.RowH()
-	l.Line(Rect{X: r.X, Y: r.Y + r.H - 0.5, W: r.W, H: 0}, clip, Board.Guide, 1, false)
-	x, y := r.X+pad, r.Y+pad
-	for i, c := range d.Crumbs {
-		if narrow && c.Short != "" {
-			c.Label = c.Short
-		}
-		if i > 0 && !(narrow && i == 1) {
-			x += l.Text(x, y, h, clip, "›", Board.Px, Board.Mute, false, Board.Left) + Board.Gap
-		}
-		if c.Tag != "" {
-			x += l.Text(x, y, h, clip, c.Tag, Board.Px, Board.Mute, false, Board.Left) + Board.Gap
-		}
-		if c.Edit.Op != "" {
-			w := l.Editable(x-Board.PadX, y, 0, clip, c.Label, Board.Px, Board.Ink, c.Edit)
-			if c.Act.Op != "" {
-				l.Spot(Rect{X: x - Board.PadX, Y: y, W: w, H: h}, clip, Sheet.Cell{Act: c.Act, Tip: "go here"}, Sheet.PartBody)
-			}
-			x += w - Board.PadX + Board.Gap
-			x += l.Chip(x, y, clip, Board.Chip{Label: "✎", Act: c.Rename, Px: Board.BtnPx, Ghost: true, Tip: "rename this sequence"}) + Board.Gap
-			continue
-		}
-		if c.Act.Op == "" {
-			x += l.Text(x, y, h, clip, c.Label, Board.Px, Board.Ink, true, Board.Left) + Board.Gap
-			continue
-		}
-		tip := "go here"
-		if i == 0 && d.SeqMenu != nil {
-			tip = "switch sequence"
-		}
-		w := l.Chip(x, y, clip, Board.Chip{Label: c.Label, Act: c.Act, Px: Board.BtnPx, Tip: tip, Lit: i == 0 && d.SeqOpen})
-		if i == 0 && d.SeqMenu != nil && d.SeqOpen {
-			*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: max(w, menuMinW), H: h}, m: *d.SeqMenu})
-		}
-		x += w + Board.Gap
-	}
-	if d.S.Act.Op != "" && !narrow {
-		x += l.Text(x, y, h, clip, "ticks per 1/12 turn", Board.SmallPx, Board.Mute, false, Board.Left) + 4
-		x += l.Field(x, y, clip, d.S) + Board.Gap
-	}
-	if d.SNote != "" && !narrow {
-		nw := Board.W(d.SNote, Board.SmallPx) + 12
-		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y + 3, W: nw, H: h - 6}, Clip: clip, Fill: Board.WarnFill, Radius: 99, Alpha: 1})
-		x += l.Text(x+6, y, h, clip, d.SNote, Board.SmallPx, Board.Warn, false, Board.Left) + 12 + Board.Gap
-	}
-	right := r.X + r.W - pad
-	doors := d.Doors
-	if d.Insp.Title != "" {
-		insp := Board.Chip{Label: "◂ inspect", Act: d.InspTab, Tip: "open the inspector for the selected link"}
-		if d.InspOpen {
-			insp = Board.Chip{Label: "▸ inspect", Act: d.InspTab, Lit: true, Tip: "hide the inspector · the link stays selected"}
-		}
-		doors = append(doors[:len(doors):len(doors)], insp)
-	}
-	if narrow && d.More.Op != "" {
-		at := dots(l, right, y, h, clip, d.MoreOpen, d.More, "network, frame, s and the inspector")
-		if d.MoreOpen {
-			m := Menu{Items: doors, Note: d.SNote}
-			if d.S.Act.Op != "" {
-				m.Find, m.FindLabel = &d.S, "ticks per 1/12 turn"
-			}
-			*menus = append(*menus, placed{at: at, m: m})
-		}
-		return
-	}
-	for i := len(doors) - 1; i >= 0; i-- {
-		c := doors[i]
-		c.Ghost = true
-		c.Px = Board.BtnPx
-		w := Board.W(c.Label, Board.BtnPx) + 2*Board.PadX
-		right -= w
-		if right < x {
-			break
-		}
-		l.Chip(right, y, clip, c)
-		right -= Board.Gap
-	}
+	return bar.H
 }
 
 func strip(l *Board.Laid, r Rect, d Data) {

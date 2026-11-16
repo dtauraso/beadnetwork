@@ -74,6 +74,9 @@ func boardData(m Model) LinksBoard.Data {
 		d.Add = Act{Op: OpStepAdd, I: ns[len(ns)-1]}
 	}
 	d.Steps = m.stepStrip(d.Add)
+	if n := m.StepShown(); n > 0 {
+		d.Where = "step " + m.StepLabel(n)
+	}
 	d.SeqMenu, d.SeqOpen = m.seqMenu(), m.Menu == Act{Op: OpMenu, K: menuSeqs}
 	if strings.HasPrefix(m.Refused, "moved the pick") {
 		d.Undo = m.UndoPick

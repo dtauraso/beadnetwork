@@ -28,7 +28,7 @@ type placed struct {
 func dots(l *Board.Laid, x, y, h float32, clip uint8, open bool, a Act, tip string) Rect {
 	w := Board.W("⋯", Board.BtnPx) + 12
 	r := Rect{X: x - w, Y: y + (h-btnH)/2, W: w, H: btnH}
-	fill, edge := Board.None, Board.Edge
+	fill, edge := Board.None, Board.None
 	if open {
 		fill, edge = Board.On, Board.Accent
 	}

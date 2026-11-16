@@ -47,9 +47,6 @@ func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Data, menus *[]pl
 				k.node(n)
 			}
 		}
-		if c.Shown {
-			l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: k.x, Y: y, W: w, H: 3}, Clip: clip, Fill: Board.Accent, Radius: radius6, Corner: 2, Alpha: 1})
-		}
 		l.Marks[box].R.H = k.y - y
 		y = k.y + colGap
 	}
@@ -67,37 +64,48 @@ func (k *col) header(c Column) {
 	if !c.Open {
 		corner = 0
 	}
-	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: k.x + 1, Y: y + 1, W: k.w - 2, H: cheadH - 1}, Clip: k.clip, Fill: Board.Card, Radius: radius6 - 1, Corner: corner, Alpha: 1})
+	if !c.Open {
+		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: k.x + 1, Y: y + 1, W: k.w - 2, H: cheadH - 2}, Clip: k.clip, Fill: Board.Card, Radius: radius6 - 1, Corner: corner, Alpha: 1})
+	}
 	glyph, tip := "▾", "close this step"
 	if !c.Open {
 		glyph, tip = "▸", "open this step"
 		l.Spot(Rect{X: k.x, Y: y, W: k.w, H: cheadH}, k.clip, Sheet.Cell{Act: c.Fold, Tip: tip}, Sheet.PartBody)
 	}
-	l.Text(x+6, y, cheadH, k.clip, glyph, 11, Board.Mute, false, Board.Center)
-	l.Spot(Rect{X: k.x, Y: y, W: cpad + 18, H: cheadH}, k.clip, Sheet.Cell{Act: c.Fold, Tip: tip}, Sheet.PartBody)
-	x += 12 + 6
-	label, shown, show := c.Label, "● in scene", "show in scene"
-	if k.narrow {
-		label, shown, show = c.Short, "●", "show"
-	}
-	lw := l.Text(x, y, cheadH, k.clip, label, Board.Px, Board.Ink, true, Board.Left)
-	l.Spot(Rect{X: x, Y: y, W: lw, H: cheadH}, k.clip, Sheet.Cell{Act: c.Show, Tip: "show this step in the scene · hover to ghost its places"}, Sheet.PartBody)
-	x += lw + 6
-	if c.Name.Act.Op != "" {
-		l.Editable(x-Board.PadX, y+(cheadH-Board.RowH())/2, 0, k.clip, c.Sub, Board.Px, Board.Mute, c.Name.Act)
-	} else if c.Sub != "" && !k.narrow {
-		l.Text(x, y, cheadH, k.clip, c.Sub, Board.Px, Board.Mute, false, Board.Left)
-	}
+	l.Text(x+4, y, cheadH, k.clip, glyph, 11, Board.Ink, false, Board.Center)
+	l.Spot(Rect{X: k.x, Y: y, W: cpad + 14, H: cheadH}, k.clip, Sheet.Cell{Act: c.Fold, Tip: tip}, Sheet.PartBody)
+	x += 8 + 6
 	right := k.x + k.w - cpad
 	if c.Menu.Op != "" {
 		at := dots(l, right, y, cheadH, k.clip, c.MenuOpen, c.Menu, "this step's tools")
-		right = at.X - 8
+		right = at.X - 6
 		if c.MenuOpen {
 			*k.menus = append(*k.menus, placed{at: at, m: Menu{Items: c.Tools, Drop: c.Drop}})
 		}
 	}
+	label, shown, show := c.Label, "● shown in scene", "show in scene"
+	lw := Board.TextW(label, Board.Px, Board.Semi)
+	sw := Board.W(c.Sub, 12) + 6
+	ew := Board.W(shown, 11)
+	if x+lw+6+sw+ew > right {
+		shown, show = "●", "show"
+		ew = Board.W(shown, 11)
+	}
+	fitSub := x+lw+6+sw+ew <= right
+	if x+lw+ew > right {
+		label, lw = c.Short, Board.TextW(c.Short, Board.Px, Board.Semi)
+	}
+	l.Weighted(x, y, cheadH, k.clip, label, Board.Px, Board.Ink, Board.Semi, Board.Left)
+	l.Spot(Rect{X: x, Y: y, W: lw, H: cheadH}, k.clip, Sheet.Cell{Act: c.Show, Tip: "show this step in the scene · hover to ghost its places"}, Sheet.PartBody)
+	x += lw + 6
+	if c.Name.Act.Op != "" && fitSub {
+		l.Editable(x-Board.PadX, y+(cheadH-Board.RowH())/2, 0, k.clip, c.Sub, 12, Board.Mute, c.Name.Act)
+	} else if c.Sub != "" && fitSub {
+		l.Text(x, y, cheadH, k.clip, c.Sub, 12, Board.Mute, false, Board.Left)
+	}
 	if c.Shown {
-		l.Weighted(right, y, cheadH, k.clip, shown, 11, Board.Accent, Board.Semi, Board.Right)
+		l.Add(Board.Mark{Kind: Board.KCircle, R: Rect{X: right - ew, Y: y + cheadH/2 - 4, W: 8, H: 8}, Clip: k.clip, Fill: Board.Accent, Alpha: 1})
+		l.Text(right, y, cheadH, k.clip, shown[len("●"):], 11, Board.Accent, false, Board.Right)
 	} else if c.Show.Op != "" {
 		tw := l.Text(right, y, cheadH, k.clip, show, 11, Board.Mute, false, Board.Right)
 		l.Spot(Rect{X: right - tw, Y: y, W: tw, H: cheadH}, k.clip, Sheet.Cell{Act: c.Show, Tip: "show this step in the scene"}, Sheet.PartBody)
@@ -115,17 +123,16 @@ func (k *col) headRow(c Column) {
 		l.Text(x, y, headH, k.clip, c.Progress, 12, Board.Warn, false, Board.Left)
 	case c.Head != nil:
 		label := "press all " + c.Head.Picked + ":"
-		var need float32
+		f := flow{x0: x, right: k.x + k.w - cpad, x: x, y: y + 4, h: btnH + 2, gap: 6}
+		lx, ly := f.at(Board.W(label, 12))
+		l.Text(lx, ly, f.h, k.clip, label, 12, Board.Mute, false, Board.Left)
 		for _, lk := range c.Head.Locks {
-			need += lockW(lk) + 8
+			lx, ly := f.at(lockW(lk))
+			k.lock(lx, ly, lk)
 		}
-		if x+Board.W(label, 11)+6+need > k.x+k.w-cpad {
-			label = "all:"
-		}
-		x += l.Text(x, y, headH, k.clip, label, 11, Board.Mute, false, Board.Left) + 6
-		for _, lk := range c.Head.Locks {
-			x += k.lock(x, y+4, lk) + 8
-		}
+		k.y = f.bottom() + 4
+		k.rule(k.y-1, Board.Guide)
+		return
 	default:
 		return
 	}

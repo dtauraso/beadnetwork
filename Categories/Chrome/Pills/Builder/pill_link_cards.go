@@ -35,7 +35,9 @@ func boardInspector(m Model) LinksBoard.Inspector {
 	on := map[bool]string{true: "● on", false: "○ off"}[l.Picked]
 	in := LinksBoard.Inspector{Title: l.From + " → " + l.To, Sub: "· step " + m.StepLabel(e.Step), Moves: "moves in this step",
 		Switch: Board.Chip{Label: on, Act: Act{Op: OpStepPick, Node: l.From, To: l.To, I: e.Step}, Lit: l.Picked, Tip: "pick or unpick this link for this step"}}
-	if !l.Picked {
+	if l.Picked {
+		in.Switch, in.Moves = Board.Chip{}, ""
+	} else {
 		in.Note = "Not picked in this step. Turn it on to give it a turn."
 		return in
 	}
@@ -55,13 +57,13 @@ func boardInspector(m Model) LinksBoard.Inspector {
 		if m.Turning.Act == press {
 			d.Ghost = float32(m.Turning.presses() * m.Turning.Inc)
 		}
-		x.Dial, x.DialAct, x.DialSize = d, press, 56
-		x.Lines = []string{"start " + a.at(l) + " → ends at " + endsAt(l, a.k)}
+		x.Dial, x.DialAct, x.DialSize = d, press, 72
+		x.Ends = a.label + " " + a.at(l) + " → " + endsAt(l, a.k)
 		if a.k == Links.KPhi {
-			x.DialSize, x.Dial.Labels = 92, true
+			x.DialSize = 120
 			end, _ := strconv.Atoi(endsAt(l, a.k))
 			s := m.SceneS()
-			x.Lines = append(x.Lines, itoa(end)+" × s"+itoa(s)+" = "+itoa(end*s)+" ticks")
+			x.Lines = []string{itoa(end) + " × s" + itoa(s) + " = " + itoa(end*s) + " ticks"}
 		}
 		in.Axes = append(in.Axes, x)
 	}

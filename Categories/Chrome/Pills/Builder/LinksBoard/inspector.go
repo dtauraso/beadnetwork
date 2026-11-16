@@ -102,6 +102,10 @@ func (in *ins) axis(a Axis) {
 			size, beside = min(a.DialSize, in.w()), false
 		}
 	}
+	if a.Ends != "" && a.DialSize > 0 {
+		in.summary(a)
+		return
+	}
 	if size < 70 {
 		a.Dial.Labels = false
 	}
