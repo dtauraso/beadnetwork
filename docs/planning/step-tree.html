@@ -19,38 +19,32 @@
 body { margin: 0; background: var(--bg); color: var(--ink);
   font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
 main { max-width: 860px; margin: 0 auto; padding: 40px 16px 80px; }
-h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.01em; }
-h2 { font-size: 20px; margin: 44px 0 10px; padding-top: 12px; border-top: 1px solid var(--line); }
-h3 { font-size: 15px; margin: 22px 0 6px; }
-p, li { max-width: 68ch; }
-.lede { color: var(--mute); font-size: 17px; margin: 0 0 20px; }
+h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.01em; } h2 { font-size: 20px; margin: 44px 0 10px; padding-top: 12px; border-top: 1px solid var(--line); } h3 { font-size: 15px; margin: 22px 0 6px; }
+p, li { max-width: 68ch; } .lede { color: var(--mute); font-size: 17px; margin: 0 0 20px; }
 code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code);
   padding: 1px 5px; border-radius: 4px; }
-nav { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; margin: 18px 0 8px; }
-nav a { color: var(--accent); text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; margin: 18px 0 8px; } nav a { color: var(--accent); text-decoration: none; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin: 14px 0; }
-.note { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; }
-.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.note { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; } .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 680px) { .pair { grid-template-columns: 1fr; } }
 .label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--mute); margin: 0 0 8px; }
 .scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
-th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
-th { font-weight: 600; color: var(--mute); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); } th { font-weight: 600; color: var(--mute); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
 td code { white-space: nowrap; }
 .tag { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 99px; font-weight: 600; }
 .new { background: var(--accent-soft); color: var(--accent); } .gone { background: var(--warn-soft); color: var(--warn); } .kept { background: var(--code); color: var(--mute); }
-/* outline mock-up */
-.outline { font-size: 13.5px; line-height: 1; }
-.row { display: flex; align-items: center; gap: 6px; height: 28px; border-radius: 6px; padding-right: 8px; }
-.row .tw { width: 14px; color: var(--mute); text-align: center; flex: none; }
-.row .tag { font-weight: 500; }
-.row.seq { font-weight: 600; } .row.on { background: var(--accent-soft); color: var(--accent); }
-.row .meta { margin-left: auto; color: var(--mute); font-size: 12px; }
-.d1 { padding-left: 18px; } .d2 { padding-left: 36px; } .d3 { padding-left: 54px; } .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; }
-.chip { border: 1px solid var(--line); border-radius: 5px; padding: 3px 8px; background: var(--card); }
-.chip.lit { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-.crumb { color: var(--mute); font-size: 12.5px; margin-bottom: 10px; }
+/* Links tab mock-ups: draw-board.ts PAINT, RowH 20, Px 13, ChipPx 12, tinyPx 11, pad 8. The board has no dark palette. */
+.bd { background: #fff; color: #222; border: 1px solid #c8ccd2; border-radius: 4px; overflow: hidden; font: 13px/20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.bd .band { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px; border-bottom: 1px solid #f0f1f3; }
+.bd .band.steps { background: #f4f5f7; gap: 4px; } .bd .split { display: flex; min-height: 196px; }
+.bd .chip { height: 20px; line-height: 18px; padding: 0 7px; font-size: 12px; border: 1px solid #c8ccd2; border-radius: 4px; background: #fff; }
+.bd .chip.lit { background: #e3eefc; border-color: #1565c0; color: #1565c0; }
+.bd .tiny { font-size: 11px; color: #555; } .bd .b { font-weight: 700; } .bd .push { margin-left: auto; }
+.bd .tree { width: 52%; padding: 6px 0; border-right: 1px solid #dde1e6; } .bd .cols { flex: 1; background: #fafafa; padding: 8px; }
+.bd .row { display: flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px 0 calc(6px + var(--d, 0) * 14px); white-space: nowrap; }
+.bd .row .tw { width: 11px; font-size: 11px; color: #555; flex: none; } .bd .row.on { background: #e3eefc; color: #1565c0; }
+.bd .row.seq { font-weight: 700; } .bd .row .push { font-size: 11px; color: #555; font-weight: 400; }
 ol.order > li { margin-bottom: 10px; }
 svg text { font: 12px -apple-system, system-ui, sans-serif; fill: var(--ink); } svg .m { fill: var(--mute); } svg .box { fill: var(--card); stroke: var(--line); }
 svg .hot { fill: var(--accent-soft); stroke: var(--accent); } svg .wire { stroke: var(--mute); fill: none; } svg .cross { stroke: var(--warn); fill: none; stroke-dasharray: 4 3; }
@@ -71,30 +65,36 @@ the step chips, “Go inside”, the trail, and the Sequences page.</p>
 <p>The Links tab gets a tree pane on its left. Each sequence is a top-level row, its steps are the rows under it,
 and a step’s own steps sit under that step. Clicking a row opens it. No other control moves you between levels or sequences.</p>
 <div class="pair">
-  <div class="card">
+  <div>
     <p class="label">Today</p>
-    <div class="crumb">Sequences ▾ › #10 rotate triangle › step 1 · lift</div>
-    <div class="chips">
-      <span class="chip">step 1</span><span class="chip lit">step 2</span><span class="chip">step 3</span><span class="chip">＋</span>
+    <div class="bd">
+      <div class="band"><span class="chip">Sequences ▾</span><span class="tiny">›</span><span class="tiny">#10</span><span class="chip">rotate triangle</span><span class="tiny">›</span><span class="b">step 1 · lift</span></div>
+      <div class="band steps"><span class="tiny">steps</span><span class="chip">1</span><span class="chip lit">2</span><span class="chip">＋</span><span class="tiny push">click a step to show it</span></div>
+      <div class="cols tiny">step columns · step 2 card ⋯ → “Go inside”</div>
     </div>
-    <p style="font-size:13px;color:var(--mute);margin:12px 0 0">To see a step’s inner steps: open its ⋯ menu, choose “Go inside”, then climb back out with the trail.
-    Other sequences: open the Sequences ▾ menu or the Sequences page.</p>
   </div>
-  <div class="card">
+  <div>
     <p class="label">After</p>
-    <div class="outline">
-      <div class="row seq"><span class="tw">▸</span><span class="tag kept">#8</span> lift and settle<span class="meta">3</span></div>
-      <div class="row seq"><span class="tw">▾</span><span class="tag kept">#10</span> rotate triangle<span class="meta">3</span></div>
-      <div class="row d1"><span class="tw">▾</span>step 1 · lift<span class="meta">2</span></div>
-      <div class="row d2"><span class="tw"></span>step 1</div>
-      <div class="row d2 on"><span class="tw"></span>step 2</div>
-      <div class="row d1"><span class="tw"></span>step 2</div>
-      <div class="row d1"><span class="tw"></span>step 3</div>
-      <div class="row d1"><span class="tw" style="color:var(--accent)">＋</span><span style="color:var(--mute)">add step</span></div>
-      <div class="row seq"><span class="tw">▸</span><span class="tag kept">#11</span> sequence 11<span class="meta">1</span></div>
+    <div class="bd">
+      <div class="band"><span class="chip">Network…</span><span class="chip">Frame ⚙</span><span class="tiny push">⋯</span></div>
+      <div class="split">
+        <div class="tree">
+          <div class="row seq"><span class="tw">▸</span><span class="tiny">#8</span> lift and settle<span class="push">3</span></div>
+          <div class="row seq"><span class="tw">▾</span><span class="tiny">#10</span> rotate triangle<span class="push">3</span></div>
+          <div class="row" style="--d:1"><span class="tw">▾</span>step 1 · lift<span class="push">2</span></div>
+          <div class="row" style="--d:2"><span class="tw"></span>step 1</div>
+          <div class="row on" style="--d:2"><span class="tw"></span>step 2</div>
+          <div class="row" style="--d:1"><span class="tw"></span>step 2</div>
+          <div class="row" style="--d:1"><span class="tw"></span>step 3</div>
+          <div class="row tiny" style="--d:1"><span class="tw">＋</span>add step</div>
+          <div class="row seq"><span class="tw">▸</span><span class="tiny">#11</span> sequence 11<span class="push">1</span></div>
+        </div>
+        <div class="cols tiny">step columns</div>
+      </div>
     </div>
   </div>
 </div>
+<p style="font-size:13px;color:var(--mute)">Both mock-ups use the Links tab’s own paints, sizes and padding (<code>draw-board.ts</code> <code>PAINT</code>, <code>Board.RowH</code>, <code>Px</code>, <code>ChipPx</code>), and stay light because the board has no dark palette. The tree is drawn with the existing <code>KBox</code>/<code>KText</code> marks and needs no new paints: the open row is <code>On</code>/<code>Accent</code>, like a lit chip; counts, twisties and <code>#id</code> tags are <code>Mute</code> at 11px; the divider is <code>Guide</code>.</p>
 
 <h2 id="model">Model</h2>
 <p><strong>Sequences are the top level of the step tree.</strong> A step can hold steps, and the scene holds sequences in the same way.
