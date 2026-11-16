@@ -1,6 +1,8 @@
 package LinksBoard
 
 import (
+	"strconv"
+
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 )
@@ -14,7 +16,8 @@ const (
 type TreeRow struct {
 	Label    string
 	Depth    int
-	Kids     bool
+	Kids     int
+	Add      bool
 	Open     bool
 	Here     bool
 	Shown    bool
@@ -43,7 +46,7 @@ func treePane(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float3
 			l.Add(Board.Mark{Kind: Board.KBox, R: row, Clip: clip, Fill: Board.On, Radius: 4, Alpha: 1})
 		}
 		x := r.X + pad + float32(t.Depth)*treeIndent
-		if t.Kids {
+		if t.Kids > 0 {
 			g := "›"
 			if t.Open {
 				g = "⌄"
@@ -53,12 +56,23 @@ func treePane(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float3
 		}
 		x += foldW
 		right := r.X + r.W - pad
+		if t.Add {
+			l.Text(x, y, h, clip, "＋ add step", 12, Board.Mute, false, Board.Left)
+			l.Spot(Rect{X: x, Y: y, W: max(0, right-x), H: h}, clip, Sheet.Cell{Act: t.Go}, Sheet.PartBody)
+			y += h
+			continue
+		}
 		if t.Menu.Op != "" {
 			at := dots(l, right, y, h, clip, t.MenuOpen, t.Menu)
 			right = at.X - 2
 			if t.MenuOpen {
 				*menus = append(*menus, placed{at: at, m: Menu{Items: t.Items, Drop: t.Drop}})
 			}
+		}
+		if t.Kids > 0 {
+			n := strconv.Itoa(t.Kids)
+			l.Text(right-2, y, h, clip, n, 11, Board.Mute, false, Board.Right)
+			right -= Board.W(n, 11) + 8
 		}
 		ink := Board.Ink
 		if !t.Here {
@@ -76,7 +90,7 @@ func treePane(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float3
 	return max(0, y+pad+sy-(r.Y+r.H))
 }
 
-func treePop(l *Board.Laid, box, at Rect, d Data) {
+func treePop(l *Board.Laid, box, at Rect, d Data, menus *[]placed) {
 	h := Board.RowH()
 	n := len(d.Tree)
 	if d.TreeFind != nil {
@@ -91,14 +105,7 @@ func treePop(l *Board.Laid, box, at Rect, d Data) {
 	clip := l.Clip(Rect{X: r.X - 4, Y: r.Y - 4, W: r.W + 8, H: r.H + 8})
 	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: r.X, Y: r.Y + 2, W: r.W, H: r.H}, Clip: clip, Fill: Board.Edge, Radius: 6, Alpha: 0.4})
 	l.Block(r, clip)
-	rows := make([]TreeRow, len(d.Tree))
-	for i, t := range d.Tree {
-		t.Menu, t.MenuOpen = Act{}, false
-		rows[i] = t
-	}
-	d.Tree = rows
-	var none []placed
-	treePane(l, r, 0, d, &none)
+	treePane(l, r, 0, d, menus)
 }
 
 func fitText(s string, w float32, bold bool) string {

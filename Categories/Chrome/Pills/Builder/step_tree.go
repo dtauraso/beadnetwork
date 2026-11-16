@@ -22,7 +22,7 @@ type StepRow struct {
 	Path  []int
 	Label string
 	Depth int
-	Kids  bool
+	Kids  int
 	Open  bool
 	Here  bool
 	Shown bool
@@ -103,10 +103,10 @@ func (m *Model) walkTree(parent, here []int) {
 		p := append(slices.Clone(parent), n)
 		r := StepRow{Path: p, Label: stepLabelAt(dir, n), Depth: len(parent), Shown: slices.Equal(p, here)}
 		r.Here = len(p) <= len(here) && slices.Equal(p, here[:len(p)])
-		r.Kids = len(ReadStepNumbers(stepDir(dir, n))) > 0
+		r.Kids = len(ReadStepNumbers(stepDir(dir, n)))
 		r.Open = r.Here && !r.Shown
 		Links.ReadIfExists(filepath.Join(stepDir(dir, n), FileTreeOpen), &r.Open)
-		r.Open = r.Open && r.Kids
+		r.Open = r.Open && r.Kids > 0
 		m.Tree = append(m.Tree, r)
 		if r.Open {
 			m.walkTree(p, here)

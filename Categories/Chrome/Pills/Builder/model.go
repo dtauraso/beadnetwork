@@ -49,6 +49,7 @@ type Model struct {
 	StepClosed  bool
 	NetworkOpen bool
 	StartOpen   bool
+	TreePop     bool
 	InspOpen    bool
 	StepsOpen   map[StepNode]bool
 	FramePop    bool

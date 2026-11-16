@@ -21,6 +21,7 @@ const (
 	OpTreeDrop    = "tree-drop"
 	OpTreeEarlier = "tree-earlier"
 	OpTreeLater   = "tree-later"
+	OpTreePop     = "tree-pop"
 
 	menuTree   = "tree"
 	renamePath = "path"
@@ -87,19 +88,41 @@ func (m Model) treeMenu(r StepRow) ([]Board.Chip, Board.Chip) {
 	return items, Board.Chip{Label: "Delete step", Act: Act{Op: OpTreeDrop, Node: key}}
 }
 
+func (m *Model) pressPop(a Act) {
+	switch {
+	case a.Op == OpTreePop:
+		m.TreePop, m.Menu = !m.TreePop, Act{}
+	case a.Op == OpTreeGo, !IsTreeStepOp(a) && a.Op != OpTreeFind && a.Op != OpTreeFold && a.Op != OpRename && (a.Op != OpMenu || a.K != menuTree):
+		m.TreePop = false
+	}
+}
+
 func (m Model) treeRows() []LinksBoard.TreeRow {
 	var out []LinksBoard.TreeRow
-	for _, r := range m.Tree {
-		key := PathKey(r.Path)
-		t := LinksBoard.TreeRow{Label: r.Label, Depth: r.Depth, Kids: r.Kids, Open: r.Open, Here: r.Here, Shown: r.Shown,
-			Go: Act{Op: OpTreeGo, Node: key}, Fold: Act{Op: OpTreeFold, Node: key}, Menu: Act{Op: OpMenu, K: menuTree, Node: key},
-			Name: Act{Op: OpTreeName, Node: key}}
-		if t.MenuOpen = m.Menu == t.Menu; t.MenuOpen {
-			t.Items, t.Drop = m.treeMenu(r)
+	last := map[int]string{}
+	for i, r := range m.Tree {
+		last[r.Depth] = PathKey(r.Path)
+		next := -1
+		if i+1 < len(m.Tree) {
+			next = m.Tree[i+1].Depth
 		}
-		out = append(out, t)
+		out = append(out, m.treeRow(r))
+		for d := r.Depth; d > next && strings.TrimSpace(m.TreeFind) == ""; d-- {
+			out = append(out, LinksBoard.TreeRow{Depth: d, Add: true, Go: Act{Op: OpTreeAdd, Node: last[d]}})
+		}
 	}
 	return out
+}
+
+func (m Model) treeRow(r StepRow) LinksBoard.TreeRow {
+	key := PathKey(r.Path)
+	t := LinksBoard.TreeRow{Label: r.Label, Depth: r.Depth, Kids: r.Kids, Open: r.Open, Here: r.Here, Shown: r.Shown,
+		Go: Act{Op: OpTreeGo, Node: key}, Fold: Act{Op: OpTreeFold, Node: key}, Menu: Act{Op: OpMenu, K: menuTree, Node: key},
+		Name: Act{Op: OpTreeName, Node: key}}
+	if t.MenuOpen = m.Menu == t.Menu; t.MenuOpen {
+		t.Items, t.Drop = m.treeMenu(r)
+	}
+	return t
 }
 
 func (m Model) PathLabel() string {
@@ -160,8 +183,8 @@ func (m *Model) walkFind(parent, here []int) {
 		}
 		r := StepRow{Path: p, Label: stepLabelAt(dir, n), Depth: len(parent), Shown: slices.Equal(p, here)}
 		r.Here = len(p) <= len(here) && slices.Equal(p, here[:len(p)])
-		r.Kids = len(ReadStepNumbers(stepDir(dir, n))) > 0
-		r.Open = r.Kids
+		r.Kids = len(ReadStepNumbers(stepDir(dir, n)))
+		r.Open = r.Kids > 0
 		m.Tree = append(m.Tree, r)
 		m.walkFind(p, here)
 	}
