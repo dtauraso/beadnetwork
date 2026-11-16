@@ -54,6 +54,7 @@ export const SHEET_VALUE_NAMES = [
   "downW",
   "downH",
   "draftText",
+  "draftAt",
   "cellOutlined",
   "cellBoxed",
   "slideX",

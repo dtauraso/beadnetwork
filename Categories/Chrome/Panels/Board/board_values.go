@@ -15,7 +15,7 @@ var BoardValueNames = []string{
 	"markFill", "markEdge", "markInk", "markRadius", "markStroke",
 	"markText", "markLen", "markPx", "markBold", "markAlpha", "markDash", "markCorner",
 	"dialAxis", "dialStart", "dialTurn", "dialGhost", "dialInc", "dialLabels",
-	"clipX", "clipY", "clipW", "clipH", "editing",
+	"clipX", "clipY", "clipW", "clipH", "editing", "caretMark", "caretAt",
 }
 
 func ValueRelPath() string { return ValueRelFile }
@@ -50,12 +50,13 @@ func (s *State) Write(l *Laid, e Sheet.Edit) {
 	w.Begin()
 	w.U8("editing", flag(e.Active && l != nil))
 	if l != nil {
-		for _, m := range l.Marks {
+		caret := uint32(0)
+		for i, m := range l.Marks {
 			if e.Active && m.Edit.Op != "" && m.Edit == e.Act {
 				if m.Kind == KBox {
 					m.Fill, m.Edge = On, Accent
 				} else {
-					m.Text = e.Shown()
+					m.Text, caret = e.Draft, uint32(i+1)
 					if m.Align == Right {
 						m.R.X = m.R.X + m.R.W - W(m.Text, m.Px)
 					}
@@ -86,6 +87,8 @@ func (s *State) Write(l *Laid, e Sheet.Edit) {
 			w.F32("dialInc", m.Dial.Inc)
 			w.U8("dialLabels", flag(m.Dial.Labels))
 		}
+		w.U32("caretMark", caret)
+		w.U32("caretAt", e.Caret())
 		for _, c := range l.Clips {
 			w.F32("clipX", c.X)
 			w.F32("clipY", c.Y)

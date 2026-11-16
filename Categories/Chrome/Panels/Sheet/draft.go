@@ -27,9 +27,8 @@ func StartDraft(e *Edit, c Cell) {
 	e.At = len(e.Draft)
 }
 
-func (e Edit) Shown() string {
-	at := min(max(e.At, 0), len(e.Draft))
-	return e.Draft[:at] + "|" + e.Draft[at:]
+func (e Edit) Caret() uint32 {
+	return uint32(utf8.RuneCountInString(e.Draft[:min(max(e.At, 0), len(e.Draft))]))
 }
 
 func (e *Edit) insert(s string) {

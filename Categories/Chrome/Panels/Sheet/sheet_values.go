@@ -21,7 +21,7 @@ var SheetValueNames = []string{
 	"valueText", "valueLen",
 	"upBox", "upX", "upY", "upW", "upH",
 	"downX", "downY", "downW", "downH",
-	"draftText",
+	"draftText", "draftAt",
 	"cellOutlined", "cellBoxed",
 	"slideX", "slideW", "cellSlides", "upSlides",
 	"upLit", "downLit", "upDim",

@@ -132,7 +132,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const keys = strings("keyText", "keyLen"), vals = strings("valueText", "valueLen");
   const upBox = sheetU32Run("upBox");
   const ups = rects("upX", "upY", "upW", "upH"), downs = rects("downX", "downY", "downW", "downH");
-  const draft = draftText();
+  const draft = draftText(), draftAt = sheetU32Run("draftAt")?.[0] ?? 0;
   const outlined = bytesOf("cellOutlined"), boxed = bytesOf("cellBoxed"), dimCell = bytesOf("cellDim"), bare = bytesOf("cellBare");
   const slideX = sheetF32Run("slideX"), slideW = sheetF32Run("slideW");
   const cellSlides = bytesOf("cellSlides"), upSlides = bytesOf("upSlides");
@@ -161,7 +161,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
         if (i < from || i >= to || cellBox?.[i] !== bi || r.w <= 0) return;
         const isEditing = editing[i] !== 0;
         slid(c, b, sx, sw, (cellSlides[i] ?? 0) !== 0, () => drawCell(c, r, {
-          kind: kinds[i] ?? 0, key: keys[i] ?? "", value: isEditing ? draft : vals[i] ?? "", editing: isEditing,
+          kind: kinds[i] ?? 0, key: keys[i] ?? "", value: isEditing ? draft : vals[i] ?? "", editing: isEditing, caret: isEditing ? draftAt : -1,
           outlined: (outlined[i] ?? 0) !== 0, boxed: (boxed[i] ?? 0) !== 0, lit: (lit[i] ?? 0) !== 0, dim: (dimCell[i] ?? 0) !== 0,
           bare: (bare[i] ?? 0) !== 0, ink: ink[i] ?? 0, dial: dial[i] ?? 0, dialStart: dialStart?.[i] ?? 0, dialTurn: dialTurn?.[i] ?? 0, dialGhost: dialGhost?.[i] ?? 0,
         }));

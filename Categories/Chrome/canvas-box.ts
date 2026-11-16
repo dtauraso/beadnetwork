@@ -9,6 +9,17 @@ export function canvasFont(px: number, weight?: number | "bold"): string {
   return `${weight ? `${weight} ` : ""}${px}px ${CANVAS_FONT}`;
 }
 
+export function drawCaret(c: CanvasRenderingContext2D, text: string, left: number, y: number, h: number, at: number, ink: string): void {
+  const x = Math.round(left + c.measureText(Array.from(text).slice(0, at).join("")).width) + 0.5;
+  c.strokeStyle = ink;
+  c.lineWidth = 1;
+  c.setLineDash([]);
+  c.beginPath();
+  c.moveTo(x, y + h * 0.2);
+  c.lineTo(x, y + h * 0.8);
+  c.stroke();
+}
+
 export function roundRect(
   c: CanvasRenderingContext2D,
   x: number,

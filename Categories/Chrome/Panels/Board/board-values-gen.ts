@@ -35,6 +35,8 @@ export const BOARD_VALUE_NAMES = [
   "clipW",
   "clipH",
   "editing",
+  "caretMark",
+  "caretAt",
 ] as const;
 
 export type BoardValueName = (typeof BOARD_VALUE_NAMES)[number];

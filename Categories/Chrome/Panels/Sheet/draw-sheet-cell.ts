@@ -1,4 +1,4 @@
-import { canvasFont, roundRect } from "../../canvas-box";
+import { canvasFont, drawCaret, roundRect } from "../../canvas-box";
 
 const TEXT_INK = "#222";
 const MUTED_INK = "#555";
@@ -34,7 +34,7 @@ const TURN = 12;
 
 export type R = { x: number; y: number; w: number; h: number };
 
-export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean; bare: boolean; ink: number; dial: number; dialStart: number; dialTurn: number; dialGhost: number };
+export type CellLook = { kind: number; key: string; value: string; editing: boolean; outlined: boolean; boxed: boolean; lit: boolean; dim: boolean; bare: boolean; ink: number; caret: number; dial: number; dialStart: number; dialTurn: number; dialGhost: number };
 
 export function drawBand(c: CanvasRenderingContext2D, r: R, band: number): void {
   if (band === BAND_GUIDE) {
@@ -64,15 +64,17 @@ function label(c: CanvasRenderingContext2D, text: string, x: number, y: number, 
   c.fillText(text, x, y);
 }
 
-function drawField(c: CanvasRenderingContext2D, r: R, key: string, value: string, editing: boolean): void {
+function drawField(c: CanvasRenderingContext2D, r: R, key: string, value: string, editing: boolean, at: number): void {
   box(c, r, false, editing);
   label(c, key, r.x + CELL_PAD_X, r.y + r.h / 2, "left", MUTED_INK);
   label(c, value, r.x + r.w - CELL_PAD_X, r.y + r.h / 2, "right", TEXT_INK);
+  if (at >= 0) drawCaret(c, value, r.x + r.w - CELL_PAD_X - c.measureText(value).width, r.y, r.h, at, TEXT_INK);
 }
 
-function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, on: boolean, editing: boolean, dim: boolean): void {
+function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, on: boolean, editing: boolean, dim: boolean, at = -1): void {
   box(c, r, on, editing);
   label(c, text, r.x + r.w / 2, r.y + r.h / 2, "center", dim ? MUTED_INK : TEXT_INK);
+  if (at >= 0) drawCaret(c, text, r.x + r.w / 2 - c.measureText(text).width / 2, r.y, r.h, at, TEXT_INK);
 }
 
 function drawText(c: CanvasRenderingContext2D, r: R, text: string, dim: boolean, ink: number): void {
@@ -139,8 +141,8 @@ export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
     r = { x: r.x + w, y: r.y, w: r.w - w, h: r.h };
   }
   if (l.kind === CELL_FIELD && l.bare && !l.editing) drawText(c, r, l.value || l.key, l.dim, l.ink);
-  else if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.value || l.key, false, l.editing, l.dim || !l.value);
-  else if (l.kind === CELL_FIELD) drawField(c, r, l.key, l.value, l.editing);
+  else if (l.kind === CELL_FIELD && l.boxed) drawBoxed(c, r, l.editing ? l.value : l.value || l.key, false, l.editing, l.dim || !l.value, l.caret);
+  else if (l.kind === CELL_FIELD) drawField(c, r, l.key, l.value, l.editing, l.caret);
   else if (l.kind === CELL_TEXT && l.boxed) drawBoxed(c, r, l.key, l.outlined || l.lit, false, l.dim);
   else if (l.kind === CELL_TEXT) drawText(c, r, l.key, l.dim, l.lit && !l.ink ? INK_STRONG : l.ink);
   else drawBoxed(c, r, l.key, l.lit, false, l.dim);
