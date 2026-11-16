@@ -60,7 +60,6 @@ type Model struct {
 	ShownStep   int
 	StepClosed  bool
 	NetworkOpen bool
-	PlaceOpen   map[string]bool
 	StartOpen   bool
 	InspOpen    bool
 	FrameFolded bool
@@ -69,6 +68,8 @@ type Model struct {
 	FrameDraft  map[string]float64
 	Turning     Turning
 	Hot         Act
+	Menu        Act
+	Pressed     Act
 	UndoPick    Act
 	Touched     StepEdge
 	Level       string

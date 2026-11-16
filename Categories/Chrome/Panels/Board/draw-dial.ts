@@ -5,122 +5,103 @@ const TURN = 12;
 
 export type DialLook = { axis: number; start: number; turn: number; ghost: number; inc: number; labels: boolean };
 
-const DIAL_TRACK = "#dde1e6", DIAL_START = "#9aa0a8", DIAL_INK = "#222";
+const GUIDE = "#dde1e6", TICK = "#c8ccd2", LABEL = "#555", START = "#9aa0a8", INK = "#222", ACCENT = "#1565c0";
 
-export function drawDial(c: CanvasRenderingContext2D, r: R, d: DialLook, ink: string): void {
-  const size = Math.min(r.w, r.h), cx = r.x + r.w / 2, cy = r.y + r.h / 2;
-  const insp = size >= 50, mini = insp ? size < 34 : size < 30;
-  const rad = size / 2 - (d.labels ? 13 : mini ? 2 : insp ? 5 : 4);
-  if (rad <= 6) return;
-  const at = (u: number, rr = rad): [number, number] => {
+export function drawDial(c: CanvasRenderingContext2D, r: R, d: DialLook, col: string): void {
+  const size = Math.min(r.w, r.h), cx = r.x + r.w / 2, cy = r.y + r.h / 2, rad = size / 2 - 1.5;
+  if (rad <= 4) return;
+  const at = (u: number, rr: number): [number, number] => {
     const t = (u / TURN) * 2 * Math.PI;
     return [cx + rr * Math.sin(t), cy - rr * Math.cos(t)];
   };
   const arc = (from: number, span: number, rr: number): void => {
-    if (span === 0) return;
     const s = Math.max(-11.999, Math.min(11.999, span));
     const a0 = (from / TURN) * 2 * Math.PI - Math.PI / 2;
     c.beginPath();
     c.arc(cx, cy, rr, a0, a0 + (s / TURN) * 2 * Math.PI, s < 0);
     c.stroke();
   };
-  const dot = (x: number, y: number, rr: number): void => {
+  const disc = (x: number, y: number, rr: number): void => {
     c.beginPath();
     c.arc(x, y, rr, 0, 2 * Math.PI);
   };
+  const hand = (u: number, ink: string, w: number, rr: number): void => {
+    const [x, y] = at(u, rr);
+    c.strokeStyle = ink;
+    c.lineWidth = w;
+    c.beginPath();
+    c.moveTo(cx, cy);
+    c.lineTo(x, y);
+    c.stroke();
+  };
+  c.save();
   c.setLineDash([]);
-  c.lineCap = "butt";
-  c.strokeStyle = DIAL_TRACK;
-  c.lineWidth = insp ? (mini ? 1.5 : 1) : 1.5;
-  dot(cx, cy, rad);
+  disc(cx, cy, rad);
+  c.fillStyle = "#fff";
+  c.fill();
+  c.strokeStyle = GUIDE;
+  c.lineWidth = 1;
   c.stroke();
-  if (!mini) {
-    for (let u = 0; u < TURN; u += insp ? 1 : 3) {
-      const major = u % 3 === 0, o = insp ? (major ? 4 : 2.5) : 0;
-      const [x0, y0] = insp ? at(u, rad - o) : at(u, rad - 3), [x1, y1] = insp ? at(u, rad + o) : at(u, rad + 2);
-      c.strokeStyle = major ? DIAL_START : DIAL_TRACK;
-      c.lineWidth = insp && major ? 1.3 : 1;
+  if (size >= 40) {
+    c.strokeStyle = TICK;
+    for (let u = 0; u < TURN; u++) {
+      const [x0, y0] = at(u, rad), [x1, y1] = at(u, rad - (u % 3 ? 3 : 6));
       c.beginPath();
       c.moveTo(x0, y0);
       c.lineTo(x1, y1);
       c.stroke();
     }
   }
-  if (d.labels) {
-    c.fillStyle = DIAL_START;
-    c.font = canvasFont(9);
+  if (d.labels && size >= 70) {
+    c.fillStyle = LABEL;
+    c.font = canvasFont(10);
     c.textAlign = "center";
     c.textBaseline = "middle";
     for (const u of [0, 3, 6, 9]) {
-      const [x, y] = at(u, rad + 9);
+      const [x, y] = at(u, rad - 13);
       c.fillText(String(u), x, y);
     }
   }
-  const w = mini ? 2.5 : insp ? (size > 100 ? 5 : 3.5) : 3;
-  c.lineCap = "round";
-  if (d.start) {
-    c.strokeStyle = DIAL_START;
-    c.lineWidth = insp && !mini ? 2 : 1.5;
-    arc(0, d.start, rad - (mini ? 0 : w + 1));
-  }
-  c.strokeStyle = ink;
-  c.lineWidth = w;
-  if (d.turn) {
-    if (d.turn < 0) c.setLineDash([3, 2.5]);
-    arc(d.start, d.turn, rad);
-    c.setLineDash([]);
-  }
+  const sw = Math.max(2, size / 14), track = rad - sw, reach = rad - sw * 1.5, knob = size / 16;
+  const end = d.start + d.turn;
+  c.strokeStyle = col;
+  c.lineWidth = sw;
   if (d.ghost) {
-    c.globalAlpha = 0.45;
-    c.setLineDash([2, 3]);
-    arc(d.start + d.turn, d.ghost, rad);
+    c.globalAlpha = 0.7;
+    c.setLineDash([3, 3]);
+    arc(end, d.ghost, track);
     c.setLineDash([]);
     c.globalAlpha = 1;
   }
-  if (d.inc > 0 && d.turn && !mini) {
-    const n = Math.abs(d.turn / d.inc);
-    c.fillStyle = DIAL_INK;
-    c.globalAlpha = 0.9;
-    for (let k = 1; k < n && k < 48; k++) {
-      const [x, y] = at(d.start + Math.sign(d.turn) * d.inc * k);
-      dot(x, y, insp ? 1.3 : 1.2);
+  if (d.turn) {
+    c.lineCap = "round";
+    if (d.turn < 0) c.setLineDash([3, 3]);
+    arc(d.start, d.turn, track);
+    c.setLineDash([]);
+  }
+  c.lineCap = "butt";
+  hand(d.start, START, Math.max(1.2, size / 30), reach);
+  if (d.turn) {
+    c.lineCap = "round";
+    hand(end, INK, Math.max(1.5, size / 24), reach);
+    if (size >= 40) {
+      const [x, y] = at(end, reach);
+      disc(x, y, knob);
+      c.fillStyle = ACCENT;
       c.fill();
     }
-    c.globalAlpha = 1;
   }
-  const end = d.start + d.turn;
-  const [ex, ey] = at(end, rad * (insp ? (mini ? 0.95 : 0.78) : 0.8));
-  c.lineCap = "butt";
-  c.strokeStyle = DIAL_INK;
-  c.lineWidth = insp ? (mini ? 1.2 : 1.4) : 1.2;
-  c.globalAlpha = 0.55;
-  c.beginPath();
-  c.moveTo(cx, cy);
-  c.lineTo(ex, ey);
-  c.stroke();
-  c.globalAlpha = 0.6;
-  c.fillStyle = DIAL_INK;
-  dot(cx, cy, insp ? (mini ? 1.2 : 2) : 1.3);
-  c.fill();
-  c.globalAlpha = 1;
-  if (insp && !mini && d.start) {
-    const [sx, sy] = at(d.start);
-    c.fillStyle = DIAL_START;
-    dot(sx, sy, 2.6);
+  if (d.ghost && size >= 40) {
+    const [x, y] = at(end + d.ghost, reach);
+    disc(x, y, knob);
+    c.fillStyle = "#fff";
     c.fill();
-  }
-  const endR = mini ? 2.2 : insp ? (size > 100 ? 6 : 4) : 3.2;
-  const [hx, hy] = at(end);
-  c.fillStyle = ink;
-  dot(hx, hy, endR);
-  c.fill();
-  if (d.ghost) {
-    const [gx, gy] = at(end + d.ghost);
-    c.globalAlpha = 0.7;
-    c.strokeStyle = ink;
+    c.strokeStyle = ACCENT;
     c.lineWidth = 1.5;
-    dot(gx, gy, insp ? endR : 3.2);
     c.stroke();
-    c.globalAlpha = 1;
   }
+  disc(cx, cy, Math.max(1.2, size / 28));
+  c.fillStyle = INK;
+  c.fill();
+  c.restore();
 }

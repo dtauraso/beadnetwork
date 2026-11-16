@@ -17,6 +17,7 @@ type Crumb struct {
 }
 
 type Lock struct {
+	Axis  string
 	Label string
 	On    bool
 	Cycle Act
@@ -36,6 +37,7 @@ type CardRow struct {
 	Ruler   *Board.Ruler
 	A, B    Board.Stepper
 	Total   string
+	Why     string
 }
 
 type Card struct {
@@ -48,16 +50,17 @@ type Card struct {
 }
 
 type Link struct {
-	Label  string
-	Picked bool
-	Pick   Act
-	Open   bool
-	Fold   Act
-	Dial   Board.Dial
-	Sum    string
-	Tip    string
-	Hot    bool
-	Card   *Card
+	Label   string
+	Picked  bool
+	Instead bool
+	Pick    Act
+	Open    bool
+	Fold    Act
+	Dial    Board.Dial
+	Sum     string
+	Tip     string
+	Hot     bool
+	Card    *Card
 }
 
 type Node struct {
@@ -78,6 +81,9 @@ type Column struct {
 	Progress string
 	Name     Board.Field
 	Tools    []Board.Chip
+	Drop     Board.Chip
+	Menu     Act
+	MenuOpen bool
 	Head     *Head
 	Nodes    []Node
 }
@@ -128,21 +134,28 @@ type Empty struct {
 }
 
 type Data struct {
-	Crumbs     []Crumb
-	S          Board.Field
-	SNote      string
-	Doors      []Board.Chip
-	DoorsShort []string
-	Cols       []Column
-	Add        Act
-	Insp       Inspector
-	InspOpen   bool
-	InspTab    Act
-	Status     string
-	Ghost      string
-	Toast      string
-	Undo       Act
-	Dismiss    Act
-	Pop        *Pop
-	Empty      *Empty
+	Crumbs   []Crumb
+	SeqMenu  *Menu
+	SeqOpen  bool
+	Steps    []Board.Chip
+	Where    string
+	S        Board.Field
+	SNote    string
+	Doors    []Board.Chip
+	More     Act
+	MoreOpen bool
+	Cols     []Column
+	Add      Act
+	Insp     Inspector
+	InspOpen bool
+	InspTab  Act
+	Status   string
+	Ghost    string
+	Toast    string
+	At       Act
+	Undo     Act
+	Dismiss  Act
+	Pop      *Pop
+	Empty    *Empty
+	Net      *Net
 }

@@ -71,9 +71,9 @@ func totalOf(l Links.Link, k string) int {
 
 func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 	if !l.Picked {
-		return &LinksBoard.Card{Note: "Not picked in this step. Pick it (●) to give it a turn."}
+		return &LinksBoard.Card{Note: "Not picked in this step. Click “pick” to give it a turn."}
 	}
-	c := &LinksBoard.Card{Heads: [3]string{"Δ", "nΔ", "total"}, StartHead: "start"}
+	c := &LinksBoard.Card{Heads: [3]string{"this step turns", "one press", "ends at"}, StartHead: "starts at", Foot: "“starts at” is shared by every step of this sequence."}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	from := l
 	if b, ok := m.Grids[l.To].Base[l.From]; ok {
@@ -82,6 +82,7 @@ func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 	for _, a := range axes {
 		press := act(OpLinkPress, a.k)
 		r := LinksBoard.CardRow{Axis: a.label, Start: stepper(a.at(from), Act{Op: OpLinkStart, Node: l.From, To: l.To, K: a.k, I: startPart}, true), A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
+		r.A.Faded = a.delta(l) == 0
 		if a.k == Links.KR {
 			m.rRow(c, &r, l)
 		} else {
@@ -104,9 +105,9 @@ func (m Model) rRow(c *LinksBoard.Card, r *LinksBoard.CardRow, l Links.Link) {
 	atZero := end < 1e-9
 	r.A.DownDim, r.A.UpDim = fixed || atZero, fixed
 	if fixed {
-		c.Fixed = m.fixedWhy(l)
+		r.Why = "r fixed: " + m.fixedShort(l)
 	} else if atZero {
-		c.Foot = "r is at 0, the closest it can go"
+		c.Foot = "r is at 0, the closest it can go. " + c.Foot
 	}
 }
 
@@ -126,6 +127,15 @@ func (m Model) startBoardCard(id string, l Links.Link) *LinksBoard.Card {
 		c.Rows = append(c.Rows, r)
 	}
 	return c
+}
+
+func (m Model) fixedShort(l Links.Link) string {
+	for _, id := range m.ManyIn() {
+		if id == l.From || id == l.To {
+			return "node " + id + " has " + strconv.Itoa(len(m.linksTo(id))) + " links in"
+		}
+	}
+	return ""
 }
 
 func (m Model) fixedWhy(l Links.Link) string {

@@ -25,6 +25,10 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			applySheetKey(ctx, md, ev.Key)
 			if finding {
 				md.UI.Builder.Find(md.UI.Sheet.Edit, ev.Key)
+				if k, ok := md.UI.Builder.FirstSeqMatch(); ok && ev.Key == "Enter" && md.UI.Builder.Menu.Op == Builder.OpMenu {
+					md.UI.Builder.Menu = Sheet.Act{}
+					runSheetAct(ctx, md, Sheet.Act{Op: Builder.OpSeqIn, I: k}, 0, nil)
+				}
 				md.UI.EmitViewFrame(nil)
 			}
 			return

@@ -23,13 +23,11 @@ func popover(l *Board.Laid, box, bar Rect, p Pop) {
 		l.Text(x, y, h, clip, f.Label, Board.Px, Board.Ink, false, Board.Left)
 		fx := x + 36
 		fx += l.Field(fx, y, clip, f.Field) + Board.Gap
-		what := ""
+		what, ink := f.What, Board.Mute
 		if f.Was != "" {
-			what = "was " + f.Was
-		} else if f.Label == "Δt" {
-			what = f.What
+			what, ink = "was "+f.Was, Board.Warn
 		}
-		l.Text(fx, y, h, clip, what, 11, Board.Mute, false, Board.Left)
+		l.Text(fx, y, h, clip, what, 11, ink, false, Board.Left)
 		y += h + Board.Gap
 	}
 	l.Text(x, y, h, clip, "Applying reloads the scene.", 12, Board.Warn, false, Board.Left)

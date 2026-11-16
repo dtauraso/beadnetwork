@@ -58,7 +58,12 @@ func (s *State) Write(l *Laid, e Sheet.Edit) {
 				} else {
 					m.Text, caret = e.Draft, uint32(i+1)
 					if m.Align == Right {
-						m.R.X = m.R.X + m.R.W - W(m.Text, m.Px)
+						wt := weight(m)
+						if wt == 1 {
+							wt = 7
+						}
+						nw := TextW(m.Text, m.Px, wt)
+						m.R.X, m.R.W = m.R.X+m.R.W-nw, nw
 					}
 					m.Ink = Ink
 				}

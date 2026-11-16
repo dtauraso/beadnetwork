@@ -17,6 +17,13 @@ import (
 
 func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, h Sheet.Hit) {
 	sh := &md.UI.Sheet
+	if h.Part == Sheet.PartBody || h.Part == Sheet.PartUp || h.Part == Sheet.PartDown || h.Part == Sheet.PartRow {
+		md.UI.Builder.PressMenu(h.Cell.Act)
+		if h.Cell.Act.Op == Builder.OpMenu {
+			md.UI.EmitViewFrame(nil)
+			return
+		}
+	}
 	if h.Part == Sheet.PartBody || h.Part == Sheet.PartUp || h.Part == Sheet.PartDown {
 		md.UI.Builder.Touch(h.Cell.ArrowAct())
 		md.UI.Builder.NotePick(h.Cell.ArrowAct())
@@ -80,6 +87,9 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
 	md.UI.Builder.Refused = ""
+	if a.Op != Builder.OpToastClose {
+		md.UI.Builder.Pressed = a
+	}
 	if Builder.IsStepEdit(a) {
 		if !Builder.IsStartEdit(a) {
 			md.showFor(ctx, a.I)
@@ -136,11 +146,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.Refused = ""
 	case Builder.OpNetFold:
 		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
-	case Builder.OpPlaceFold:
-		if md.UI.Builder.PlaceOpen == nil {
-			md.UI.Builder.PlaceOpen = map[string]bool{}
-		}
-		md.UI.Builder.PlaceOpen[a.Node] = !md.UI.Builder.PlaceOpen[a.Node]
 	case Builder.OpStartFold:
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
 	case Builder.OpInspTab:

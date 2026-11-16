@@ -14,8 +14,29 @@ const (
 	OpLinkOne   = "link-one"
 	OpStepShow  = "step-show"
 	OpNetFold   = "network-fold"
-	OpPlaceFold = "place-fold"
+	OpMenu      = "menu"
 )
+
+const (
+	menuStep = "step"
+	menuSeqs = "seqs"
+	menuMore = "more"
+	menuNode = "node"
+)
+
+func (m *Model) PressMenu(a Act) {
+	if a.Op != OpMenu {
+		if a.Op != OpSeqFind && a.Op != OpSeqFindClear && a.Op != OpFrame {
+			m.Menu = Act{}
+		}
+		return
+	}
+	if m.Menu == a {
+		m.Menu = Act{}
+		return
+	}
+	m.Menu = a
+}
 
 const navHint = "click a row to select · double-click to open · two-finger scroll to pan"
 
@@ -36,27 +57,6 @@ func (m Model) linksTo(id string) []Links.Link {
 		}
 	}
 	return out
-}
-
-func openOf(on bool) int {
-	if on {
-		return open
-	}
-	return closed
-}
-
-func linkRowOf(l Links.Link, picked bool, pick Act, depth int) linkRow {
-	r := linkRow{
-		id:     Act{Op: OpLinkRow, Node: l.From, To: l.To, I: pick.I},
-		depth:  depth,
-		in:     pick,
-		name:   Text(pickMark(picked)).Acting(pick).Tipped("pick this link"),
-		detail: []Cell{Text(l.Name())},
-	}
-	if picked {
-		r.detail = append(r.detail, Text(pressSummary(l)).Dimmed(true))
-	}
-	return r
 }
 
 func pathGroup(m Model) Group {
@@ -86,15 +86,9 @@ func pathGroup(m Model) Group {
 
 func linksTree(m Model) tree {
 	t := tree{sel: m.Sel}
-	if m.AtSeqs {
-		t.put(allSeqsGroup(m), pathGroup(m))
-		seqRows(&t, m)
-		t.put(Group{Rows: [][]Cell{{Text(navHint).Dimmed(true)}}, Wraps: true})
-	} else {
-		t.put(Group{Rows: [][]Cell{{Button("← back to steps", Act{Op: OpNetFold}, false).Tipped("back to the step cards")}}})
-		networkRows(&t, m)
-		startRows(&t, m)
-	}
+	t.put(allSeqsGroup(m), pathGroup(m))
+	seqRows(&t, m)
+	t.put(Group{Rows: [][]Cell{{Text(navHint).Dimmed(true)}}, Wraps: true})
 	if m.Refused != "" {
 		t.put(Group{Rows: [][]Cell{{Text(m.Refused)}}, Wraps: true})
 	}
@@ -102,8 +96,11 @@ func linksTree(m Model) tree {
 }
 
 func LinksPill(m Model) Pill {
-	if !m.AtSeqs && !m.NetworkOpen {
+	if !m.AtSeqs {
 		d := boardData(m)
+		if m.NetworkOpen {
+			d.Net = netData(m)
+		}
 		return Pill{Label: LinksLabel, Bottom: true, Board: func(box Sheet.Rect, sx, sy float32) Sheet.Board { return LinksBoard.Lay(box, sx, sy, d) }}
 	}
 	return Pill{Label: LinksLabel, Bottom: true, Groups: linksTree(m).groups}

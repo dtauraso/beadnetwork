@@ -10,6 +10,8 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
+const notTurned = "not turned"
+
 func signed(n int) string {
 	if n > 0 {
 		return "+" + strconv.Itoa(n)
@@ -48,7 +50,7 @@ func lockOf(m Model, step int, a axis) LinksBoard.Lock {
 	} else if *on && *way < 0 {
 		glyph = "↓"
 	}
-	return LinksBoard.Lock{Label: a.label + " " + glyph, On: *on, Cycle: Act{Op: OpAllLockCycle, K: a.k, I: step}, Press: Act{Op: OpAllLock, K: a.k, I: step}}
+	return LinksBoard.Lock{Axis: a.label, Label: a.label + " " + glyph, On: *on, Cycle: Act{Op: OpAllLockCycle, K: a.k, I: step}, Press: Act{Op: OpAllLock, K: a.k, I: step}}
 }
 
 func (m Model) progress(n int) string {
@@ -82,15 +84,17 @@ func (m Model) stepCol(n int) LinksBoard.Column {
 		return c
 	}
 	c.Name = Board.Field{Value: m.StepNames[n], Fit: "a step name", Act: Act{Op: OpStepName, I: n}, Words: true, Tip: "name this step"}
+	c.Menu = Act{Op: OpMenu, K: menuStep, I: n}
+	c.MenuOpen = m.Menu == c.Menu
 	c.Tools = []Board.Chip{
-		{Label: "‹", Act: Act{Op: OpStepEarlier, I: n}, Tip: "move this step one earlier"},
-		{Label: "›", Act: Act{Op: OpStepLater, I: n}, Tip: "move this step one later"},
-		{Label: "✎", Act: Act{Op: OpRename, K: renameStep, I: n}, Tip: "rename this step"},
-		{Label: "↳ in", Act: Act{Op: OpStepEnter, I: n}, Tip: "go into this step's own steps"},
-		{Label: "＋ after", Act: Act{Op: OpStepAdd, I: n}, Tip: "add a step after this one"},
-		{Label: "⧉", Act: Act{Op: OpStepCopy, I: n}, Tip: "duplicate this step"},
-		{Label: "×", Act: Act{Op: OpStepDrop, I: n}, Tip: "delete this step"},
+		{Label: "Move earlier", Act: Act{Op: OpStepEarlier, I: n}},
+		{Label: "Move later", Act: Act{Op: OpStepLater, I: n}},
+		{Label: "Rename", Act: Act{Op: OpRename, K: renameStep, I: n}},
+		{Label: "Add step after", Act: Act{Op: OpStepAdd, I: n}},
+		{Label: "Duplicate", Act: Act{Op: OpStepCopy, I: n}},
+		{Label: "Go inside", Act: Act{Op: OpStepEnter, I: n}, Tip: "its own steps"},
 	}
+	c.Drop = Board.Chip{Label: "Delete step", Act: Act{Op: OpStepDrop, I: n}}
 	hd := &LinksBoard.Head{Picked: itoa(len(m.stepActive(n))) + " picked"}
 	for _, a := range axes {
 		hd.Locks = append(hd.Locks, lockOf(m, n, a))
@@ -105,22 +109,26 @@ func (m Model) stepCol(n int) LinksBoard.Column {
 }
 
 func (m Model) nodeOf(step int, id string, links []Links.Link) LinksBoard.Node {
-	n := LinksBoard.Node{Label: "node " + id, Sub: "· " + linkCount(len(links)) + " in", Open: !m.StepFolded(step, id), Fold: Act{Op: OpStepFold, Node: id, I: step}}
+	n := LinksBoard.Node{Label: "into node " + id, Sub: "· " + linkCount(len(links)) + " in", Open: !m.StepFolded(step, id), Fold: Act{Op: OpStepFold, Node: id, I: step}}
+	if step == startPart {
+		n.Label = "node " + id
+		for _, l := range links {
+			n.Links = append(n.Links, m.startLink(id, l))
+		}
+		return n
+	}
 	picked := 0
 	for _, l := range links {
-		if step == startPart {
-			n.Links = append(n.Links, m.startLink(id, l))
-			continue
-		}
 		lk := m.linkOf(step, l)
 		if lk.Picked {
 			picked++
 		}
 		n.Links = append(n.Links, lk)
 	}
-	if !n.Open && picked > 0 {
-		n.Sub += " · " + itoa(picked) + " picked"
+	for i := range n.Links {
+		n.Links[i].Instead = picked > 0 && !n.Links[i].Picked
 	}
+	n.Sub = "· " + itoa(picked) + " of " + itoa(len(links)) + " picked"
 	return n
 }
 
@@ -130,7 +138,7 @@ func (m Model) linkOf(step int, l Links.Link) LinksBoard.Link {
 	e := StepEdge{step, l.From, l.To}
 	sl, ok := m.gridLink(e)
 	lk := LinksBoard.Link{Label: l.From + " → " + l.To, Picked: ok && sl.Picked, Open: m.CardOpen(e), Fold: Act{Op: OpCardFold, Node: l.From, To: l.To, I: step},
-		Dial: boardDial(dialOf(sl)), Sum: "—", Tip: "open or close this link's card", Hot: m.hot(l)}
+		Dial: boardDial(dialOf(sl)), Sum: notTurned, Tip: "open or close this link's card", Hot: m.hot(l)}
 	if !ok {
 		return lk
 	}
@@ -149,7 +157,7 @@ func (m Model) linkOf(step int, l Links.Link) LinksBoard.Link {
 			parts = append(parts, signed(d)+a.label)
 		}
 	}
-	lk.Sum = "0"
+	lk.Sum = notTurned
 	if len(parts) > 0 {
 		lk.Sum = strings.Join(parts, " ")
 	}

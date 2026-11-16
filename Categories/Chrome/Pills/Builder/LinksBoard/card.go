@@ -4,20 +4,16 @@ import (
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 )
 
 const (
-	cardPadX  = 8
-	cardPadY  = 6
-	dialPx    = 36
-	col0      = 40
-	col1      = 14
-	gapX      = 6
-	gapY      = 4
-	headTxtH  = 14
-	footH     = 16
-	smallCol0 = 28
+	cardPadX = 8
+	cardPadY = 6
+	col1     = 16
+	gapX     = 6
+	gapY     = 4
+	headTxtH = 14
+	footH    = 16
 )
 
 func wrap(s string, w, px float32) []string {
@@ -45,6 +41,8 @@ func segW(s Board.Stepper) float32 {
 	return 34 + max(28, Board.W(v, Board.BtnPx)+10)
 }
 
+func headW(s string) float32 { return Board.TextW(s, 10.5, Board.Semi) }
+
 func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	box := len(l.Marks)
 	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y, W: w}, Clip: clip, Fill: Board.White, Edge: Board.Guide, Radius: radius6, Corner: 1, Stroke: 1, Alpha: 1})
@@ -62,23 +60,22 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	if len(d.Rows) > 0 {
 		var aw, bw float32
 		for _, r := range d.Rows {
-			aw, bw = max(aw, segW(r.A)), max(bw, segW(r.B))
+			aw, bw = max(aw, segW(r.A), headW(d.Heads[0])), max(bw, segW(r.B), headW(d.Heads[1]))
 		}
 		var tw, sw float32
 		for _, r := range d.Rows {
-			tw = max(tw, Board.W(r.Total, 12))
+			if r.Why == "" {
+				tw = max(tw, Board.W(r.Total, 12))
+			}
 			if r.Start.Steps.Op != "" {
-				sw = max(sw, segW(r.Start))
+				sw = max(sw, segW(r.Start), headW(d.StartHead))
 			}
 		}
 		if sw > 0 {
 			sw += gapX
 		}
-		d0 := float32(col0)
-		if d0+col1+sw+aw+bw+tw+4*gapX > cw {
-			d0 = smallCol0
-		}
-		s := cx + d0 + gapX + col1 + gapX
+
+		s := cx + col1 + gapX
 		a := s + sw
 		b := a + aw + gapX
 		if sw > 0 {
@@ -90,7 +87,7 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 		}
 		cy += headTxtH + gapY
 		for _, r := range d.Rows {
-			cy += row(l, clip, cx, cy, d0, s, a, b, t, r) + gapY
+			cy += row(l, clip, cx, cy, s, a, b, t, r) + gapY
 		}
 		cy -= gapY
 	}
@@ -117,32 +114,18 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	return h
 }
 
-func row(l *Board.Laid, clip uint8, x, y, d0, s, a, b, t float32, r CardRow) float32 {
+func row(l *Board.Laid, clip uint8, x, y, s, a, b, t float32, r CardRow) float32 {
 	h := float32(Board.SegH)
-	dial := min(float32(dialPx), d0)
-	if r.Dial != nil {
-		h = max(h, dial)
-	}
 	mid := y + h/2
-	switch {
-	case r.Dial != nil:
-		dr := Rect{X: x, Y: y, W: dial, H: dial}
-		l.Dial(dr, clip, *r.Dial)
-		axis := Sheet.DialPhi
-		if r.Dial.Axis == Board.Theta {
-			axis = Sheet.DialTheta
-		}
-		if r.DialAct.Op != "" {
-			l.Spot(dr, clip, Sheet.Cell{Act: r.DialAct, Dial: Sheet.Dial{Axis: axis}, Tip: "drag around the dial to set Δ · it snaps to nΔ"}, Sheet.PartBody)
-		}
-	case r.Ruler != nil:
-		l.Ruler(Rect{X: x, Y: mid - 7, W: d0, H: 14}, clip, *r.Ruler)
-	}
-	l.Text(x+d0+gapX, y, h, clip, r.Axis, Board.Px, Board.Ink, true, Board.Left)
+	l.Text(x, y, h, clip, r.Axis, Board.Px, Board.Ink, true, Board.Left)
 	if r.Start.Steps.Op != "" {
 		l.Seg(s, mid-Board.SegH/2, clip, r.Start)
 	}
 	l.Seg(a, mid-Board.SegH/2, clip, r.A)
+	if r.Why != "" {
+		l.Text(b, y, h, clip, r.Why, 11, Board.Mute, false, Board.Left)
+		return h
+	}
 	if r.B.Steps.Op != "" {
 		l.Seg(b, mid-Board.SegH/2, clip, r.B)
 	}

@@ -29,6 +29,7 @@ const (
 	Back
 	Hair
 	DimInk
+	Bad
 )
 
 type Kind uint8

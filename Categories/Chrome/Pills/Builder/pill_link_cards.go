@@ -35,7 +35,9 @@ func boardInspector(m Model) LinksBoard.Inspector {
 	on := map[bool]string{true: "● on", false: "○ off"}[l.Picked]
 	in := LinksBoard.Inspector{Title: l.From + " → " + l.To, Sub: "· step " + m.StepLabel(e.Step), Moves: "moves in this step",
 		Switch: Board.Chip{Label: on, Act: Act{Op: OpStepPick, Node: l.From, To: l.To, I: e.Step}, Lit: l.Picked, Tip: "pick or unpick this link for this step"}}
-	if !l.Picked {
+	if l.Picked {
+		in.Switch, in.Moves = Board.Chip{}, ""
+	} else {
 		in.Note = "Not picked in this step. Turn it on to give it a turn."
 		return in
 	}
@@ -55,17 +57,16 @@ func boardInspector(m Model) LinksBoard.Inspector {
 		if m.Turning.Act == press {
 			d.Ghost = float32(m.Turning.presses() * m.Turning.Inc)
 		}
-		x.Dial, x.DialAct, x.DialSize = d, press, 56
-		x.Lines = []string{"start " + a.at(l) + " → ends at " + endsAt(l, a.k)}
+		x.Dial, x.DialAct, x.DialSize = d, press, 72
+		x.Ends = a.label + " " + a.at(l) + " → " + endsAt(l, a.k)
 		if a.k == Links.KPhi {
-			x.DialSize, x.Dial.Labels = 92, true
+			x.DialSize = 120
 			end, _ := strconv.Atoi(endsAt(l, a.k))
 			s := m.SceneS()
-			x.Lines = append(x.Lines, itoa(end)+" × s"+itoa(s)+" = "+itoa(end*s)+" ticks")
+			x.Lines = []string{itoa(end) + " × s" + itoa(s) + " = " + itoa(end*s) + " ticks"}
 		}
 		in.Axes = append(in.Axes, x)
 	}
-	in.Hint = "Dashed ring = what one more ＋ press would do. Drag the hand: it snaps to every " + itoa(l.Increment.Phi) + "."
 	if t := m.Turning; t.Act.Node == l.From && t.Act.To == l.To {
 		in.Hint = "Dragging: the hollow handle is where the hand lands when you let go. In the scene, the faint copies are where the nodes downstream of " + l.To + " will move."
 	}
@@ -78,9 +79,8 @@ func (m Model) rAxis(x *LinksBoard.Axis, l Links.Link) {
 	x.Ruler = &Board.Ruler{Start: float32(start), Delta: float32(end - start), Most: float32(max(start, end, 1) * 1.25), Fixed: fixed}
 	x.Sub = "tenths of a bead slot · never below 0"
 	x.RulerTags = [3]string{"0", "start " + tenths(start), tenths(end)}
-	x.Ends = "ends at " + tenths(end)
+	x.Ends = "r " + tenths(start) + " → " + tenths(end)
 	atZero := end < 1e-9
-	x.Turn.DownDim, x.Turn.UpDim = fixed || atZero, fixed
 	if fixed {
 		x.Fixed = m.fixedWhy(l)
 	} else if atZero {
@@ -109,8 +109,6 @@ func (m Model) startInspector(e StepEdge) LinksBoard.Inspector {
 	}
 	return in
 }
-
-const cardFit = "0.0"
 
 func tenths(v float64) string {
 	t := math.Round(v * 10)
@@ -146,24 +144,6 @@ func linkCount(n int) string {
 	return strconv.Itoa(n) + " links"
 }
 
-func refCells(m Model, id string) []Cell {
-	ref := m.Col(id).Ref
-	refAct := func(k string) Act { return Act{Op: OpNodeRef, Node: id, K: k} }
-	return []Cell{
-		Text("ref Δφ").Dimmed(true),
-		Field("", strconv.Itoa(ref.Phi), refAct(Links.KPhi), true, true).Fitting(cardFit).Outline(false),
-		Text("Δθ").Dimmed(true),
-		Field("", strconv.Itoa(ref.Theta), refAct(Links.KTheta), true, true).Fitting(cardFit).Outline(false),
-	}
-}
-
-func pickMark(on bool) string {
-	if on {
-		return "●"
-	}
-	return "○"
-}
-
 func pressSummary(l Links.Link) string {
 	var parts []string
 	term := func(k string, start, total, d int, end string) {
@@ -185,14 +165,4 @@ func pressSummary(l Links.Link) string {
 		return "no move"
 	}
 	return strings.Join(parts, " · ")
-}
-
-func netCard(l Links.Link, depth int) Group {
-	val := func(s string) Cell { return Text(s).Outline(false) }
-	head := func(s string) Cell { return Text(s).Inked(inkHead) }
-	rows := [][]Cell{{Text(""), head("START"), head("Δ"), head("nΔ"), head("1")}}
-	for _, a := range axes {
-		rows = append(rows, []Cell{Text(a.label).Dimmed(true), val(a.at(l)), val(strconv.Itoa(a.delta(l))), val(strconv.Itoa(a.times(l))), val(strconv.Itoa(a.one(l)))})
-	}
-	return Group{Rows: rows, Card: true, Depth: depth}
 }
