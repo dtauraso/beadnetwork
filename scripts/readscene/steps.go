@@ -110,7 +110,7 @@ func dumpRuns(root string, seqs []int, constants polarindex.SceneConstants, list
 	for _, k := range seqs {
 		spec, err := loadSequence(root, k, constants)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "readscene: sequence %d: %v\n", k, err)
+			fmt.Fprintf(os.Stderr, "readscene: step %d: %v\n", k, err)
 			status = 1
 			continue
 		}

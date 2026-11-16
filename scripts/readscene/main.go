@@ -29,9 +29,9 @@ func main() {
 		args = args[1:]
 	}
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "usage: readscene [-json | -steps | -orders] <scene dir> [sequence ...]")
+		fmt.Fprintln(os.Stderr, "usage: readscene [-json | -steps | -orders] <scene dir> [top step ...]")
 		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, "Prints the values a scene's sequences are saved as — the frame,")
+		fmt.Fprintln(os.Stderr, "Prints the values a scene's top steps are saved as — the frame,")
 		fmt.Fprintln(os.Stderr, "each node's place and s, each link's start, Δ, increment and lock —")
 		fmt.Fprintln(os.Stderr, "as text, with the x, y, z the simulation makes from them. Run it")
 		fmt.Fprintln(os.Stderr, "before and after pressing a button and diff the two.")
@@ -39,7 +39,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "-json prints only the saved values, none of the computed ones, so")
 		fmt.Fprintln(os.Stderr, "the rules can be checked with code that is not this repo's.")
 		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, "-steps presses every step button once on each sequence, in memory,")
+		fmt.Fprintln(os.Stderr, "-steps presses every step button once on each top step, in memory,")
 		fmt.Fprintln(os.Stderr, "with the editor's own link code, and prints each before and after")
 		fmt.Fprintln(os.Stderr, "as -json would. Nothing on disk changes.")
 		fmt.Fprintln(os.Stderr)
@@ -51,13 +51,13 @@ func main() {
 		os.Exit(2)
 	}
 	root := args[0]
-	seqs := Scenes.Sequences(root)
+	seqs := Scenes.TopSteps(root)
 	if len(args) > 1 {
 		seqs = nil
 		for _, a := range args[1:] {
 			k, err := strconv.Atoi(a)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "readscene: sequence %q is not a number\n", a)
+				fmt.Fprintf(os.Stderr, "readscene: step %q is not a number\n", a)
 				os.Exit(2)
 			}
 			seqs = append(seqs, k)
@@ -83,7 +83,7 @@ func main() {
 	status := 0
 	for _, k := range seqs {
 		if err := dumpSequence(out, root, k, constants); err != nil {
-			fmt.Fprintf(os.Stderr, "readscene: sequence %d: %v\n", k, err)
+			fmt.Fprintf(os.Stderr, "readscene: step %d: %v\n", k, err)
 			status = 1
 		}
 	}
@@ -106,7 +106,7 @@ func readPlace(dir string) *polarindex.Place {
 
 func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topology.TopoSpec, error) {
 	spec := Topology.TopoSpec{Constants: constants, Rho: SceneBuf.LoadRho(root)}
-	seqDir := Scenes.SequenceDir(root, k)
+	seqDir := Scenes.TopStepDir(root, k)
 	nodesDir := NodeBuf.NodeDir(seqDir, "")
 	entries, err := os.ReadDir(nodesDir)
 	if err != nil {
@@ -143,7 +143,7 @@ func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topo
 }
 
 func sequenceS(root string, k int) int {
-	return Sheet.LoadScalar(Scenes.SFilePath(Scenes.SequenceDir(root, k)), 1, 1)
+	return Sheet.LoadScalar(Scenes.SFilePath(Scenes.TopStepDir(root, k)), 1, 1)
 }
 
 func dumpSequence(out *bufio.Writer, root string, k int, constants polarindex.SceneConstants) error {
@@ -154,7 +154,7 @@ func dumpSequence(out *bufio.Writer, root string, k int, constants polarindex.Sc
 	seed := Topology.LinkSeed(spec, sequenceS(root, k), 0)
 	f := seed.Frame
 
-	fmt.Fprintf(out, "sequence %d  %q\n", k, Scenes.SequenceName(root, k))
+	fmt.Fprintf(out, "step %d  %q\n", k, Scenes.TopStepName(root, k))
 	fmt.Fprintf(out, "  frame  rho=%s  constant-r=%s  max-index-phi=%d  max-index-theta=%d  s=%d  turn=12·s ticks\n",
 		num(f.Rho), num(f.Cr), f.Tphi, f.Ttheta, seed.S)
 

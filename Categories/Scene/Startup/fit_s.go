@@ -18,14 +18,14 @@ type linkLayer struct {
 	links   []Links.Link
 }
 
-func FitSequenceS(scenePath string) error {
+func FitTopStepsS(scenePath string) error {
 	roots := []string{scenePath}
-	for _, k := range Scenes.Sequences(scenePath) {
-		roots = append(roots, Scenes.SequenceDir(scenePath, k))
+	for _, k := range Scenes.TopSteps(scenePath) {
+		roots = append(roots, Scenes.TopStepDir(scenePath, k))
 	}
 	for _, root := range roots {
 		if err := fitS(root); err != nil {
-			return fmt.Errorf("Startup.FitSequenceS: %s: %w", root, err)
+			return fmt.Errorf("Startup.FitTopStepsS: %s: %w", root, err)
 		}
 	}
 	return nil

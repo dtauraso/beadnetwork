@@ -129,7 +129,7 @@ topology*/view/overlays.bin
 topology*/view/panels.bin
 topology*/view/frame-folded.bin
 topology*/view/tick-ms.bin
-topology*/view/sequence.bin
+topology*/view/open-step.bin
 topology*/view/camera.bin
 
 # One value, one file, for chrome Go draws rather than streams: each piece writes
@@ -211,7 +211,7 @@ __pycache__/
 # failure mode.
 topology*/view/*.json
 topology*/nodes/*/drag/
-topology*/sequences/*/nodes/*/drag/
+topology*/steps/*/nodes/*/drag/
 
 # Whether a node's drag rule is currently ACTIVE is persisted output, deliberately separate
 # from the rule's VALUES (drag.phi/drag.maxTheta), which stay in the tracked base.json seed.
@@ -232,20 +232,20 @@ topology*/view/trace.bin
 # on every single run.
 topology*/view/spawn.bin
 
-# The φ, θ tab's node count, and every sequence: written from editor use, kept local.
+# The φ, θ tab's node count, and every top step: written from editor use, kept local.
 topology-phi-theta/counts/nodes.bin
-topology-phi-theta/sequences/
+topology-phi-theta/steps/
 
-# A sequence's step state (the press locks in press/ and nodes/<id>/press/, and each step's
+# A top step's step state (the press locks in press/ and nodes/<id>/press/, and each step's
 # directory under steps/: its head locks and its copies of the links, each with its pick):
 # set from the Links pill while the editor is used, kept local.
-topology*/sequences/*/press/
-topology*/sequences/*/nodes/*/press/
-topology*/sequences/*/steps/
+topology*/steps/*/press/
+topology*/steps/*/nodes/*/press/
+topology*/steps/*/steps/
 
-# Link files the editor adds to a sequence (a link drawn while using it, or a field a link
+# Link files the editor adds to a top step (a link drawn while using it, or a field a link
 # gains, such as one-*.bin): written from editor use, kept local.
-topology*/sequences/*/nodes/*/links/
+topology*/steps/*/nodes/*/links/
 
 # Where the running extension listens for "open this file as a tab", and that
 # session's token. Written on activation, removed on shutdown.

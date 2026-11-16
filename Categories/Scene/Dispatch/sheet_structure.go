@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"strconv"
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
@@ -111,7 +110,7 @@ func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
 		if err := m.WriteSteps(); k == open && err != nil {
 			View.LogPersistErr("sheet_seq_copy", m.Root, err)
 		}
-		to, err := Scenes.InsertSequence(scene, k, map[bool]string{true: Builder.DirSteps}[a.Op == Builder.OpSeqAdd])
+		to, err := Scenes.InsertTopStep(scene, k, map[bool]string{true: Builder.DirSteps}[a.Op == Builder.OpSeqAdd])
 		if err != nil {
 			m.Refused = fmt.Sprintf("could not add a sequence after sequence %d: %v", k, err)
 			return true
@@ -123,7 +122,7 @@ func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
 		if len(m.Seqs) < 2 {
 			return true
 		}
-		if err := Scenes.RemoveSequence(scene, k); err != nil {
+		if err := Scenes.RemoveTopStep(scene, k); err != nil {
 			m.Refused = fmt.Sprintf("could not delete sequence %d: %v", k, err)
 			return true
 		}
@@ -136,7 +135,7 @@ func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
 		m.Select(Sheet.Act{Op: Builder.OpSeqOpen, I: stay})
 		return true
 	}
-	if err := Scenes.WriteOpenSequence(scene, open); err != nil {
+	if err := Scenes.WriteOpenStep(scene, []int{open}); err != nil {
 		m.Refused = fmt.Sprintf("could not open sequence %d: %v", open, err)
 		return true
 	}
@@ -156,9 +155,9 @@ func nameSequence(md *MoveDispatch, k int, name string) {
 		return
 	}
 	if name = strings.TrimSpace(name); name == "" {
-		name = "sequence " + strconv.Itoa(Scenes.SequenceID(scene, k))
+		name = ""
 	}
-	if err := Scenes.WriteSequenceName(scene, k, name); err != nil {
+	if err := Scenes.WriteTopStepName(scene, k, name); err != nil {
 		View.LogPersistErr("sheet_seq_name", scene, err)
 		md.UI.Builder.Refused = fmt.Sprintf("could not rename sequence %d: %v", k, err)
 	}
@@ -168,11 +167,8 @@ func nameSequence(md *MoveDispatch, k int, name string) {
 func LoadSequences(md *MoveDispatch, scene string) {
 	m := &md.UI.Builder
 	m.Seqs = nil
-	if err := Scenes.EnsureSequenceIDs(scene); err != nil {
-		View.LogPersistErr("sheet_seq_ids", scene, err)
+	for _, k := range Scenes.TopSteps(scene) {
+		m.Seqs = append(m.Seqs, Builder.Seq{K: k, ID: k, Name: Scenes.TopStepLabel(scene, k)})
 	}
-	for _, k := range Scenes.Sequences(scene) {
-		m.Seqs = append(m.Seqs, Builder.Seq{K: k, ID: Scenes.SequenceID(scene, k), Name: Scenes.SequenceName(scene, k)})
-	}
-	m.OpenSeq = Scenes.OpenSequence(scene)
+	m.OpenSeq = Scenes.OpenTopStep(scene)
 }
