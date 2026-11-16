@@ -133,12 +133,20 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) {
 		}
 		doors = append(doors[:len(doors):len(doors)], insp)
 	}
+	if narrow && d.More.Op != "" {
+		at := dots(l, right, y, h, clip, d.MoreOpen, d.More, "network, frame, s and the inspector")
+		if d.MoreOpen {
+			m := Menu{Items: doors, Note: d.SNote}
+			if d.S.Act.Op != "" {
+				m.Find, m.FindLabel = &d.S, "ticks per 1/12 turn"
+			}
+			*menus = append(*menus, placed{at: at, m: m})
+		}
+		return
+	}
 	for i := len(doors) - 1; i >= 0; i-- {
 		c := doors[i]
 		c.Ghost = true
-		if narrow && i < len(d.DoorsShort) {
-			c.Label = d.DoorsShort[i]
-		}
 		c.Px = Board.BtnPx
 		w := Board.W(c.Label, Board.BtnPx) + 2*Board.PadX
 		right -= w

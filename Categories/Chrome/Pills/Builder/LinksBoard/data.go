@@ -134,25 +134,26 @@ type Empty struct {
 }
 
 type Data struct {
-	Crumbs     []Crumb
-	SeqMenu    *Menu
-	SeqOpen    bool
-	Steps      []Board.Chip
-	S          Board.Field
-	SNote      string
-	Doors      []Board.Chip
-	DoorsShort []string
-	Cols       []Column
-	Add        Act
-	Insp       Inspector
-	InspOpen   bool
-	InspTab    Act
-	Status     string
-	Ghost      string
-	Toast      string
-	At         Act
-	Undo       Act
-	Dismiss    Act
-	Pop        *Pop
-	Empty      *Empty
+	Crumbs   []Crumb
+	SeqMenu  *Menu
+	SeqOpen  bool
+	Steps    []Board.Chip
+	S        Board.Field
+	SNote    string
+	Doors    []Board.Chip
+	More     Act
+	MoreOpen bool
+	Cols     []Column
+	Add      Act
+	Insp     Inspector
+	InspOpen bool
+	InspTab  Act
+	Status   string
+	Ghost    string
+	Toast    string
+	At       Act
+	Undo     Act
+	Dismiss  Act
+	Pop      *Pop
+	Empty    *Empty
 }

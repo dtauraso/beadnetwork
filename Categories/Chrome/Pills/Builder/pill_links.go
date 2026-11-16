@@ -26,7 +26,7 @@ const (
 
 func (m *Model) PressMenu(a Act) {
 	if a.Op != OpMenu {
-		if a.Op != OpSeqFind && a.Op != OpSeqFindClear {
+		if a.Op != OpSeqFind && a.Op != OpSeqFindClear && a.Op != OpFrame {
 			m.Menu = Act{}
 		}
 		return

@@ -65,9 +65,9 @@ func framePop(m Model) *LinksBoard.Pop {
 func boardData(m Model) LinksBoard.Data {
 	net := Board.Chip{Label: "Network…", Act: Act{Op: OpNetFold}, Tip: "nodes, links and places: what runs now"}
 	d := LinksBoard.Data{Crumbs: crumbs(m), SNote: m.SNote,
-		S:          Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "00", Act: frameAct(FrameS), Tip: "ticks a twelfth of a turn, one s every node uses — it rises when a start needs more"},
-		Doors:      []Board.Chip{net, {Label: "Frame ⚙", Act: Act{Op: OpFramePop}, Lit: m.FramePop, Tip: "ρ, T_φ, T_θ, c_r, Δt — shared by every sequence; applying reloads the scene"}},
-		DoorsShort: []string{"Net…", "⚙"}, Cols: boardCols(m), Insp: boardInspector(m), InspOpen: m.InspOpen, InspTab: Act{Op: OpInspTab},
+		S:     Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "00", Act: frameAct(FrameS), Tip: "ticks a twelfth of a turn, one s every node uses — it rises when a start needs more"},
+		Doors: []Board.Chip{net, {Label: "Frame ⚙", Act: Act{Op: OpFramePop}, Lit: m.FramePop, Tip: "ρ, T_φ, T_θ, c_r, Δt — shared by every sequence; applying reloads the scene"}},
+		More:  Act{Op: OpMenu, K: menuMore}, MoreOpen: m.Menu == Act{Op: OpMenu, K: menuMore}, Cols: boardCols(m), Insp: boardInspector(m), InspOpen: m.InspOpen, InspTab: Act{Op: OpInspTab},
 		Status: "showing step " + itoa(m.StepShown()), Ghost: m.GhostNote(),
 		Toast: m.Refused, At: m.Pressed, Dismiss: Act{Op: OpToastClose}}
 	if ns := m.stepNums(); len(ns) > 0 {
