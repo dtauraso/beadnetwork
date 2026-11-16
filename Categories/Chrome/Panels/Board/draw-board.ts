@@ -4,7 +4,7 @@ import { BOARD_VALUE_NAMES, type BoardValueName } from "./board-values-gen";
 import { boardBytes, boardF32Run, boardText, boardU32Run } from "./board-leaves";
 import { drawDial } from "./draw-dial";
 
-const PAINT = ["", "#222", "#555", "#f4f5f7", "#dde1e6", "#e3eefc", "#c8ccd2", "#1565c0", "#FF9F1C", "#3DDC84", "#fff", "#b26a00", "#fff4e0", "#9aa0a8", "#fce8e8", "#b0b4ba", "#fafafa", "#f0f1f3", "#c4c7cc"];
+const PAINT = ["", "#222", "#555", "#f4f5f7", "#dde1e6", "#e3eefc", "#c8ccd2", "#1565c0", "#FF9F1C", "#3DDC84", "#fff", "#b26a00", "#fff4e0", "#9aa0a8", "#fce8e8", "#b0b4ba", "#fafafa", "#f0f1f3", "#c4c7cc", "#c62828"];
 const K_BOX = 0, K_TEXT = 1, K_DIAL = 2, K_LINE = 3, K_CIRCLE = 4;
 
 type R = { x: number; y: number; w: number; h: number };
@@ -83,7 +83,7 @@ export function drawBoard(c: CanvasRenderingContext2D): void {
     } else if (kind[i] === K_TEXT) {
       c.fillStyle = PAINT[ink[i]!] || PAINT[1]!;
       const b = bold[i] ?? 0;
-      c.font = canvasFont(px[i] || 13, b === 0 ? 500 : b === 1 ? 700 : b * 100);
+      c.font = canvasFont(px[i] || 13, b === 0 ? 400 : b === 1 ? 700 : b * 100);
       c.textAlign = "left";
       c.textBaseline = "middle";
       c.fillText(labels[i] ?? "", r.x, r.y + r.h / 2);
