@@ -17,6 +17,7 @@ type Crumb struct {
 }
 
 type Lock struct {
+	Axis  string
 	Label string
 	On    bool
 	Cycle Act
@@ -36,6 +37,7 @@ type CardRow struct {
 	Ruler   *Board.Ruler
 	A, B    Board.Stepper
 	Total   string
+	Why     string
 }
 
 type Card struct {
@@ -48,16 +50,17 @@ type Card struct {
 }
 
 type Link struct {
-	Label  string
-	Picked bool
-	Pick   Act
-	Open   bool
-	Fold   Act
-	Dial   Board.Dial
-	Sum    string
-	Tip    string
-	Hot    bool
-	Card   *Card
+	Label   string
+	Picked  bool
+	Instead bool
+	Pick    Act
+	Open    bool
+	Fold    Act
+	Dial    Board.Dial
+	Sum     string
+	Tip     string
+	Hot     bool
+	Card    *Card
 }
 
 type Node struct {

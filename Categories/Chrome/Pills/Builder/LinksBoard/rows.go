@@ -11,6 +11,8 @@ const (
 	lindent  = 22
 	miniPx   = 20
 	dotPx    = 8
+	pickH    = 18
+	chipPadX = 5
 	cardFitW = 240
 )
 
@@ -36,6 +38,25 @@ func (k *col) node(n Node) {
 	}
 }
 
+func pickChip(l *Board.Laid, clip uint8, x, mid float32, lk Link) float32 {
+	label, tip := "pick", "pick: this link moves its target in this step"
+	fill, edge, ink := Board.White, Board.Edge, Board.Ink
+	switch {
+	case lk.Picked:
+		label, tip = "✓ picked", "picked: this link moves its target in this step · click to unpick"
+		fill, edge = Board.On, Board.Accent
+	case lk.Instead:
+		label, tip = "pick instead", "another link into this node is picked · click to pick this one instead"
+		edge, ink = Board.Accent, Board.Accent
+	}
+	w := Board.W(label, Board.SmallPx) + 2*chipPadX
+	r := Rect{X: x, Y: mid - pickH/2, W: w, H: pickH}
+	l.Box(r, clip, fill, edge)
+	l.Text(x+w/2, r.Y, pickH, clip, label, Board.SmallPx, ink, false, Board.Center)
+	l.Spot(Rect{X: x - 2, Y: mid - lrowH/2, W: w + 4, H: lrowH}, clip, Sheet.Cell{Act: lk.Pick, Tip: tip}, Sheet.PartBody)
+	return w
+}
+
 func (k *col) link(lk Link) {
 	l := k.l
 	row := Rect{X: k.x + 1, Y: k.y, W: k.w - 2, H: lrowH}
@@ -50,14 +71,10 @@ func (k *col) link(lk Link) {
 	x := k.x + lindent
 	mid := k.y + lrowH/2
 	if lk.Pick.Op != "" {
-		fill, edge := Board.None, Board.Mute
-		if lk.Picked {
-			fill, edge = Board.Accent, Board.Accent
-		}
-		l.Add(Board.Mark{Kind: Board.KCircle, R: Rect{X: x + 0.75, Y: mid - dotPx/2 + 0.75, W: dotPx - 1.5, H: dotPx - 1.5}, Clip: k.clip, Fill: fill, Edge: edge, Stroke: 1.5, Alpha: 1})
-		l.Spot(Rect{X: x - 4, Y: k.y, W: dotPx + 8, H: lrowH}, k.clip, Sheet.Cell{Act: lk.Pick, Tip: "pick: this link moves its target in this step"}, Sheet.PartBody)
+		x += pickChip(l, k.clip, x, mid, lk) + 6
+	} else {
+		x += dotPx + 6
 	}
-	x += dotPx + 6
 	x += l.Text(x, k.y, lrowH, k.clip, lk.Label, Board.Px, Board.Ink, false, Board.Left) + 6
 	l.Dial(Rect{X: x, Y: mid - miniPx/2, W: miniPx, H: miniPx}, k.clip, lk.Dial)
 	l.Text(k.x+k.w-cpad, k.y, lrowH, k.clip, lk.Sum, 12, Board.Mute, false, Board.Right)

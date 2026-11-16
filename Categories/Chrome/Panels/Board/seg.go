@@ -29,13 +29,17 @@ func (l *Laid) Seg(x, y float32, clip uint8, s Stepper) float32 {
 	l.Line(Rect{X: x + segB + vw - 0.5, Y: y, W: 0, H: SegH}, clip, Edge, 1, false)
 	l.segEnd(Rect{X: x, Y: y, W: segB, H: SegH}, clip, "−", s.Steps, s.DownDim, s.DownTip, Sheet.PartDown)
 	vr := Rect{X: x + segB, Y: y, W: vw, H: SegH}
+	ink := Ink
+	if s.Faded {
+		ink = Mute
+	}
 	if s.Act.Op != "" {
 		l.Add(Mark{Kind: KBox, R: Rect{X: vr.X + 1, Y: vr.Y + 1, W: vr.W - 2, H: vr.H - 2}, Clip: clip, Radius: 0, Stroke: 1, Alpha: 1, Edit: s.Act})
 		tw := W(v, BtnPx)
-		l.Add(Mark{Kind: KText, R: Rect{X: vr.X + vw - 5 - tw, Y: y, W: tw, H: SegH}, Clip: clip, Ink: Ink, Text: v, Px: BtnPx, Align: Right, Alpha: 1, Edit: s.Act})
+		l.Add(Mark{Kind: KText, R: Rect{X: vr.X + vw - 5 - tw, Y: y, W: tw, H: SegH}, Clip: clip, Ink: ink, Text: v, Px: BtnPx, Align: Right, Alpha: 1, Edit: s.Act})
 		l.Spot(vr, clip, Sheet.Cell{Kind: Sheet.CellField, Value: v, Act: s.Act, Typed: true, Tip: s.Tip}, Sheet.PartBody)
 	} else {
-		l.Text(vr.X+vw-5, y, SegH, clip, v, BtnPx, Ink, false, Right)
+		l.Text(vr.X+vw-5, y, SegH, clip, v, BtnPx, ink, false, Right)
 	}
 	l.segEnd(Rect{X: x + segB + vw, Y: y, W: segB, H: SegH}, clip, "＋", s.Steps, s.UpDim, s.UpTip, Sheet.PartUp)
 	return w

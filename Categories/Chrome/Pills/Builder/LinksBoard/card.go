@@ -66,7 +66,9 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 		}
 		var tw, sw float32
 		for _, r := range d.Rows {
-			tw = max(tw, Board.W(r.Total, 12))
+			if r.Why == "" {
+				tw = max(tw, Board.W(r.Total, 12))
+			}
 			if r.Start.Steps.Op != "" {
 				sw = max(sw, segW(r.Start))
 			}
@@ -143,6 +145,10 @@ func row(l *Board.Laid, clip uint8, x, y, d0, s, a, b, t float32, r CardRow) flo
 		l.Seg(s, mid-Board.SegH/2, clip, r.Start)
 	}
 	l.Seg(a, mid-Board.SegH/2, clip, r.A)
+	if r.Why != "" {
+		l.Text(b, y, h, clip, r.Why, 11, Board.Mute, false, Board.Left)
+		return h
+	}
 	if r.B.Steps.Op != "" {
 		l.Seg(b, mid-Board.SegH/2, clip, r.B)
 	}

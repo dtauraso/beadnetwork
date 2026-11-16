@@ -10,6 +10,8 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
+const notTurned = "not turned"
+
 func signed(n int) string {
 	if n > 0 {
 		return "+" + strconv.Itoa(n)
@@ -48,7 +50,7 @@ func lockOf(m Model, step int, a axis) LinksBoard.Lock {
 	} else if *on && *way < 0 {
 		glyph = "↓"
 	}
-	return LinksBoard.Lock{Label: a.label + " " + glyph, On: *on, Cycle: Act{Op: OpAllLockCycle, K: a.k, I: step}, Press: Act{Op: OpAllLock, K: a.k, I: step}}
+	return LinksBoard.Lock{Axis: a.label, Label: a.label + " " + glyph, On: *on, Cycle: Act{Op: OpAllLockCycle, K: a.k, I: step}, Press: Act{Op: OpAllLock, K: a.k, I: step}}
 }
 
 func (m Model) progress(n int) string {
@@ -105,22 +107,26 @@ func (m Model) stepCol(n int) LinksBoard.Column {
 }
 
 func (m Model) nodeOf(step int, id string, links []Links.Link) LinksBoard.Node {
-	n := LinksBoard.Node{Label: "node " + id, Sub: "· " + linkCount(len(links)) + " in", Open: !m.StepFolded(step, id), Fold: Act{Op: OpStepFold, Node: id, I: step}}
+	n := LinksBoard.Node{Label: "into node " + id, Sub: "· " + linkCount(len(links)) + " in", Open: !m.StepFolded(step, id), Fold: Act{Op: OpStepFold, Node: id, I: step}}
+	if step == startPart {
+		n.Label = "node " + id
+		for _, l := range links {
+			n.Links = append(n.Links, m.startLink(id, l))
+		}
+		return n
+	}
 	picked := 0
 	for _, l := range links {
-		if step == startPart {
-			n.Links = append(n.Links, m.startLink(id, l))
-			continue
-		}
 		lk := m.linkOf(step, l)
 		if lk.Picked {
 			picked++
 		}
 		n.Links = append(n.Links, lk)
 	}
-	if !n.Open && picked > 0 {
-		n.Sub += " · " + itoa(picked) + " picked"
+	for i := range n.Links {
+		n.Links[i].Instead = picked > 0 && !n.Links[i].Picked
 	}
+	n.Sub = "· " + itoa(picked) + " of " + itoa(len(links)) + " picked"
 	return n
 }
 
@@ -130,7 +136,7 @@ func (m Model) linkOf(step int, l Links.Link) LinksBoard.Link {
 	e := StepEdge{step, l.From, l.To}
 	sl, ok := m.gridLink(e)
 	lk := LinksBoard.Link{Label: l.From + " → " + l.To, Picked: ok && sl.Picked, Open: m.CardOpen(e), Fold: Act{Op: OpCardFold, Node: l.From, To: l.To, I: step},
-		Dial: boardDial(dialOf(sl)), Sum: "—", Tip: "open or close this link's card", Hot: m.hot(l)}
+		Dial: boardDial(dialOf(sl)), Sum: notTurned, Tip: "open or close this link's card", Hot: m.hot(l)}
 	if !ok {
 		return lk
 	}
@@ -149,7 +155,7 @@ func (m Model) linkOf(step int, l Links.Link) LinksBoard.Link {
 			parts = append(parts, signed(d)+a.label)
 		}
 	}
-	lk.Sum = "0"
+	lk.Sum = notTurned
 	if len(parts) > 0 {
 		lk.Sum = strings.Join(parts, " ")
 	}

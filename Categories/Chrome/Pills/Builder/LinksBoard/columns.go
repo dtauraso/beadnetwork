@@ -123,12 +123,17 @@ func (k *col) headRow(c Column) {
 	case c.Progress != "":
 		l.Text(x, y, headH, k.clip, c.Progress, 12, Board.Warn, false, Board.Left)
 	case c.Head != nil:
-		x += l.Weighted(x, y, headH, k.clip, "HEAD", 11, Board.Mute, Board.Semi, Board.Left) + 6
+		label := "press all " + c.Head.Picked + ":"
+		var need float32
 		for _, lk := range c.Head.Locks {
-			x += k.lock(x, y+4, lk) + 6
+			need += lockW(lk) + 8
 		}
-		if c.Head.Picked != "" && x+Board.W(c.Head.Picked, 11) < k.x+k.w-cpad {
-			l.Text(x, y, headH, k.clip, c.Head.Picked, 11, Board.Mute, false, Board.Left)
+		if x+Board.W(label, 11)+6+need > k.x+k.w-cpad {
+			label = "all:"
+		}
+		x += l.Text(x, y, headH, k.clip, label, 11, Board.Mute, false, Board.Left) + 6
+		for _, lk := range c.Head.Locks {
+			x += k.lock(x, y+4, lk) + 8
 		}
 	default:
 		return
@@ -137,29 +142,38 @@ func (k *col) headRow(c Column) {
 	k.rule(k.y-1, Board.Guide)
 }
 
+const lockGap = 3
+
+func pressW() float32 { return Board.W("−", 11) + 10 }
+
+func lockW(lk Lock) float32 {
+	return Board.W(lk.Label, 12) + 10 + lockGap + 2*pressW() + Board.W(lk.Axis, 12) + 10
+}
+
 func (k *col) lock(x, y float32, lk Lock) float32 {
 	l, h := k.l, float32(btnH+2)
 	gw := Board.W(lk.Label, 12) + 10
-	aw := Board.W("▲", 10) + 8
-	w := gw + 2*aw
-	l.Box(Rect{X: x, Y: y, W: w, H: h}, k.clip, Board.White, Board.Edge)
-	ink := Board.Ink
+	fill, ink := Board.White, Board.Ink
 	if lk.On {
-		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x + 1, Y: y + 1, W: gw - 1, H: h - 2}, Clip: k.clip, Fill: Board.On, Alpha: 1})
-		ink = Board.Accent
+		fill, ink = Board.On, Board.Accent
 	}
+	l.Box(Rect{X: x, Y: y, W: gw, H: h}, k.clip, fill, Board.Edge)
 	l.Text(x+gw/2, y, h, k.clip, lk.Label, 12, ink, lk.On, Board.Center)
 	l.Spot(Rect{X: x, Y: y, W: gw, H: h}, k.clip, Sheet.Cell{Act: lk.Cycle, Tip: "lock: click to cycle · off → ↑ → ↓"}, Sheet.PartBody)
-	ax := x + gw
+	sx := x + gw + lockGap
+	ew, mw := pressW(), Board.W(lk.Axis, 12)+10
+	l.Box(Rect{X: sx, Y: y, W: 2*ew + mw, H: h}, k.clip, Board.White, Board.Edge)
+	l.Line(Rect{X: sx + ew + 0.5, Y: y, W: 0, H: h}, k.clip, Board.Edge, 1, false)
+	l.Line(Rect{X: sx + ew + mw - 0.5, Y: y, W: 0, H: h}, k.clip, Board.Edge, 1, false)
+	l.Text(sx+ew+mw/2, y, h, k.clip, lk.Axis, 12, Board.Mute, false, Board.Center)
 	for _, a := range []struct {
 		glyph string
+		at    float32
 		part  Sheet.Part
 		tip   string
-	}{{"▲", Sheet.PartUp, "press every picked link in this step up"}, {"▼", Sheet.PartDown, "press every picked link in this step down"}} {
-		l.Line(Rect{X: ax + 0.5, Y: y, W: 0, H: h}, k.clip, Board.Edge, 1, false)
-		l.Text(ax+aw/2, y, h, k.clip, a.glyph, 10, Board.Mute, false, Board.Center)
-		l.Spot(Rect{X: ax, Y: y, W: aw, H: h}, k.clip, Sheet.Cell{Act: lk.Press, Tip: a.tip}, a.part)
-		ax += aw
+	}{{"−", sx, Sheet.PartDown, "press every picked link in this step down on " + lk.Axis}, {"＋", sx + ew + mw, Sheet.PartUp, "press every picked link in this step up on " + lk.Axis}} {
+		l.Text(a.at+ew/2, y, h, k.clip, a.glyph, 11, Board.Ink, false, Board.Center)
+		l.Spot(Rect{X: a.at, Y: y, W: ew, H: h}, k.clip, Sheet.Cell{Act: lk.Press, Tip: a.tip}, a.part)
 	}
-	return w
+	return gw + lockGap + 2*ew + mw
 }

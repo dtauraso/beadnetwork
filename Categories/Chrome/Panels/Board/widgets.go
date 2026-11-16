@@ -116,6 +116,7 @@ type Stepper struct {
 	Plain   string
 	DownDim bool
 	UpDim   bool
+	Faded   bool
 	DownTip string
 	UpTip   string
 }
