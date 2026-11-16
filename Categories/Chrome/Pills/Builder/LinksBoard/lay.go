@@ -116,13 +116,13 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) {
 		x += w + Board.Gap
 	}
 	if d.S.Act.Op != "" && !narrow {
-		sw := Board.W("s", Board.BtnPx) + 2 + Board.W(d.S.Fit, Board.Px) + 2*Board.PadX + 10
-		l.Box(Rect{X: x, Y: y - 2, W: sw, H: h + 4}, clip, Board.White, Board.Edge)
-		x += 6 + l.Text(x+6, y, h, clip, "s", Board.BtnPx, Board.Ink, false, Board.Left) + 3
-		x += l.Field(x, y, clip, d.S) + 4 + Board.Gap
+		x += l.Text(x, y, h, clip, "ticks per 1/12 turn", Board.SmallPx, Board.Mute, false, Board.Left) + 4
+		x += l.Field(x, y, clip, d.S) + Board.Gap
 	}
-	if d.SNote != "" {
-		x += l.Text(x, y, h, clip, d.SNote, Board.SmallPx, Board.Mute, false, Board.Left) + Board.Gap
+	if d.SNote != "" && !narrow {
+		nw := Board.W(d.SNote, Board.SmallPx) + 12
+		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y + 3, W: nw, H: h - 6}, Clip: clip, Fill: Board.WarnFill, Radius: 99, Alpha: 1})
+		x += l.Text(x+6, y, h, clip, d.SNote, Board.SmallPx, Board.Warn, false, Board.Left) + 12 + Board.Gap
 	}
 	right := r.X + r.W - pad
 	doors := d.Doors
