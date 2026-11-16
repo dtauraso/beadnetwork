@@ -16,14 +16,14 @@ const (
 )
 
 func (m Model) stepStrip(add Act) []Board.Chip {
-	out := []Board.Chip{{Label: "START", Act: Act{Op: OpStartFold}, Lit: m.StartOpen, Tip: "open or close where each link begins"}}
+	out := []Board.Chip{{Label: "START", Act: Act{Op: OpStartFold}, Lit: m.StartOpen}}
 	ns := m.stepNums()
 	for _, n := range ns {
-		c := Board.Chip{Label: m.StepLabel(n), Act: Act{Op: OpStepShow, I: n}, Lit: n == m.StepShown(), Tip: "show step " + itoa(n) + " of " + itoa(len(ns)) + " in the scene"}
+		c := Board.Chip{Label: m.StepLabel(n), Act: Act{Op: OpStepShow, I: n}, Lit: n == m.StepShown()}
 		out = append(out, c)
 	}
 	if add.Op != "" {
-		out = append(out, Board.Chip{Label: "＋", Act: add, Tip: "add a step at the end, open"})
+		out = append(out, Board.Chip{Label: "＋", Act: add})
 	}
 	return out
 }

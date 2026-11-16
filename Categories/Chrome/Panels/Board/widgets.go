@@ -62,7 +62,7 @@ type Chip struct {
 	Dim   bool
 	Pri   bool
 	Bad   bool
-	Tip   string
+	Note  string
 	Px    float32
 }
 
@@ -89,7 +89,7 @@ func (l *Laid) Chip(x, y float32, clip uint8, c Chip) float32 {
 	l.Box(r, clip, fill, edge)
 	l.Text(x+w/2, y, r.H, clip, c.Label, px, ink, false, Center)
 	if !c.Dim {
-		l.Spot(r, clip, Sheet.Cell{Act: c.Act, Tip: c.Tip}, Sheet.PartBody)
+		l.Spot(r, clip, Sheet.Cell{Act: c.Act}, Sheet.PartBody)
 	}
 	return w
 }
@@ -100,7 +100,6 @@ type Field struct {
 	Fit   string
 	Act   Sheet.Act
 	Words bool
-	Tip   string
 }
 
 func (f Field) weight() uint8 {
@@ -132,7 +131,7 @@ func (l *Laid) Field(x, y float32, clip uint8, f Field) float32 {
 		l.Text(x+PadX, y, r.H, clip, f.Label, ChipPx, Ink, false, Left)
 	}
 	l.Add(Mark{Kind: KText, R: Rect{X: x + w - PadX - vw, Y: y, W: vw, H: r.H}, Clip: clip, Ink: Ink, Text: f.Value, Px: ChipPx, Bold: wt == 7, Align: Right, Alpha: 1, Edit: f.Act})
-	l.Spot(r, clip, Sheet.Cell{Kind: Sheet.CellField, Value: f.Value, Act: f.Act, Typed: true, Words: f.Words, Tip: f.Tip}, Sheet.PartBody)
+	l.Spot(r, clip, Sheet.Cell{Kind: Sheet.CellField, Value: f.Value, Act: f.Act, Typed: true, Words: f.Words}, Sheet.PartBody)
 	return w
 }
 
@@ -151,8 +150,6 @@ type Stepper struct {
 	DownDim bool
 	UpDim   bool
 	Faded   bool
-	DownTip string
-	UpTip   string
 }
 
 func (l *Laid) Stepper(x, y float32, clip uint8, s Stepper) float32 {

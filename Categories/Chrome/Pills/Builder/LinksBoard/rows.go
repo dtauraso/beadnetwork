@@ -28,7 +28,7 @@ func (k *col) node(n Node) {
 	x += 12 + 6
 	x += l.Weighted(x, y, nodeH, k.clip, n.Label+" ", 12, Board.Mute, Board.Semi, Board.Left)
 	l.Text(x, y, nodeH, k.clip, n.Sub, 12, Board.Mute, false, Board.Left)
-	l.Spot(Rect{X: k.x, Y: y, W: k.w, H: nodeH}, k.clip, Sheet.Cell{Act: n.Fold, Tip: "open or fold this node's links in this step"}, Sheet.PartBody)
+	l.Spot(Rect{X: k.x, Y: y, W: k.w, H: nodeH}, k.clip, Sheet.Cell{Act: n.Fold}, Sheet.PartBody)
 	k.y += nodeH
 	if !n.Open {
 		return
@@ -39,21 +39,21 @@ func (k *col) node(n Node) {
 }
 
 func pickChip(l *Board.Laid, clip uint8, x, mid float32, lk Link) float32 {
-	label, tip := "pick", "pick: this link moves its target in this step"
+	label := "pick"
 	fill, edge, ink := Board.White, Board.Edge, Board.Ink
 	switch {
 	case lk.Picked:
-		label, tip = "✓ picked", "picked: this link moves its target in this step · click to unpick"
+		label = "✓ picked"
 		fill, edge = Board.On, Board.Accent
 	case lk.Instead:
-		label, tip = "pick instead", "another link into this node is picked · click to pick this one instead"
+		label = "pick instead"
 		edge, ink = Board.Accent, Board.Accent
 	}
 	w := Board.W(label, Board.SmallPx) + 2*chipPadX
 	r := Rect{X: x, Y: mid - pickH/2, W: w, H: pickH}
 	l.Box(r, clip, fill, edge)
 	l.Text(x+w/2, r.Y, pickH, clip, label, Board.SmallPx, ink, false, Board.Center)
-	l.Spot(Rect{X: x - 2, Y: mid - lrowH/2, W: w + 4, H: lrowH}, clip, Sheet.Cell{Act: lk.Pick, Tip: tip}, Sheet.PartBody)
+	l.Spot(Rect{X: x - 2, Y: mid - lrowH/2, W: w + 4, H: lrowH}, clip, Sheet.Cell{Act: lk.Pick}, Sheet.PartBody)
 	return w
 }
 
@@ -67,7 +67,7 @@ func (k *col) link(lk Link) {
 	case lk.Hot:
 		l.Add(Board.Mark{Kind: Board.KBox, R: row, Clip: k.clip, Fill: Board.On, Alpha: 0.6})
 	}
-	l.Spot(row, k.clip, Sheet.Cell{Act: lk.Fold, Tip: lk.Tip}, Sheet.PartBody)
+	l.Spot(row, k.clip, Sheet.Cell{Act: lk.Fold}, Sheet.PartBody)
 	x := k.x + lindent
 	mid := k.y + lrowH/2
 	if lk.Pick.Op != "" {

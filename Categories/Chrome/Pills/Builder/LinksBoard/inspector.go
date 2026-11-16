@@ -121,7 +121,7 @@ func (in *ins) axis(a Axis) {
 			axis = Sheet.DialTheta
 		}
 		if a.DialAct.Op != "" {
-			l.Spot(dr, in.clip, Sheet.Cell{Act: a.DialAct, Dial: Sheet.Dial{Axis: axis}, Tip: "drag the hand around the dial · it snaps to every Δ per press"}, Sheet.PartBody)
+			l.Spot(dr, in.clip, Sheet.Cell{Act: a.DialAct, Dial: Sheet.Dial{Axis: axis}}, Sheet.PartBody)
 		}
 	}
 	x, y := in.x+size+10, in.y

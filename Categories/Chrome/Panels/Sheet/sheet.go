@@ -62,7 +62,6 @@ type Cell struct {
 	Dim           bool
 	Words         bool
 	Bare          bool
-	Tip           string
 	Ink           Ink
 	Dial          Dial
 }
@@ -87,8 +86,6 @@ const (
 	BandPad = 6
 	GuideX  = 4
 )
-
-func (c Cell) Tipped(s string) Cell { c.Tip = s; return c }
 
 func (c Cell) Inked(i Ink) Cell { c.Ink = i; return c }
 

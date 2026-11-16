@@ -33,10 +33,10 @@ func popover(l *Board.Laid, box, bar Rect, p Pop) {
 	l.Text(x, y, h, clip, "Applying reloads the scene.", 12, Board.Warn, false, Board.Left)
 	y += h + Board.Gap
 	right := r.X + r.W - pad
-	apply := Board.Chip{Label: "Apply & reload", Act: p.Apply, Lit: p.CanApply, Dim: !p.CanApply, Tip: "write the frame and reload the scene"}
+	apply := Board.Chip{Label: "Apply & reload", Act: p.Apply, Lit: p.CanApply, Dim: !p.CanApply}
 	right -= Board.W(apply.Label, Board.Px) + 2*Board.PadX
 	l.Chip(right, y, clip, apply)
-	cancel := Board.Chip{Label: "Cancel", Act: p.Cancel, Tip: "close without changing the frame"}
+	cancel := Board.Chip{Label: "Cancel", Act: p.Cancel}
 	right -= Board.W(cancel.Label, Board.Px) + 2*Board.PadX + Board.Gap
 	l.Chip(right, y, clip, cancel)
 }

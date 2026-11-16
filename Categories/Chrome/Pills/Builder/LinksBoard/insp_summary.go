@@ -16,7 +16,7 @@ func (in *ins) summary(a Axis) {
 		if a.Dial.Axis == Board.Theta {
 			axis = Sheet.DialTheta
 		}
-		l.Spot(dr, in.clip, Sheet.Cell{Act: a.DialAct, Dial: Sheet.Dial{Axis: axis}, Tip: "drag the hand around the dial · it snaps to every Δ per press"}, Sheet.PartBody)
+		l.Spot(dr, in.clip, Sheet.Cell{Act: a.DialAct, Dial: Sheet.Dial{Axis: axis}}, Sheet.PartBody)
 	}
 	in.y += size + 10
 	l.Text(in.x, in.y, Board.RowH(), in.clip, a.Ends, Board.Px, Board.Ink, true, Board.Left)

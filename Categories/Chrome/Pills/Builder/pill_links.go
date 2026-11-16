@@ -64,10 +64,10 @@ func pathGroup(m Model) Group {
 	if m.AtSeqs {
 		return Group{Rows: [][]Cell{{Text("Sequences").Inked(inkStrong)}}, Slides: true, Table: "where you are"}
 	}
-	row := []Cell{Text("Sequences").Acting(Act{Op: OpSeqs}).Dimmed(true).Tipped("all sequences")}
+	row := []Cell{Text("Sequences").Acting(Act{Op: OpSeqs}).Dimmed(true)}
 	name := Text(m.seqName())
 	if len(m.Trail) > 0 {
-		name = name.Acting(Act{Op: OpLevelGo, Node: m.Trail[0].Level, I: m.Trail[0].Step}).Dimmed(true).Tipped("go back to this level")
+		name = name.Acting(Act{Op: OpLevelGo, Node: m.Trail[0].Level, I: m.Trail[0].Step}).Dimmed(true)
 	} else {
 		name = name.Inked(inkStrong)
 	}
@@ -75,7 +75,7 @@ func pathGroup(m Model) Group {
 	for i, s := range m.Trail {
 		c := Text(s.Label)
 		if i+1 < len(m.Trail) {
-			c = c.Acting(Act{Op: OpLevelGo, Node: m.Trail[i+1].Level, I: m.Trail[i+1].Step}).Dimmed(true).Tipped("go back to this level")
+			c = c.Acting(Act{Op: OpLevelGo, Node: m.Trail[i+1].Level, I: m.Trail[i+1].Step}).Dimmed(true)
 		} else {
 			c = c.Inked(inkStrong)
 		}

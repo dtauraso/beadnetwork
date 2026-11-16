@@ -55,8 +55,8 @@ func note(l *Board.Laid, r Rect, d Data, beside bool) {
 	x, y := r.X+9, r.Y+5
 	x += l.Text(x, y, noteBH, clip, d.Toast, Board.Px, Board.Ink, false, Board.Left) + 10
 	if d.Undo.Op != "" {
-		x += l.Btn(x, y, noteBH, clip, "Undo", d.Undo, "put the pick back", false) + 10
+		x += l.Btn(x, y, noteBH, clip, "Undo", d.Undo, false) + 10
 	}
 	xw := l.Text(x, y, noteBH, clip, "×", Board.Px, Board.Mute, false, Board.Left)
-	l.Spot(Rect{X: x - 4, Y: y, W: xw + 8, H: noteBH}, clip, Sheet.Cell{Act: d.Dismiss, Tip: "dismiss"}, Sheet.PartBody)
+	l.Spot(Rect{X: x - 4, Y: y, W: xw + 8, H: noteBH}, clip, Sheet.Cell{Act: d.Dismiss}, Sheet.PartBody)
 }

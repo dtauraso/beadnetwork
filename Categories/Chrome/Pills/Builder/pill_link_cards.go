@@ -3,7 +3,6 @@ package Builder
 import (
 	"math"
 	"strconv"
-	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
@@ -34,7 +33,7 @@ func boardInspector(m Model) LinksBoard.Inspector {
 	}
 	on := map[bool]string{true: "● on", false: "○ off"}[l.Picked]
 	in := LinksBoard.Inspector{Title: l.From + " → " + l.To, Sub: "· step " + m.StepLabel(e.Step), Moves: "moves in this step",
-		Switch: Board.Chip{Label: on, Act: Act{Op: OpStepPick, Node: l.From, To: l.To, I: e.Step}, Lit: l.Picked, Tip: "pick or unpick this link for this step"}}
+		Switch: Board.Chip{Label: on, Act: Act{Op: OpStepPick, Node: l.From, To: l.To, I: e.Step}, Lit: l.Picked}}
 	if l.Picked {
 		in.Switch, in.Moves = Board.Chip{}, ""
 	} else {
@@ -136,27 +135,4 @@ func linkCount(n int) string {
 		return "1 link"
 	}
 	return strconv.Itoa(n) + " links"
-}
-
-func pressSummary(l Links.Link) string {
-	var parts []string
-	term := func(k string, start, total, d int, end string) {
-		if total != 0 || d != 0 {
-			s := k + " " + strconv.Itoa(start)
-			if total != 0 {
-				s += " + total " + strconv.Itoa(total)
-			}
-			parts = append(parts, s+" + "+strconv.Itoa(d)+" → "+end)
-		}
-	}
-	sum := l.Sum()
-	term("φ", l.Start.Tick.Phi, l.Total.Phi, l.Delta.Phi, "tick "+strconv.Itoa(l.Start.Tick.Phi+sum.Phi))
-	term("θ", l.Start.Tick.Theta, l.Total.Theta, l.Delta.Theta, "tick "+strconv.Itoa(l.Start.Tick.Theta+sum.Theta))
-	if sum.R != 0 {
-		parts = append(parts, "r "+tenths(l.Start.R)+" + "+strconv.Itoa(sum.R)+" → "+tenths(l.Start.R+float64(sum.R)))
-	}
-	if len(parts) == 0 {
-		return "no move"
-	}
-	return strings.Join(parts, " · ")
 }

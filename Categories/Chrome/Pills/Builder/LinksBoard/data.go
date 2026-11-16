@@ -58,7 +58,6 @@ type Link struct {
 	Fold    Act
 	Dial    Board.Dial
 	Sum     string
-	Tip     string
 	Hot     bool
 	Card    *Card
 }

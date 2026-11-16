@@ -105,7 +105,7 @@ func (m Model) FirstSeqMatch() (int, bool) {
 }
 
 func (m Model) seqMenu() *LinksBoard.Menu {
-	menu := &LinksBoard.Menu{Find: &Board.Field{Value: m.SeqFind, Fit: "type part of a name……", Act: Act{Op: OpSeqFind}, Words: true, Tip: "type part of a name: Enter opens the first match, Escape clears"},
+	menu := &LinksBoard.Menu{Find: &Board.Field{Value: m.SeqFind, Fit: "type part of a name……", Act: Act{Op: OpSeqFind}, Words: true},
 		Empty: "no sequence name contains \"" + m.SeqFind + "\""}
 	for _, q := range m.Seqs {
 		if !q.matches(m.SeqFind) {
@@ -113,12 +113,12 @@ func (m Model) seqMenu() *LinksBoard.Menu {
 		}
 		c := Board.Chip{Label: q.Tag() + "  " + q.Name, Act: Act{Op: OpSeqIn, I: q.K}}
 		if q.K == m.OpenSeq {
-			c.Lit, c.Tip = true, "open"
+			c.Lit, c.Note = true, "open"
 		}
 		menu.Items = append(menu.Items, c)
 	}
 	menu.Extra = []Board.Chip{
-		{Label: "＋ new sequence", Act: Act{Op: OpSeqAdd, I: m.OpenSeq}, Tip: "after this one"},
+		{Label: "＋ new sequence", Act: Act{Op: OpSeqAdd, I: m.OpenSeq}, Note: "after this one"},
 		{Label: "⧉ duplicate " + m.openSeqTag(), Act: Act{Op: OpSeqCopy, I: m.OpenSeq}},
 		{Label: "☰ manage all…", Act: Act{Op: OpSeqs}},
 	}
@@ -126,9 +126,9 @@ func (m Model) seqMenu() *LinksBoard.Menu {
 }
 
 func findGroup(m Model) Group {
-	row := []Cell{Field("find", m.SeqFind, Act{Op: OpSeqFind}, true, false).Wording().Tipped("type part of a name: Enter selects the first match, Escape clears")}
+	row := []Cell{Field("find", m.SeqFind, Act{Op: OpSeqFind}, true, false).Wording()}
 	if m.SeqFind != "" {
-		row = append(row, Button("×", Act{Op: OpSeqFindClear}, false).Tipped("clear the search"))
+		row = append(row, Button("×", Act{Op: OpSeqFindClear}, false))
 	}
 	return Group{Rows: [][]Cell{row}}
 }
@@ -141,18 +141,18 @@ func seqRows(t *tree, m Model) {
 			continue
 		}
 		shown++
-		detail := []Cell{Text(q.Tag()).Dimmed(true).Tipped("this sequence's id · it stays the same when sequences are added, copied or deleted")}
+		detail := []Cell{Text(q.Tag()).Dimmed(true)}
 		if q.K == m.OpenSeq {
 			detail = append(detail, Text("open").Dimmed(true))
 		}
 		acts := []Cell{
-			Button("Open", Act{Op: OpSeqIn, I: q.K}, false).Tipped("go into this sequence"),
-			Button("Rename", Act{Op: OpRename, K: renameSeq, I: q.K}, false).Tipped("rename this sequence"),
-			Button("Add after", Act{Op: OpSeqAdd, I: q.K}, false).Tipped("add an empty sequence after this one"),
-			Button("Duplicate", Act{Op: OpSeqCopy, I: q.K}, false).Tipped("duplicate this sequence"),
+			Button("Open", Act{Op: OpSeqIn, I: q.K}, false),
+			Button("Rename", Act{Op: OpRename, K: renameSeq, I: q.K}, false),
+			Button("Add after", Act{Op: OpSeqAdd, I: q.K}, false),
+			Button("Duplicate", Act{Op: OpSeqCopy, I: q.K}, false),
 		}
 		if len(m.Seqs) > 1 {
-			acts = append(acts, Text("·").Dimmed(true), Button("Delete", Act{Op: OpSeqDrop, I: q.K}, false).Tipped("delete this sequence"))
+			acts = append(acts, Text("·").Dimmed(true), Button("Delete", Act{Op: OpSeqDrop, I: q.K}, false))
 		}
 		t.add(linkRow{
 			id:     Act{Op: OpSeqOpen, I: q.K},
