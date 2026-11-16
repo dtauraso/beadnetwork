@@ -22,7 +22,9 @@ export function armGoWatcher(
   const rebuild = () => {
     debouncer.schedule(() => {
       void buildBinary(repoRoot, binPath).then((res) => {
-      if (shouldRestartAfterBuild(res)) {
+      if (res.ok && res.busy) {
+        rebuild();
+      } else if (shouldRestartAfterBuild(res)) {
         goChannel.appendLine("[go] rebuilt beadnetwork");
 
         if (runner.restart()) {

@@ -96,7 +96,7 @@ func (k *col) header(c Column) {
 		label, lw = c.Short, Board.TextW(c.Short, Board.Px, Board.Semi)
 	}
 	l.Weighted(x, y, cheadH, k.clip, label, Board.Px, Board.Ink, Board.Semi, Board.Left)
-	l.Spot(Rect{X: x, Y: y, W: lw, H: cheadH}, k.clip, Sheet.Cell{Act: c.Show, Tip: "show this step in the scene · hover to ghost its places"}, Sheet.PartBody)
+	l.Spot(Rect{X: x, Y: y, W: lw, H: cheadH}, k.clip, Sheet.Cell{Act: c.Show, Tip: "show this step in the scene"}, Sheet.PartBody)
 	x += lw + 6
 	if c.Name.Act.Op != "" && fitSub {
 		l.Editable(x-Board.PadX, y+(cheadH-Board.RowH())/2, 0, k.clip, c.Sub, 12, Board.Mute, c.Name.Act)

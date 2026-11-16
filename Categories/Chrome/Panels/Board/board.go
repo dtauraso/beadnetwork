@@ -51,10 +51,10 @@ const (
 )
 
 type Dial struct {
-	Axis               Paint
-	Start, Turn, Ghost float32
-	Inc                float32
-	Labels             bool
+	Axis        Paint
+	Start, Turn float32
+	Inc         float32
+	Labels      bool
 }
 
 type Mark struct {

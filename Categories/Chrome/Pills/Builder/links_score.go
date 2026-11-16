@@ -38,7 +38,7 @@ func boardDial(d Sheet.Dial) Board.Dial {
 	if d.Axis == Sheet.DialTheta {
 		p = Board.Theta
 	}
-	return Board.Dial{Axis: p, Start: d.Start, Turn: d.Turn, Ghost: d.Ghost}
+	return Board.Dial{Axis: p, Start: d.Start, Turn: d.Turn}
 }
 
 func lockOf(m Model, step int, a axis) LinksBoard.Lock {

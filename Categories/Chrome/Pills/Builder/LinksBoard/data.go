@@ -150,7 +150,6 @@ type Data struct {
 	InspOpen bool
 	InspTab  Act
 	Status   string
-	Ghost    string
 	Toast    string
 	At       Act
 	Undo     Act

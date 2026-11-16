@@ -53,10 +53,7 @@ func boardInspector(m Model) LinksBoard.Inspector {
 			continue
 		}
 		d := boardDial(axisDial(l, a.k))
-		d.Ghost, d.Inc = float32(a.times(l)), float32(a.times(l))
-		if m.Turning.Act == press {
-			d.Ghost = float32(m.Turning.presses() * m.Turning.Inc)
-		}
+		d.Inc = float32(a.times(l))
 		x.Dial, x.DialAct, x.DialSize = d, press, 72
 		x.Ends = a.label + " " + a.at(l) + " → " + endsAt(l, a.k)
 		if a.k == Links.KPhi {
@@ -66,9 +63,6 @@ func boardInspector(m Model) LinksBoard.Inspector {
 			x.Lines = []string{itoa(end) + " × s" + itoa(s) + " = " + itoa(end*s) + " ticks"}
 		}
 		in.Axes = append(in.Axes, x)
-	}
-	if t := m.Turning; t.Act.Node == l.From && t.Act.To == l.To {
-		in.Hint = "Dragging: the hollow handle is where the hand lands when you let go. In the scene, the faint copies are where the nodes downstream of " + l.To + " will move."
 	}
 	return in
 }

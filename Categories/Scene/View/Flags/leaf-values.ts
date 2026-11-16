@@ -83,8 +83,9 @@ export function makeLeafValues<N extends string>(
   const run = <T>(name: N, width: number, make: (n: number) => T, set: (out: T, i: number, v: DataView) => void): T | null => {
     const v = view(name);
     if (!v || v.byteLength === 0) return null;
-    const out = make(v.byteLength / width);
-    for (let i = 0; i < v.byteLength / width; i++) set(out, i, v);
+    const n = Math.floor(v.byteLength / width);
+    const out = make(n);
+    for (let i = 0; i < n; i++) set(out, i, v);
     return out;
   };
 
@@ -110,7 +111,7 @@ export function makeLeafValues<N extends string>(
       const v = view(name);
       if (!v || v.byteLength === 0) return [];
       const out: number[] = [];
-      for (let i = 0; i < v.byteLength / 8; i++) out.push(v.getFloat64(i * 8, true));
+      for (let i = 0; i < Math.floor(v.byteLength / 8); i++) out.push(v.getFloat64(i * 8, true));
       return out;
     },
     u32: (name, fallback = 0) => {

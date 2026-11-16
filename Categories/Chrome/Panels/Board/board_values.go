@@ -14,7 +14,7 @@ var BoardValueNames = []string{
 	"markKind", "markX", "markY", "markW", "markH", "markClip",
 	"markFill", "markEdge", "markInk", "markRadius", "markStroke",
 	"markText", "markLen", "markPx", "markBold", "markAlpha", "markDash", "markCorner",
-	"dialAxis", "dialStart", "dialTurn", "dialGhost", "dialInc", "dialLabels",
+	"dialAxis", "dialStart", "dialTurn", "dialInc", "dialLabels",
 	"clipX", "clipY", "clipW", "clipH", "editing", "caretMark", "caretAt",
 }
 
@@ -88,7 +88,6 @@ func (s *State) Write(l *Laid, e Sheet.Edit) {
 			w.U8("dialAxis", uint8(m.Dial.Axis))
 			w.F32("dialStart", m.Dial.Start)
 			w.F32("dialTurn", m.Dial.Turn)
-			w.F32("dialGhost", m.Dial.Ghost)
 			w.F32("dialInc", m.Dial.Inc)
 			w.U8("dialLabels", flag(m.Dial.Labels))
 		}
