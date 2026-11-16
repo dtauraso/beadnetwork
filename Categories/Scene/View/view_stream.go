@@ -62,7 +62,7 @@ func (ui *UIState) linksPreview(board bool) Preview.Preview {
 		}
 		p.Edges = append(p.Edges, Preview.EdgeMark{Src: a, Dst: b, State: st})
 	}
-	p.EdgePick = !ui.Builder.AtSeqs
+	p.EdgePick = true
 	from, to := ui.Builder.Preview()
 	if a, ok := ui.NodeRowFor(from); ok {
 		if b, ok := ui.NodeRowFor(to); ok {

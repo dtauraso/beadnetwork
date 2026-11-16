@@ -21,14 +21,10 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	}
 	if ev.Kind == "key" {
 		if md.UI.Sheet.Edit.Active {
-			finding := md.UI.Sheet.Edit.Act.Op == Builder.OpSeqFind
+			treeFinding := md.UI.Sheet.Edit.Act.Op == Builder.OpTreeFind
 			applySheetKey(ctx, md, ev.Key)
-			if finding {
-				md.UI.Builder.Find(md.UI.Sheet.Edit, ev.Key)
-				if k, ok := md.UI.Builder.FirstSeqMatch(); ok && ev.Key == "Enter" && md.UI.Builder.Menu.Op == Builder.OpMenu {
-					md.UI.Builder.Menu = Sheet.Act{}
-					runSheetAct(ctx, md, Sheet.Act{Op: Builder.OpSeqIn, I: k}, 0, nil)
-				}
+			if treeFinding {
+				md.UI.Builder.FindStep(md.UI.Sheet.Edit, ev.Key)
 				md.UI.EmitViewFrame(nil)
 			}
 			return
@@ -85,7 +81,7 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	if ev.Kind == "pointermove" {
 		t := Chrome.TargetAt(md.UI.PanelLayout(), ev.X, ev.Y)
 		hot := Sheet.Act{}
-		if h := md.UI.PanelLayout().Sheet.Hit(ev.X, ev.Y); !md.UI.Builder.AtSeqs && h.Part == Sheet.PartBody {
+		if h := md.UI.PanelLayout().Sheet.Hit(ev.X, ev.Y); h.Part == Sheet.PartBody {
 			hot = h.Cell.Act
 		} else if h.Part == Sheet.PartNone && ev.Hit.Kind == "edge" && ev.Hit.EdgeRow >= 0 && int(ev.Hit.EdgeRow) < len(md.RT.EdgeEndpointRowTable) {
 			e := md.RT.EdgeEndpointRowTable[ev.Hit.EdgeRow]
@@ -101,6 +97,10 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		if md.UI.Builder.SelectEdge(e.SrcNode, e.DstNode) {
 			md.UI.EmitViewFrame(nil)
 		}
+	}
+	if ev.Kind == "wheel" && md.UI.Builder.TreeWheel(md.UI.PanelLayout().Sheet, ev.X, ev.Y, ev.DeltaY) {
+		md.UI.EmitViewFrame(nil)
+		return
 	}
 	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Sheet, ev.X, ev.Y, ev.DeltaX, ev.DeltaY, md.redraw) {
 		return

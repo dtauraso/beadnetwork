@@ -5,11 +5,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 )
 
-const (
-	tinyPx  = 11
-	stepGap = 4
-)
-
 type flow struct {
 	x0, right, x, y, h, gap float32
 }
@@ -40,60 +35,46 @@ func closeBand(l *Board.Laid, r Rect, clip uint8, bg int, f flow) float32 {
 
 func chipW(c Board.Chip) float32 { return Board.W(c.Label, Board.ChipPx) + 14 }
 
+func crumbs(l *Board.Laid, f *flow, clip uint8, cs []Board.Chip, name Act) {
+	h := Board.RowH()
+	sep := Board.W("›", Board.ChipPx)
+	for i, c := range cs {
+		if i > 0 {
+			x, y := f.at(sep)
+			l.Text(x, y, h, clip, "›", Board.ChipPx, Board.Mute, false, Board.Left)
+		}
+		if !c.Lit {
+			x, y := f.at(chipW(c))
+			l.Chip(x, y, clip, c)
+			continue
+		}
+		lw := min(Board.TextW(c.Label, Board.Px, 7), f.right-f.x0-chipW(Board.Chip{Label: "✎"})-Board.Gap-2*Board.PadX)
+		x, y := f.at(lw + 2*Board.PadX)
+		ew := l.Editable(x, y, lw+2*Board.PadX, clip, fitText(c.Label, lw, true), Board.Px, Board.Ink, name)
+		l.Marks[len(l.Marks)-1].Bold = true
+		l.Spot(Rect{X: x, Y: y, W: ew, H: h}, clip, Sheet.Cell{Act: c.Act}, Sheet.PartBody)
+		pen := Board.Chip{Label: "✎", Act: c.Act}
+		rx, ry := f.at(chipW(pen))
+		l.Chip(rx, ry, clip, pen)
+	}
+}
+
 func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float32 {
 	clip, bg := band(l, r, Board.White)
 	h := Board.RowH()
 	f := flow{x0: r.X + pad, right: r.X + r.W - pad, x: r.X + pad, y: r.Y + pad, h: h, gap: Board.Gap}
-	sepW := Board.W("›", Board.ChipPx) + Board.Gap
 	if narrow && d.More.Op != "" {
 		f.right -= Board.W("⋯", Board.BtnPx) + 12 + Board.Gap
 	}
-	for i, c := range d.Crumbs {
-		if narrow && c.Short != "" {
-			c.Label = c.Short
-		}
-		lw := Board.TextW(c.Label, Board.Px, 7)
-		if c.Act.Op != "" && c.Edit.Op == "" {
-			lw = chipW(Board.Chip{Label: c.Label})
-		}
-		w := lw
-		if i > 0 {
-			w += sepW
-		}
-		if c.Tag != "" {
-			w += Board.W(c.Tag, Board.Px) + Board.Gap
-		}
-		x, y := f.at(w)
-		if i > 0 {
-			x += l.Text(x, y, h, clip, "›", Board.ChipPx, Board.Mute, false, Board.Left) + Board.Gap
-		}
-		if c.Tag != "" {
-			x += l.Text(x, y, h, clip, c.Tag, Board.Px, Board.Mute, false, Board.Left) + Board.Gap
-		}
-		switch {
-		case c.Edit.Op != "":
-			ew := l.Editable(x-Board.PadX, y, lw+2*Board.PadX, clip, c.Label, Board.Px, Board.Ink, c.Edit)
-			l.Marks[len(l.Marks)-1].Bold = true
-			if c.Act.Op != "" {
-				l.Spot(Rect{X: x - Board.PadX, Y: y, W: ew, H: h}, clip, Sheet.Cell{Act: c.Act}, Sheet.PartBody)
-			}
-			rw := chipW(Board.Chip{Label: "✎"})
-			rx, ry := f.at(rw)
-			l.Chip(rx, ry, clip, Board.Chip{Label: "✎", Act: c.Rename})
-		case c.Act.Op == "":
-			l.Text(x, y, h, clip, c.Label, Board.Px, Board.Ink, true, Board.Left)
-		default:
-			cw := l.Chip(x, y, clip, Board.Chip{Label: c.Label, Act: c.Act, Lit: i == 0 && d.SeqOpen})
-			if i == 0 && d.SeqMenu != nil && d.SeqOpen {
-				*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: max(cw, menuMinW), H: h}, m: *d.SeqMenu})
-			}
+	if narrow && d.PathMenu.Op != "" {
+		c := Board.Chip{Label: "steps ▾", Act: d.PathMenu, Lit: d.PathOpen}
+		x, y := f.at(chipW(c))
+		l.Chip(x, y, clip, c)
+		if d.PathOpen {
+			*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: chipW(c), H: h}, pane: true})
 		}
 	}
-	if d.Where != "" {
-		x, y := f.at(sepW + Board.W(d.Where, Board.Px))
-		x += l.Text(x, y, h, clip, "›", Board.ChipPx, Board.Mute, false, Board.Left) + Board.Gap
-		l.Text(x, y, h, clip, d.Where, Board.Px, Board.Mute, false, Board.Left)
-	}
+	crumbs(l, &f, clip, d.Crumbs, d.CrumbName)
 	if d.S.Act.Op != "" && !narrow {
 		s := d.S
 		s.Label = "s"
@@ -136,27 +117,6 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 		for _, c := range doors {
 			x += l.Chip(x, y, clip, c) + Board.Gap
 		}
-	}
-	return closeBand(l, r, clip, bg, f)
-}
-
-func stepBar(l *Board.Laid, r Rect, steps []Board.Chip) float32 {
-	clip, bg := band(l, r, Board.Card)
-	h := Board.RowH()
-	f := flow{x0: r.X + pad, right: r.X + r.W - pad, x: r.X + pad, y: r.Y + pad, h: h, gap: stepGap}
-	x, y := f.at(Board.W("steps", tinyPx) + 4)
-	l.Text(x, y, h, clip, "steps", tinyPx, Board.Mute, false, Board.Left)
-	for _, c := range steps {
-		x, y := f.at(chipW(c))
-		l.Chip(x, y, clip, c)
-	}
-	hint := "click a step to show it"
-	hw := Board.W(hint, tinyPx)
-	if f.x+hw <= f.right {
-		l.Text(f.right, f.y, h, clip, hint, tinyPx, Board.Mute, false, Board.Right)
-	} else {
-		x, y := f.at(hw)
-		l.Text(x, y, h, clip, hint, tinyPx, Board.Mute, false, Board.Left)
 	}
 	return closeBand(l, r, clip, bg, f)
 }

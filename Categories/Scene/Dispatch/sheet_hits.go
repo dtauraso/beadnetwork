@@ -2,7 +2,6 @@ package Dispatch
 
 import (
 	"context"
-	"time"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
@@ -11,7 +10,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
-	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
@@ -28,16 +26,11 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 		md.UI.Builder.Touch(h.Cell.ArrowAct())
 		md.UI.Builder.NotePick(h.Cell.ArrowAct())
 	}
-	if h.Row.Op != "" {
-		md.UI.Builder.Select(h.Row)
-	}
 	switch h.Part {
 	case Sheet.PartPill:
 		sh.Toggle(h.Label)
 	case Sheet.PartGrab:
 		sh.StartResize(h.Label, h.DY)
-	case Sheet.PartRow:
-		pressRow(ctx, md, h.Row)
 	case Sheet.PartBody:
 		if h.Cell.Act.Op == Sheet.OpDockFold {
 			sh.ToggleFold(h.Cell.Act.Node)
@@ -46,8 +39,6 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 		} else if h.Cell.Act.Op == Sheet.OpDockTab {
 			sh.SelectTab(h.Cell.Act.I)
 			sh.StartTabDrag(h.Cell.Act.Node)
-		} else if h.Row.Op != "" && Builder.IsRowName(h.Cell.Act) {
-			pressRow(ctx, md, h.Row)
 		} else if h.Cell.Act.Op == Builder.OpRename {
 			md.UI.Builder.Rename(h.Cell.Act, &sh.Edit)
 		} else if h.Cell.Typed {
@@ -63,12 +54,6 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 	md.UI.EmitViewFrame(nil)
 }
 
-func pressRow(ctx context.Context, md *MoveDispatch, id Sheet.Act) {
-	if a := md.UI.Builder.Press(id, time.Now().UnixMilli()); a.Op != "" {
-		runSheetAct(ctx, md, a, 0, nil)
-	}
-}
-
 func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	act, t, ok, err := Sheet.Key(&md.UI.Sheet.Edit, key)
 	if err != nil {
@@ -76,8 +61,8 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	}
 	if ok && act.Op == Builder.OpStepName {
 		md.UI.Builder.Refused = md.UI.Builder.NameStep(act.I, t.Text)
-	} else if ok && act.Op == Builder.OpSeqName {
-		nameSequence(md, act.I, t.Text)
+	} else if ok && act.Op == Builder.OpTreeName {
+		md.UI.Builder.Refused = md.UI.Builder.NamePath(Builder.ParsePath(act.Node), t.Text)
 	} else if ok {
 		runSheetAct(ctx, md, act, 0, &t.V)
 	}
@@ -110,14 +95,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.ShowStep(ctx)
 		return
 	}
-	if Builder.IsLevelOp(a) {
-		if err := md.UI.Builder.LevelOp(a); err != nil {
-			View.LogPersistErr("sheet_step_level", md.UI.Builder.Root, err)
-		}
-		md.ShowStep(ctx)
-		return
-	}
-	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) || runFramePop(md, a, typed) {
+	if runSheetStructure(ctx, md, a, sign, typed) || runSheetTree(ctx, md, a) || runTreeStepOp(ctx, md, a) || runFramePop(md, a, typed) {
 		return
 	}
 	switch a.Op {
@@ -127,15 +105,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.ToggleCard(a)
 	case Builder.OpStepFold:
 		md.UI.Builder.ToggleStepFold(a.I, a.Node)
-	case Builder.OpSeqs:
-		md.UI.Builder.ToSeqs()
-	case Builder.OpSeqFindClear:
-		md.UI.Builder.SeqFind = ""
-	case Builder.OpLevelUp:
-		if err := md.UI.Builder.LevelUp(); err != nil {
-			View.LogPersistErr("sheet_step_level", md.UI.Builder.Root, err)
-		}
-		md.ShowStep(ctx)
 	case Builder.OpStepShow:
 		was := md.UI.Builder.StepShown()
 		md.UI.Builder.ShowStep(a, sign)
@@ -150,17 +119,6 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
 	case Builder.OpInspTab:
 		md.UI.Builder.InspOpen = !md.UI.Builder.InspOpen
-	case Builder.OpFrameFold:
-		md.UI.Builder.FrameFolded = !md.UI.Builder.FrameFolded
-		if root := md.Scenes.TreeRoot; root != "" {
-			v := int32(0)
-			if md.UI.Builder.FrameFolded {
-				v = 1
-			}
-			if err := Sheet.WriteScalar(Scenes.FrameFoldedFilePath(root), v); err != nil {
-				View.LogPersistErr("sheet_frame_fold", root, err)
-			}
-		}
 	case Pills.OpOverlay, Pills.OpOverlayBoth:
 		applyOverlayAct(md, a)
 	}

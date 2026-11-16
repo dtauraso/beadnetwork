@@ -24,11 +24,6 @@ var (
 	Field   = Sheet.Field
 )
 
-const (
-	inkStrong = Sheet.InkStrong
-	inkHead   = Sheet.InkHead
-)
-
 type Model struct {
 	Nodes   []string
 	Grids   map[string]Links.Grid
@@ -50,19 +45,13 @@ type Model struct {
 	StepFolds map[StepNode]bool
 	CardsOpen map[StepEdge]bool
 
-	Seqs        []Seq
-	OpenSeq     int
-	AtSeqs      bool
-	SeqFind     string
-	Sel         Act
-	ClickRow    Act
-	ClickAt     int64
 	ShownStep   int
 	StepClosed  bool
 	NetworkOpen bool
 	StartOpen   bool
+	TreePop     bool
+	TreeSY      float32
 	InspOpen    bool
-	FrameFolded bool
 	StepsOpen   map[StepNode]bool
 	FramePop    bool
 	FrameDraft  map[string]float64
@@ -73,7 +62,10 @@ type Model struct {
 	UndoPick    Act
 	Touched     StepEdge
 	Level       string
-	Trail       []TreeRow
+	Scene       string
+	OpenTop     int
+	Tree        []StepRow
+	TreeFind    string
 
 	TickMs  int
 	Now     int64

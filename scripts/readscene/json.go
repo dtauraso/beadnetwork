@@ -63,7 +63,7 @@ type jsonSequence struct {
 
 func sequenceJSON(root string, k int, spec Topology.TopoSpec, seed Links.Seed) jsonSequence {
 	f := seed.Frame
-	js := jsonSequence{Sequence: k, Name: Scenes.SequenceName(root, k),
+	js := jsonSequence{Sequence: k, Name: Scenes.TopStepName(root, k),
 		Frame: jsonFrame{Rho: f.Rho, ConstantR: f.Cr, MaxIndexPhi: f.Tphi, MaxIndexTheta: f.Ttheta},
 		Nodes: []jsonNode{}, Links: []jsonLink{}}
 	for _, n := range spec.Nodes {
@@ -90,7 +90,7 @@ func dumpJSON(root string, seqs []int, constants polarindex.SceneConstants) int 
 	for _, k := range seqs {
 		spec, err := loadSequence(root, k, constants)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "readscene: sequence %d: %v\n", k, err)
+			fmt.Fprintf(os.Stderr, "readscene: step %d: %v\n", k, err)
 			status = 1
 			continue
 		}

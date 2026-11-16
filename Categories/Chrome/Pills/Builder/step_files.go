@@ -126,7 +126,6 @@ func (m *Model) ReadNodeSteps() {
 		m.StepNums = ReadStepNumbers(m.lvl())
 		m.readStepNames()
 		m.readStepsOpen()
-		m.readLevels()
 		for _, step := range m.stepNums() {
 			m.StepHead(step)
 		}

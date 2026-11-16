@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"strconv"
-	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
@@ -87,92 +85,60 @@ func addLinkNodeAt(md *MoveDispatch, at Links.Place) {
 	md.Scenes.Reload()
 }
 
-func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
+func topStepOp(md *MoveDispatch, op string, k int) {
 	m := &md.UI.Builder
-	if !Builder.IsSeqOp(a) {
-		return false
-	}
 	scene := md.Scenes.TreeRoot
 	if scene == "" || md.Scenes.Reload == nil {
-		m.Refused = "this scene cannot change sequences: it was opened with no tree root to reload from"
-		return true
-	}
-	open, k, stay := m.OpenSeq, a.I, 0
-	switch a.Op {
-	case Builder.OpSeqIn:
-		if k == open {
-			if err := m.LevelOp(Sheet.Act{Op: Builder.OpLevelGo, I: m.TopStep()}); err != nil {
-				View.LogPersistErr("sheet_step_level", m.Root, err)
-			}
-			return true
-		}
-		open = k
-	case Builder.OpSeqAdd, Builder.OpSeqCopy:
-		if err := m.WriteSteps(); k == open && err != nil {
-			View.LogPersistErr("sheet_seq_copy", m.Root, err)
-		}
-		to, err := Scenes.InsertSequence(scene, k, map[bool]string{true: Builder.DirSteps}[a.Op == Builder.OpSeqAdd])
-		if err != nil {
-			m.Refused = fmt.Sprintf("could not add a sequence after sequence %d: %v", k, err)
-			return true
-		}
-		if stay = to; open >= to {
-			stay, open = 0, open+1
-		}
-	case Builder.OpSeqDrop:
-		if len(m.Seqs) < 2 {
-			return true
-		}
-		if err := Scenes.RemoveSequence(scene, k); err != nil {
-			m.Refused = fmt.Sprintf("could not delete sequence %d: %v", k, err)
-			return true
-		}
-		if stay = k - 1; k <= open {
-			stay, open = 0, max(1, open-1)
-		}
-	}
-	if stay > 0 {
-		LoadSequences(md, scene)
-		m.Select(Sheet.Act{Op: Builder.OpSeqOpen, I: stay})
-		return true
-	}
-	if err := Scenes.WriteOpenSequence(scene, open); err != nil {
-		m.Refused = fmt.Sprintf("could not open sequence %d: %v", open, err)
-		return true
-	}
-	nodes := Scenes.NodesRoot(scene)
-	if err := writeCounts(scene, largestNodeID(nodes), countEdgeFiles(nodes)); err != nil {
-		m.Refused = fmt.Sprintf("could not update the counts: %v", err)
-		return true
-	}
-	md.Scenes.Reload()
-	return true
-}
-
-func nameSequence(md *MoveDispatch, k int, name string) {
-	scene := md.Scenes.TreeRoot
-	if scene == "" {
-		md.UI.Builder.Refused = "this scene has no sequences folder, so the name was not kept"
+		m.Refused = "this scene cannot change its top steps: it was opened with no tree root to reload from"
 		return
 	}
-	if name = strings.TrimSpace(name); name == "" {
-		name = "sequence " + strconv.Itoa(Scenes.SequenceID(scene, k))
+	tops := Scenes.TopSteps(scene)
+	open, j := m.OpenTop, k+map[string]int{Builder.OpTreeEarlier: -1, Builder.OpTreeLater: 1}[op]
+	switch {
+	case j < 1 || j > len(tops):
+		m.Refused = fmt.Sprintf("step %d is already the %s step, so it stays", k, map[bool]string{true: "first", false: "last"}[j < 1])
+		return
+	case op == Builder.OpTreeDrop && len(tops) < 2:
+		m.Refused = fmt.Sprintf("step %d is the only step, so it stays", k)
+		return
 	}
-	if err := Scenes.WriteSequenceName(scene, k, name); err != nil {
-		View.LogPersistErr("sheet_seq_name", scene, err)
-		md.UI.Builder.Refused = fmt.Sprintf("could not rename sequence %d: %v", k, err)
+	if err := m.WriteSteps(); err != nil {
+		View.LogPersistErr("sheet_top_step", m.Root, err)
 	}
-	LoadSequences(md, scene)
-}
-
-func LoadSequences(md *MoveDispatch, scene string) {
-	m := &md.UI.Builder
-	m.Seqs = nil
-	if err := Scenes.EnsureSequenceIDs(scene); err != nil {
-		View.LogPersistErr("sheet_seq_ids", scene, err)
+	var err error
+	switch op {
+	case Builder.OpTreeAdd, Builder.OpTreeCopy:
+		var to int
+		to, err = Scenes.InsertTopStep(scene, k, map[bool]string{true: Builder.DirSteps}[op == Builder.OpTreeAdd])
+		if err == nil && open >= to {
+			open++
+		}
+	case Builder.OpTreeDrop:
+		err = Scenes.RemoveTopStep(scene, k)
+		if k == open {
+			openTop(md, scene, []int{max(1, open-1)})
+			return
+		}
+		if k < open {
+			open--
+		}
+	case Builder.OpTreeEarlier, Builder.OpTreeLater:
+		err = Scenes.SwapTopSteps(scene, k, j)
+		if open == k {
+			open = j
+		} else if open == j {
+			open = k
+		}
 	}
-	for _, k := range Scenes.Sequences(scene) {
-		m.Seqs = append(m.Seqs, Builder.Seq{K: k, ID: Scenes.SequenceID(scene, k), Name: Scenes.SequenceName(scene, k)})
+	if err != nil {
+		m.Refused = fmt.Sprintf("could not change step %d: %v", k, err)
+		return
 	}
-	m.OpenSeq = Scenes.OpenSequence(scene)
+	if open == m.OpenTop {
+		m.ReadTree()
+		return
+	}
+	p := m.OpenPath()
+	p[0] = open
+	openTop(md, scene, p)
 }

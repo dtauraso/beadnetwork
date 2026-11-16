@@ -83,12 +83,13 @@ set from the UI, and a step is shown a couple of ticks after it is sent.
 - **To read it:** `Categories/Clock/human_tick.go`, `HumanTick`: every node counts ticks
   from one shared start.
 
-## Sequences
+## Top steps
 
-Each sequence is its own folder of nodes and links, one value per file.
+Each top step is its own folder of nodes and links, one value per file, and holds its inner
+steps under its own `steps/`.
 
-- **To read it:** `Categories/Scene/Scenes/sequences.go`, `SequenceDir`: one folder per
-  sequence.
+- **To read it:** `Categories/Scene/Scenes/top_steps.go`, `TopStepDir`: one folder per
+  top step.
 
 ## The screen
 

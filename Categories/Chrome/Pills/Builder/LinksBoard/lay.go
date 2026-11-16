@@ -41,7 +41,12 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	if d.Pop != nil {
 		popover(l, box, bar, *d.Pop)
 	}
-	for _, p := range menus {
+	for i := 0; i < len(menus); i++ {
+		p := menus[i]
+		if p.pane {
+			treePop(l, box, p.at, d, &menus)
+			continue
+		}
 		drawMenu(l, box, p)
 	}
 	return l
@@ -50,10 +55,12 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, menus *[]placed) float32 {
 	bar.H = scopeBar(l, bar, narrow, d, menus)
 	end := mid.Y + mid.H
-	mid.Y = bar.Y + bar.H
-	if len(d.Steps) > 0 && d.Empty == nil {
-		mid.Y += stepBar(l, Rect{X: mid.X, Y: mid.Y, W: mid.W, H: mid.H}, d.Steps)
+	if !narrow && (len(d.Tree) > 0 || d.TreeFind != nil) {
+		top := bar.Y + bar.H
+		l.MostY = treePane(l, Rect{X: mid.X, Y: top, W: treeW, H: end - top}, sy, d, menus)
+		mid.X, mid.W = mid.X+treeW, mid.W-treeW
 	}
+	mid.Y = bar.Y + bar.H
 	mid.H = end - mid.Y
 	if d.Empty != nil {
 		empty(l, mid, *d.Empty)

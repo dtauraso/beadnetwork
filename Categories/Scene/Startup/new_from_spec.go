@@ -74,10 +74,9 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.UI.Builder.S = Sheet.LoadScalar(Scenes.OpenSFilePath(scenePath), 1, 1)
 	md.UI.Builder.TickMs = Sheet.LoadScalar(Scenes.TickMsFilePath(scenePath), clock.MsPerTick, 1)
 	md.UI.Builder.Frame = Topology.LinkFrame(spec)
-	md.UI.Builder.FrameFolded = Sheet.LoadScalar(Scenes.FrameFoldedFilePath(scenePath), 0, 0) == 1
 	md.UI.Builder.Root = Scenes.NodesRoot(scenePath)
 	md.UI.Builder.Step = Builder.ReadStep(Builder.PressDir(md.UI.Builder.Root))
-	Dispatch.LoadSequences(md, scenePath)
+	Dispatch.LoadOpenStep(md, scenePath)
 
 	kindByID := make(map[string]string, len(spec.Nodes))
 	restByID := make(map[string]polarindex.Place, len(spec.Nodes))

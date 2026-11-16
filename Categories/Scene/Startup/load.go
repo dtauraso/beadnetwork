@@ -26,7 +26,10 @@ type Scene struct {
 }
 
 func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error) {
-	if err := FitSequenceS(scenePath); err != nil {
+	if err := Scenes.OldSequences(scenePath); err != nil {
+		return Scene{}, err
+	}
+	if err := FitTopStepsS(scenePath); err != nil {
 		return Scene{}, err
 	}
 	spec, err := Topology.ParseSpec(scenePath)
