@@ -69,6 +69,7 @@ type Model struct {
 	FrameDraft  map[string]float64
 	Turning     Turning
 	Hot         Act
+	Menu        Act
 	UndoPick    Act
 	Touched     StepEdge
 	Level       string

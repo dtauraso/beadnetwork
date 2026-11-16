@@ -20,19 +20,20 @@ type col struct {
 	clip    uint8
 	x, w, y float32
 	narrow  bool
+	menus   *[]placed
 }
 
 func (k *col) rule(y float32, p Board.Paint) {
 	k.l.Line(Rect{X: k.x + 1, Y: y + 0.5, W: k.w - 2, H: 0}, k.clip, p, 1, false)
 }
 
-func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Data) float32 {
+func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Data, menus *[]placed) float32 {
 	clip := l.Clip(r)
 	l.Add(Board.Mark{Kind: Board.KBox, R: r, Clip: clip, Fill: Board.Back, Alpha: 1})
 	w := max(160, r.W-2*colGap)
 	y := r.Y + colGap - sy
 	for _, c := range d.Cols {
-		k := col{l: l, clip: clip, x: r.X + colGap, w: w, y: y, narrow: narrow}
+		k := col{l: l, clip: clip, x: r.X + colGap, w: w, y: y, narrow: narrow, menus: menus}
 		box := len(l.Marks)
 		edge := Board.Guide
 		if c.Shown {
@@ -41,7 +42,6 @@ func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Data) float32 {
 		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: k.x, Y: y, W: w}, Clip: clip, Fill: Board.White, Edge: edge, Radius: radius6, Stroke: 1, Alpha: 1})
 		k.header(c)
 		if c.Open {
-			k.tools(c)
 			k.headRow(c)
 			for _, n := range c.Nodes {
 				k.node(n)
@@ -89,6 +89,13 @@ func (k *col) header(c Column) {
 		l.Text(x, y, cheadH, k.clip, c.Sub, Board.Px, Board.Mute, false, Board.Left)
 	}
 	right := k.x + k.w - cpad
+	if c.Menu.Op != "" {
+		at := dots(l, right, y, cheadH, k.clip, c.MenuOpen, c.Menu, "this step's tools")
+		right = at.X - 8
+		if c.MenuOpen {
+			*k.menus = append(*k.menus, placed{at: at, m: Menu{Items: c.Tools, Drop: c.Drop}})
+		}
+	}
 	if c.Shown {
 		l.Weighted(right, y, cheadH, k.clip, shown, 11, Board.Accent, Board.Semi, Board.Right)
 	} else if c.Show.Op != "" {
@@ -99,22 +106,6 @@ func (k *col) header(c Column) {
 	if c.Open {
 		k.rule(k.y-1, Board.Guide)
 	}
-}
-
-func (k *col) tools(c Column) {
-	if len(c.Tools) == 0 {
-		return
-	}
-	x := k.x + cpad
-	for _, t := range c.Tools {
-		bw := Board.W(t.Label, Board.BtnPx) + 12
-		k.l.Box(Rect{X: x, Y: k.y + 4, W: bw, H: btnH}, k.clip, Board.White, Board.Edge)
-		k.l.Text(x+bw/2, k.y+4, btnH, k.clip, t.Label, Board.BtnPx, Board.Ink, false, Board.Center)
-		k.l.Spot(Rect{X: x, Y: k.y + 4, W: bw, H: btnH}, k.clip, Sheet.Cell{Act: t.Act, Tip: t.Tip}, Sheet.PartBody)
-		x += bw + 3
-	}
-	k.y += toolsH
-	k.rule(k.y-1, Board.Guide)
 }
 
 func (k *col) headRow(c Column) {

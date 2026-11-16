@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -13,6 +14,25 @@ const (
 	OpStepName   = "step-name"
 	FileStepName = "name.bin"
 )
+
+func (m Model) stepStrip(add Act) []Board.Chip {
+	out := []Board.Chip{{Label: "START", Act: Act{Op: OpStartFold}, Lit: m.StartOpen, Tip: "open or close where each link begins"}}
+	ns := m.stepNums()
+	for _, n := range ns {
+		c := Board.Chip{Label: itoa(n), Act: Act{Op: OpStepShow, I: n}, Tip: "show step " + itoa(n) + " in the scene · hover to ghost it"}
+		if n == m.StepShown() {
+			c.Lit, c.Label = true, "step "+itoa(n)+" of "+itoa(len(ns))
+			if name := m.StepNames[n]; name != "" {
+				c.Label += " · " + name
+			}
+		}
+		out = append(out, c)
+	}
+	if add.Op != "" {
+		out = append(out, Board.Chip{Label: "＋", Act: add, Ghost: true, Tip: "add a step at the end, open"})
+	}
+	return out
+}
 
 func (m *Model) readStepNames() {
 	m.StepNames = map[int]string{}

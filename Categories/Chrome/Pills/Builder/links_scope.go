@@ -73,6 +73,7 @@ func boardData(m Model) LinksBoard.Data {
 	if ns := m.stepNums(); len(ns) > 0 {
 		d.Add = Act{Op: OpStepAdd, I: ns[len(ns)-1]}
 	}
+	d.Steps = m.stepStrip(d.Add)
 	if strings.HasPrefix(m.Refused, "moved the pick") {
 		d.Undo = m.UndoPick
 	}

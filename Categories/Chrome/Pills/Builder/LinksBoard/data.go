@@ -81,6 +81,9 @@ type Column struct {
 	Progress string
 	Name     Board.Field
 	Tools    []Board.Chip
+	Drop     Board.Chip
+	Menu     Act
+	MenuOpen bool
 	Head     *Head
 	Nodes    []Node
 }
@@ -132,6 +135,7 @@ type Empty struct {
 
 type Data struct {
 	Crumbs     []Crumb
+	Steps      []Board.Chip
 	S          Board.Field
 	SNote      string
 	Doors      []Board.Chip

@@ -84,15 +84,17 @@ func (m Model) stepCol(n int) LinksBoard.Column {
 		return c
 	}
 	c.Name = Board.Field{Value: m.StepNames[n], Fit: "a step name", Act: Act{Op: OpStepName, I: n}, Words: true, Tip: "name this step"}
+	c.Menu = Act{Op: OpMenu, K: menuStep, I: n}
+	c.MenuOpen = m.Menu == c.Menu
 	c.Tools = []Board.Chip{
-		{Label: "‹", Act: Act{Op: OpStepEarlier, I: n}, Tip: "move this step one earlier"},
-		{Label: "›", Act: Act{Op: OpStepLater, I: n}, Tip: "move this step one later"},
-		{Label: "✎", Act: Act{Op: OpRename, K: renameStep, I: n}, Tip: "rename this step"},
-		{Label: "↳ in", Act: Act{Op: OpStepEnter, I: n}, Tip: "go into this step's own steps"},
-		{Label: "＋ after", Act: Act{Op: OpStepAdd, I: n}, Tip: "add a step after this one"},
-		{Label: "⧉", Act: Act{Op: OpStepCopy, I: n}, Tip: "duplicate this step"},
-		{Label: "×", Act: Act{Op: OpStepDrop, I: n}, Tip: "delete this step"},
+		{Label: "Move earlier", Act: Act{Op: OpStepEarlier, I: n}},
+		{Label: "Move later", Act: Act{Op: OpStepLater, I: n}},
+		{Label: "Rename", Act: Act{Op: OpRename, K: renameStep, I: n}},
+		{Label: "Add step after", Act: Act{Op: OpStepAdd, I: n}},
+		{Label: "Duplicate", Act: Act{Op: OpStepCopy, I: n}},
+		{Label: "Go inside", Act: Act{Op: OpStepEnter, I: n}, Tip: "its own steps"},
 	}
+	c.Drop = Board.Chip{Label: "Delete step", Act: Act{Op: OpStepDrop, I: n}}
 	hd := &LinksBoard.Head{Picked: itoa(len(m.stepActive(n))) + " picked"}
 	for _, a := range axes {
 		hd.Locks = append(hd.Locks, lockOf(m, n, a))

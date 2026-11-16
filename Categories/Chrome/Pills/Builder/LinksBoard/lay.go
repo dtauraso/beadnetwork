@@ -28,7 +28,13 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	st := Rect{X: box.X, Y: box.Y + box.H - h - stripPad, W: box.W, H: h + stripPad}
 	mid := Rect{X: box.X, Y: bar.Y + bar.H, W: box.W, H: st.Y - bar.Y - bar.H}
 	narrow := box.W < narrowW
+	var menus []placed
 	scopeBar(l, bar, narrow, d)
+	if len(d.Steps) > 0 && d.Empty == nil {
+		sb := Rect{X: mid.X, Y: mid.Y, W: mid.W, H: h + stripPad}
+		stepBar(l, sb, narrow, d.Steps)
+		mid.Y, mid.H = mid.Y+sb.H, mid.H-sb.H
+	}
 	if d.Empty != nil {
 		empty(l, mid, *d.Empty)
 	} else {
@@ -38,7 +44,7 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 			stack.W -= iw
 			l.MostY = inspector(l, Rect{X: mid.X + stack.W, Y: mid.Y, W: iw, H: mid.H}, sy, d.Insp)
 		}
-		l.MostY = max(l.MostY, columns(l, stack, sy, stack.W < colNarrowW, d))
+		l.MostY = max(l.MostY, columns(l, stack, sy, stack.W < colNarrowW, d, &menus))
 	}
 	strip(l, st, d)
 	if d.Toast != "" {
@@ -47,7 +53,28 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	if d.Pop != nil {
 		popover(l, box, bar, *d.Pop)
 	}
+	for _, p := range menus {
+		drawMenu(l, box, p)
+	}
 	return l
+}
+
+func stepBar(l *Board.Laid, r Rect, narrow bool, steps []Board.Chip) {
+	clip := l.Clip(r)
+	l.Box(r, clip, Board.Card, Board.None)
+	l.Line(Rect{X: r.X, Y: r.Y + r.H - 0.5, W: r.W, H: 0}, clip, Board.Guide, 1, false)
+	x, y := r.X+pad, r.Y+stripPad/2
+	for _, c := range steps {
+		if narrow && !c.Lit && c.Label != "＋" {
+			continue
+		}
+		c.Px = Board.BtnPx
+		w := Board.W(c.Label, Board.BtnPx) + 2*Board.PadX
+		if x+w > r.X+r.W-pad {
+			break
+		}
+		x += l.Chip(x, y, clip, c) + 4
+	}
 }
 
 func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data) {

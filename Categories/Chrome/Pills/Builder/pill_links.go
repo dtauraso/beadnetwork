@@ -15,7 +15,28 @@ const (
 	OpStepShow  = "step-show"
 	OpNetFold   = "network-fold"
 	OpPlaceFold = "place-fold"
+	OpMenu      = "menu"
 )
+
+const (
+	menuStep = "step"
+	menuSeqs = "seqs"
+	menuMore = "more"
+)
+
+func (m *Model) PressMenu(a Act) {
+	if a.Op != OpMenu {
+		if a.Op != OpSeqFind && a.Op != OpSeqFindClear {
+			m.Menu = Act{}
+		}
+		return
+	}
+	if m.Menu == a {
+		m.Menu = Act{}
+		return
+	}
+	m.Menu = a
+}
 
 const navHint = "click a row to select · double-click to open · two-finger scroll to pan"
 

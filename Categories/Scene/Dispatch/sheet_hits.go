@@ -17,6 +17,13 @@ import (
 
 func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, h Sheet.Hit) {
 	sh := &md.UI.Sheet
+	if h.Part == Sheet.PartBody || h.Part == Sheet.PartUp || h.Part == Sheet.PartDown || h.Part == Sheet.PartRow {
+		md.UI.Builder.PressMenu(h.Cell.Act)
+		if h.Cell.Act.Op == Builder.OpMenu {
+			md.UI.EmitViewFrame(nil)
+			return
+		}
+	}
 	if h.Part == Sheet.PartBody || h.Part == Sheet.PartUp || h.Part == Sheet.PartDown {
 		md.UI.Builder.Touch(h.Cell.ArrowAct())
 		md.UI.Builder.NotePick(h.Cell.ArrowAct())
