@@ -73,11 +73,15 @@ func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 	if !l.Picked {
 		return &LinksBoard.Card{Note: "Not picked in this step. Pick it (●) to give it a turn."}
 	}
-	c := &LinksBoard.Card{Heads: [3]string{"Δ", "nΔ", "total"}}
+	c := &LinksBoard.Card{Heads: [3]string{"Δ", "nΔ", "total"}, StartHead: "start"}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
+	from := l
+	if b, ok := m.Grids[l.To].Base[l.From]; ok {
+		from.Start = b.Origin
+	}
 	for _, a := range axes {
 		press := act(OpLinkPress, a.k)
-		r := LinksBoard.CardRow{Axis: a.label, A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
+		r := LinksBoard.CardRow{Axis: a.label, Start: stepper(a.at(from), Act{Op: OpLinkStart, Node: l.From, To: l.To, K: a.k, I: startPart}, true), A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
 		if a.k == Links.KR {
 			m.rRow(c, &r, l)
 		} else {
