@@ -1,0 +1,82 @@
+<!doctype html>
+<!-- branch: task/links-ux-mockups -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editing a Link</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="site"><nav id="nav"></nav><main>
+<h1>Editing a link</h1>
+<p class="lede">What you touch to turn one link in one step today: its row, its card, and the
+step's "move every picked link" controls. Each proposal redraws an existing control; none adds one.</p>
+
+<h2>1 · Link rows</h2>
+<div class="pair">
+  <div class="shot"><span class="tag now">today</span>
+    <div class="board">
+      <div class="node">▾ node 1 <span style="font-weight:400">· 2 links in</span></div>
+      <div class="lrow"><span class="dot on"></span>2 → 1 <i class="dial" data-start="8" data-turn="2"></i><span class="sum">+2φ</span></div>
+      <div class="lrow"><span class="dot"></span>3 → 1 <i class="dial" data-start="9.3" data-turn="0"></i><span class="sum">0</span></div>
+    </div>
+    <div class="cap">The 8 px pick dot sits 6 px from the row's open target. Picking a second link into the node moves the pick without saying so.</div>
+  </div>
+  <div class="shot"><span class="tag new">proposed</span>
+    <div class="board">
+      <div class="node">▾ into node 1 <span style="font-weight:400">· 1 of 2 picked</span></div>
+      <div class="lrow"><span class="chip lit" style="height:18px;padding:0 5px">✓ picked</span>2 → 1 <i class="dial" data-start="8" data-turn="2"></i><span class="sum">+2φ</span></div>
+      <div class="lrow"><span class="chip" style="height:18px;padding:0 5px;border-color:var(--accent);color:var(--accent)">pick instead</span>3 → 1 <i class="dial" data-start="9.3" data-turn="0"></i><span class="sum mute">not turned</span></div>
+    </div>
+    <div class="cap">The same pick, as a labelled chip. When another link into the node is picked, the chip says "pick instead", which is what clicking it already does. "0" reads "not turned". The node row always shows how many are picked.</div>
+  </div>
+</div>
+
+<h2>2 · The card</h2>
+<div class="pair">
+  <div class="shot"><span class="tag now">today</span>
+    <div class="card" style="margin:0"><div class="grid" style="grid-template-columns:22px 70px 92px 70px 40px">
+      <span></span><span class="h">start</span><span class="h">Δ</span><span class="h">nΔ</span><span class="h">total</span>
+      <b>φ</b><span class="seg"><b>−</b><span>8</span><b>+</b></span><span class="seg"><b>−</b><span>+2</span><b>+</b></span><span class="seg"><b>−</b><span>1</span><b>+</b></span><span>10</span>
+      <b>θ</b><span class="seg"><b>−</b><span>0</span><b>+</b></span><span class="seg"><b>−</b><span>0</span><b>+</b></span><span class="seg"><b>−</b><span>1</span><b>+</b></span><span>0</span>
+      <b>r</b><span class="seg"><b>−</b><span>3.0</span><b>+</b></span><span class="seg"><b>−</b><span>0</span><b>+</b></span><span class="mute">r fixed</span><span>3.0</span>
+    </div></div>
+  </div>
+  <div class="shot"><span class="tag new">proposed</span>
+    <div class="card" style="margin:0"><div class="grid" style="grid-template-columns:22px 70px 92px 64px 1fr">
+      <span></span><span class="h">starts at</span><span class="h">this step turns</span><span class="h">one press</span><span class="h">ends at</span>
+      <b style="color:#9a5a00">φ</b><span class="seg"><b>−</b><span>8</span><b>+</b></span><span class="seg"><b>−</b><span>+2</span><b>+</b></span><span class="seg"><b>−</b><span>1</span><b>+</b></span><span><b>10</b></span>
+      <b style="color:#1b7a43">θ</b><span class="seg"><b>−</b><span>0</span><b>+</b></span><span class="seg dimmed"><b>−</b><span>0</span><b>+</b></span><span class="seg"><b>−</b><span>1</span><b>+</b></span><span class="mute">0</span>
+      <b>r</b><span class="seg dimmed"><b>−</b><span>3.0</span><b>+</b></span><span class="seg dimmed"><b>−</b><span>0</span><b>+</b></span><span></span><span class="tiny mute">r fixed: node 1 has 3 inputs</span>
+    </div>
+    <div class="tiny" style="color:var(--accent);margin-top:8px">"starts at" is shared by every step of this sequence.</div></div>
+    <div class="cap">The same steppers and values. Headings say what each column is, zero turns are dimmed, the fixed-r reason the card already holds sits in the row, and the start says it is shared, which it already is.</div>
+  </div>
+</div>
+
+<h2>3 · Moving every picked link</h2>
+<h3>What the head row does today (read from the code)</h3>
+<table class="t">
+<tr><th>you click</th><th>op</th><th>what happens</th></tr>
+<tr><td>chip body "φ ·"</td><td><code>OpAllLockCycle</code></td><td>cycles stored state off → on ↑ → on ↓ (<code>Step.LockAll</code>, <code>Step.On</code>, saved as <code>lock-*.bin</code>, <code>lock-on-*.bin</code>). Sends no edit.</td></tr>
+<tr><td>▲ / ▼ beside it</td><td><code>OpAllLock</code>, sign ±1</td><td>every picked link in the step gets Δ += sign × one press on that axis only (<code>headLink</code> → <code>l.Step(K, sign)</code>). If the lock is on, the press also overwrites its ↑/↓ with this sign. r is refused per link when a node it joins has several inputs.</td></tr>
+</table>
+
+<div class="pair">
+  <div class="shot"><span class="tag now">today</span>
+    <div class="board"><div class="hrow"><span class="seg"><span style="border-left:0">φ ↑</span><b>▲</b><b>▼</b></span><span class="seg"><span style="border-left:0">θ ·</span><b>▲</b><b>▼</b></span><span class="seg"><span style="border-left:0">r ·</span><b>▲</b><b>▼</b></span><span style="margin-left:auto">2 picked</span></div></div>
+    <div class="cap">Lock chip, then ▲▼, per axis.</div>
+  </div>
+  <div class="shot"><span class="tag new">proposed</span>
+    <div class="board"><div class="hrow" style="color:var(--ink)"><span class="tiny mute">press all 2 picked:</span>
+      <span class="chip">φ ↑</span><span class="seg"><b>−</b><span style="color:#9a5a00">φ</span><b>+</b></span><span class="chip">θ ·</span><span class="seg"><b>−</b><span style="color:#1b7a43">θ</span><b>+</b></span><span class="chip">r ·</span><span class="seg"><b>−</b><span>r</span><b>+</b></span></div></div>
+    <div class="cap">The same ▲▼ press as − / +, labelled with what it does and how many links it moves. The lock chips stay as they are.</div>
+  </div>
+</div>
+
+<div class="notes"><b>Touches:</b> <code>LinksBoard/rows.go</code>, <code>card.go</code>, <code>columns.go</code> (<code>headRow</code>); <code>links_score.go</code> (<code>nodeOf</code>, <code>linkOf</code>, <code>lockOf</code>), <code>links_inspector.go</code> (<code>stepCard</code>).</div>
+</main></div>
+<script src="site.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- branch: task/links-ux-mockups -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links Tab UX</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="site"><nav id="nav"></nav><main>
+<h1>Links tab: a better UX across every interaction</h1>
+<p class="lede">Mockups for each thing you do in the Links tab, read from the code as it is today
+(<code>Categories/Chrome/Pills/Builder/</code> and <code>LinksBoard/</code>). Each page shows the
+current behaviour beside a proposal, drawn in the board's own colours.</p>
+
+<h2>The whole tab, proposed</h2>
+<div class="board">
+  <div class="bar">
+    <span class="chip">Sequences ▾</span><span class="sep">›</span>
+    <span class="idtag">#2</span><span class="editable"><b>rotate 3, rotate 2</b></span>
+    <span class="sep">›</span><span class="mute">step 2 · swing down</span>
+    <span class="field" style="margin-left:8px">s&nbsp;<b>10</b></span>
+    <span class="grow"></span>
+    <span class="chip ghost">Network…</span><span class="chip ghost">Frame ⚙</span><span class="chip lit">▸ inspect</span>
+  </div>
+  <div class="bar" style="gap:4px;background:var(--card)">
+    <span class="tiny mute" style="margin-right:4px">steps</span>
+    <span class="chip">START</span><span class="chip">1 · rotate 3</span><span class="chip lit">2 · swing down</span><span class="chip">3</span><span class="chip ghost">＋</span>
+    <span class="grow"></span><span class="tiny mute">click a step to show it · hover to ghost it</span>
+  </div>
+  <div class="split">
+    <div class="cols">
+      <div class="col shown">
+        <div class="chead"><span>▾</span><span class="name">step 2</span><span class="sub">swing down</span><span class="eye">● shown in scene</span><span class="chip ghost">⋯</span></div>
+        <div class="hrow">press all 2 picked: <span class="seg"><b>−</b><span>φ</span><b>+</b></span><span class="seg"><b>−</b><span>θ</span><b>+</b></span><span class="seg"><b>−</b><span>r</span><b>+</b></span></div>
+        <div class="node">▾ node 1 <span style="font-weight:400">· 2 links in</span></div>
+        <div class="lrow open"><span class="chip lit" style="height:18px;padding:0 5px">✓ picked</span>2 → 1 <i class="dial" data-start="8" data-turn="2"></i><span class="sum">+2φ</span></div>
+        <div class="card">
+          <div class="grid" style="grid-template-columns:22px 64px 92px 70px 1fr">
+            <span></span><span class="h">starts at</span><span class="h">this step turns</span><span class="h">one press</span><span class="h">ends at</span>
+            <b>φ</b><span class="seg"><b>−</b><span>8</span><b>+</b></span><span class="seg"><b>−</b><span>+2</span><b>+</b></span><span class="seg"><b>−</b><span>1</span><b>+</b></span><span>10</span>
+            <b>θ</b><span class="seg"><b>−</b><span>0</span><b>+</b></span><span class="seg"><b>−</b><span>0</span><b>+</b></span><span class="seg"><b>−</b><span>1</span><b>+</b></span><span>0</span>
+            <b>r</b><span class="seg"><b>−</b><span>3.0</span><b>+</b></span><span class="seg"><b>−</b><span>0</span><b>+</b></span><span class="seg"><b>−</b><span>1</span><b>+</b></span><span>3.0</span>
+          </div>
+        </div>
+        <div class="lrow"><span class="chip" style="height:18px;padding:0 5px;border-color:var(--accent);color:var(--accent)">pick instead</span>3 → 1 <i class="dial" data-start="9.3" data-turn="0"></i><span class="sum mute">not turned</span></div>
+        <div class="node">▸ node 2 <span style="font-weight:400">· 1 link in · 0 picked</span></div>
+      </div>
+    </div>
+    <div class="insp">
+      <b>2 → 1</b> <span class="mute">· step 2</span>
+      <div style="margin:10px 0;text-align:center"><i class="dial" data-size="120" data-start="8" data-turn="2" data-labels></i></div>
+      <div class="small">φ <b>8 → 10</b></div>
+    </div>
+  </div>
+  <div class="strip">showing step 2 · <span>3 nodes, 3 links</span></div>
+</div>
+
+<h2>Today's friction, and where it is answered</h2>
+<table class="t">
+<tr><th>interaction today</th><th>friction</th><th>proposal</th></tr>
+<tr><td>Pick dot</td><td>8 px target beside the row; a second pick into a node moves the pick without saying so</td><td><a href="editing.html">Editing §1</a></td></tr>
+<tr><td>Card heads start | Δ | nΔ | total</td><td>"nΔ"/"total" need explaining; the start edits every step without saying so</td><td><a href="editing.html">Editing §2</a></td></tr>
+<tr><td>Head row ▲▼</td><td>no label says they press every picked link</td><td><a href="editing.html">Editing §3</a></td></tr>
+<tr><td>"Sequences ▾"</td><td>leaves the board for a list page</td><td><a href="around.html">Around §1</a></td></tr>
+<tr><td>Step tools ‹ › ✎ ↳ in ＋ after ⧉ ×</td><td>seven same-size glyphs; ‹ › reorder but read as navigate</td><td><a href="around.html">Around §2</a></td></tr>
+<tr><td>"Network…"</td><td>older tree view, different look and controls</td><td><a href="around.html">Around §3</a></td></tr>
+<tr><td>Frame ⚙ and s</td><td>Apply reloads the scene without saying so; "s" has no name</td><td><a href="around.html">Around §4</a></td></tr>
+<tr><td>Refusal toast</td><td>far from the control that was refused</td><td><a href="around.html">Around §5</a></td></tr>
+<tr><td>Narrow panel</td><td>below 520 px only labels shorten</td><td><a href="around.html">Around §6</a></td></tr></table>
+
+<div class="notes">Mockups show intent, not code. Each page ends with the code it would touch.</div>
+</main></div>
+<script src="site.js"></script>
+</body>
+</html>
