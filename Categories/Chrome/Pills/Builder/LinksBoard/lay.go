@@ -90,7 +90,7 @@ func empty(l *Board.Laid, r Rect, e Empty) {
 	y += h + 10
 	if e.Door.Act.Op != "" {
 		w := Board.W(e.Door.Label, Board.BtnPx) + 14
-		l.Btn(cx-w/2, y, Board.SegH, clip, e.Door.Label, e.Door.Act, e.Door.Tip, false)
+		l.Btn(cx-w/2, y, Board.SegH, clip, e.Door.Label, e.Door.Act, false)
 		y += Board.SegH + 10
 	}
 	l.Text(cx, y, h, clip, e.Sub, 12, Board.Mute, false, Board.Center)

@@ -51,7 +51,7 @@ func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Data, menus *[]pl
 		y = k.y + colGap
 	}
 	if d.Add.Op != "" {
-		l.Btn(r.X+colGap, y, Board.RowH(), clip, "＋ step", d.Add, "add a step at the end, open", false)
+		l.Btn(r.X+colGap, y, Board.RowH(), clip, "＋ step", d.Add, false)
 		l.Marks[len(l.Marks)-2].Fill = Board.None
 		y += Board.RowH() + colGap
 	}
@@ -67,17 +67,17 @@ func (k *col) header(c Column) {
 	if !c.Open {
 		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: k.x + 1, Y: y + 1, W: k.w - 2, H: cheadH - 2}, Clip: k.clip, Fill: Board.Card, Radius: radius6 - 1, Corner: corner, Alpha: 1})
 	}
-	glyph, tip := "▾", "close this step"
+	glyph := "▾"
 	if !c.Open {
-		glyph, tip = "▸", "open this step"
-		l.Spot(Rect{X: k.x, Y: y, W: k.w, H: cheadH}, k.clip, Sheet.Cell{Act: c.Fold, Tip: tip}, Sheet.PartBody)
+		glyph = "▸"
+		l.Spot(Rect{X: k.x, Y: y, W: k.w, H: cheadH}, k.clip, Sheet.Cell{Act: c.Fold}, Sheet.PartBody)
 	}
 	l.Text(x+4, y, cheadH, k.clip, glyph, 11, Board.Ink, false, Board.Center)
-	l.Spot(Rect{X: k.x, Y: y, W: cpad + 14, H: cheadH}, k.clip, Sheet.Cell{Act: c.Fold, Tip: tip}, Sheet.PartBody)
+	l.Spot(Rect{X: k.x, Y: y, W: cpad + 14, H: cheadH}, k.clip, Sheet.Cell{Act: c.Fold}, Sheet.PartBody)
 	x += 8 + 6
 	right := k.x + k.w - cpad
 	if c.Menu.Op != "" {
-		at := dots(l, right, y, cheadH, k.clip, c.MenuOpen, c.Menu, "this step's tools")
+		at := dots(l, right, y, cheadH, k.clip, c.MenuOpen, c.Menu)
 		right = at.X - 6
 		if c.MenuOpen {
 			*k.menus = append(*k.menus, placed{at: at, m: Menu{Items: c.Tools, Drop: c.Drop}})
@@ -96,7 +96,7 @@ func (k *col) header(c Column) {
 		label, lw = c.Short, Board.TextW(c.Short, Board.Px, Board.Semi)
 	}
 	l.Weighted(x, y, cheadH, k.clip, label, Board.Px, Board.Ink, Board.Semi, Board.Left)
-	l.Spot(Rect{X: x, Y: y, W: lw, H: cheadH}, k.clip, Sheet.Cell{Act: c.Show, Tip: "show this step in the scene"}, Sheet.PartBody)
+	l.Spot(Rect{X: x, Y: y, W: lw, H: cheadH}, k.clip, Sheet.Cell{Act: c.Show}, Sheet.PartBody)
 	x += lw + 6
 	if c.Name.Act.Op != "" && fitSub {
 		l.Editable(x-Board.PadX, y+(cheadH-Board.RowH())/2, 0, k.clip, c.Sub, 12, Board.Mute, c.Name.Act)
@@ -108,7 +108,7 @@ func (k *col) header(c Column) {
 		l.Text(right, y, cheadH, k.clip, shown[len("●"):], 11, Board.Accent, false, Board.Right)
 	} else if c.Show.Op != "" {
 		tw := l.Text(right, y, cheadH, k.clip, show, 11, Board.Mute, false, Board.Right)
-		l.Spot(Rect{X: right - tw, Y: y, W: tw, H: cheadH}, k.clip, Sheet.Cell{Act: c.Show, Tip: "show this step in the scene"}, Sheet.PartBody)
+		l.Spot(Rect{X: right - tw, Y: y, W: tw, H: cheadH}, k.clip, Sheet.Cell{Act: c.Show}, Sheet.PartBody)
 	}
 	k.y += cheadH
 	if c.Open {
@@ -157,7 +157,7 @@ func (k *col) lock(x, y float32, lk Lock) float32 {
 	}
 	l.Box(Rect{X: x, Y: y, W: gw, H: h}, k.clip, fill, Board.Edge)
 	l.Text(x+gw/2, y, h, k.clip, lk.Label, 12, ink, lk.On, Board.Center)
-	l.Spot(Rect{X: x, Y: y, W: gw, H: h}, k.clip, Sheet.Cell{Act: lk.Cycle, Tip: "lock: click to cycle · off → ↑ → ↓"}, Sheet.PartBody)
+	l.Spot(Rect{X: x, Y: y, W: gw, H: h}, k.clip, Sheet.Cell{Act: lk.Cycle}, Sheet.PartBody)
 	sx := x + gw + lockGap
 	ew, mw := pressW(), Board.W(lk.Axis, 12)+10
 	l.Box(Rect{X: sx, Y: y, W: 2*ew + mw, H: h}, k.clip, Board.Card, Board.Edge)
@@ -169,10 +169,9 @@ func (k *col) lock(x, y float32, lk Lock) float32 {
 		glyph string
 		at    float32
 		part  Sheet.Part
-		tip   string
-	}{{"−", sx, Sheet.PartDown, "press every picked link in this step down on " + lk.Axis}, {"＋", sx + ew + mw, Sheet.PartUp, "press every picked link in this step up on " + lk.Axis}} {
+	}{{"−", sx, Sheet.PartDown}, {"＋", sx + ew + mw, Sheet.PartUp}} {
 		l.Text(a.at+ew/2, y, h, k.clip, a.glyph, 12, Board.Mute, false, Board.Center)
-		l.Spot(Rect{X: a.at, Y: y, W: ew, H: h}, k.clip, Sheet.Cell{Act: lk.Press, Tip: a.tip}, a.part)
+		l.Spot(Rect{X: a.at, Y: y, W: ew, H: h}, k.clip, Sheet.Cell{Act: lk.Press}, a.part)
 	}
 	return gw + lockGap + 2*ew + mw
 }

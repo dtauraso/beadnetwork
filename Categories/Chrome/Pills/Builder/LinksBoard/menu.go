@@ -25,7 +25,7 @@ type placed struct {
 	m  Menu
 }
 
-func dots(l *Board.Laid, x, y, h float32, clip uint8, open bool, a Act, tip string) Rect {
+func dots(l *Board.Laid, x, y, h float32, clip uint8, open bool, a Act) Rect {
 	w := Board.W("⋯", Board.BtnPx) + 12
 	r := Rect{X: x - w, Y: y + (h-btnH)/2, W: w, H: btnH}
 	fill, edge := Board.None, Board.None
@@ -34,7 +34,7 @@ func dots(l *Board.Laid, x, y, h float32, clip uint8, open bool, a Act, tip stri
 	}
 	l.Box(r, clip, fill, edge)
 	l.Text(r.X+w/2, r.Y, btnH, clip, "⋯", Board.BtnPx, Board.Ink, false, Board.Center)
-	l.Spot(r, clip, Sheet.Cell{Act: a, Tip: tip}, Sheet.PartBody)
+	l.Spot(r, clip, Sheet.Cell{Act: a}, Sheet.PartBody)
 	return r
 }
 
@@ -42,7 +42,7 @@ func menuW(m Menu) float32 {
 	w := float32(menuMinW)
 	for _, list := range [][]Board.Chip{m.Items, m.Extra, {m.Drop}} {
 		for _, c := range list {
-			w = max(w, Board.W(c.Label, Board.Px)+Board.W(c.Tip, 11)+40)
+			w = max(w, Board.W(c.Label, Board.Px)+Board.W(c.Note, 11)+40)
 		}
 	}
 	return w
@@ -99,8 +99,8 @@ func drawMenu(l *Board.Laid, box Rect, p placed) {
 			ink = Board.Faint
 		}
 		l.Text(x+8, y, h, clip, c.Label, Board.Px, ink, c.Lit, Board.Left)
-		if c.Tip != "" {
-			l.Text(x+iw-8, y, h, clip, c.Tip, 11, Board.Mute, false, Board.Right)
+		if c.Note != "" {
+			l.Text(x+iw-8, y, h, clip, c.Note, 11, Board.Mute, false, Board.Right)
 		}
 		if !c.Dim {
 			l.Spot(row, clip, Sheet.Cell{Act: c.Act}, Sheet.PartBody)

@@ -75,19 +75,15 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 			ew := l.Editable(x-Board.PadX, y, lw+2*Board.PadX, clip, c.Label, Board.Px, Board.Ink, c.Edit)
 			l.Marks[len(l.Marks)-1].Bold = true
 			if c.Act.Op != "" {
-				l.Spot(Rect{X: x - Board.PadX, Y: y, W: ew, H: h}, clip, Sheet.Cell{Act: c.Act, Tip: "go here"}, Sheet.PartBody)
+				l.Spot(Rect{X: x - Board.PadX, Y: y, W: ew, H: h}, clip, Sheet.Cell{Act: c.Act}, Sheet.PartBody)
 			}
 			rw := chipW(Board.Chip{Label: "✎"})
 			rx, ry := f.at(rw)
-			l.Chip(rx, ry, clip, Board.Chip{Label: "✎", Act: c.Rename, Tip: "rename this sequence"})
+			l.Chip(rx, ry, clip, Board.Chip{Label: "✎", Act: c.Rename})
 		case c.Act.Op == "":
 			l.Text(x, y, h, clip, c.Label, Board.Px, Board.Ink, true, Board.Left)
 		default:
-			tip := "go here"
-			if i == 0 && d.SeqMenu != nil {
-				tip = "switch sequence"
-			}
-			cw := l.Chip(x, y, clip, Board.Chip{Label: c.Label, Act: c.Act, Tip: tip, Lit: i == 0 && d.SeqOpen})
+			cw := l.Chip(x, y, clip, Board.Chip{Label: c.Label, Act: c.Act, Lit: i == 0 && d.SeqOpen})
 			if i == 0 && d.SeqMenu != nil && d.SeqOpen {
 				*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: max(cw, menuMinW), H: h}, m: *d.SeqMenu})
 			}
@@ -112,14 +108,14 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 	}
 	doors := d.Doors
 	if d.Insp.Title != "" {
-		insp := Board.Chip{Label: "◂ inspect", Act: d.InspTab, Tip: "open the inspector for the selected link"}
+		insp := Board.Chip{Label: "◂ inspect", Act: d.InspTab}
 		if d.InspOpen {
-			insp = Board.Chip{Label: "▸ inspect", Act: d.InspTab, Lit: true, Tip: "hide the inspector · the link stays selected"}
+			insp = Board.Chip{Label: "▸ inspect", Act: d.InspTab, Lit: true}
 		}
 		doors = append(doors[:len(doors):len(doors)], insp)
 	}
 	if narrow && d.More.Op != "" {
-		at := dots(l, r.X+r.W-pad, r.Y+pad, h, clip, d.MoreOpen, d.More, "network, frame, s and the inspector")
+		at := dots(l, r.X+r.W-pad, r.Y+pad, h, clip, d.MoreOpen, d.More)
 		if d.MoreOpen {
 			m := Menu{Items: doors, Note: d.SNote}
 			if d.S.Act.Op != "" {

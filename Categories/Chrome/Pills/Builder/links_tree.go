@@ -46,9 +46,9 @@ func itoa(n int) string { return strconv.Itoa(n) }
 func chevron(r linkRow) Cell {
 	switch r.open {
 	case closed:
-		return Text("›").Fitting("⌄").Acting(r.fold).Tipped("unfold")
+		return Text("›").Fitting("⌄").Acting(r.fold)
 	case open:
-		return Text("⌄").Fitting("⌄").Acting(r.fold).Tipped("fold")
+		return Text("⌄").Fitting("⌄").Acting(r.fold)
 	}
 	return Text("").Fitting("⌄")
 }

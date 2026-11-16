@@ -83,7 +83,7 @@ func (m Model) stepCol(n int) LinksBoard.Column {
 	if !c.Open {
 		return c
 	}
-	c.Name = Board.Field{Value: m.StepNames[n], Fit: "a step name", Act: Act{Op: OpStepName, I: n}, Words: true, Tip: "name this step"}
+	c.Name = Board.Field{Value: m.StepNames[n], Fit: "a step name", Act: Act{Op: OpStepName, I: n}, Words: true}
 	c.Menu = Act{Op: OpMenu, K: menuStep, I: n}
 	c.MenuOpen = m.Menu == c.Menu
 	c.Tools = []Board.Chip{
@@ -92,7 +92,7 @@ func (m Model) stepCol(n int) LinksBoard.Column {
 		{Label: "Rename", Act: Act{Op: OpRename, K: renameStep, I: n}},
 		{Label: "Add step after", Act: Act{Op: OpStepAdd, I: n}},
 		{Label: "Duplicate", Act: Act{Op: OpStepCopy, I: n}},
-		{Label: "Go inside", Act: Act{Op: OpStepEnter, I: n}, Tip: "its own steps"},
+		{Label: "Go inside", Act: Act{Op: OpStepEnter, I: n}, Note: "its own steps"},
 	}
 	c.Drop = Board.Chip{Label: "Delete step", Act: Act{Op: OpStepDrop, I: n}}
 	hd := &LinksBoard.Head{Picked: itoa(len(m.stepActive(n))) + " picked"}
@@ -138,7 +138,7 @@ func (m Model) linkOf(step int, l Links.Link) LinksBoard.Link {
 	e := StepEdge{step, l.From, l.To}
 	sl, ok := m.gridLink(e)
 	lk := LinksBoard.Link{Label: l.From + " → " + l.To, Picked: ok && sl.Picked, Open: m.CardOpen(e), Fold: Act{Op: OpCardFold, Node: l.From, To: l.To, I: step},
-		Dial: boardDial(dialOf(sl)), Sum: notTurned, Tip: "open or close this link's card", Hot: m.hot(l)}
+		Dial: boardDial(dialOf(sl)), Sum: notTurned, Hot: m.hot(l)}
 	if !ok {
 		return lk
 	}
@@ -150,7 +150,6 @@ func (m Model) linkOf(step int, l Links.Link) LinksBoard.Link {
 		lk.Dial.Turn = 0
 		return lk
 	}
-	lk.Tip = pressSummary(sl)
 	var parts []string
 	for _, a := range axes {
 		if d := a.delta(sl); d != 0 {
@@ -182,7 +181,7 @@ func (m Model) startLink(id string, l Links.Link) LinksBoard.Link {
 	o := m.Grids[id].Base[l.From].Origin
 	lk := LinksBoard.Link{Label: l.From + " → " + l.To, Open: m.CardOpen(e), Fold: Act{Op: OpCardFold, Node: l.From, To: l.To, I: startPart},
 		Dial: Board.Dial{Axis: Board.Phi, Start: float32(o.Tick.Phi)}, Sum: "φ" + itoa(o.Tick.Phi) + " θ" + itoa(o.Tick.Theta) + " r" + tenths(o.R),
-		Tip: "open or close where this link starts", Hot: m.hot(l)}
+		Hot: m.hot(l)}
 	if lk.Open {
 		lk.Card = m.startBoardCard(id, l)
 	}
