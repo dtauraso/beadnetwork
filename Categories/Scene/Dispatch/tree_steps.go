@@ -45,6 +45,11 @@ func crossTo(md *MoveDispatch, p []int) {
 	if err := m.WriteSteps(); err != nil {
 		View.LogPersistErr("sheet_tree_cross", m.Root, err)
 	}
+	openTop(md, scene, p)
+}
+
+func openTop(md *MoveDispatch, scene string, p []int) {
+	m := &md.UI.Builder
 	if len(p) == 1 {
 		p = append(p, Scenes.OpenStepPath(Scenes.TopStepDir(scene, p[0]))...)
 	}
@@ -112,47 +117,4 @@ func runTreeStepOp(ctx context.Context, md *MoveDispatch, a Sheet.Act) bool {
 		md.ShowStep(ctx)
 	}
 	return true
-}
-
-var seqOpOf = map[string]string{Builder.OpTreeAdd: Builder.OpSeqAdd, Builder.OpTreeCopy: Builder.OpSeqCopy, Builder.OpTreeDrop: Builder.OpSeqDrop}
-
-func topStepOp(md *MoveDispatch, op string, k int) {
-	m := &md.UI.Builder
-	if s, ok := seqOpOf[op]; ok {
-		runSheetSequence(md, Sheet.Act{Op: s, I: k})
-		m.ReadTree()
-		return
-	}
-	scene := md.Scenes.TreeRoot
-	j := k + map[string]int{Builder.OpTreeEarlier: -1, Builder.OpTreeLater: 1}[op]
-	if j < 1 || j > len(Scenes.TopSteps(scene)) {
-		m.Refused = fmt.Sprintf("step %d is already the %s step, so it stays", k, map[bool]string{true: "first", false: "last"}[j < 1])
-		return
-	}
-	if scene == "" || md.Scenes.Reload == nil {
-		m.Refused = "this scene cannot reorder its top steps: it was opened with no tree root to reload from"
-		return
-	}
-	open := m.OpenTop
-	if open == k || open == j {
-		if err := m.WriteSteps(); err != nil {
-			View.LogPersistErr("sheet_tree_swap", m.Root, err)
-		}
-	}
-	if err := Scenes.SwapTopSteps(scene, k, j); err != nil {
-		m.Refused = fmt.Sprintf("could not move step %d: %v", k, err)
-		return
-	}
-	if open != k && open != j {
-		LoadSequences(md, scene)
-		m.ReadTree()
-		return
-	}
-	p := m.OpenPath()
-	p[0] = map[bool]int{true: j, false: k}[open == k]
-	if err := Scenes.WriteOpenStep(scene, p); err != nil {
-		m.Refused = fmt.Sprintf("could not keep step %d open: %v", p[0], err)
-		return
-	}
-	md.Scenes.Reload()
 }

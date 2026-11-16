@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -14,19 +13,6 @@ const (
 	OpStepName   = "step-name"
 	FileStepName = "name.bin"
 )
-
-func (m Model) stepStrip(add Act) []Board.Chip {
-	out := []Board.Chip{{Label: "START", Act: Act{Op: OpStartFold}, Lit: m.StartOpen}}
-	ns := m.stepNums()
-	for _, n := range ns {
-		c := Board.Chip{Label: m.StepLabel(n), Act: Act{Op: OpStepShow, I: n}, Lit: n == m.StepShown()}
-		out = append(out, c)
-	}
-	if add.Op != "" {
-		out = append(out, Board.Chip{Label: "＋", Act: add})
-	}
-	return out
-}
 
 func (m *Model) readStepNames() {
 	m.StepNames = map[int]string{}
@@ -69,6 +55,5 @@ func (m *Model) NameStep(n int, name string) string {
 		m.StepNames = map[int]string{}
 	}
 	m.StepNames[n] = name
-	m.readLevels()
 	return ""
 }

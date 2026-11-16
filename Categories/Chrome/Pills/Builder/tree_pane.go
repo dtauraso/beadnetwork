@@ -102,6 +102,21 @@ func (m Model) treeRows() []LinksBoard.TreeRow {
 	return out
 }
 
+func (m Model) PathLabel() string {
+	p := m.OpenPath()
+	if m.Scene == "" {
+		if n := m.StepShown(); n > 0 {
+			return "step " + m.StepLabel(n)
+		}
+		return ""
+	}
+	labels := make([]string, len(p))
+	for i := range p {
+		labels[i] = stepLabelAt(m.pathDir(p[:i]), p[i])
+	}
+	return strings.Join(labels, " › ")
+}
+
 func (m *Model) FindStep(e Sheet.Edit, key string) {
 	switch {
 	case e.Active:

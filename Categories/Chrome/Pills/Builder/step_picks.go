@@ -78,7 +78,7 @@ type EdgeState struct {
 
 func (m Model) EdgeStates() []EdgeState {
 	step := m.StepShown()
-	if m.AtSeqs || m.NetworkOpen || step <= 0 {
+	if m.NetworkOpen || step <= 0 {
 		return nil
 	}
 	var out []EdgeState

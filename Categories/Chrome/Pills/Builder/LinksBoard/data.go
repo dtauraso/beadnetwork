@@ -7,15 +7,6 @@ import (
 
 type Act = Sheet.Act
 
-type Crumb struct {
-	Label  string
-	Short  string
-	Tag    string
-	Act    Act
-	Edit   Act
-	Rename Act
-}
-
 type Lock struct {
 	Axis  string
 	Label string
@@ -133,10 +124,6 @@ type Empty struct {
 }
 
 type Data struct {
-	Crumbs   []Crumb
-	SeqMenu  *Menu
-	SeqOpen  bool
-	Steps    []Board.Chip
 	Where    string
 	S        Board.Field
 	SNote    string

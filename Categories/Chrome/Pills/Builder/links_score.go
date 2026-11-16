@@ -92,7 +92,6 @@ func (m Model) stepCol(n int) LinksBoard.Column {
 		{Label: "Rename", Act: Act{Op: OpRename, K: renameStep, I: n}},
 		{Label: "Add step after", Act: Act{Op: OpStepAdd, I: n}},
 		{Label: "Duplicate", Act: Act{Op: OpStepCopy, I: n}},
-		{Label: "Go inside", Act: Act{Op: OpStepEnter, I: n}, Note: "its own steps"},
 	}
 	c.Drop = Board.Chip{Label: "Delete step", Act: Act{Op: OpStepDrop, I: n}}
 	hd := &LinksBoard.Head{Picked: itoa(len(m.stepActive(n))) + " picked"}

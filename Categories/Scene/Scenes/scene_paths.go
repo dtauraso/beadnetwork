@@ -14,10 +14,6 @@ func TickMsFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "tick-ms.bin")
 }
 
-func FrameFoldedFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "frame-folded.bin")
-}
-
 func InputDirPath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "input")
 }

@@ -143,9 +143,8 @@ func (m *Model) TreeGo(p []int) error {
 		return err
 	}
 	m.Level, m.ShownStep = LevelOf(inner[:len(inner)-1]), inner[len(inner)-1]
-	m.StepClosed, m.AtSeqs = false, false
+	m.StepClosed = false
 	err := m.rereadSteps()
-	m.Sel = Act{Op: OpStepShow, I: m.StepShown()}
 	return err
 }
 

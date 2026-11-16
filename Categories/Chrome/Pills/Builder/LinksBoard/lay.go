@@ -56,9 +56,6 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 		mid.X, mid.W = mid.X+treeW, mid.W-treeW
 	}
 	mid.Y = bar.Y + bar.H
-	if len(d.Steps) > 0 && d.Empty == nil {
-		mid.Y += stepBar(l, Rect{X: mid.X, Y: mid.Y, W: mid.W, H: mid.H}, d.Steps)
-	}
 	mid.H = end - mid.Y
 	if d.Empty != nil {
 		empty(l, mid, *d.Empty)

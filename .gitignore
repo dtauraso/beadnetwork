@@ -127,7 +127,6 @@ dist/
 # camera/ and sphere/ below stay per-scene, because the pair tree tracks its seeds.
 topology*/view/overlays.bin
 topology*/view/panels.bin
-topology*/view/frame-folded.bin
 topology*/view/tick-ms.bin
 topology*/view/open-step.bin
 topology*/view/camera.bin
