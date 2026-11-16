@@ -90,27 +90,25 @@ func network(l *Board.Laid, r Rect, sy float32, n Net, menus *[]placed) float32 
 		y = cy + 2*(h+Board.Gap) + cpad - Board.Gap + colGap
 	}
 	if len(n.IDs) > 1 {
-		cx, cy := card("links", "row from, column into", len(n.IDs)+1, Act{}, false, Board.Chip{})
-		cw := float32(36)
-		for j, id := range n.IDs {
-			l.Text(cx+cw*float32(j+1)+cw/2, cy, h, clip, "→"+id, Board.SmallPx, Board.Mute, true, Board.Center)
-		}
+		cx, cy := card("links", "each node, then the nodes it feeds · click one to unlink", len(n.IDs), Act{}, false, Board.Chip{})
 		for i, row := range n.Cells {
-			ry := cy + float32(i+1)*(h+Board.Gap)
-			l.Text(cx+cw/2, ry, h, clip, n.IDs[i], Board.SmallPx, Board.Mute, true, Board.Center)
+			ry := cy + float32(i)*(h+Board.Gap)
+			x := cx + l.Text(cx, ry, h, clip, n.IDs[i]+"  →", Board.Px, Board.Ink, true, Board.Left) + Board.Gap
 			for j, c := range row {
-				mx := cx + cw*float32(j+1)
-				switch {
-				case c.Self:
-					l.Text(mx+cw/2, ry, h, clip, "—", Board.SmallPx, Board.Faint, false, Board.Center)
-				case c.Linked:
-					l.Chip(mx+4, ry, clip, Board.Chip{Label: "●", Act: c.Act, Lit: true, Px: Board.BtnPx})
-				default:
-					l.Chip(mx+4, ry, clip, Board.Chip{Label: "＋", Act: c.Act, Px: Board.BtnPx})
+				if c.Linked {
+					x += l.Chip(x, ry, clip, Board.Chip{Label: n.IDs[j], Act: c.Act, Lit: true, Px: Board.BtnPx}) + Board.Gap
+				}
+			}
+			x += Board.Gap
+			for j, c := range row {
+				if !c.Linked && !c.Self {
+					cw := l.Chip(x, ry, clip, Board.Chip{Label: "＋" + n.IDs[j], Act: c.Act, Px: Board.BtnPx})
+					l.Marks[len(l.Marks)-1].Alpha = 0.55
+					x += cw + Board.Gap
 				}
 			}
 		}
-		y = cy + float32(len(n.IDs)+1)*(h+Board.Gap) + cpad - Board.Gap + colGap
+		y = cy + float32(len(n.IDs))*(h+Board.Gap) + cpad - Board.Gap + colGap
 	}
 	return max(0, y+sy-(r.Y+r.H))
 }
