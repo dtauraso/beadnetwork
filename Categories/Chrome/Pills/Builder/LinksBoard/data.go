@@ -30,7 +30,7 @@ type Head struct {
 
 type CardRow struct {
 	Axis    string
-	Start   string
+	Start   Board.Stepper
 	Dial    *Board.Dial
 	DialAct Act
 	Ruler   *Board.Ruler

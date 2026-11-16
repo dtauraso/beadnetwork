@@ -81,7 +81,7 @@ func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 	}
 	for _, a := range axes {
 		press := act(OpLinkPress, a.k)
-		r := LinksBoard.CardRow{Axis: a.label, Start: a.at(from), A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
+		r := LinksBoard.CardRow{Axis: a.label, Start: stepper(a.at(from), Act{Op: OpLinkStart, Node: l.From, To: l.To, K: a.k, I: startPart}, true), A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
 		if a.k == Links.KR {
 			m.rRow(c, &r, l)
 		} else {

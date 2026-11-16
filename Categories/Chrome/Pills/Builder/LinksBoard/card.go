@@ -66,10 +66,13 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 		}
 		var tw, sw float32
 		for _, r := range d.Rows {
-			tw, sw = max(tw, Board.W(r.Total, 12)), max(sw, Board.W(r.Start, Board.Px))
+			tw = max(tw, Board.W(r.Total, 12))
+			if r.Start.Steps.Op != "" {
+				sw = max(sw, segW(r.Start))
+			}
 		}
 		if sw > 0 {
-			sw = max(sw, Board.W(d.StartHead, 10.5)) + gapX
+			sw += gapX
 		}
 		d0 := float32(col0)
 		if d0+col1+sw+aw+bw+tw+4*gapX > cw {
@@ -136,8 +139,8 @@ func row(l *Board.Laid, clip uint8, x, y, d0, s, a, b, t float32, r CardRow) flo
 		l.Ruler(Rect{X: x, Y: mid - 7, W: d0, H: 14}, clip, *r.Ruler)
 	}
 	l.Text(x+d0+gapX, y, h, clip, r.Axis, Board.Px, Board.Ink, true, Board.Left)
-	if r.Start != "" {
-		l.Text(s, y, h, clip, r.Start, Board.Px, Board.Mute, false, Board.Left)
+	if r.Start.Steps.Op != "" {
+		l.Seg(s, mid-Board.SegH/2, clip, r.Start)
 	}
 	l.Seg(a, mid-Board.SegH/2, clip, r.A)
 	if r.B.Steps.Op != "" {
