@@ -24,7 +24,7 @@ func (m *Model) StageFrame(k string, v float64) {
 }
 
 func crumbs(m Model) []LinksBoard.Crumb {
-	out := []LinksBoard.Crumb{{Label: "Sequences ▾", Short: "Seq ▾", Act: Act{Op: OpSeqs}}}
+	out := []LinksBoard.Crumb{{Label: "Sequences ▾", Short: "Seq ▾", Act: Act{Op: OpMenu, K: menuSeqs}}}
 	names := []string{m.seqName()}
 	for _, s := range m.Trail {
 		names = append(names, s.Label)
@@ -74,6 +74,7 @@ func boardData(m Model) LinksBoard.Data {
 		d.Add = Act{Op: OpStepAdd, I: ns[len(ns)-1]}
 	}
 	d.Steps = m.stepStrip(d.Add)
+	d.SeqMenu, d.SeqOpen = m.seqMenu(), m.Menu == Act{Op: OpMenu, K: menuSeqs}
 	if strings.HasPrefix(m.Refused, "moved the pick") {
 		d.Undo = m.UndoPick
 	}

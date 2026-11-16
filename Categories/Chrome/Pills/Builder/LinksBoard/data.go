@@ -135,6 +135,8 @@ type Empty struct {
 
 type Data struct {
 	Crumbs     []Crumb
+	SeqMenu    *Menu
+	SeqOpen    bool
 	Steps      []Board.Chip
 	S          Board.Field
 	SNote      string

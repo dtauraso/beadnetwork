@@ -29,7 +29,7 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	mid := Rect{X: box.X, Y: bar.Y + bar.H, W: box.W, H: st.Y - bar.Y - bar.H}
 	narrow := box.W < narrowW
 	var menus []placed
-	scopeBar(l, bar, narrow, d)
+	scopeBar(l, bar, narrow, d, &menus)
 	if len(d.Steps) > 0 && d.Empty == nil {
 		sb := Rect{X: mid.X, Y: mid.Y, W: mid.W, H: h + stripPad}
 		stepBar(l, sb, narrow, d.Steps)
@@ -77,7 +77,7 @@ func stepBar(l *Board.Laid, r Rect, narrow bool, steps []Board.Chip) {
 	}
 }
 
-func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data) {
+func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) {
 	clip := l.Clip(r)
 	h := Board.RowH()
 	l.Line(Rect{X: r.X, Y: r.Y + r.H - 0.5, W: r.W, H: 0}, clip, Board.Guide, 1, false)
@@ -105,7 +105,15 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data) {
 			x += l.Text(x, y, h, clip, c.Label, Board.Px, Board.Ink, true, Board.Left) + Board.Gap
 			continue
 		}
-		x += l.Chip(x, y, clip, Board.Chip{Label: c.Label, Act: c.Act, Px: Board.BtnPx, Tip: "go here"}) + Board.Gap
+		tip := "go here"
+		if i == 0 && d.SeqMenu != nil {
+			tip = "switch sequence"
+		}
+		w := l.Chip(x, y, clip, Board.Chip{Label: c.Label, Act: c.Act, Px: Board.BtnPx, Tip: tip, Lit: i == 0 && d.SeqOpen})
+		if i == 0 && d.SeqMenu != nil && d.SeqOpen {
+			*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: max(w, menuMinW), H: h}, m: *d.SeqMenu})
+		}
+		x += w + Board.Gap
 	}
 	if d.S.Act.Op != "" && !narrow {
 		sw := Board.W("s", Board.BtnPx) + 2 + Board.W(d.S.Fit, Board.Px) + 2*Board.PadX + 10
