@@ -78,6 +78,7 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.UI.Builder.Root = Scenes.NodesRoot(scenePath)
 	md.UI.Builder.Step = Builder.ReadStep(Builder.PressDir(md.UI.Builder.Root))
 	Dispatch.LoadSequences(md, scenePath)
+	Dispatch.LoadOpenStep(md, scenePath)
 
 	kindByID := make(map[string]string, len(spec.Nodes))
 	restByID := make(map[string]polarindex.Place, len(spec.Nodes))

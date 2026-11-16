@@ -11,7 +11,10 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Gesture"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors"
 )
+
+type Vec3 = Vectors.Vec3
 
 const InboxDepth = 8
 

@@ -127,6 +127,8 @@ func (m Model) RenameCell(a Act) (Cell, bool) {
 		return Field("", m.StepNames[a.I], Act{Op: OpStepName, I: a.I}, true, false).Wording(), true
 	case renameSeq:
 		return Field("", m.SeqNamed(a.I), Act{Op: OpSeqName, I: a.I}, true, false).Wording(), true
+	case renamePath:
+		return Field("", m.PathName(ParsePath(a.Node)), Act{Op: OpTreeName, Node: a.Node}, true, false).Wording(), true
 	}
 	return Cell{}, false
 }

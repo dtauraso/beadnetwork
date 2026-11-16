@@ -76,6 +76,8 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	}
 	if ok && act.Op == Builder.OpStepName {
 		md.UI.Builder.Refused = md.UI.Builder.NameStep(act.I, t.Text)
+	} else if ok && act.Op == Builder.OpTreeName {
+		md.UI.Builder.Refused = md.UI.Builder.NamePath(Builder.ParsePath(act.Node), t.Text)
 	} else if ok && act.Op == Builder.OpSeqName {
 		nameSequence(md, act.I, t.Text)
 	} else if ok {
@@ -117,7 +119,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.ShowStep(ctx)
 		return
 	}
-	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) || runFramePop(md, a, typed) {
+	if runSheetStructure(ctx, md, a, sign, typed) || runSheetTree(ctx, md, a) || runTreeStepOp(ctx, md, a) || runSheetSequence(md, a) || runFramePop(md, a, typed) {
 		return
 	}
 	switch a.Op {

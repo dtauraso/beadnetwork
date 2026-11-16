@@ -74,6 +74,10 @@ type Model struct {
 	Touched     StepEdge
 	Level       string
 	Trail       []TreeRow
+	Scene       string
+	OpenTop     int
+	Tree        []StepRow
+	TreeFind    string
 
 	TickMs  int
 	Now     int64

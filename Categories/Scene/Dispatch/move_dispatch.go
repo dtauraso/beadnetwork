@@ -93,6 +93,10 @@ func (md *MoveDispatch) persistStep() {
 }
 
 func (md *MoveDispatch) ShowStep(ctx context.Context) {
+	if err := md.UI.Builder.SaveOpen(); err != nil {
+		View.LogPersistErr("show_step_open", md.UI.Builder.Scene, err)
+	}
+	md.UI.Builder.ReadTree()
 	md.UI.Builder.StartWalk()
 	md.walkNext(ctx)
 }

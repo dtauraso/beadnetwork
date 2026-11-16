@@ -142,6 +142,18 @@ func RemoveTopStep(scenePath string, k int) error {
 	return nil
 }
 
+func SwapTopSteps(scenePath string, a, b int) error {
+	da, db := TopStepDir(scenePath, a), TopStepDir(scenePath, b)
+	swap := da + ".swap"
+	if err := os.Rename(da, swap); err != nil {
+		return err
+	}
+	if err := os.Rename(db, da); err != nil {
+		return err
+	}
+	return os.Rename(swap, db)
+}
+
 func InsertTopStep(scenePath string, after int, drop string) (int, error) {
 	tops := TopSteps(scenePath)
 	if !slices.Contains(tops, after) {

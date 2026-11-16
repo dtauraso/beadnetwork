@@ -73,6 +73,7 @@ func boardData(m Model) LinksBoard.Data {
 		d.Add = Act{Op: OpStepAdd, I: ns[len(ns)-1]}
 	}
 	d.Steps = m.stepStrip(d.Add)
+	m.treeData(&d)
 	if n := m.StepShown(); n > 0 {
 		d.Where = "step " + m.StepLabel(n)
 	}

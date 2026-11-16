@@ -22,7 +22,12 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	if ev.Kind == "key" {
 		if md.UI.Sheet.Edit.Active {
 			finding := md.UI.Sheet.Edit.Act.Op == Builder.OpSeqFind
+			treeFinding := md.UI.Sheet.Edit.Act.Op == Builder.OpTreeFind
 			applySheetKey(ctx, md, ev.Key)
+			if treeFinding {
+				md.UI.Builder.FindStep(md.UI.Sheet.Edit, ev.Key)
+				md.UI.EmitViewFrame(nil)
+			}
 			if finding {
 				md.UI.Builder.Find(md.UI.Sheet.Edit, ev.Key)
 				if k, ok := md.UI.Builder.FirstSeqMatch(); ok && ev.Key == "Enter" && md.UI.Builder.Menu.Op == Builder.OpMenu {
