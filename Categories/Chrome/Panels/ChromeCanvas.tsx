@@ -90,7 +90,7 @@ export function ChromeCanvas() {
     texRef.current = tex;
     const mesh = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2),
-      new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: false }),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: false, toneMapped: false }),
     );
     camRef.current.updateProjectionMatrix();
     const overlayScene = sceneRef.current;
