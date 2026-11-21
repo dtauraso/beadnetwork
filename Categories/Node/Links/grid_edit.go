@@ -47,6 +47,13 @@ func (p *Peer) stepEdit(m StepEdit) []Envelope {
 		}
 		return p.pickReq(PickReq{From: m.From})
 	}
+	if !l.Picked && m.Op == EditHead {
+		return nil
+	}
+	if !l.Picked && m.Op == EditPress {
+		p.Changed.Refused = fmt.Sprintf("%s Δ: %s→%s is not picked, so its Δ does not move %s; Δ stays at %+v", name, m.From, p.ID, p.ID, l.Delta)
+		return nil
+	}
 	if refused := editLink(l, m, name); refused != "" {
 		p.Changed.Refused = refused
 		return nil

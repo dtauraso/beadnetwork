@@ -134,7 +134,7 @@ func (p *Peer) shift() []Envelope {
 	var d Vec3
 	for _, from := range p.order {
 		v := p.vecOf(p.own[from])
-		if old, ok := p.drawn[from]; ok {
+		if old, ok := p.drawn[from]; ok && p.own[from].Picked {
 			d = d.Add(v.Sub(old))
 		}
 		p.drawn[from] = v
