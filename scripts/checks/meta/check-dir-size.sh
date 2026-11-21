@@ -12,10 +12,7 @@ import os, re, subprocess, collections
 
 CEILING = 20
 
-ALLOWED = {
-    ".":
-        "go.mod, LICENSE and the main package live at the module root",
-}
+ALLOWED = {}
 
 BANNED = ("cohesive", "one concern", "no seam", "already small", "hot path",
           "entry point", "impure", "jsx", "too small", "reads better",
