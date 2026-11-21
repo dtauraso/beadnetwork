@@ -119,9 +119,10 @@ func (p *Peer) originEdit(l *Link, m StepEdit) []Envelope {
 		p.Changed.Refused = refused
 		return nil
 	}
+	was := p.vecOf(l)
 	p.setOrigin(m.From, t.Start)
 	p.touched(m.From)
-	return p.take(l, true)
+	return p.turnedBy(m.From, p.vecOf(l).Sub(was))
 }
 
 type GridGeom struct {
