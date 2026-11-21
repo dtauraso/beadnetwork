@@ -9,6 +9,7 @@ type Act = Sheet.Act
 
 type Lock struct {
 	Axis  string
+	Value string
 	Label string
 	On    bool
 	Cycle Act

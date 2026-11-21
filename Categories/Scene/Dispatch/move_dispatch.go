@@ -136,8 +136,13 @@ func (md *MoveDispatch) showFor(ctx context.Context, step int) {
 	}
 }
 
-func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) {
+func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int, typed *float64) {
 	m := &md.UI.Builder
+	if typed != nil && a.Op == Builder.OpAllScale {
+		m.StepHead(a.I).Scale = max(1, int(*typed))
+		md.persistStep()
+		return
+	}
 	if md.runPlay(ctx, a) {
 		return
 	}

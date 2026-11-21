@@ -171,7 +171,14 @@ func (k *col) lock(x, y float32, lk Lock) float32 {
 	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: sx + ew, Y: y + 1, W: mw, H: h - 2}, Clip: k.clip, Fill: Board.White, Alpha: 1})
 	l.Line(Rect{X: sx + ew + 0.5, Y: y, W: 0, H: h}, k.clip, Board.Edge, 1, false)
 	l.Line(Rect{X: sx + ew + mw - 0.5, Y: y, W: 0, H: h}, k.clip, Board.Edge, 1, false)
-	l.Text(sx+ew+mw/2, y, h, k.clip, lk.Axis, 12, Board.Mute, false, Board.Center)
+	if mr := (Rect{X: sx + ew, Y: y, W: mw, H: h}); lk.Value != "" {
+		tw := Board.W(lk.Axis, 12)
+		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: mr.X + 1, Y: y + 1, W: mw - 2, H: h - 2}, Clip: k.clip, Stroke: 1, Alpha: 1, Edit: lk.Press})
+		l.Add(Board.Mark{Kind: Board.KText, R: Rect{X: mr.X + (mw-tw)/2, Y: y, W: tw, H: h}, Clip: k.clip, Ink: Board.Ink, Text: lk.Axis, Px: 12, Align: Board.Right, Alpha: 1, Edit: lk.Press})
+		l.Spot(mr, k.clip, Sheet.Cell{Kind: Sheet.CellField, Value: lk.Value, Act: lk.Press, Typed: true}, Sheet.PartBody)
+	} else {
+		l.Text(sx+ew+mw/2, y, h, k.clip, lk.Axis, 12, Board.Mute, false, Board.Center)
+	}
 	for _, a := range []struct {
 		glyph string
 		at    float32
