@@ -181,6 +181,10 @@ func (m Model) startLink(id string, l Links.Link) LinksBoard.Link {
 	lk := LinksBoard.Link{Label: l.From + " → " + l.To, Open: m.CardOpen(e), Fold: Act{Op: OpCardFold, Node: l.From, To: l.To, I: startPart},
 		Dial: Board.Dial{Axis: Board.Phi, Start: float32(o.Tick.Phi)}, Sum: "φ" + itoa(o.Tick.Phi) + " θ" + itoa(o.Tick.Theta) + " r" + tenths(o.R),
 		Hot: m.hot(l)}
+	shown := m.StepShown()
+	if sl, ok := m.gridLink(StepEdge{shown, l.From, l.To}); ok {
+		lk.Picked, lk.Pick = sl.Picked, Act{Op: OpStepPick, Node: l.From, To: l.To, I: shown}
+	}
 	if lk.Open {
 		lk.Card = m.startBoardCard(id, l)
 	}
