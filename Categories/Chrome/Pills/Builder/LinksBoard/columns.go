@@ -127,6 +127,10 @@ func (k *col) headRow(c Column) {
 	case c.Head != nil:
 		label := "press all " + c.Head.Picked + ":"
 		f := flow{x0: x, right: k.x + k.w - cpad, x: x, y: y + 4, h: btnH + 2, gap: 6}
+		if c.Head.Play.Cycle.Op != "" {
+			px, py := f.at(lockW(c.Head.Play))
+			k.lock(px, py, c.Head.Play)
+		}
 		lx, ly := f.at(Board.W(label, 12))
 		l.Text(lx, ly, f.h, k.clip, label, 12, Board.Mute, false, Board.Left)
 		for _, lk := range c.Head.Locks {

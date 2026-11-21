@@ -118,10 +118,22 @@ func (l *Link) SetS(s int) {
 	l.Start = l.Start.Pulled()
 }
 
-func (l *Link) Drawn() (int, Start) {
-	p, d := TenTo(l.Start.S), l.Sum()
+func (l *Link) Drawn() (int, Start) { return l.DrawnAt(1) }
+
+func (l *Link) DrawnAt(frac float64) (int, Start) {
+	p, t, d := TenTo(l.Start.S), l.Total, l.Delta
 	f := float64(p)
-	return p, Start{Phi: l.Start.Phi*f + float64(d.Phi*p), Theta: l.Start.Theta*f + float64(d.Theta*p), R: l.Start.R + float64(d.R)}
+	at := func(t, d int) float64 { return float64(t) + float64(d)*frac }
+	return p, Start{Phi: l.Start.Phi*f + at(t.Phi, d.Phi)*f, Theta: l.Start.Theta*f + at(t.Theta, d.Theta)*f, R: l.Start.R + at(t.R, d.R)}
+}
+
+func (l *Link) Presses() int {
+	n := 0
+	for _, k := range []string{KPhi, KTheta, KR} {
+		d, inc := *l.Delta.At(k), max(1, *l.Increment.At(k))
+		n = max(n, (max(d, -d)+inc-1)/inc)
+	}
+	return n
 }
 
 func Tenths(v float64) int { return int(math.Floor(v*10 + 1e-6)) }

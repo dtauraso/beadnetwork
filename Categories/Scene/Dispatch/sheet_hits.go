@@ -71,8 +71,18 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	return err != nil || (ok && md.UI.Builder.Refused != "")
 }
 
+func (md *MoveDispatch) stopPlayFor(ctx context.Context, a Sheet.Act) {
+	if a.Op == Builder.OpAllPlay || a.Op == Builder.OpAllScale || a.Op == Builder.OpToastClose {
+		return
+	}
+	if _, was := md.UI.Builder.StopPlay(); was {
+		md.stopPlay(ctx)
+	}
+}
+
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
 	md.UI.Builder.Refused = ""
+	md.stopPlayFor(ctx, a)
 	if a.Op != Builder.OpToastClose {
 		md.UI.Builder.Pressed = a
 	}

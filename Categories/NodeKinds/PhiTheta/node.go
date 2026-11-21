@@ -12,12 +12,14 @@ import (
 type PhiTheta struct {
 	geom *NodeCat.NodeGeometry
 
-	In     Links.Inbox
-	mesh   *Links.Mesh
-	peer   *Links.Peer
-	tickMs int
-	showAt int64
-	ctx    context.Context
+	In      Links.Inbox
+	mesh    *Links.Mesh
+	peer    *Links.Peer
+	tickMs  int
+	showAt  int64
+	playing int
+	stopped int
+	ctx     context.Context
 }
 
 func (n *PhiTheta) send(out []Links.Envelope) {
@@ -66,6 +68,10 @@ func (n *PhiTheta) Update(ctx context.Context) {
 }
 
 func (n *PhiTheta) take(ctx context.Context, msg any) bool {
+	if n.play(msg) {
+		return false
+	}
+	n.endPlay()
 	if t, ok := msg.(Links.SetTickMs); ok {
 		n.tickMs = max(t.V, 1)
 		n.geom.RunOnHumanTicks(n.tickMs)

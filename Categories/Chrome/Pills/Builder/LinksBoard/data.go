@@ -16,6 +16,7 @@ type Lock struct {
 }
 
 type Head struct {
+	Play   Lock
 	Locks  []Lock
 	Picked string
 }
