@@ -2,15 +2,15 @@ package Scene
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 )
 
 type GeomSeeds struct {
-	NodeSeeds []Node.Seed
+	NodeSeeds []Geom.Seed
 	EdgeSeeds []edgegeom.Seed
 }
 
-func (gs *GeomSeeds) NodeSeedsFn() []Node.Seed { return gs.NodeSeeds }
+func (gs *GeomSeeds) NodeSeedsFn() []Geom.Seed { return gs.NodeSeeds }
 
 func (gs *GeomSeeds) EdgeSeedsFn() []edgegeom.Seed { return gs.EdgeSeeds }
 

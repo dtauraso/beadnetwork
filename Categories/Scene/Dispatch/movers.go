@@ -10,6 +10,8 @@ import (
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Gesture"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors"
 )
@@ -79,10 +81,10 @@ func (m *Movers) nodeKind(id string) string {
 }
 
 func (m *Movers) NodeBodyRadius(id string) float64 {
-	return Node.NodeRadius(m.nodeKind(id))
+	return Geom.NodeRadius(m.nodeKind(id))
 }
 
-func (m *Movers) SendMove(ctx context.Context, id string, msg Node.Msg) {
+func (m *Movers) SendMove(ctx context.Context, id string, msg Messaging.Msg) {
 	nm, ok := m.nodeGeoms[id]
 	if !ok {
 		return
@@ -90,7 +92,7 @@ func (m *Movers) SendMove(ctx context.Context, id string, msg Node.Msg) {
 	nm.Msg().SendExternal(ctx, msg)
 }
 
-func (m *Movers) EnqueueFor(nm *Node.NodeGeometry) func(id string, msg Node.Msg) {
+func (m *Movers) EnqueueFor(nm *Node.NodeGeometry) func(id string, msg Messaging.Msg) {
 	return nm.Msg().EnqueueSend
 }
 

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strconv"
 
-	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -18,9 +18,9 @@ import (
 
 func readOptPlace(baseDir string) *polarindex.Place {
 	var p polarindex.Place
-	if !readLeaf(filepath.Join(baseDir, NodeBuf.FileAtPhi), &p.Phi) ||
-		!readLeaf(filepath.Join(baseDir, NodeBuf.FileAtTheta), &p.Theta) ||
-		!readLeaf(filepath.Join(baseDir, NodeBuf.FileAtR), &p.R) {
+	if !readLeaf(filepath.Join(baseDir, Files.FileAtPhi), &p.Phi) ||
+		!readLeaf(filepath.Join(baseDir, Files.FileAtTheta), &p.Theta) ||
+		!readLeaf(filepath.Join(baseDir, Files.FileAtR), &p.R) {
 		return nil
 	}
 	return &p
@@ -150,35 +150,35 @@ func readOptInt32(path string) *int32 {
 func loadNodeBase(nodesDir, nodeID string) (Node, error) {
 	nodeDir := filepath.Join(nodesDir, nodeID)
 
-	baseDir := NodeBuf.BaseDir(nodeDir)
+	baseDir := Files.BaseDir(nodeDir)
 	var nodeType string
-	if !readLeaf(filepath.Join(baseDir, NodeBuf.FileType), &nodeType) {
-		return Node{}, fmt.Errorf("loadTree: node %q has no %s", nodeID, NodeBuf.FileType)
+	if !readLeaf(filepath.Join(baseDir, Files.FileType), &nodeType) {
+		return Node{}, fmt.Errorf("loadTree: node %q has no %s", nodeID, Files.FileType)
 	}
 
 	sn := Node{
 		ID:                  nodeID,
 		Type:                nodeType,
-		IndexPhi:            readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexPhi)),
-		IndexTheta:          readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexTheta)),
-		IndexR:              readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexR)),
+		IndexPhi:            readOptInt(filepath.Join(baseDir, Files.FileIndexPhi)),
+		IndexTheta:          readOptInt(filepath.Join(baseDir, Files.FileIndexTheta)),
+		IndexR:              readOptInt(filepath.Join(baseDir, Files.FileIndexR)),
 		At:                  readOptPlace(baseDir),
-		TopTiltVectorPhiIdx: readOptInt32(filepath.Join(baseDir, NodeBuf.FileTiltIdx)),
+		TopTiltVectorPhiIdx: readOptInt32(filepath.Join(baseDir, Files.FileTiltIdx)),
 	}
-	readLeaf(filepath.Join(baseDir, NodeBuf.FileGate), &sn.Gate)
+	readLeaf(filepath.Join(baseDir, Files.FileGate), &sn.Gate)
 
 	nd, err := readNodeData(nodeDir)
 	if err != nil {
 		return Node{}, fmt.Errorf("loadTree: node %q data: %w", nodeID, err)
 	}
 	sn.Data = nd
-	drag, _ := NodeBuf.PlaceDirs(nodeDir)
+	drag, _ := Files.PlaceDirs(nodeDir)
 	if at := readOptPlace(drag); at != nil {
 		sn.At = at
 	}
-	readLeaf(filepath.Join(drag, NodeBuf.FileRefPhi), &sn.RefPhi)
-	readLeaf(filepath.Join(drag, NodeBuf.FileRefTheta), &sn.RefTheta)
-	readLeaf(filepath.Join(drag, NodeBuf.FileRefS), &sn.RefS)
+	readLeaf(filepath.Join(drag, Files.FileRefPhi), &sn.RefPhi)
+	readLeaf(filepath.Join(drag, Files.FileRefTheta), &sn.RefTheta)
+	readLeaf(filepath.Join(drag, Files.FileRefS), &sn.RefS)
 
 	return sn, nil
 }

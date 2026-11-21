@@ -1,0 +1,38 @@
+package Block
+
+import (
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
+)
+
+func HeadPoint(center Vec3, vec polar.Polar) Vec3 {
+	return center.Add(Vec3(polar.Polar2cart(vec)))
+}
+
+func startArrows(g Geom.NodeGeom, center Vec3, starts []polar.Polar, picked []bool) []TiltVectors.TiltArrow {
+	size := Geom.NodeRadius(g.Kind)
+	var out []TiltVectors.TiltArrow
+	for i, vec := range starts {
+		head := HeadPoint(center, vec)
+		kind := TiltVectors.ArrowStartStill
+		if i < len(picked) && picked[i] {
+			kind = TiltVectors.ArrowStart
+		}
+		if a, ok := TiltVectors.ArrowBetween(TiltVectors.Vec3(center), TiltVectors.Vec3(head), size, kind); ok {
+			out = append(out, a)
+		}
+	}
+	return out
+}
+
+func refArrows(g Geom.NodeGeom, center Vec3, refs []Vec3) []TiltVectors.TiltArrow {
+	size := Geom.NodeRadius(g.Kind)
+	var out []TiltVectors.TiltArrow
+	for _, v := range refs {
+		if a, ok := TiltVectors.ArrowBetween(center, center.Add(v), size, TiltVectors.ArrowRef); ok {
+			out = append(out, a)
+		}
+	}
+	return out
+}

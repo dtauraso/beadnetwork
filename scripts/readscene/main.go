@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
@@ -96,9 +96,9 @@ func main() {
 
 func readPlace(dir string) *polarindex.Place {
 	var p polarindex.Place
-	if !Links.ReadIfExists(filepath.Join(dir, NodeBuf.FileAtPhi), &p.Phi) ||
-		!Links.ReadIfExists(filepath.Join(dir, NodeBuf.FileAtTheta), &p.Theta) ||
-		!Links.ReadIfExists(filepath.Join(dir, NodeBuf.FileAtR), &p.R) {
+	if !Links.ReadIfExists(filepath.Join(dir, Files.FileAtPhi), &p.Phi) ||
+		!Links.ReadIfExists(filepath.Join(dir, Files.FileAtTheta), &p.Theta) ||
+		!Links.ReadIfExists(filepath.Join(dir, Files.FileAtR), &p.R) {
 		return nil
 	}
 	return &p
@@ -107,7 +107,7 @@ func readPlace(dir string) *polarindex.Place {
 func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topology.TopoSpec, error) {
 	spec := Topology.TopoSpec{Constants: constants, Rho: SceneBuf.LoadRho(root)}
 	seqDir := Scenes.TopStepDir(root, k)
-	nodesDir := NodeBuf.NodeDir(seqDir, "")
+	nodesDir := Files.NodeDir(seqDir, "")
 	entries, err := os.ReadDir(nodesDir)
 	if err != nil {
 		return spec, err
@@ -124,10 +124,10 @@ func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topo
 		return a < b
 	})
 	for _, id := range ids {
-		nodeDir := NodeBuf.NodeDir(seqDir, id)
-		drag, base := NodeBuf.PlaceDirs(nodeDir)
+		nodeDir := Files.NodeDir(seqDir, id)
+		drag, base := Files.PlaceDirs(nodeDir)
 		n := Topology.Node{ID: id}
-		Links.ReadIfExists(filepath.Join(base, NodeBuf.FileType), &n.Type)
+		Links.ReadIfExists(filepath.Join(base, Files.FileType), &n.Type)
 		n.At = readPlace(base)
 		if at := readPlace(drag); at != nil {
 			n.At = at

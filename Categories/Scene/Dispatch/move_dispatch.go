@@ -13,6 +13,7 @@ import (
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 	SceneB "github.com/dtauraso/beadnetwork/Categories/Scene"
@@ -58,7 +59,7 @@ func (md *MoveDispatch) bindUIClosures() {
 	md.UI.NodeRowFor = md.RT.NodeRowFor
 }
 
-func NewMoveDispatch(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *SliderPanel.Sinks, rowCount int, constants polarindex.SceneConstants) (*MoveDispatch, error) {
+func NewMoveDispatch(geoms map[string]Geom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *SliderPanel.Sinks, rowCount int, constants polarindex.SceneConstants) (*MoveDispatch, error) {
 	nodeOrder, edgeOrder = resolveSeedOrders(geoms, edgeEndpoints, nodeOrder, edgeOrder)
 
 	md := &MoveDispatch{}

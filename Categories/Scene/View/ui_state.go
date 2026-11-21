@@ -17,7 +17,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Tabs"
-	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
 	bead "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"
 	NodeShape "github.com/dtauraso/beadnetwork/Categories/Ring/NodeShape"
 	"github.com/dtauraso/beadnetwork/Categories/Scene"
@@ -125,15 +125,15 @@ type UIState struct {
 	lastStrip      Tabs.Rect
 }
 
-func (ui *UIState) SetSelectionUI(sendMove func(id string, msg Node.Msg), node, edge string) {
+func (ui *UIState) SetSelectionUI(sendMove func(id string, msg Messaging.Msg), node, edge string) {
 	prevNode := ui.Sel.selected
 	ui.Sel.selected = node
 	ui.Sel.selectedEdge = edge
 	if prevNode != "" && prevNode != node {
-		sendMove(prevNode, Node.Msg{NodeID: prevNode, Body: Node.Select{On: false}})
+		sendMove(prevNode, Messaging.Msg{NodeID: prevNode, Body: Messaging.Select{On: false}})
 	}
 	if node != "" && node != prevNode {
-		sendMove(node, Node.Msg{NodeID: node, Body: Node.Select{On: true}})
+		sendMove(node, Messaging.Msg{NodeID: node, Body: Messaging.Select{On: true}})
 	}
 	latch := node
 	if node == "" && edge != "" {
@@ -143,22 +143,22 @@ func (ui *UIState) SetSelectionUI(sendMove func(id string, msg Node.Msg), node, 
 		prevLatched := ui.LatchedNode
 		ui.LatchedNode = latch
 		if prevLatched != "" {
-			sendMove(prevLatched, Node.Msg{NodeID: prevLatched, Body: Node.Latched{On: false}})
+			sendMove(prevLatched, Messaging.Msg{NodeID: prevLatched, Body: Messaging.Latched{On: false}})
 		}
 		if latch != "" {
-			sendMove(latch, Node.Msg{NodeID: latch, Body: Node.Latched{On: true}})
+			sendMove(latch, Messaging.Msg{NodeID: latch, Body: Messaging.Latched{On: true}})
 		}
 	}
 }
 
-func (ui *UIState) SetHoverUI(sendMove func(id string, msg Node.Msg), node, port string, isInput bool) {
+func (ui *UIState) SetHoverUI(sendMove func(id string, msg Messaging.Msg), node, port string, isInput bool) {
 	prevNode := ui.Sel.hoverNode
 	ui.Sel.hoverNode, ui.Sel.hoverPort, ui.Sel.hoverInput = node, port, isInput
 	if prevNode != "" && prevNode != node {
-		sendMove(prevNode, Node.Msg{NodeID: prevNode, Body: Node.Hover{On: false}})
+		sendMove(prevNode, Messaging.Msg{NodeID: prevNode, Body: Messaging.Hover{On: false}})
 	}
 	if node != "" {
-		sendMove(node, Node.Msg{NodeID: node, Body: Node.Hover{On: true, Port: port, IsInput: isInput}})
+		sendMove(node, Messaging.Msg{NodeID: node, Body: Messaging.Hover{On: true, Port: port, IsInput: isInput}})
 	}
 }
 

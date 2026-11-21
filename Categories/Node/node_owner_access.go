@@ -2,6 +2,10 @@ package Node
 
 import (
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Block"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
+	"github.com/dtauraso/beadnetwork/Categories/Node/OutEdges"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 	"slices"
 
@@ -11,7 +15,7 @@ import (
 
 func (m *NodeGeometry) Topo() *Topology { return &m.topo }
 
-func (m *NodeGeometry) Msg() *Messaging { return &m.msg }
+func (m *NodeGeometry) Msg() *Messaging.Messaging { return &m.msg }
 
 func (m *NodeGeometry) Flags() *Flags { return &m.flags }
 
@@ -19,11 +23,11 @@ func (m *NodeGeometry) Clocks() *Clocks { return &m.clocks }
 
 func (m *NodeGeometry) Beads() *beadanimation.Beads { return &m.beads }
 
-func (m *NodeGeometry) KindPosts() *KindPosts { return &m.kindPosts }
+func (m *NodeGeometry) KindPosts() *Messaging.KindPosts { return &m.kindPosts }
 
 func (m *NodeGeometry) Trace() *Trace { return &m.trace }
 
-func (m *NodeGeometry) Stream() *Stream { return &m.stream }
+func (m *NodeGeometry) Stream() *Block.Stream { return &m.stream }
 
 func (m *NodeGeometry) ID() string { return m.id }
 
@@ -31,7 +35,7 @@ func (m *NodeGeometry) Kind() string { return m.geom.Kind }
 
 func (m *NodeGeometry) SelfKind() string { return m.selfKind }
 
-func (m *NodeGeometry) Deltas() *Deltas { return &m.deltas }
+func (m *NodeGeometry) Deltas() *OutEdges.Deltas { return &m.deltas }
 
 func (m *NodeGeometry) PartnerIndex(partnerID string) (polarindex.Index, bool) {
 	off, ok := m.deltas.DeltaTo(partnerID)
@@ -53,14 +57,14 @@ func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
 
 func (m *NodeGeometry) Anim() *NodeBeadAnimation { return m.anim }
 
-func (m *NodeGeometry) OutEdges() *OutEdges { return &m.outEdges }
+func (m *NodeGeometry) OutEdges() *OutEdges.OutEdges { return &m.outEdges }
 
 func (m *NodeGeometry) Tilt() *TiltVectors.Tilt { return &m.tilt }
 
 
-func (m *NodeGeometry) ScenePolar() polar.Polar { return ScenePolarOf(m.geom) }
+func (m *NodeGeometry) ScenePolar() polar.Polar { return Geom.ScenePolarOf(m.geom) }
 
-func (m *NodeGeometry) ComposedIndex() polarindex.Index { return ComposedIndexOf(m.geom) }
+func (m *NodeGeometry) ComposedIndex() polarindex.Index { return Geom.ComposedIndexOf(m.geom) }
 
 func (m *NodeGeometry) Constants() polarindex.SceneConstants { return m.geom.SceneConstants }
 

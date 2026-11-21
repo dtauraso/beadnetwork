@@ -98,7 +98,7 @@ file. The screen reads those files and draws them; it works out no positions of 
 A UI sits on top of this for setting the angles and the many other settings that control
 the 3D rotations.
 
-- **To read it:** `Categories/Node/nodefile_place.go`, `WritePlace`, and
+- **To read it:** `Categories/Node/Files/nodefile_place.go`, `WritePlace`, and
   `link_files.go`, `WriteLinks`: one value per file, written by the node that owns it.
 
 ## The rules, to check without the screen

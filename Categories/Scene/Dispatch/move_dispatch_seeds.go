@@ -4,23 +4,23 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
 )
 
-func edgeEnds(geoms map[string]Node.NodeGeom) map[string]edgegeom.NodeEnd {
+func edgeEnds(geoms map[string]Geom.NodeGeom) map[string]edgegeom.NodeEnd {
 	out := make(map[string]edgegeom.NodeEnd, len(geoms))
 	for id, g := range geoms {
 		out[id] = edgegeom.NodeEnd{
-			Center: edgegeom.Vec3(Node.NodeWorldPos(g)),
-			OuterR: Node.NodeTorusOuterR(g.Kind),
+			Center: edgegeom.Vec3(Geom.NodeWorldPos(g)),
+			OuterR: Geom.NodeTorusOuterR(g.Kind),
 		}
 	}
 	return out
 }
 
-func resolveSeedOrders(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {
+func resolveSeedOrders(geoms map[string]Geom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {
 	if nodeOrder == nil {
 		nodeOrder = make([]string, 0, len(geoms))
 		for id := range geoms {
@@ -38,8 +38,8 @@ func resolveSeedOrders(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]
 	return nodeOrder, edgeOrder
 }
 
-func (md *MoveDispatch) buildGeomSeeds(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) error {
-	md.GS.NodeSeeds = make([]Node.Seed, 0, len(nodeOrder))
+func (md *MoveDispatch) buildGeomSeeds(geoms map[string]Geom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) error {
+	md.GS.NodeSeeds = make([]Geom.Seed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]
 		if !ok {
@@ -50,7 +50,7 @@ func (md *MoveDispatch) buildGeomSeeds(geoms map[string]Node.NodeGeom, edgeEndpo
 		if n, err := strconv.Atoi(id); err == nil {
 			row = n - 1
 		}
-		md.GS.NodeSeeds = append(md.GS.NodeSeeds, Node.NewSeed(id, g, row))
+		md.GS.NodeSeeds = append(md.GS.NodeSeeds, Geom.NewSeed(id, g, row))
 	}
 	md.GS.EdgeSeeds = make([]edgegeom.Seed, 0, len(edgeOrder))
 	for _, label := range edgeOrder {

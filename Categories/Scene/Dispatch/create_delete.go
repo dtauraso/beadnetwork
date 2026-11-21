@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
@@ -76,7 +77,7 @@ func CreateNode(scenes *Scenes.SceneSwitch, ui *View.UIState, nodeGeoms map[stri
 		ui.EmitViewFrame(nil)
 		return
 	}
-	if err := Node.WriteNewNodeFiles(scenes.NodesRoot, target, kind, polar.Polar{R: off.Length(), Phi: d.Phi, Theta: d.Theta}, sc); err != nil {
+	if err := Files.WriteNewNodeFiles(scenes.NodesRoot, target, kind, polar.Polar{R: off.Length(), Phi: d.Phi, Theta: d.Theta}, sc); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		ui.EmitViewFrame(nil)
 		return
@@ -115,7 +116,7 @@ func DeleteNode(scenes *Scenes.SceneSwitch, ui *View.UIState, id string, row int
 		return
 	}
 	root := scenes.NodesRoot
-	if err := Node.RemoveNodeDir(root, id); err != nil {
+	if err := Files.RemoveNodeDir(root, id); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not remove node %s: %v", id, err))
 		ui.EmitViewFrame(nil)
 		return
@@ -141,7 +142,7 @@ func removeLink(md *MoveDispatch, from, to string) {
 		m.Refused = fmt.Sprintf("%s→%s: this scene was opened with no nodes root to reload from, so the link stays", from, to)
 		return
 	}
-	if err := Links.RemoveLinksTo(Node.NodeDir(root, to), from, to); err != nil {
+	if err := Links.RemoveLinksTo(Files.NodeDir(root, to), from, to); err != nil {
 		m.Refused = fmt.Sprintf("could not remove %s→%s: %v", from, to, err)
 		return
 	}
@@ -163,12 +164,12 @@ func removeLinkNode(md *MoveDispatch, id string) {
 		if other == id {
 			continue
 		}
-		if err := Links.RemoveLinksTo(Node.NodeDir(root, other), id, other); err != nil {
+		if err := Links.RemoveLinksTo(Files.NodeDir(root, other), id, other); err != nil {
 			m.Refused = fmt.Sprintf("could not remove %s→%s: %v", id, other, err)
 			return
 		}
 	}
-	if err := Node.RemoveNodeDir(root, id); err != nil {
+	if err := Files.RemoveNodeDir(root, id); err != nil {
 		m.Refused = fmt.Sprintf("could not remove node %s: %v", id, err)
 		return
 	}

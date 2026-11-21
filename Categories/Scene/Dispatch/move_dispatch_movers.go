@@ -6,6 +6,10 @@ import (
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Block"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
+	"github.com/dtauraso/beadnetwork/Categories/Node/OutEdges"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
@@ -13,12 +17,12 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
-func (md *MoveDispatch) buildNodeMovers(geoms map[string]Node.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {
+func (md *MoveDispatch) buildNodeMovers(geoms map[string]Geom.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {
 	for id, g := range geoms {
 		ng := Node.NewNodeGeometry(id, g, clk, constants)
 
 		selfID := id
-		resolveDest := func(destID string) (Node.Deposit, bool) {
+		resolveDest := func(destID string) (Messaging.Deposit, bool) {
 
 			if other, ok := md.MR.NodeGeoms()[destID]; ok {
 				return other.Msg().NeighborDeposit(selfID)
@@ -35,7 +39,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]Node.NodeGeom, clk cloc
 		ng.Msg().WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal, applyDerived)
 		md.MR.NodeGeoms()[id] = ng
 
-		md.MR.SeedCenter(id, Vec3(Node.NodeWorldPos(g)))
+		md.MR.SeedCenter(id, Vec3(Geom.NodeWorldPos(g)))
 	}
 }
 
@@ -96,7 +100,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 	edgeTable map[string]*edgetable.Edge,
 	nodeGeoms map[string]*Node.NodeGeometry,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame Node.EdgeFrameBuilder,
+	buildFrame OutEdges.EdgeFrameBuilder,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeTable[seed.Label]
@@ -127,12 +131,12 @@ func (sw *StreamWiring) SetEdgeStreams(
 }
 
 func (sw *StreamWiring) SetNodeStreams(
-	nodeSeeds []Node.Seed,
+	nodeSeeds []Geom.Seed,
 	nodeMovers map[string]*Node.NodeGeometry,
 	sceneRoot string,
 	buildBeadFrame beadanimation.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame Node.NodeFrameBuilder,
+	buildFrame Block.NodeFrameBuilder,
 	kindIDFor func(kind string) uint8,
 ) {
 	sw.interiorEmitters = map[string]*interior.Emitter{}

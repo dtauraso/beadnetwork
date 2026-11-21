@@ -7,7 +7,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
-	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
@@ -59,9 +59,9 @@ func readLayers(nodeDir, to string) ([]*linkLayer, error) {
 
 func fitS(root string) error {
 	var dirs [][2]string
-	ids := subdirs(NodeBuf.NodesDir(root))
+	ids := subdirs(Files.NodesDir(root))
 	for _, to := range ids {
-		dirs = append(dirs, [2]string{NodeBuf.NodeDir(root, to), to})
+		dirs = append(dirs, [2]string{Files.NodeDir(root, to), to})
 	}
 	steps := Builder.StepsDir(root)
 	for _, step := range subdirs(steps) {
@@ -103,10 +103,10 @@ func fitS(root string) error {
 func dropNodeS(root string, ids []string) int {
 	top := 1
 	for _, id := range ids {
-		drag, base := NodeBuf.PlaceDirs(NodeBuf.NodeDir(root, id))
-		for _, path := range []string{filepath.Join(drag, NodeBuf.FileS), filepath.Join(base, NodeBuf.FileS)} {
+		drag, base := Files.PlaceDirs(Files.NodeDir(root, id))
+		for _, path := range []string{filepath.Join(drag, Files.FileS), filepath.Join(base, Files.FileS)} {
 			s := 1
-			if NodeBuf.ReadIfExists(path, &s) {
+			if Files.ReadIfExists(path, &s) {
 				top = max(top, Links.ShownS(s))
 				_ = os.Remove(path)
 			}

@@ -3,7 +3,7 @@ package NodeShape
 import (
 	"sync"
 
-	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 	Ring "github.com/dtauraso/beadnetwork/Categories/Ring"
 )
 
@@ -13,7 +13,7 @@ const (
 )
 
 func CanonicalRingSurfacePoints() []Vec3 {
-	pts := Ring.CanonicalTorusSurfacePoints(Node.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
+	pts := Ring.CanonicalTorusSurfacePoints(Geom.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
 	out := make([]Vec3, len(pts))
 	for i, p := range pts {
 		out[i] = Vec3(p)

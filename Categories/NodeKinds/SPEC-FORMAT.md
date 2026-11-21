@@ -141,7 +141,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
 - `minWidth` — optional integer pixel width.
 - `shape`, `fill`, `stroke`, `width`, `height` — optional
   fields; `width`/`height` also drive the generated Go
-  `Categories/Node/geom_node_dims_gen.go`, falling back to
+  `Categories/Node/Geom/geom_node_dims_gen.go`, falling back to
   110×60 if omitted.
 
 A missing `## View` section (or one missing the `Field`/`Value` table columns) is a **hard

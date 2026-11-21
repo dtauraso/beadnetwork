@@ -15,7 +15,7 @@ func main() {
 
 	dir := filepath.Join(srcRoot, "Node")
 
-	dimsPath := filepath.Join(dir, "geom_node_dims_gen.go")
+	dimsPath := filepath.Join(dir, "Geom", "geom_node_dims_gen.go")
 	if err := writeNodeDims(dimsPath, kinds); err != nil {
 		genpaths.Fatalf("write %s: %v", dimsPath, err)
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
@@ -12,7 +13,7 @@ type Movers struct {
 	NodeGeoms  func() map[string]*Node.NodeGeometry
 	CenterOf   func(id string) (Vec3, bool)
 	BodyRadius func(id string) float64
-	SendMove   func(ctx context.Context, id string, msg Node.Msg)
+	SendMove   func(ctx context.Context, id string, msg Messaging.Msg)
 }
 
 type Deps struct {

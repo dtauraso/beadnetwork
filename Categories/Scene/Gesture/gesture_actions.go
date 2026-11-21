@@ -1,7 +1,7 @@
 package Gesture
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
 	NodeGesture "github.com/dtauraso/beadnetwork/Categories/Node/Gesture"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
@@ -17,7 +17,7 @@ func updateHover(d Deps, ev Drag.RawInputMsg) {
 		}
 	}
 	mr, ctx := d.MR, d.Ctx
-	sendMoveFn := func(id string, msg Node.Msg) { mr.SendMove(ctx, id, msg) }
+	sendMoveFn := func(id string, msg Messaging.Msg) { mr.SendMove(ctx, id, msg) }
 	if NodeGesture.SetHover(d.UI, sendMoveFn, node, "", false) {
 		d.UI.EmitViewFrame(nil)
 	}

@@ -83,7 +83,7 @@ and none is a source of truth.
   node 3 — the blow-up this page says cannot happen, reached through an arithmetic that
   quietly moved what it claimed to tidy.
 - **A node holds its own side of every edge it touches** (`owners.Deltas`,
-  `Categories/Node/node_deltas.go`): the triple FROM ITSELF TO the node at the
+  `Categories/Node/OutEdges/node_deltas.go`): the triple FROM ITSELF TO the node at the
   other end, stored from-self whichever way the edge points, so a move is uniform across
   in-edges and out-edges alike. The edge's own `D` is the out entry as-is and the negation
   of the in entry.
@@ -91,7 +91,7 @@ and none is a source of truth.
   The angle constraints (`φ = π/2`, `|θ| ≤ π/2`) are constraints ON `D`. They always were —
   they describe where a node sits about the one it hangs from, not its place in the world —
   so they are applied to the triple directly, with no holder frame to convert in and out of
-  (`Categories/Node/node_drag_trim.go`).
+  (`Categories/Node/node_movers.go`).
 
   **A drag is applied BY the node it moves.** No node reads another's state: a neighbour that
   wants a node moved computes the `Δ` from ITS OWN numbers — its own point before and after,
@@ -159,6 +159,6 @@ and none is a source of truth.
   not the locks.
 
 A drag commits a polar INDEX: `CommitNodeMoveLocal`
-(`Categories/Node/node_commit_node_move.go`) takes the committed index, shifts the node's
+(`Categories/Node/node_movers.go`) takes the committed index, shifts the node's
 own deltas by the difference, applies its centre, and broadcasts the move to its partners.
 Beads are not consulted and do not move the node.
