@@ -76,6 +76,11 @@ func (p *Peer) refSet(m RefSet) []Envelope {
 	if !ok {
 		return nil
 	}
+	if !l.Picked {
+		p.remeasure(m.From)
+		p.rebase()
+		return nil
+	}
 	p.touched(m.From)
 	return p.take(l, true)
 }

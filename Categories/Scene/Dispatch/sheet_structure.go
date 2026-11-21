@@ -26,13 +26,6 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		} else if typed != nil {
 			setFrame(md, a.K, *typed)
 		}
-	case Builder.OpNodeIdx:
-		at := m.Col(a.Node).At
-		v := float64(sign) + map[string]float64{Links.KR: at.R, Links.KPhi: at.Phi, Links.KTheta: at.Theta}[a.K]
-		if typed != nil {
-			v = *typed
-		}
-		md.sendLink(ctx, a.Node, Links.SetIdx{K: a.K, V: v})
 	case Builder.OpNodeRef:
 		ref := m.Col(a.Node).Ref
 		v := sign + map[string]int{Links.KPhi: ref.Phi, Links.KTheta: ref.Theta}[a.K]

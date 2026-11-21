@@ -7,8 +7,8 @@ import (
 type Net struct {
 	Back  Act
 	Nodes []NetNode
-	IDs       []string
-	Cells     [][]NetCell
+	IDs   []string
+	Cells [][]NetCell
 }
 
 type NetNode struct {
@@ -16,7 +16,6 @@ type NetNode struct {
 	Menu      Act
 	MenuOpen  bool
 	Drop      Board.Chip
-	Place     []NetField
 	C         string
 	Ref       []NetField
 }
@@ -80,7 +79,7 @@ func network(l *Board.Laid, r Rect, sy float32, n Net, menus *[]placed) float32 
 	}
 	for _, nd := range n.Nodes {
 		cx, cy := card(nd.Name, nd.Sub, 2, nd.Menu, nd.MenuOpen, nd.Drop)
-		fields(cx, cy, "placed at (I)", nd.Place, nd.C)
+		fields(cx, cy, "placed at (I)", nil, nd.C)
 		fields(cx, cy+h+Board.Gap, "reference turn", nd.Ref, "")
 		y = cy + 2*(h+Board.Gap) + cpad - Board.Gap + colGap
 	}

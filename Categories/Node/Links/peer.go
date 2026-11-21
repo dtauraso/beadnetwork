@@ -178,8 +178,6 @@ func (p *Peer) Handle(msg any) []Envelope {
 		return p.pickSet(m)
 	case Unpick:
 		return p.unpick(m)
-	case SetIdx:
-		return p.setIdx(m)
 	case SetS:
 		return p.setS(m)
 	case SetRef:

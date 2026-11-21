@@ -36,17 +36,6 @@ func (p *Peer) unpick(m Unpick) []Envelope {
 	return []Envelope{{To: m.From, Msg: PickSet{From: p.ID, On: false}}}
 }
 
-func (p *Peer) setIdx(m SetIdx) []Envelope {
-	switch m.K {
-	case KR:
-		p.At.R = m.V
-	case KTheta:
-		p.At.Theta = m.V
-	default:
-		p.At.Phi = m.V
-	}
-	return p.sat("", false, true)
-}
 
 func (p *Peer) setS(m SetS) []Envelope {
 	if m.V < 1 {

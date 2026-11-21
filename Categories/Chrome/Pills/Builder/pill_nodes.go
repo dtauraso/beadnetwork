@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	OpNodeIdx    = "node-idx"
 	OpNodeRef    = "node-ref"
 	OpRemoveNode = "remove-node"
 	OpConnect    = "connect"
@@ -20,9 +19,6 @@ func netData(m Model) *LinksBoard.Net {
 	n := &LinksBoard.Net{Back: Act{Op: OpNetFold}, IDs: m.Nodes}
 	for _, id := range m.Nodes {
 		col := m.Col(id)
-		idx := func(k, v, label string) LinksBoard.NetField {
-			return LinksBoard.NetField{Name: label, Field: Board.Field{Value: v, Fit: "000.00", Act: Act{Op: OpNodeIdx, Node: id, K: k}}}
-		}
 		ref := func(k string, v int, label string) LinksBoard.NetField {
 			return LinksBoard.NetField{Name: label, Field: Board.Field{Value: strconv.Itoa(v), Fit: "000", Act: Act{Op: OpNodeRef, Node: id, K: k}}}
 		}
@@ -31,10 +27,9 @@ func netData(m Model) *LinksBoard.Net {
 		n.Nodes = append(n.Nodes, LinksBoard.NetNode{
 			Name: "node " + id, Sub: linkCount(len(m.linksTo(id))) + " in",
 			Menu: menu, MenuOpen: m.Menu == menu,
-			Drop:  Board.Chip{Label: "Remove node " + id, Act: Act{Op: OpRemoveNode, Node: id}, Note: "and its links"},
-			Place: []LinksBoard.NetField{idx(Links.KR, Num(col.At.R), "r"), idx(Links.KPhi, Num(col.At.Phi), "φ"), idx(Links.KTheta, Num(col.At.Theta), "θ")},
-			C:     "C " + Num(c.X) + " " + Num(c.Y) + " " + Num(c.Z),
-			Ref:   []LinksBoard.NetField{ref(Links.KPhi, col.Ref.Phi, "Δφ"), ref(Links.KTheta, col.Ref.Theta, "Δθ")},
+			Drop: Board.Chip{Label: "Remove node " + id, Act: Act{Op: OpRemoveNode, Node: id}, Note: "and its links"},
+			C:    "r " + Num(col.At.R) + "  φ " + Num(col.At.Phi) + "  θ " + Num(col.At.Theta) + "  ·  C " + Num(c.X) + " " + Num(c.Y) + " " + Num(c.Z),
+			Ref:  []LinksBoard.NetField{ref(Links.KPhi, col.Ref.Phi, "Δφ"), ref(Links.KTheta, col.Ref.Theta, "Δθ")},
 		})
 		var row []LinksBoard.NetCell
 		for _, to := range m.Nodes {
