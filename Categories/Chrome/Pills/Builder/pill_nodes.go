@@ -1,11 +1,8 @@
 package Builder
 
 import (
-	"strconv"
-
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
 const (
@@ -18,16 +15,11 @@ const (
 func netData(m Model) *LinksBoard.Net {
 	n := &LinksBoard.Net{Back: Act{Op: OpNetFold}, IDs: m.Nodes}
 	for _, id := range m.Nodes {
-		col := m.Col(id)
-		ref := func(k string, v int, label string) LinksBoard.NetField {
-			return LinksBoard.NetField{Name: label, Field: Board.Field{Value: strconv.Itoa(v), Fit: "000", Act: Act{Op: OpNodeRef, Node: id, K: k}}}
-		}
 		menu := Act{Op: OpMenu, K: menuNode, Node: id}
 		n.Nodes = append(n.Nodes, LinksBoard.NetNode{
 			Name: "node " + id, Sub: linkCount(len(m.linksTo(id))) + " in",
 			Menu: menu, MenuOpen: m.Menu == menu,
 			Drop: Board.Chip{Label: "Remove node " + id, Act: Act{Op: OpRemoveNode, Node: id}, Note: "and its links"},
-			Ref:  []LinksBoard.NetField{ref(Links.KPhi, col.Ref.Phi, "Δφ"), ref(Links.KTheta, col.Ref.Theta, "Δθ")},
 		})
 		var row []LinksBoard.NetCell
 		for _, to := range m.Nodes {
