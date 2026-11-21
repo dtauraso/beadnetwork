@@ -88,9 +88,9 @@ func (p *Peer) recover(m Put) []Envelope {
 	return append(p.tell(), p.movedTo(true, false)...)
 }
 
-func (p *Peer) take(l *Link, measure bool) []Envelope {
-	*p.At = p.Frame.GridAt(p.posOf(l.From).Add(p.vecOf(l)))
-	out := p.sat(l.From, false, measure)
+func (p *Peer) turnedBy(from string, d Vec3) []Envelope {
+	*p.At = p.Frame.GridAt(p.Pos().Add(d))
+	out := p.sat(from, false, true)
 	p.rebase()
 	return out
 }

@@ -83,11 +83,7 @@ func (p *Peer) refSet(m RefSet) []Envelope {
 		return nil
 	}
 	p.touched(m.From)
-	d := p.vecOf(l).Sub(p.Frame.LinkVec(*l, was))
-	*p.At = p.Frame.GridAt(p.Pos().Add(d))
-	out := p.sat(m.From, false, true)
-	p.rebase()
-	return out
+	return p.turnedBy(m.From, p.vecOf(l).Sub(p.Frame.LinkVec(*l, was)))
 }
 
 func (p *Peer) RefOf(id string) Turn {
