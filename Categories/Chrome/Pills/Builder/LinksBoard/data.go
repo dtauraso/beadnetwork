@@ -148,6 +148,7 @@ type Data struct {
 	Pop        *Pop
 	Empty      *Empty
 	Net        *Net
+	New        *NewNode
 
 	Tree      []TreeRow
 	TreeFind  *Board.Field

@@ -54,8 +54,15 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		md.sendLink(ctx, a.To, Links.Connect{From: a.Node, At: r.At})
 	case Builder.OpDisconnect:
 		removeLink(md, a.Node, a.To)
-	case Builder.OpAddNode:
-		addLinkNode(md)
+	case Builder.OpNewFold:
+		md.UI.Builder.NewOpen = !md.UI.Builder.NewOpen
+		md.UI.Builder.NetworkOpen = false
+	case Builder.OpNewCenter:
+		md.UI.Builder.New.Center = a.Node
+	case Builder.OpNewAt:
+		md.UI.Builder.NewEdit(a, sign, typed)
+	case Builder.OpNewAdd:
+		addLinkNodeAt(md, m.NewPlace())
 	case Builder.OpRemoveNode:
 		removeLinkNode(md, a.Node)
 	default:
@@ -63,8 +70,6 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 	}
 	return true
 }
-
-func addLinkNode(md *MoveDispatch) { addLinkNodeAt(md, Links.Place{}) }
 
 func addLinkNodeAt(md *MoveDispatch, at Links.Place) {
 	m := &md.UI.Builder

@@ -59,7 +59,10 @@ func (m Model) linksTo(id string) []Links.Link {
 
 func LinksPill(m Model) Pill {
 	d := boardData(m)
-	if m.NetworkOpen {
+	switch {
+	case m.NewOpen:
+		d.New = newNodeData(m)
+	case m.NetworkOpen:
 		d.Net = netData(m)
 	}
 	return Pill{Label: LinksLabel, Bottom: true, Board: func(box Sheet.Rect, sx, sy float32) Sheet.Board { return LinksBoard.Lay(box, sx, sy, d) }}

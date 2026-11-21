@@ -33,6 +33,7 @@ type Of struct {
 	SpeedSlider   bool
 	AnglesPill    bool
 	PlusButton    bool
+	NodePalette   bool
 	OverlaysDock  bool
 	HiddenFlags   []string
 	LatticePoints int32
@@ -73,9 +74,11 @@ func LayoutOf(in Of) Layout {
 		lay.Angle = AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints)
 	}
 	kinds := NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen)
-	if in.PlusButton {
+	switch {
+	case !in.NodePalette:
+	case in.PlusButton:
 		lay.Nodes = NodesDropdown.BuildPlus(float32(in.ViewW), tabs.Strip, in.Nodes.Open && in.SceneEditable, kinds)
-	} else {
+	default:
 		lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, kinds)
 	}
 	if in.Sheet != nil {

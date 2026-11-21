@@ -28,10 +28,14 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	mid := Rect{X: box.X, Y: bar.Y + bar.H, W: box.W, H: st.Y - bar.Y - bar.H}
 	narrow := box.W < narrowW
 	var menus []placed
-	if d.Net != nil {
+	switch {
+	case d.New != nil:
+		newBar(l, bar, *d.New)
+		l.MostY = newNode(l, mid, sy, *d.New)
+	case d.Net != nil:
 		netBar(l, bar, *d.Net)
 		l.MostY = network(l, mid, sy, *d.Net, &menus)
-	} else {
+	default:
 		bar.H = steps(l, box, bar, mid, sy, narrow, d, &menus)
 	}
 	strip(l, st, d)

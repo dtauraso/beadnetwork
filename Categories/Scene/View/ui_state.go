@@ -41,6 +41,8 @@ type UIState struct {
 
 	ScenePlusButton bool
 
+	SceneNodePalette bool
+
 	SceneOverlaysDock bool
 
 	SceneHiddenOverlays []string

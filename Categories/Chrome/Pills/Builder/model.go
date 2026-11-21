@@ -48,6 +48,8 @@ type Model struct {
 	ShownStep   int
 	StepClosed  bool
 	NetworkOpen bool
+	NewOpen     bool
+	New         NewNode
 	StartOpen   bool
 	TreePop     bool
 	TreeSY      float32
