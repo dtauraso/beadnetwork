@@ -49,8 +49,7 @@
   },
   "permissions": {
     "allow": [
-      "Bash(go build *)",
-      "Bash(go test *)"
+      "Bash(go build *)"
     ],
     "deny": [
       "Agent"

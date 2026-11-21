@@ -22,7 +22,7 @@ collect_changed_files() {
 
 STOP_CHECK_STAMP=".beadnetwork-cache/last-stop-check"
 
-# branch re-ran go build, tsc, the npm build, eslint and vitest on every turn
+# branch re-ran go build, tsc, the npm build and eslint on every turn
 collect_changed_since_last_check() {
   local worktree_changed last committed_changed
   worktree_changed=$(git status --porcelain 2>/dev/null | awk '{print $NF}')
