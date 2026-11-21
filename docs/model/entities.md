@@ -72,22 +72,26 @@
   processing windows are tick counts. There is no separate render cadence — the tick IS the
   animation clock.
 
-  **Exception — machine ticks (`PhiTheta`).** The φ, θ tab's node does not sleep. Its
-  goroutine loops at machine speed, counting each pass as a **machine tick** in a plain local
-  `k`, and reads `clock.HumanTick(Δt)` (`Categories/Clock/human_tick.go`), which counts whole
-  Δt periods since the one shared epoch and is NOT scaled by speed. When the human tick
-  changes, the node applies what its messages changed, persists it and publishes it, so the
-  person sees at most one step per human tick: the `n_i` machine ticks node i ran during that
-  tick count as one (`n_i / n_i = 1`), however large `n_i` is and however it differs between
-  nodes. Then it posts `(h, k)` to its latest-value timing slot (`Links.Mesh.PostTiming`).
-  The Frame pill reads these for the slowest node's `n` (ΔK/ΔH) and how many
-  nodes are behind `h − 1`. This is timing only: the links model is numbered
-  rounds of pure `Peer.Handle` calls, so no result depends on any node's `n`. Δt is
-  `view/tick-ms.bin` (default `MsPerTick`). The node's geometry goroutine is told the same
-  Δt (`NodeGeometry.RunOnHumanTicks`) and from then on also loops without sleeping, doing its
-  derive-and-write pass once per human tick; while the tab's builder has nodes, the gesture
-  actor does the same — it reads input every pass and collects reports once per human tick. A
-  φθ3 node starts no bead animation.
+  **Exception — the human tick only (`PhiTheta`).** The φ, θ tab's node holds NO machine
+  clock: it is not handed the scene's `Clock`, does not subscribe to the speed slider, and
+  never calls `SleepCycle`/`SleepPulse`, so the speed slider and pause do not reach it. Its
+  one clock is `clock.HumanTick(Δt)` (`Categories/Clock/human_tick.go`), which counts whole
+  Δt periods of wall time since the one shared epoch. Its goroutine blocks on its inbox OR a
+  timer set to the next human-tick boundary (`clock.NextHumanTickTimer`); a message is taken
+  at once and marked pending, and only when the human tick changes does the node apply what
+  its messages changed, persist it and publish it — so the person sees at most one step per
+  human tick, however many messages arrived during it. Then it posts `h` to its latest-value
+  timing slot (`Links.Mesh.PostTiming`); the Frame pill reads these for how many nodes are
+  behind `h − 1`. This is timing only: the links model is numbered rounds of pure
+  `Peer.Handle` calls, so no result depends on when a node ran. Δt is `view/tick-ms.bin`
+  (default `MsPerTick`, a whole number of ms ≥ 1), sent to every node as `Links.SetTickMs`.
+  The node's geometry goroutine is told the same Δt by the kind's BUILDER, before any
+  goroutine starts (`NodeGeometry.RunOnHumanTicks`), so its very first pass already sleeps
+  to the next human tick (`clock.SleepToNextHumanTick`) and it never takes a machine pulse;
+  it does its derive-and-write pass once per human tick. The tick stamp on its node frame
+  reads 0, since it has no machine clock to read. While the tab's builder has nodes, the
+  gesture actor reads input every pass and collects reports once per human tick. A φθ3 node
+  starts no bead animation.
 
   Each goroutine holds its own `Copy()` of the clock and reads its own tick; there is no
   shared clock to pin a tick against. But a bead's **placement tick** (when it started
@@ -106,5 +110,5 @@
 run on the system clock.** `MsPerTick` (`Categories/Clock/`) names the human-speed clock; it exists so
 a person can watch a bead cross, and geometry must never run on it — one propagation hop per
 tick would make even a straight traversal visibly slow. (`PhiTheta` publishes its place
-once per human tick by design — it is a card node with no beads; see the machine-ticks exception
-under Clock.)
+once per human tick by design — it is a card node with no beads; see the human-tick-only
+exception under Clock.)

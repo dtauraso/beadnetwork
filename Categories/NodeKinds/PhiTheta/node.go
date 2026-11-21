@@ -12,9 +12,6 @@ import (
 type PhiTheta struct {
 	geom *NodeCat.NodeGeometry
 
-	Clock   clock.Clock
-	SpeedCh <-chan float64
-
 	In     Links.Inbox
 	mesh   *Links.Mesh
 	peer   *Links.Peer
@@ -41,10 +38,6 @@ func (n *PhiTheta) breadcrumb(label, value string) {
 func (n *PhiTheta) Update(ctx context.Context) {
 	n.ctx = ctx
 	n.loadGrid("")
-	clk := n.Clock.Copy()
-	clk.SpeedFrom(n.SpeedCh)
-	n.geom.Clocks().Use(clk)
-	n.geom.RunOnHumanTicks(n.tickMs)
 	n.postTicks()
 	n.publish()
 
@@ -153,8 +146,6 @@ func (a BuildArgs) Geom() *NodeCat.NodeGeometry {
 var Builder = BuilderFor("PhiTheta",
 	func(a BuildArgs) (any, error) {
 		n := &PhiTheta{}
-		n.Clock = a.Clock()
-		n.SpeedCh = a.SpeedCh()
 		n.geom = a.Geom()
 		n.In, n.mesh = a.Inbox(), a.Mesh()
 		seed := a.Seed()
@@ -163,6 +154,7 @@ var Builder = BuilderFor("PhiTheta",
 		}
 		n.peer = Links.NewPeer(a.Name, seed)
 		n.tickMs = max(seed.TickMs, 1)
+		n.geom.RunOnHumanTicks(n.tickMs)
 		n.breadcrumb("built", fmt.Sprintf("node=%s s=%d at=%+v links=%d", a.Name, n.peer.S, *n.peer.At, len(n.peer.Links())))
 		return n, nil
 	})
