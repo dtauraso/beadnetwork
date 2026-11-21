@@ -2,6 +2,7 @@ package Builder
 
 import (
 	"fmt"
+	"math"
 	"slices"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
@@ -54,6 +55,10 @@ func (m *Model) NewEdit(a Act, sign int, typed *float64) {
 	next := *v + float64(sign)
 	if typed != nil {
 		next = *typed
+	}
+	if a.K != Links.KR && next != math.Trunc(next) {
+		m.Refused = fmt.Sprintf("new node %s %v: not a whole number of ticks, so it stays at %v", map[string]string{Links.KPhi: "φ", Links.KTheta: "θ"}[a.K], next, *v)
+		return
 	}
 	if a.K == Links.KR && next < 0 {
 		m.Refused = fmt.Sprintf("new node r %v: it must not be below 0, so it stays at %v", next, *v)
