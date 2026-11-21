@@ -22,7 +22,7 @@ func (s Start) Angles() Angles {
 
 func (s *Start) Cut(a Angles) {
 	f := float64(s.per())
-	cut := func(v float64) int { return WrapTicks(s.per(), int(math.Floor(Wrap(1, v)*f+1e-9))) }
+	cut := func(v float64) int { return WrapTicks(s.per(), int(math.Trunc(Wrap(1, v)*f))) }
 	s.Tick, s.R = Ticks{cut(a.Phi), cut(a.Theta)}, a.R
 }
 
