@@ -92,7 +92,7 @@ func (p *Peer) Snap() []Envelope {
 		c = p.grid.at(p.grid.Shown)
 	}
 	for to := range p.out {
-		c.outTo(to).End = p.Pos().Add(p.outVec(to))
+		c.outTo(to)
 	}
 	c.Out = slices.DeleteFunc(c.Out, func(o OutCell) bool { return !p.out[o.Link.To] })
 	slices.SortFunc(c.Out, func(a, b OutCell) int { return cmp.Compare(a.Link.To, b.Link.To) })
