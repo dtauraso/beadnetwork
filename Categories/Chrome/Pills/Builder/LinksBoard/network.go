@@ -16,7 +16,6 @@ type NetNode struct {
 	Menu      Act
 	MenuOpen  bool
 	Drop      Board.Chip
-	C         string
 	Ref       []NetField
 }
 
@@ -78,10 +77,9 @@ func network(l *Board.Laid, r Rect, sy float32, n Net, menus *[]placed) float32 
 		}
 	}
 	for _, nd := range n.Nodes {
-		cx, cy := card(nd.Name, nd.Sub, 2, nd.Menu, nd.MenuOpen, nd.Drop)
-		fields(cx, cy, "placed at (I)", nil, nd.C)
-		fields(cx, cy+h+Board.Gap, "reference turn", nd.Ref, "")
-		y = cy + 2*(h+Board.Gap) + cpad - Board.Gap + colGap
+		cx, cy := card(nd.Name, nd.Sub, 1, nd.Menu, nd.MenuOpen, nd.Drop)
+		fields(cx, cy, "reference turn", nd.Ref, "")
+		y = cy + h + Board.Gap + cpad - Board.Gap + colGap
 	}
 	if len(n.IDs) > 1 {
 		cx, cy := card("links", "each node, then the nodes it feeds · click one to unlink", len(n.IDs), Act{}, false, Board.Chip{})
