@@ -115,6 +115,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		md.UI.Builder.Refused = ""
 	case Builder.OpNetFold:
 		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
+		md.UI.Builder.NewOpen = false
 	case Builder.OpStartFold:
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
 	case Builder.OpInspTab:

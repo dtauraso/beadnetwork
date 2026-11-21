@@ -5,8 +5,8 @@ import (
 )
 
 type Net struct {
-	Back, Add Act
-	Nodes     []NetNode
+	Back  Act
+	Nodes []NetNode
 	IDs       []string
 	Cells     [][]NetCell
 }
@@ -41,13 +41,8 @@ func netBar(l *Board.Laid, r Rect, n Net) {
 	x += l.Chip(x, y, clip, Board.Chip{Label: "← steps", Act: n.Back, Px: Board.BtnPx}) + Board.Gap
 	x += l.Text(x, y, h, clip, "›", Board.Px, Board.Mute, false, Board.Left) + Board.Gap
 	x += l.Text(x, y, h, clip, "Network", Board.Px, Board.Ink, true, Board.Left) + Board.Gap
-	add := Board.Chip{Label: "＋ node", Act: n.Add, Lit: true, Px: Board.BtnPx}
-	aw := Board.W(add.Label, Board.BtnPx) + 2*Board.PadX
-	if right := r.X + r.W - pad - aw; right > x {
-		if note := "shared by all sequences"; x+Board.W(note, Board.SmallPx) < right-Board.Gap {
-			l.Text(x, y, h, clip, note, Board.SmallPx, Board.Mute, false, Board.Left)
-		}
-		l.Chip(right, y, clip, add)
+	if note := "shared by all sequences"; x+Board.W(note, Board.SmallPx) < r.X+r.W-pad {
+		l.Text(x, y, h, clip, note, Board.SmallPx, Board.Mute, false, Board.Left)
 	}
 }
 

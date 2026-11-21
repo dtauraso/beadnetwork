@@ -11,14 +11,13 @@ import (
 const (
 	OpNodeIdx    = "node-idx"
 	OpNodeRef    = "node-ref"
-	OpAddNode    = "add-node"
 	OpRemoveNode = "remove-node"
 	OpConnect    = "connect"
 	OpDisconnect = "disconnect"
 )
 
 func netData(m Model) *LinksBoard.Net {
-	n := &LinksBoard.Net{Back: Act{Op: OpNetFold}, Add: Act{Op: OpAddNode}, IDs: m.Nodes}
+	n := &LinksBoard.Net{Back: Act{Op: OpNetFold}, IDs: m.Nodes}
 	for _, id := range m.Nodes {
 		col := m.Col(id)
 		idx := func(k, v, label string) LinksBoard.NetField {
