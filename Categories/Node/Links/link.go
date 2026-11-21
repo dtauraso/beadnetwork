@@ -65,6 +65,8 @@ type Link struct {
 	Lock      Lock
 	Picked    bool
 	Order     int
+	Playing   bool
+	Part      float64
 }
 
 const NewLinkOrder = 1 << 20
@@ -118,12 +120,13 @@ func (l *Link) SetS(s int) {
 	l.Start = l.Start.Pulled()
 }
 
-func (l *Link) Drawn() (int, Start) { return l.DrawnAt(1) }
-
-func (l *Link) DrawnAt(frac float64) (int, Start) {
+func (l *Link) Drawn() (int, Start) {
 	p, t, d := TenTo(l.Start.S), l.Total, l.Delta
-	f := float64(p)
-	at := func(t, d int) float64 { return float64(t) + float64(d)*frac }
+	f, part := float64(p), 1.0
+	if l.Playing {
+		part = l.Part
+	}
+	at := func(t, d int) float64 { return float64(t) + float64(d)*part }
 	return p, Start{Phi: l.Start.Phi*f + at(t.Phi, d.Phi)*f, Theta: l.Start.Theta*f + at(t.Theta, d.Theta)*f, R: l.Start.R + at(t.R, d.R)}
 }
 

@@ -55,20 +55,3 @@ type Moved struct {
 	Jump       bool
 	Round      int
 }
-
-type PlayFrame struct {
-	Run  int
-	K, N int
-	Stop bool
-}
-
-type PlayAt struct {
-	Run  int
-	From string
-	P    Vec3
-	K, N int
-}
-
-func (m PlayFrame) Frac() float64 { return float64(m.K) / float64(max(1, m.N)) }
-
-func (m PlayAt) Frac() float64 { return float64(m.K) / float64(max(1, m.N)) }

@@ -130,19 +130,26 @@ const (
 
 type Play struct {
 	Step int
-	Run  int
 	K, N int
 	At   int64
 }
 
-func (m Model) PlayFrames(step int) int {
+func (m Model) PlayPresses(step int) int {
 	presses := 0
 	for _, e := range m.stepActive(step) {
 		if l, ok := m.gridLink(e); ok {
 			presses = max(presses, l.Presses())
 		}
 	}
-	return presses * m.headOf(step).PlayScale()
+	return presses
+}
+
+func (m Model) playEdits(step, press, of int) []HeadEdit {
+	var out []HeadEdit
+	for _, e := range m.stepActive(step) {
+		out = append(out, HeadEdit{To: e.To, Edit: Links.StepEdit{Step: step, From: e.From, Op: Links.EditPlay, Press: press, Of: of}})
+	}
+	return out
 }
 
 func (m Model) Playing(step int) bool { return m.Play != nil && m.Play.Step == step }
@@ -157,29 +164,31 @@ func playOf(m Model, step int) LinksBoard.Lock {
 }
 
 func (m *Model) StartPlay(step int, now int64) {
-	m.PlayRun++
-	m.Play = &Play{Step: step, Run: m.PlayRun, N: max(1, m.PlayFrames(step)), At: now + 2}
+	m.Play = &Play{Step: step, N: max(1, m.PlayPresses(step)*m.headOf(step).PlayScale()), At: now + 2}
 }
 
-func (m *Model) StopPlay() (run int, was bool) {
-	if m.Play == nil {
-		return 0, false
+func (m *Model) StopPlay() (end []HeadEdit, was bool) {
+	p := m.Play
+	if p == nil {
+		return nil, false
 	}
-	run = m.Play.Run
 	m.Play = nil
-	return run, true
+	if p.K > 0 {
+		end = m.playEdits(p.Step, p.N, p.N)
+	}
+	return end, true
 }
 
-func (m *Model) PlayTick(now int64) (Links.PlayFrame, bool) {
+func (m *Model) PlayTick(now int64) ([]HeadEdit, bool) {
 	p := m.Play
 	if p == nil || now < p.At || m.Walking() {
-		return Links.PlayFrame{}, false
+		return nil, false
 	}
 	p.At = now + 1
-	f := Links.PlayFrame{Run: p.Run, K: p.K, N: p.N, Stop: p.K > p.N}
-	if f.Stop {
+	edits := m.playEdits(p.Step, p.K, p.N)
+	if p.K >= p.N {
 		m.Play = nil
 	}
 	p.K++
-	return f, true
+	return edits, true
 }
