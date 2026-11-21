@@ -12,11 +12,8 @@ type Net struct {
 }
 
 type NetNode struct {
-	ID       string
-	X, Y     float32
-	Menu     Act
-	MenuOpen bool
-	Drop     Board.Chip
+	ID   string
+	X, Y float32
 }
 
 type NetField struct {
@@ -66,9 +63,9 @@ func network(l *Board.Laid, r Rect, sy float32, n Net, menus *[]placed) float32 
 		return x + cpad, y + cheadH + Board.Gap
 	}
 	if len(n.Nodes) > 0 {
-		gh := min(320, max(160, w*0.6))
-		gx, gy := card("network", "seen along z · bright arrows are picked · click a node for its menu", 0, gh+Board.Gap, Act{}, false, Board.Chip{})
-		graph(l, clip, Rect{X: gx, Y: gy, W: w - 2*cpad, H: gh}, n, menus)
+		gh := min(150, max(90, w*0.3))
+		gx, gy := card("network", "seen along z · bright arrows are picked", 0, gh+Board.Gap, Act{}, false, Board.Chip{})
+		graph(l, clip, Rect{X: gx, Y: gy, W: w - 2*cpad, H: gh}, n)
 		y = gy + gh + cpad + colGap
 	}
 	if len(n.IDs) > 1 {

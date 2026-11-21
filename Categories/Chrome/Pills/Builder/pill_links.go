@@ -20,7 +20,6 @@ const (
 const (
 	menuStep = "step"
 	menuMore = "more"
-	menuNode = "node"
 )
 
 func (m *Model) PressMenu(a Act) {
