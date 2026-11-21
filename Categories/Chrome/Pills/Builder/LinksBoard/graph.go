@@ -15,7 +15,7 @@ const (
 
 type pt struct{ x, y float32 }
 
-func spots(r Rect, ns []NetNode) []pt {
+func spots(r Rect, ns []NetNode) ([]pt, float32) {
 	minX, maxX, minY, maxY := ns[0].X, ns[0].X, ns[0].Y, ns[0].Y
 	for _, nd := range ns {
 		minX, maxX, minY, maxY = min(minX, nd.X), max(maxX, nd.X), min(minY, nd.Y), max(maxY, nd.Y)
@@ -32,18 +32,18 @@ func spots(r Rect, ns []NetNode) []pt {
 	if math.IsInf(float64(s), 1) {
 		s = 0
 	}
-	cx, cy := (minX+maxX)/2, (minY+maxY)/2
-	mx, my := r.X+r.W/2, r.Y+r.H/2
+	cy, my := (minY+maxY)/2, r.Y+r.H/2
 	out := make([]pt, len(ns))
 	for i, nd := range ns {
-		out[i] = pt{mx + (nd.X-cx)*s, my - (nd.Y-cy)*s}
+		out[i] = pt{r.X + m + (nd.X-minX)*s, my - (nd.Y-cy)*s}
 	}
-	return out
+	return out, (maxX-minX)*s + 2*m
 }
 
 func graph(l *Board.Laid, clip uint8, r Rect, n Net) {
+	at, used := spots(r, n.Nodes)
+	r.W = min(r.W, used)
 	l.Box(r, clip, Board.Back, Board.None)
-	at := spots(r, n.Nodes)
 	for i, row := range n.Cells {
 		for j, c := range row {
 			if !c.Linked {
