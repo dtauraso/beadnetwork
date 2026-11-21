@@ -88,8 +88,9 @@
   The node's geometry goroutine is told the same Δt by the kind's BUILDER, before any
   goroutine starts (`NodeGeometry.RunOnHumanTicks`), so its very first pass already sleeps
   to the next human tick (`clock.SleepToNextHumanTick`) and it never takes a machine pulse;
-  it does its derive-and-write pass once per human tick. The tick stamp on its node frame
-  reads 0, since it has no machine clock to read. While the tab's builder has nodes, the
+  it does its derive-and-write pass once per human tick. The geometry loop makes a machine
+  clock only the first time it must take a machine pulse, so a PhiTheta geometry goroutine
+  never makes one; the tick stamp on its node and edge frames reads 0. While the tab's builder has nodes, the
   gesture actor reads input every pass and collects reports once per human tick. A φθ3 node
   starts no bead animation.
 

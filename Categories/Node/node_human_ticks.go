@@ -17,10 +17,13 @@ func (g *NodeGeometry) RunOnHumanTicks(tickMs int) {
 	}
 }
 
-func (g *NodeGeometry) pace(ctx context.Context, clk clock.Clock, tickMs *int) error {
+func (g *NodeGeometry) pace(ctx context.Context, clk *clock.Clock, tickMs *int) error {
 	g.takeTickMs(tickMs)
 	if *tickMs == 0 {
-		return clk.SleepPulse(ctx)
+		if *clk == nil {
+			*clk = clock.NewRealClock()
+		}
+		return (*clk).SleepPulse(ctx)
 	}
 	v, err := clock.SleepToNextHumanTick(ctx, *tickMs, g.clocks.humanTickMs)
 	*tickMs = v
