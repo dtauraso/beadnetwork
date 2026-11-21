@@ -14,8 +14,10 @@ const (
 
 	FileSource     = "source.bin"
 	FileOrder      = "order.bin"
-	FileStartPhi   = "start-phi.bin"
-	FileStartTheta = "start-theta.bin"
+	FileStartPhi      = "start-phi-tick.bin"
+	FileStartTheta    = "start-theta-tick.bin"
+	fileStartPhiOld   = "start-phi.bin"
+	fileStartThetaOld = "start-theta.bin"
 	FileStartR     = "start-r.bin"
 	FileDeltaPhi   = "delta-phi.bin"
 	FileDeltaTheta = "delta-theta.bin"
@@ -75,8 +77,6 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 			continue
 		}
 		ReadIfExists(filepath.Join(dir, FileOrder), &l.Order)
-		ReadIfExists(filepath.Join(dir, FileStartPhi), &l.Start.Phi)
-		ReadIfExists(filepath.Join(dir, FileStartTheta), &l.Start.Theta)
 		ReadIfExists(filepath.Join(dir, FileStartR), &l.Start.R)
 		ReadIfExists(filepath.Join(dir, FileDeltaPhi), &l.Delta.Phi)
 		ReadIfExists(filepath.Join(dir, FileDeltaTheta), &l.Delta.Theta)
@@ -93,12 +93,22 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 		ReadIfExists(filepath.Join(dir, FileOnePhi), &l.Start.One.Phi)
 		ReadIfExists(filepath.Join(dir, FileOneTheta), &l.Start.One.Theta)
 		ReadIfExists(filepath.Join(dir, FileOneR), &l.Start.One.R)
+		readStartTicks(dir, &l.Start)
 		mustBeCounts(dir, l)
-		l.Start = l.Start.Pulled()
 		all = append(all, l)
 	}
 	SortLinks(all)
 	return all, nil
+}
+
+func readStartTicks(dir string, s *Start) {
+	if ReadIfExists(filepath.Join(dir, FileStartPhi), &s.Tick.Phi) && ReadIfExists(filepath.Join(dir, FileStartTheta), &s.Tick.Theta) {
+		return
+	}
+	var phi, theta float64
+	ReadIfExists(filepath.Join(dir, fileStartPhiOld), &phi)
+	ReadIfExists(filepath.Join(dir, fileStartThetaOld), &theta)
+	s.Tick = Ticks{LegacyTicks(phi, s.S), LegacyTicks(theta, s.S)}
 }
 
 func mustBeCounts(dir string, l Link) {
@@ -156,7 +166,7 @@ func writeLinksIn(linksDir string, links []Link) error {
 		dir := filepath.Join(linksDir, name)
 		for file, v := range map[string]any{
 			FileSource: l.From, FileOrder: l.Order,
-			FileStartPhi: l.Start.Phi, FileStartTheta: l.Start.Theta, FileStartR: l.Start.R,
+			FileStartPhi: l.Start.Tick.Phi, FileStartTheta: l.Start.Tick.Theta, FileStartR: l.Start.R,
 			FileDeltaPhi: l.Delta.Phi, FileDeltaTheta: l.Delta.Theta, FileDeltaR: l.Delta.R,
 			FileIncPhi: l.Increment.Phi, FileIncTheta: l.Increment.Theta, FileIncR: l.Increment.R,
 			FileLockPhi: l.Lock.Phi, FileLockTheta: l.Lock.Theta,

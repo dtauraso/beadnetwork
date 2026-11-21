@@ -43,7 +43,7 @@ func framePop(m Model) *LinksBoard.Pop {
 
 func boardData(m Model) LinksBoard.Data {
 	net := Board.Chip{Label: "Network ▾", Act: Act{Op: OpNetFold}, Lit: m.NetworkOpen && !m.NewOpen}
-	d := LinksBoard.Data{SNote: m.SNote,
+	d := LinksBoard.Data{
 		S:     Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "00", Act: frameAct(FrameS)},
 		Doors: []Board.Chip{net, {Label: "Nodes ▾", Act: Act{Op: OpNewFold}, Lit: m.NewOpen}, {Label: "Frame ⚙", Act: Act{Op: OpFramePop}, Lit: m.FramePop}},
 		More:  Act{Op: OpMenu, K: menuMore}, MoreOpen: m.Menu == Act{Op: OpMenu, K: menuMore}, Cols: boardCols(m), Insp: boardInspector(m), InspOpen: m.InspOpen, InspTab: Act{Op: OpInspTab},

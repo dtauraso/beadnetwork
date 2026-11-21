@@ -22,9 +22,9 @@ func MustBeRefCount(id string, ref Ref) {
 	}
 }
 
-func (r Turn) In(s int) Start {
+func (r Turn) In(s int) Angles {
 	t := float64(TurnTicks * s)
-	return Start{Phi: r.Phi * t, Theta: r.Theta * t}
+	return Angles{Phi: r.Phi * t, Theta: r.Theta * t}
 }
 
 func (r Turn) Rotate(v Vec3) Vec3 {

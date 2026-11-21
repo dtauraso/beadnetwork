@@ -41,7 +41,7 @@ func rowsOf[T any](band string, rs []row[T], at func(c *Col) (T, bool), cols []C
 	return out
 }
 
-func bandRows[C any](band string, cols []Col, cell func(c *Col) (C, bool), link func(C) Link, sum func(C) Start, extra []row[C]) []GridRow {
+func bandRows[C any](band string, cols []Col, cell func(c *Col) (C, bool), link func(C) Link, sum func(C) Angles, extra []row[C]) []GridRow {
 	present := GridRow{Band: band, Name: rowPresent, V: make([]float64, len(cols))}
 	for i := range cols {
 		_, ok := cell(&cols[i])
@@ -49,7 +49,7 @@ func bandRows[C any](band string, cols []Col, cell func(c *Col) (C, bool), link 
 	}
 	out := []GridRow{present}
 	out = append(out, rowsOf(band, linkRows, func(c *Col) (Link, bool) { x, ok := cell(c); return link(x), ok }, cols)...)
-	out = append(out, rowsOf(band, sumRows, func(c *Col) (Start, bool) { x, ok := cell(c); return sum(x), ok }, cols)...)
+	out = append(out, rowsOf(band, sumRows, func(c *Col) (Angles, bool) { x, ok := cell(c); return sum(x), ok }, cols)...)
 	return append(out, rowsOf(band, extra, cell, cols)...)
 }
 
@@ -71,7 +71,7 @@ func (g Grid) Rows() []GridRow {
 	}
 	for _, from := range ins {
 		cell := func(c *Col) (InCell, bool) { return c.InFrom(from) }
-		rows = append(rows, bandRows(BandIn+from, g.Cols, cell, func(x InCell) Link { return x.Link }, func(x InCell) Start { return x.Sum }, nil)...)
+		rows = append(rows, bandRows(BandIn+from, g.Cols, cell, func(x InCell) Link { return x.Link }, func(x InCell) Angles { return x.Sum }, nil)...)
 	}
 	for _, to := range outs {
 		cell := func(c *Col) (OutCell, bool) {
@@ -82,7 +82,7 @@ func (g Grid) Rows() []GridRow {
 			}
 			return OutCell{}, false
 		}
-		rows = append(rows, bandRows(BandOut+to, g.Cols, cell, func(x OutCell) Link { return x.Link }, func(x OutCell) Start { return x.Sum }, outRows)...)
+		rows = append(rows, bandRows(BandOut+to, g.Cols, cell, func(x OutCell) Link { return x.Link }, func(x OutCell) Angles { return x.Sum }, outRows)...)
 	}
 	return rows
 }

@@ -11,7 +11,7 @@ type Path struct {
 
 func (f Frame) Arcs(l Link, ref Turn) (phi, theta Path) {
 	const s = 1
-	at, d := l.Start, l.Sum()
+	at, d := l.Start.Angles(), l.Sum()
 	ph := Wrap(s, at.Phi+float64(d.Phi))
 	phi = f.path(s, 0, at.Phi, float64(d.Phi), func(v float64) Vec3 { return ref.Rotate(f.cart(s, 1, v, 0)) })
 	theta = f.path(s, 0, at.Theta, float64(d.Theta), func(v float64) Vec3 { return ref.Rotate(f.cart(s, 1, ph, v)) })

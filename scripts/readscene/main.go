@@ -174,7 +174,7 @@ func dumpSequence(out *bufio.Writer, root string, k int, constants polarindex.Sc
 		d := l.Dir()
 		v := f.Vec(1, d)
 		fmt.Fprintf(out, "  link %s→%s  start φ=%s θ=%s r=%s s=%d   Δ φ=%d θ=%d r=%d s=%d   start+Δ φ=%s θ=%s r=%s   vector x=%s y=%s z=%s\n",
-			l.From, l.To, num(l.Start.Phi), num(l.Start.Theta), num(l.Start.R), l.Start.S,
+			l.From, l.To, num(l.Start.Angles().Phi), num(l.Start.Angles().Theta), num(l.Start.R), l.Start.S,
 			l.Delta.Phi, l.Delta.Theta, l.Delta.R, l.Delta.S, num(d.Phi), num(d.Theta), num(d.R), num(v.X), num(v.Y), num(v.Z))
 		fmt.Fprintf(out, "           increment φ=%d θ=%d r=%d s=%d   lock φ=%d θ=%d   picked=%v  order=%d\n",
 			l.Increment.Phi, l.Increment.Theta, l.Increment.R, l.Increment.S, l.Lock.Phi, l.Lock.Theta, l.Picked, l.Order)

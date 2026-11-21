@@ -81,12 +81,6 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 		x, y := f.at(Board.FieldW(s) + 2)
 		l.Field(x+2, y, clip, s)
 	}
-	if d.SNote != "" && !narrow {
-		nw := Board.W(d.SNote, Board.SmallPx) + 12
-		x, y := f.at(nw)
-		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y + 3, W: nw, H: h - 6}, Clip: clip, Fill: Board.WarnFill, Radius: 99, Alpha: 1})
-		l.Text(x+6, y, h, clip, d.SNote, Board.SmallPx, Board.Warn, false, Board.Left)
-	}
 	doors := d.Doors
 	if d.Insp.Title != "" {
 		insp := Board.Chip{Label: "◂ inspect", Act: d.InspTab}
@@ -98,7 +92,7 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 	if narrow && d.More.Op != "" {
 		at := dots(l, r.X+r.W-pad, r.Y+pad, h, clip, d.MoreOpen, d.More)
 		if d.MoreOpen {
-			m := Menu{Items: doors, Note: d.SNote}
+			m := Menu{Items: doors}
 			if d.S.Act.Op != "" {
 				m.Find, m.FindLabel = &d.S, "s · ticks per 1/12 turn"
 			}

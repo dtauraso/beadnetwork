@@ -71,22 +71,16 @@ func fitS(root string) error {
 		}
 	}
 	var layers []*linkLayer
-	need := 1
 	for _, d := range dirs {
 		ls, err := readLayers(d[0], d[1])
 		if err != nil {
 			return err
 		}
-		for _, ly := range ls {
-			for _, l := range ly.links {
-				need = Links.Lcm(need, l.Start.TicksNeeded())
-			}
-		}
 		layers = append(layers, ls...)
 	}
 	sPath := Scenes.SFilePath(root)
 	was := Sheet.LoadScalar(sPath, 1, 1)
-	want := Links.Lcm(max(was, dropNodeS(root, ids)), need)
+	want := max(was, dropNodeS(root, ids))
 	if want != was {
 		if err := Sheet.WriteScalar(sPath, int32(want)); err != nil {
 			return err

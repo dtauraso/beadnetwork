@@ -3,40 +3,61 @@ package Links
 import "math"
 
 type Start struct {
-	Phi, Theta, R float64
-	S             int
-	One           Ones
-	Tick          Ticks
+	Tick Ticks
+	R    float64
+	S    int
+	One  Ones
 }
 
 type Ticks struct{ Phi, Theta int }
 
-func Digits(s int) int {
-	d := 0
-	for p := 1; p < s; p *= 10 {
-		d++
+type Angles struct{ Phi, Theta, R float64 }
+
+func (s Start) per() int { return max(1, s.S) }
+
+func (s Start) Angles() Angles {
+	f := float64(s.per())
+	return Angles{Phi: float64(s.Tick.Phi) / f, Theta: float64(s.Tick.Theta) / f, R: s.R}
+}
+
+func (s *Start) Cut(a Angles) {
+	f := float64(s.per())
+	cut := func(v float64) int { return WrapTicks(s.per(), int(math.Floor(Wrap(1, v)*f+1e-9))) }
+	s.Tick, s.R = Ticks{cut(a.Phi), cut(a.Theta)}, a.R
+}
+
+func (s *Start) Rescale(to int) {
+	from, to := s.per(), max(1, to)
+	s.Tick = Ticks{s.Tick.Phi * to / from, s.Tick.Theta * to / from}
+	s.S = to
+}
+
+func (s *Start) tickOf(k string) *int {
+	if k == KTheta {
+		return &s.Tick.Theta
 	}
-	return d
+	return &s.Tick.Phi
 }
 
-func TenTo(s int) int {
-	p := 1
-	for range Digits(s) {
-		p *= 10
+func (s *Start) Turn(k string, presses int) {
+	t := s.tickOf(k)
+	*t = WrapTicks(s.per(), *t+presses*s.per())
+}
+
+func (s *Start) SetTick(k string, n int) { *s.tickOf(k) = WrapTicks(s.per(), n) }
+
+func (s *Start) Signed() {
+	s.Tick = Ticks{signedTicks(s.per(), s.Tick.Phi), signedTicks(s.per(), s.Tick.Theta)}
+}
+
+func signedTicks(s, v int) int {
+	if v < 0 {
+		return WrapTicks(s, TurnTicks*s/2-v)
 	}
-	return p
+	return WrapTicks(s, v)
 }
 
-func (s Start) Pulled() Start {
-	p := float64(TenTo(s.S))
-	s.Phi, s.Theta = angleRound(s.Phi), angleRound(s.Theta)
-	s.Tick =Ticks{int(math.Floor(s.Phi*p + 1e-9)), int(math.Floor(s.Theta*p + 1e-9))}
-	return s
-}
-
-func (s Start) FromTick(n int) float64 {
-	return float64(n) * math.Pow10(-Digits(s.S))
-}
+func LegacyTicks(v float64, s int) int { return int(math.Round(v * float64(max(1, s)))) }
 
 type Ones struct{ Phi, Theta, R int }
 
@@ -87,9 +108,9 @@ func (l *Link) Sum() Ints {
 	return Ints{Phi: l.Total.Phi + l.Delta.Phi, Theta: l.Total.Theta + l.Delta.Theta, R: l.Total.R + l.Delta.R, S: l.Delta.S}
 }
 
-func (l *Link) Dir() Start {
-	at, d := l.Start, l.Sum()
-	return Start{Phi: Wrap(1, at.Phi+float64(d.Phi)), Theta: Wrap(1, at.Theta+float64(d.Theta)), R: at.R + float64(d.R)}
+func (l *Link) Dir() Angles {
+	at, d := l.Start.Angles(), l.Sum()
+	return Angles{Phi: Wrap(1, at.Phi+float64(d.Phi)), Theta: Wrap(1, at.Theta+float64(d.Theta)), R: at.R + float64(d.R)}
 }
 
 func (l *Link) OneCarry(k string, sign int) int {
@@ -107,27 +128,31 @@ func (l *Link) StepOne(k string, sign int) {
 	carry := l.OneCarry(k, sign)
 	o := l.Start.One.At(k)
 	*o += sign - carry*ShownS(l.Start.S)
-	if carry != 0 {
-		v := map[string]float64{KPhi: l.Start.Phi, KTheta: l.Start.Theta, KR: l.Start.R}[k]
-		l.SetStart(k, v+float64(carry))
+	if carry == 0 {
+		return
 	}
+	if k == KR {
+		l.Start.R += float64(carry)
+		return
+	}
+	l.Start.Turn(k, carry)
 }
 
 func ShownS(s int) int { return max(1, s) }
 
 func (l *Link) SetS(s int) {
-	l.Start.S, l.Delta.S, l.Increment.S = s, s, s
-	l.Start = l.Start.Pulled()
+	l.Start.Rescale(s)
+	l.Delta.S, l.Increment.S = s, s
 }
 
-func (l *Link) Drawn() (int, Start) {
-	p, t, d := TenTo(l.Start.S), l.Total, l.Delta
+func (l *Link) Drawn() (int, Angles) {
+	p, t, d := l.Start.per(), l.Total, l.Delta
 	f, part := float64(p), 1.0
 	if l.Playing {
 		part = l.Part
 	}
 	at := func(t, d int) float64 { return float64(t) + float64(d)*part }
-	return p, Start{Phi: l.Start.Phi*f + at(t.Phi, d.Phi)*f, Theta: l.Start.Theta*f + at(t.Theta, d.Theta)*f, R: l.Start.R + at(t.R, d.R)}
+	return p, Angles{Phi: float64(l.Start.Tick.Phi) + at(t.Phi, d.Phi)*f, Theta: float64(l.Start.Tick.Theta) + at(t.Theta, d.Theta)*f, R: l.Start.R + at(t.R, d.R)}
 }
 
 func (l *Link) Presses() int {
@@ -137,33 +162,6 @@ func (l *Link) Presses() int {
 		n = max(n, (max(d, -d)+inc-1)/inc)
 	}
 	return n
-}
-
-func Tenths(v float64) int { return int(math.Floor(v*10 + 1e-6)) }
-
-
-func gcd(a, b int) int {
-	for b != 0 {
-		a, b = b, a%b
-	}
-	return max(a, -a)
-}
-
-func Lcm(a, b int) int { return a / gcd(a, b) * b }
-
-const angleDigits = 100
-
-func angleRound(v float64) float64 {
-	return math.Trunc(v*angleDigits+math.Copysign(1e-9, v)) / angleDigits
-}
-
-func (s Start) TicksNeeded() int {
-	need := 10 / gcd(Tenths(s.R), 10)
-	for _, v := range []float64{s.Phi, s.Theta} {
-		n := int(math.Round(v * angleDigits))
-		need = Lcm(need, angleDigits/gcd(n, angleDigits))
-	}
-	return need
 }
 
 func (a *Ints) At(k string) *int {
@@ -186,30 +184,18 @@ func (k *Lock) at(name string) *int {
 	return &k.Phi
 }
 
-func (l *Link) SetStart(k string, v float64) {
-	switch k {
-	case KR:
-		l.Start.R = v
-	case KTheta:
-		l.Start.Theta = Wrap(1, v)
-	default:
-		l.Start.Phi = Wrap(1, v)
-	}
-	l.Start = l.Start.Pulled()
-}
-
 func (l *Link) Step(k string, sign int) {
 	*l.Delta.At(k) += sign * *l.Increment.At(k)
 }
 
-func Measure(f Frame, was Start, p, t Vec3) Start {
+func Measure(f Frame, was Angles, p, t Vec3) Angles {
 	const s = 1
-	was = Start{Phi: Wrap(s, was.Phi), Theta: Wrap(s, was.Theta), R: was.R}
+	was = Angles{Phi: Wrap(s, was.Phi), Theta: Wrap(s, was.Theta), R: was.R}
 	v := t.Sub(p)
 	n := v.Length()
 	tick := 2 * math.Pi / float64(TurnTicks*s)
 	if n < 1e-9 {
-		return Start{Phi: was.Phi, Theta: was.Theta}
+		return Angles{Phi: was.Phi, Theta: was.Theta}
 	}
 	side := math.Hypot(v.X, v.Z)
 	phi := math.Atan2(side, v.Y) / tick
@@ -221,19 +207,18 @@ func Measure(f Frame, was Start, p, t Vec3) Start {
 		d := Wrap(s, a-b)
 		return math.Min(d, float64(TurnTicks*s)-d)
 	}
-	off := func(c Start) float64 { return gap(c.Phi, was.Phi) + gap(c.Theta, was.Theta) }
+	off := func(c Angles) float64 { return gap(c.Phi, was.Phi) + gap(c.Theta, was.Theta) }
 	half := float64(TurnTicks) * s / 2
-	best := Start{Phi: phi, Theta: theta}
-	for _, c := range []Start{{Phi: -phi, Theta: theta + half}, {Phi: theta, Theta: theta}, {Phi: theta + half, Theta: theta + half}} {
-		d := f.Vec(s, Start{Phi: c.Phi, Theta: c.Theta, R: n / f.Rho}).Sub(v)
+	best := Angles{Phi: phi, Theta: theta}
+	for _, c := range []Angles{{Phi: -phi, Theta: theta + half}, {Phi: theta, Theta: theta}, {Phi: theta + half, Theta: theta + half}} {
+		d := f.Vec(s, Angles{Phi: c.Phi, Theta: c.Theta, R: n / f.Rho}).Sub(v)
 		if d.Length() < 1e-6*n && off(c) < off(best) {
 			best = c
 		}
 	}
-	return Start{Phi: Wrap(s, best.Phi), Theta: Wrap(s, best.Theta), R: n / f.Rho}
+	return Angles{Phi: Wrap(s, best.Phi), Theta: Wrap(s, best.Theta), R: n / f.Rho}
 }
 
 func (l *Link) Remeasure(f Frame, ref Turn, p, t Vec3) {
-	v := Measure(f, l.Start, Vec3{}, ref.Unrotate(t.Sub(p)))
-	l.Start = Start{Phi: v.Phi, Theta: v.Theta, R: v.R, S: l.Start.S, One: l.Start.One}.Pulled()
+	l.Start.Cut(Measure(f, l.Start.Angles(), Vec3{}, ref.Unrotate(t.Sub(p))))
 }

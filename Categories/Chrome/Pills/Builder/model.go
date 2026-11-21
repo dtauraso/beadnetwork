@@ -29,7 +29,6 @@ type Model struct {
 	Grids   map[string]Links.Grid
 	Frame   Links.Frame
 	S       int
-	SNote   string
 	Refused string
 
 	Step      Step
@@ -115,7 +114,7 @@ func (m Model) Col(id string) Links.Col { return m.Grids[id].ShownCol() }
 
 func (m Model) StepCol(step int, id string) (Links.Col, bool) { return m.Grids[id].Col(step) }
 
-func (m Model) SumOf(l Links.Link) Links.Start {
+func (m Model) SumOf(l Links.Link) Links.Angles {
 	in, _ := m.Col(l.To).InFrom(l.From)
 	return in.Sum
 }

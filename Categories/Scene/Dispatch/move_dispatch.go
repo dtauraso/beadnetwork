@@ -2,7 +2,6 @@ package Dispatch
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
@@ -137,15 +136,6 @@ func (md *MoveDispatch) showFor(ctx context.Context, step int) {
 	}
 }
 
-func (md *MoveDispatch) sFitsStarts(ctx context.Context) {
-	m := &md.UI.Builder
-	was := m.SceneS()
-	if want := Links.Lcm(was, m.SNeeded()); want != was {
-		m.SNote = fmt.Sprintf("s rose from %d to %d so every start's angles, to two decimals, are a whole number of ticks", was, want)
-		setAllS(ctx, md, want)
-	}
-}
-
 func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) {
 	m := &md.UI.Builder
 	if md.runPlay(ctx, a) {
@@ -169,9 +159,6 @@ func DrainLinkReports(md *MoveDispatch) {
 	rs := md.Links.TakeReports()
 	for _, r := range rs {
 		m.Take(r)
-	}
-	if len(rs) > 0 {
-		md.sFitsStarts(context.TODO())
 	}
 	if m.Walking() && m.WalkSettled() {
 		m.Walk.I++

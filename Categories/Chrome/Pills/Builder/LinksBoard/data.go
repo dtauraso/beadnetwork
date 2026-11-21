@@ -132,7 +132,6 @@ type Data struct {
 	PathMenu   Act
 	PathOpen   bool
 	S          Board.Field
-	SNote      string
 	Doors      []Board.Chip
 	More       Act
 	MoreOpen   bool

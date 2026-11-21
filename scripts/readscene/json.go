@@ -75,7 +75,7 @@ func sequenceJSON(root string, k int, spec Topology.TopoSpec, seed Links.Seed) j
 	}
 	for _, l := range seed.Links {
 		js.Links = append(js.Links, jsonLink{From: l.From, To: l.To,
-			Start:     jsonAngles{Phi: l.Start.Phi, Theta: l.Start.Theta, R: l.Start.R},
+			Start:     jsonAngles{Phi: l.Start.Angles().Phi, Theta: l.Start.Angles().Theta, R: l.Start.R},
 			Delta:     jsonCount(l.Delta),
 			Increment: jsonCount(l.Increment),
 			Lock:      jsonTicks{Phi: l.Lock.Phi, Theta: l.Lock.Theta, R: l.Lock.R},

@@ -36,13 +36,6 @@ func WrapTicks(s, t int) int {
 
 func half(s int) float64 { return float64(TurnTicks * s / 2) }
 
-func FromSigned(s int, v float64) float64 {
-	if v < 0 {
-		return Wrap(s, half(s)-v)
-	}
-	return Wrap(s, v)
-}
-
 func (f Frame) cellPhi() float64   { return 2 * math.Pi / float64(f.Tphi) }
 func (f Frame) cellTheta() float64 { return 2 * math.Pi / float64(f.Ttheta) }
 
@@ -72,18 +65,17 @@ func (f Frame) GridAt(p Vec3) Place {
 	return j
 }
 
-func (f Frame) Vec(s int, t Start) Vec3 {
+func (f Frame) Vec(s int, t Angles) Vec3 {
 	return f.cart(s, t.R, Wrap(s, t.Phi), Wrap(s, t.Theta))
 }
 
-func (f Frame) Sum(l Link, ref Turn) Start {
+func (f Frame) Sum(l Link, ref Turn) Angles {
 	d, a := l.Dir(), ref.In(1)
-	return Measure(f, Start{Phi: d.Phi + a.Phi, Theta: d.Theta + a.Theta}, Vec3{}, f.LinkVec(l, ref))
+	return Measure(f, Angles{Phi: d.Phi + a.Phi, Theta: d.Theta + a.Theta}, Vec3{}, f.LinkVec(l, ref))
 }
 
 func Normalized(l Link, s int) Link {
-	l.Start.Phi, l.Start.Theta = FromSigned(1, l.Start.Phi), FromSigned(1, l.Start.Theta)
-	l.Start = l.Start.Pulled()
+	l.Start.Signed()
 	l.SetS(s)
 	return l
 }

@@ -31,8 +31,8 @@ func b2f(b bool) float64 {
 
 var linkRows = []row[Link]{
 	intRow("order", func(l *Link) *int { return &l.Order }),
-	floatRow("φ start", func(l *Link) *float64 { return &l.Start.Phi }),
-	floatRow("θ start", func(l *Link) *float64 { return &l.Start.Theta }),
+	intRow(RowPhiTick, func(l *Link) *int { return &l.Start.Tick.Phi }),
+	intRow(RowThetaTick, func(l *Link) *int { return &l.Start.Tick.Theta }),
 	floatRow("r start", func(l *Link) *float64 { return &l.Start.R }),
 	intRow("s", func(l *Link) *int { return &l.Start.S }),
 	intRow("φ Δ", func(l *Link) *int { return &l.Delta.Phi }),
@@ -50,9 +50,17 @@ var linkRows = []row[Link]{
 	{"picked", func(l Link) float64 { return b2f(l.Picked) }, func(l *Link, v float64) { l.Picked = v != 0 }},
 }
 
+const (
+	RowPhiTick   = "φ start tick"
+	RowThetaTick = "θ start tick"
+	rowPhiOld    = "φ start"
+	rowThetaOld  = "θ start"
+)
+
 var baseRows = []row[Base]{
-	floatRow("φ start", func(b *Base) *float64 { return &b.Origin.Phi }),
-	floatRow("θ start", func(b *Base) *float64 { return &b.Origin.Theta }),
+	intRow(RowPhiTick, func(b *Base) *int { return &b.Origin.Tick.Phi }),
+	intRow(RowThetaTick, func(b *Base) *int { return &b.Origin.Tick.Theta }),
+	intRow("s", func(b *Base) *int { return &b.Origin.S }),
 	floatRow("r start", func(b *Base) *float64 { return &b.Origin.R }),
 	intRow("φ 1", func(b *Base) *int { return &b.Origin.One.Phi }),
 	intRow("θ 1", func(b *Base) *int { return &b.Origin.One.Theta }),
@@ -62,10 +70,10 @@ var baseRows = []row[Base]{
 	intRow("r Δ total", func(b *Base) *int { return &b.Total.R }),
 }
 
-var sumRows = []row[Start]{
-	floatRow("φ sum", func(s *Start) *float64 { return &s.Phi }),
-	floatRow("θ sum", func(s *Start) *float64 { return &s.Theta }),
-	floatRow("r sum", func(s *Start) *float64 { return &s.R }),
+var sumRows = []row[Angles]{
+	floatRow("φ sum", func(s *Angles) *float64 { return &s.Phi }),
+	floatRow("θ sum", func(s *Angles) *float64 { return &s.Theta }),
+	floatRow("r sum", func(s *Angles) *float64 { return &s.R }),
 }
 
 var nodeRows = append([]row[Col]{

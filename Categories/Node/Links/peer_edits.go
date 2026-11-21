@@ -69,8 +69,8 @@ func (p *Peer) connect(m Connect) []Envelope {
 	p.heard[m.From] = p.round
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
-	l.Start = Measure(p.Frame, l.Dir(), p.Frame.At(m.At), p.Pos())
 	l.SetS(p.S)
+	l.Start.Cut(Measure(p.Frame, l.Dir(), p.Frame.At(m.At), p.Pos()))
 	p.own[m.From] = l
 	if c := p.grid.at(p.grid.Shown); c != nil {
 		c.In = append(c.In, InCell{Link: *l})
