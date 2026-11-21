@@ -153,7 +153,9 @@ func Lcm(a, b int) int { return a / gcd(a, b) * b }
 
 const angleDigits = 100
 
-func angleRound(v float64) float64 { return math.Round(v*angleDigits) / angleDigits }
+func angleRound(v float64) float64 {
+	return math.Trunc(v*angleDigits+math.Copysign(1e-9, v)) / angleDigits
+}
 
 func (s Start) TicksNeeded() int {
 	need := 10 / gcd(Tenths(s.R), 10)
