@@ -22,14 +22,9 @@ func (g *NodeGeometry) pace(ctx context.Context, clk clock.Clock, tickMs *int) e
 	if *tickMs == 0 {
 		return clk.SleepPulse(ctx)
 	}
-	h := clock.HumanTick(*tickMs)
-	for clock.HumanTick(*tickMs) == h {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		g.takeTickMs(tickMs)
-	}
-	return nil
+	v, err := clock.SleepToNextHumanTick(ctx, *tickMs, g.clocks.humanTickMs)
+	*tickMs = v
+	return err
 }
 
 func (g *NodeGeometry) takeTickMs(tickMs *int) {

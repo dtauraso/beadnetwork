@@ -172,6 +172,23 @@ func SleepForOrChange(ctx context.Context, d time.Duration, ch <-chan int64) (v 
 	}
 }
 
+func SleepToNextHumanTick(ctx context.Context, tickMs int, change <-chan int) (int, error) {
+	for {
+		period := time.Duration(max(tickMs, 1)) * time.Millisecond
+		t := time.NewTimer(period - time.Since(tickEpoch)%period)
+		select {
+		case <-t.C:
+			return tickMs, nil
+		case v := <-change:
+			t.Stop()
+			tickMs = v
+		case <-ctx.Done():
+			t.Stop()
+			return tickMs, ctx.Err()
+		}
+	}
+}
+
 const maxPulsesPerCycle = 64
 
 const PausedCycleMultiple = maxPulsesPerCycle
