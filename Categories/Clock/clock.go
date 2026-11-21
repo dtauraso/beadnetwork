@@ -172,10 +172,14 @@ func SleepForOrChange(ctx context.Context, d time.Duration, ch <-chan int64) (v 
 	}
 }
 
+func NextHumanTickTimer(tickMs int) *time.Timer {
+	period := time.Duration(max(tickMs, 1)) * time.Millisecond
+	return time.NewTimer(period - time.Since(tickEpoch)%period)
+}
+
 func SleepToNextHumanTick(ctx context.Context, tickMs int, change <-chan int) (int, error) {
 	for {
-		period := time.Duration(max(tickMs, 1)) * time.Millisecond
-		t := time.NewTimer(period - time.Since(tickEpoch)%period)
+		t := NextHumanTickTimer(tickMs)
 		select {
 		case <-t.C:
 			return tickMs, nil

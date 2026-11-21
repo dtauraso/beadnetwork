@@ -3,7 +3,6 @@ package Links
 type Timing struct {
 	ID string
 	H  int64
-	K  int64
 }
 
 func (m *Mesh) PostTiming(t Timing) {

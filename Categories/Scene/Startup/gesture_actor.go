@@ -79,9 +79,9 @@ func StartGestureActor(ctx context.Context, md *Dispatch.MoveDispatch, speedSink
 					h = now
 					Dispatch.DrainLinkReports(md)
 				}
-				continue
+			} else {
+				Dispatch.DrainLinkReports(md)
 			}
-			Dispatch.DrainLinkReports(md)
 
 			if err := mine.SleepCycle(ctx); err != nil {
 				return
