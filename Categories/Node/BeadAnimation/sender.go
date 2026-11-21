@@ -86,3 +86,15 @@ func (o *Sender) Gated() bool {
 	}
 	return o.Rule != RuleFireAndForget
 }
+
+type Broadcast []*Sender
+
+func (outs Broadcast) PlaceDrivenAllAt(v int, dst []DriveItem, tick int64) []DriveItem {
+	for _, o := range outs {
+		if o == nil {
+			continue
+		}
+		dst = append(dst, o.PlaceDrivenAt(v, tick))
+	}
+	return dst
+}
