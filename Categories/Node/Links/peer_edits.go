@@ -18,7 +18,7 @@ func (p *Peer) PlayIn(from string, frac float64) (Vec3, bool) {
 
 func (p *Peer) PlayOutVecs(frac float64) (vecs []Vec3, picked []bool) {
 	for _, to := range slices.Sorted(maps.Keys(p.out)) {
-		v := Vec3{}
+		v := p.outVec(to)
 		if p.outPicked[to] {
 			v = p.outVecAt(to, frac)
 		}
