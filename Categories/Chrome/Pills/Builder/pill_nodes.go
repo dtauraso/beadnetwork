@@ -11,7 +11,7 @@ const (
 )
 
 func netData(m Model) *LinksBoard.Net {
-	n := &LinksBoard.Net{Back: Act{Op: OpNetFold}, IDs: m.Nodes}
+	n := &LinksBoard.Net{IDs: m.Nodes}
 	for _, id := range m.Nodes {
 		c := m.Frame.At(m.Col(id).At)
 		n.Nodes = append(n.Nodes, LinksBoard.NetNode{ID: id, X: float32(c.X), Y: float32(c.Y)})

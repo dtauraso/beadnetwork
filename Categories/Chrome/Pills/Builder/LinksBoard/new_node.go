@@ -5,20 +5,10 @@ import (
 )
 
 type NewNode struct {
-	Back, Add Act
+	Add       Act
 	Centers   []Board.Chip
 	At        []NetField
 	Drops     []Board.Chip
-}
-
-func newBar(l *Board.Laid, r Rect, n NewNode) {
-	clip := l.Clip(r)
-	h := Board.RowH()
-	l.Line(Rect{X: r.X, Y: r.Y + r.H - 0.5, W: r.W, H: 0}, clip, Board.Guide, 1, false)
-	x, y := r.X+pad, r.Y+pad
-	x += l.Chip(x, y, clip, Board.Chip{Label: "← steps", Act: n.Back, Px: Board.BtnPx}) + Board.Gap
-	x += l.Text(x, y, h, clip, "›", Board.Px, Board.Mute, false, Board.Left) + Board.Gap
-	l.Text(x, y, h, clip, "Nodes", Board.Px, Board.Ink, true, Board.Left)
 }
 
 func newNode(l *Board.Laid, r Rect, sy float32, n NewNode) float32 {
@@ -50,11 +40,11 @@ func newNode(l *Board.Laid, r Rect, sy float32, n NewNode) float32 {
 	cy += h + Board.Gap
 	l.Chip(cx, cy, clip, Board.Chip{Label: "＋ add node", Act: n.Add, Lit: true, Px: Board.BtnPx})
 	y += ch + colGap
-	y = dropCard(l, clip, x, y, w, n)
+	y = removeCard(l, clip, x, y, w, n)
 	return max(0, y+sy-(r.Y+r.H))
 }
 
-func dropCard(l *Board.Laid, clip uint8, x, y, w float32, n NewNode) float32 {
+func removeCard(l *Board.Laid, clip uint8, x, y, w float32, n NewNode) float32 {
 	h := Board.RowH()
 	ch := cheadH + h + Board.Gap + cpad
 	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y, W: w, H: ch}, Clip: clip, Fill: Board.White, Edge: Board.Guide, Radius: radius6, Stroke: 1, Alpha: 1})
