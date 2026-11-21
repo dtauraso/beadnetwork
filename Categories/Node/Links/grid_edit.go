@@ -28,6 +28,7 @@ type StepEdit struct {
 	Locks   Lock
 	FixedR  bool
 	Press   int
+	Of      int
 }
 
 func (p *Peer) stepEdit(m StepEdit) []Envelope {

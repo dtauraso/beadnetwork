@@ -3,27 +3,9 @@ package Links
 import "fmt"
 
 func (p *Peer) playPress(l *Link, m StepEdit) {
-	full, ok := p.played[l.From]
-	if !ok {
-		full = l.Delta
-		p.played[l.From] = full
-	}
-	done := true
-	for _, k := range []string{KPhi, KTheta, KR} {
-		d, inc := *full.At(k), max(1, *l.Increment.At(k))
-		if k == KR && m.FixedR {
-			continue
-		}
-		v := min(m.Press*inc, max(d, -d))
-		if d < 0 {
-			v = -v
-		}
-		*l.Delta.At(k) = v
-		done = done && v == d
-	}
-	if done {
-		delete(p.played, l.From)
-	}
+	of := max(1, m.Of)
+	l.Playing = m.Press < of
+	l.Part = float64(min(m.Press, of)) / float64(of)
 }
 
 func (p *Peer) pickReq(m PickReq) []Envelope {

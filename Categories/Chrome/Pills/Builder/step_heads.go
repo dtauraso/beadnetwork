@@ -144,12 +144,10 @@ func (m Model) PlayPresses(step int) int {
 	return presses
 }
 
-func (m Model) playEdits(step, press int) []HeadEdit {
+func (m Model) playEdits(step, press, of int) []HeadEdit {
 	var out []HeadEdit
-	many := m.ManyIn()
 	for _, e := range m.stepActive(step) {
-		fixed := slices.Contains(many, e.To) || slices.Contains(many, e.From)
-		out = append(out, HeadEdit{To: e.To, Edit: Links.StepEdit{Step: step, From: e.From, Op: Links.EditPlay, Press: press, FixedR: fixed}})
+		out = append(out, HeadEdit{To: e.To, Edit: Links.StepEdit{Step: step, From: e.From, Op: Links.EditPlay, Press: press, Of: of}})
 	}
 	return out
 }
@@ -166,7 +164,7 @@ func playOf(m Model, step int) LinksBoard.Lock {
 }
 
 func (m *Model) StartPlay(step int, now int64) {
-	m.Play = &Play{Step: step, N: max(1, m.PlayPresses(step)), At: now + 2}
+	m.Play = &Play{Step: step, N: max(1, m.PlayPresses(step)*m.headOf(step).PlayScale()), At: now + 2}
 }
 
 func (m *Model) StopPlay() (end []HeadEdit, was bool) {
@@ -176,7 +174,7 @@ func (m *Model) StopPlay() (end []HeadEdit, was bool) {
 	}
 	m.Play = nil
 	if p.K > 0 {
-		end = m.playEdits(p.Step, p.N)
+		end = m.playEdits(p.Step, p.N, p.N)
 	}
 	return end, true
 }
@@ -186,8 +184,8 @@ func (m *Model) PlayTick(now int64) ([]HeadEdit, bool) {
 	if p == nil || now < p.At || m.Walking() {
 		return nil, false
 	}
-	p.At = now + int64(m.headOf(p.Step).PlayScale())
-	edits := m.playEdits(p.Step, p.K)
+	p.At = now + 1
+	edits := m.playEdits(p.Step, p.K, p.N)
 	if p.K >= p.N {
 		m.Play = nil
 	}
