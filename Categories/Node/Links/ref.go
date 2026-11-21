@@ -96,7 +96,12 @@ func (p *Peer) announce(by Vec3) []Envelope {
 
 func (p *Peer) gapOf(l *Link, ref Turn) Vec3 { return p.Frame.LinkVec(*l, ref) }
 
+const Remeasure = true
+
 func (p *Peer) remeasure(from string, gap Vec3) {
+	if !Remeasure {
+		return
+	}
 	l := p.own[from]
 	if at, ok := p.places[from]; ok {
 		gap = p.Pos().Sub(at)
