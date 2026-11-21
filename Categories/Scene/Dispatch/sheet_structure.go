@@ -58,6 +58,8 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		md.UI.Builder.NewEdit(a, sign, typed)
 	case Builder.OpNewAdd:
 		addLinkNodeAt(md, m.NewPlace())
+	case Builder.OpNodeDrop:
+		removeLinkNode(md, a.Node)
 	default:
 		return false
 	}

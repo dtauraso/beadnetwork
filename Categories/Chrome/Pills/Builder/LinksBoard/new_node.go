@@ -8,6 +8,7 @@ type NewNode struct {
 	Back, Add Act
 	Centers   []Board.Chip
 	At        []NetField
+	Drops     []Board.Chip
 }
 
 func newBar(l *Board.Laid, r Rect, n NewNode) {
@@ -17,7 +18,7 @@ func newBar(l *Board.Laid, r Rect, n NewNode) {
 	x, y := r.X+pad, r.Y+pad
 	x += l.Chip(x, y, clip, Board.Chip{Label: "← steps", Act: n.Back, Px: Board.BtnPx}) + Board.Gap
 	x += l.Text(x, y, h, clip, "›", Board.Px, Board.Mute, false, Board.Left) + Board.Gap
-	l.Text(x, y, h, clip, "New node", Board.Px, Board.Ink, true, Board.Left)
+	l.Text(x, y, h, clip, "Nodes", Board.Px, Board.Ink, true, Board.Left)
 }
 
 func newNode(l *Board.Laid, r Rect, sy float32, n NewNode) float32 {
@@ -49,5 +50,22 @@ func newNode(l *Board.Laid, r Rect, sy float32, n NewNode) float32 {
 	cy += h + Board.Gap
 	l.Chip(cx, cy, clip, Board.Chip{Label: "＋ add node", Act: n.Add, Lit: true, Px: Board.BtnPx})
 	y += ch + colGap
+	y = dropCard(l, clip, x, y, w, n)
 	return max(0, y+sy-(r.Y+r.H))
+}
+
+func dropCard(l *Board.Laid, clip uint8, x, y, w float32, n NewNode) float32 {
+	h := Board.RowH()
+	ch := cheadH + h + Board.Gap + cpad
+	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y, W: w, H: ch}, Clip: clip, Fill: Board.White, Edge: Board.Guide, Radius: radius6, Stroke: 1, Alpha: 1})
+	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x + 1, Y: y + 1, W: w - 2, H: cheadH - 1}, Clip: clip, Fill: Board.Card, Radius: radius6 - 1, Corner: 2, Alpha: 1})
+	tx := x + cpad
+	tx += l.Text(tx, y+(cheadH-h)/2, h, clip, "remove node", Board.Px, Board.Ink, true, Board.Left) + Board.Gap
+	l.Text(tx, y+(cheadH-h)/2, h, clip, "removes the node and every link to or from it", Board.SmallPx, Board.Mute, false, Board.Left)
+	fx, cy := x+cpad, y+cheadH+Board.Gap
+	for _, c := range n.Drops {
+		c.Px = Board.BtnPx
+		fx += l.Chip(fx, cy, clip, c) + Board.Gap
+	}
+	return y + ch + colGap
 }

@@ -45,7 +45,7 @@ func boardData(m Model) LinksBoard.Data {
 	net := Board.Chip{Label: "Network…", Act: Act{Op: OpNetFold}}
 	d := LinksBoard.Data{SNote: m.SNote,
 		S:     Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "00", Act: frameAct(FrameS)},
-		Doors: []Board.Chip{net, {Label: "New node…", Act: Act{Op: OpNewFold}}, {Label: "Frame ⚙", Act: Act{Op: OpFramePop}, Lit: m.FramePop}},
+		Doors: []Board.Chip{net, {Label: "Nodes…", Act: Act{Op: OpNewFold}}, {Label: "Frame ⚙", Act: Act{Op: OpFramePop}, Lit: m.FramePop}},
 		More:  Act{Op: OpMenu, K: menuMore}, MoreOpen: m.Menu == Act{Op: OpMenu, K: menuMore}, Cols: boardCols(m), Insp: boardInspector(m), InspOpen: m.InspOpen, InspTab: Act{Op: OpInspTab},
 		Status: "showing step " + itoa(m.StepShown()),
 		Toast:  m.Refused, At: m.Pressed, Dismiss: Act{Op: OpToastClose}}

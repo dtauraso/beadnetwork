@@ -15,6 +15,7 @@ const (
 	OpNewCenter = "new-center"
 	OpNewAt     = "new-at"
 	OpNewAdd    = "new-add"
+	OpNodeDrop  = "node-drop"
 )
 
 type NewNode struct {
@@ -73,6 +74,7 @@ func newNodeData(m Model) *LinksBoard.NewNode {
 	n := &LinksBoard.NewNode{Back: Act{Op: OpNewFold}, Add: Act{Op: OpNewAdd}}
 	for _, id := range m.Nodes {
 		n.Centers = append(n.Centers, Board.Chip{Label: id, Act: Act{Op: OpNewCenter, Node: id}, Lit: id == center})
+		n.Drops = append(n.Drops, Board.Chip{Label: "✕ " + id, Act: Act{Op: OpNodeDrop, Node: id}})
 	}
 	field := func(k string, v float64, label string) LinksBoard.NetField {
 		return LinksBoard.NetField{Name: label, Field: Board.Field{Value: Num(v), Fit: "000.00", Act: Act{Op: OpNewAt, K: k}}}
