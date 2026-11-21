@@ -171,12 +171,7 @@ func setSceneS(ctx context.Context, md *MoveDispatch, v float64) {
 		m.Refused = fmt.Sprintf("s %v: not a whole number of at least 1, so it stays at %d", v, m.S)
 		return
 	}
-	want := Links.Lcm(int(v), m.SNeeded())
-	m.SNote = ""
-	if want != int(v) {
-		m.SNote = fmt.Sprintf("s %d rose to %d so every start's angles, to two decimals, are a whole number of ticks", int(v), want)
-	}
-	setAllS(ctx, md, want)
+	setAllS(ctx, md, int(v))
 }
 
 func setAllS(ctx context.Context, md *MoveDispatch, v int) {

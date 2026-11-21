@@ -20,7 +20,7 @@ const (
 
 type NewNode struct {
 	Center string
-	At     Links.Start
+	At     Links.Angles
 	Set    bool
 }
 
@@ -34,9 +34,9 @@ func (m Model) NewCenter() string {
 	return m.Nodes[0]
 }
 
-func (m Model) newAt() Links.Start {
+func (m Model) newAt() Links.Angles {
 	if !m.New.Set {
-		return Links.Start{R: 1}
+		return Links.Angles{R: 1}
 	}
 	return m.New.At
 }

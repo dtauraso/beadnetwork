@@ -75,16 +75,22 @@ func editLink(l *Link, m StepEdit, name string) string {
 	sign, k := m.Sign, m.K
 	switch m.Op {
 	case EditStart:
-		v := map[string]float64{KPhi: l.Start.Phi, KTheta: l.Start.Theta, KR: l.Start.R}[k] + float64(sign)
-		if m.IsTyped && k == KR {
-			v = m.Typed
-		} else if m.IsTyped {
-			v = l.Start.FromTick(int(math.Floor(m.Typed)))
+		if k != KR {
+			if m.IsTyped {
+				l.Start.SetTick(k, int(math.Floor(m.Typed)))
+			} else {
+				l.Start.Turn(k, sign)
+			}
+			break
 		}
-		if k == KR && (v < 0 || v+float64(l.Delta.R) < 0) {
+		v := l.Start.R + float64(sign)
+		if m.IsTyped {
+			v = m.Typed
+		}
+		if v < 0 || v+float64(l.Delta.R) < 0 {
 			return fmt.Sprintf("%s r %v: neither r nor r + Δr can be negative, so r stays at %v", name, v, l.Start.R)
 		}
-		l.SetStart(k, v)
+		l.Start.R = v
 	case EditOne, EditHeadOne:
 		if sign == 0 {
 			return ""

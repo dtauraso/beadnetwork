@@ -54,18 +54,6 @@ func (m Model) WalkSettled() bool {
 	return true
 }
 
-func (m Model) SNeeded() int {
-	need := 1
-	for _, g := range m.Grids {
-		for _, c := range g.Cols {
-			for _, l := range c.Links() {
-				need = Links.Lcm(need, l.Start.TicksNeeded())
-			}
-		}
-	}
-	return need
-}
-
 var editOps = map[string]string{
 	OpLinkStart: Links.EditStart, OpLinkOne: Links.EditOne, OpLinkPress: Links.EditPress,
 	OpIncrement: Links.EditInc, OpStepPick: Links.EditPick,

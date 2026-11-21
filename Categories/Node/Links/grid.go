@@ -8,12 +8,12 @@ import (
 
 type InCell struct {
 	Link Link
-	Sum  Start
+	Sum  Angles
 }
 
 type OutCell struct {
 	Link       Link
-	Sum        Start
+	Sum        Angles
 	Start, End Vec3
 	Steps      int
 }
@@ -43,10 +43,10 @@ type Base struct {
 
 func baseOf(start Start, total Ints) Base {
 	o := start
-	o.Phi = Wrap(1, o.Phi-float64(total.Phi))
-	o.Theta = Wrap(1, o.Theta-float64(total.Theta))
+	o.Turn(KPhi, -total.Phi)
+	o.Turn(KTheta, -total.Theta)
 	o.R -= float64(total.R)
-	return Base{Origin: o.Pulled(), Total: total}
+	return Base{Origin: o, Total: total}
 }
 
 func (p *Peer) fitBase() {
@@ -68,8 +68,8 @@ func (p *Peer) fitBase() {
 			}
 			b = baseOf(start, Ints{})
 		}
-		b.Origin.S = p.S
-		p.grid.Base[from] = Base{Origin: b.Origin.Pulled(), Total: b.Total}
+		b.Origin.Rescale(p.S)
+		p.grid.Base[from] = b
 	}
 }
 
