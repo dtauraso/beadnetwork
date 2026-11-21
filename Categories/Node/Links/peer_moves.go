@@ -104,7 +104,7 @@ func (p *Peer) sat(keep string, keepPicked, measure bool, by Vec3) []Envelope {
 	p.Changed.Place = true
 	for _, from := range p.order {
 		if measure && from != keep && !(keepPicked && p.own[from].Picked) {
-			p.remeasure(from)
+			p.remeasure(from, p.gapOf(p.own[from], p.refs[from]).Add(by))
 		}
 	}
 	return p.movedTo(keepPicked, measure, by)
@@ -122,15 +122,14 @@ func (p *Peer) moved(m Moved) []Envelope {
 	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
 	l, ok := p.own[m.ID]
-	switch {
-	case !ok:
+	if !ok {
 		return nil
-	case m.Measure && !(m.KeepPicked && l.Picked):
-		p.remeasure(m.ID)
-		p.rebase()
-	case l.Picked:
+	}
+	if l.Picked && !(m.Measure && !m.KeepPicked) {
 		return p.moveBy(m.By)
 	}
+	p.remeasure(m.ID, p.gapOf(l, p.refs[m.ID]).Sub(m.By))
+	p.rebase()
 	return nil
 }
 
@@ -156,6 +155,11 @@ func (p *Peer) moveBy(d Vec3) []Envelope {
 		return nil
 	}
 	by := p.step(d)
+	for _, from := range p.order {
+		if l := p.own[from]; !l.Picked {
+			p.remeasure(from, p.gapOf(l, p.refs[from]).Add(by))
+		}
+	}
 	p.point = p.Pos()
 	p.Changed.Place = true
 	return p.movedTo(false, false, by)
@@ -183,9 +187,15 @@ func (p *Peer) count(was, now *Col) {
 	was.Counted, now.Counted = true, false
 }
 
-func (p *Peer) remeasure(from string) {
+func (p *Peer) gapOf(l *Link, ref Turn) Vec3 {
+	t := *l
+	t.Delta, t.Total = Ints{S: l.Delta.S}, Ints{}
+	return p.Frame.LinkVec(t, ref)
+}
+
+func (p *Peer) remeasure(from string, gap Vec3) {
 	l := p.own[from]
-	l.Remeasure(p.Frame, p.refs[from], p.posOf(from), p.Pos())
+	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
 	p.setOrigin(from, l.Start)
 	p.touched(from)
 }
