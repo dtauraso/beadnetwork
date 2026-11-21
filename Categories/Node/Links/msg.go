@@ -28,11 +28,6 @@ type PickSet struct {
 
 type Unpick struct{ From string }
 
-type SetIdx struct {
-	K string
-	V float64
-}
-
 type SetS struct{ V int }
 
 type SetTickMs struct{ V int }

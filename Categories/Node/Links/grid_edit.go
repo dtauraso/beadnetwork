@@ -34,6 +34,10 @@ func (p *Peer) stepEdit(m StepEdit) []Envelope {
 		return nil
 	}
 	if m.Op == EditStart || m.Op == EditOne || m.Op == EditHeadOne {
+		if !l.Picked {
+			p.Changed.Refused = fmt.Sprintf("start %s→%s: %s→%s is not picked, so its start does not move %s; the start stays", m.From, p.ID, m.From, p.ID, p.ID)
+			return nil
+		}
 		return p.originEdit(l, m)
 	}
 	name := fmt.Sprintf("step %d %s→%s", m.Step, m.From, p.ID)
