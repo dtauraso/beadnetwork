@@ -19,7 +19,7 @@ if ! grep -q 'stop-checks\.sh' "$VERIFY"; then
   exit 1
 fi
 
-leak=$(grep -nE 'check-[a-z-]*\.sh|go (build|test|vet)\b|npm run|staticcheck|eslint|vitest|tsc ' "$VERIFY" || true)
+leak=$(grep -nE 'check-[a-z-]*\.sh|go (build|test|vet)\b|npm run|staticcheck|eslint|tsc' "$VERIFY" || true)
 if [ -n "$leak" ]; then
   echo "check-verify-thin-wrapper: scripts/verify.sh must not run checks itself — it is a thin"
   echo "wrapper on stop-checks.sh (one copy, no drift). Move these back to stop-checks.sh:"

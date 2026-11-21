@@ -20,8 +20,8 @@ run_one_guard() {
 export -f run_one_guard 2>/dev/null || true
 
 run_guards() {
-  #   check-staticcheck / check-eslint / check-vitest — expensive; invoked above under their
-  local GUARD_EXCLUDE="check-staticcheck|check-eslint|check-vitest|check-no-foreground-sim|check-stray-screenshots|check-no-shell-source-edits"
+  #   check-staticcheck / check-eslint — expensive; invoked above under their
+  local GUARD_EXCLUDE="check-staticcheck|check-eslint|check-no-foreground-sim|check-stray-screenshots|check-no-shell-source-edits"
 
   local guards=()
   while IFS= read -r g; do
