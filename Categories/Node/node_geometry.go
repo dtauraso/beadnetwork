@@ -3,26 +3,30 @@ package Node
 import (
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Block"
 	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
+	"github.com/dtauraso/beadnetwork/Categories/Node/OutEdges"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type NodeGeometry struct {
 	id   string
-	geom NodeGeom
+	geom Geom.NodeGeom
 
 	kindRule NodeDrag.KindRule
 
 	persistRoot string
 	selfKind    string
 
-	msg Messaging
+	msg Messaging.Messaging
 
 	clocks Clocks
 
-	stream Stream
+	stream Block.Stream
 
 	trace Trace
 
@@ -37,38 +41,38 @@ type NodeGeometry struct {
 
 	topo Topology
 
-	deltas Deltas
+	deltas OutEdges.Deltas
 
 	flags Flags
 
 	beads beadanimation.Beads
 
-	outEdges OutEdges
+	outEdges OutEdges.OutEdges
 
 	interior interior.Interior
 
-	kindPosts KindPosts
+	kindPosts Messaging.KindPosts
 
 }
 
-func NewNodeGeometry(id string, geom NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
+func NewNodeGeometry(id string, geom Geom.NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
 	anim := NewNodeBeadAnimation(id)
 
 	ng := &NodeGeometry{
 		id: id, geom: geom,
-		msg: NewMessaging(
-			make(chan Msg, InboxDepth),
+		msg: Messaging.NewMessaging(
+			make(chan Messaging.Msg, Messaging.InboxDepth),
 			make(chan Vec3, 1),
 		),
 		topo:      NewTopology(),
-		deltas:    NewDeltas(),
+		deltas:    OutEdges.NewDeltas(),
 		clocks:    NewClocks(clockSrc),
 		tilt:      TiltVectors.NewTilt(polarindex.FullTurnPhiIdx),
 		anim:      anim,
-		kindPosts: NewKindPosts(),
+		kindPosts: Messaging.NewKindPosts(),
 	}
 
-	ng.msg.SeedCenter(Vec3(NodeWorldPos(geom)))
+	ng.msg.SeedCenter(Vec3(Geom.NodeWorldPos(geom)))
 	ng.outEdges.SetConstants(constants)
 	ng.deltas.SetConstants(constants)
 

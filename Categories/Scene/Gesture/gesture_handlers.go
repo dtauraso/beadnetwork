@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
 	NodeGesture "github.com/dtauraso/beadnetwork/Categories/Node/Gesture"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 
@@ -83,7 +83,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 	switch {
 	case g.Phase == Drag.GestDragging:
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
-		NodeGesture.ApplyDragTarget(d.UI, func(id string, target Node.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
+		NodeGesture.ApplyDragTarget(d.UI, func(id string, target Messaging.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
 		if n := g.NodeDrag.Node; n != "" {
 			setSelectionUI(d.UI, d.MR, d.Ctx, n, "")
 		}
@@ -102,7 +102,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 		d.UI.EmitViewFrame(nil)
 
 		if draggedNode != "" {
-			d.MR.SendMove(d.Ctx, draggedNode, Node.Msg{NodeID: draggedNode, Body: Node.DragEnd{}})
+			d.MR.SendMove(d.Ctx, draggedNode, Messaging.Msg{NodeID: draggedNode, Body: Messaging.DragEnd{}})
 		}
 	}
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
-	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
@@ -74,7 +74,7 @@ func addLinkNodeAt(md *MoveDispatch, at Links.Place) {
 	}
 	kind := md.MR.NodeGeoms()[m.Nodes[0]].Kind()
 	id := newNodeID(root)
-	if err := NodeBuf.WriteNewPlaceNode(root, id, kind, at); err != nil {
+	if err := Files.WriteNewPlaceNode(root, id, kind, at); err != nil {
 		m.Refused = fmt.Sprintf("could not write node %s: %v", id, err)
 		return
 	}

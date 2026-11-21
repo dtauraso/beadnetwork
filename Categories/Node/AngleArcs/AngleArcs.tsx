@@ -5,8 +5,8 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { ownerCounts } from "../../Scene/owner-counts";
-import { nodeBytes } from "../node-leaves";
-import type { NodeValueName } from "../node-values-gen";
+import { nodeBytes } from "../Block/node-leaves";
+import type { NodeValueName } from "../Block/node-values-gen";
 
 const PHI_COLOR = "#FF9F1C";
 const KIND_COLORS = [PHI_COLOR, "#3DDC84", "#F5E663", "#4DA3FF"];

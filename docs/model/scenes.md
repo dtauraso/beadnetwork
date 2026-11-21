@@ -58,7 +58,7 @@ choice — not a tuning knob:**
   which is why it is a per-scene choice rather than a global rule.
 
 **The drawn ring axis and the navigation pole are two different streamed values, on
-purpose.** `PoleTheta`/`PolePhi` (`Categories/Node/node_state.go`) is a node's own INWARD pole — its own
+purpose.** `PoleTheta`/`PolePhi` (`Categories/Node/Block/node_state.go`) is a node's own INWARD pole — its own
 scene-polar direction reversed, pointing back at the scene centre — and is what navigation
 reads (`nav-nodes.ts`'s `NavNode.pole`). Every node's own local FRAME is held at world +y regardless of its
 pole. Do not rotate one node's frame onto its streamed pole: it reads as a property of that

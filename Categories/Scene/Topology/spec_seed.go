@@ -2,6 +2,7 @@ package Topology
 
 import (
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
@@ -39,9 +40,9 @@ func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind string, other
 }
 
 func SeedGeometry(s TopoSpec, sceneCenter Vec3) (
-	map[string]NodeBuf.NodeGeom, map[string]polarindex.Index, map[string]polarindex.Offset,
+	map[string]Geom.NodeGeom, map[string]polarindex.Index, map[string]polarindex.Offset,
 ) {
-	geoms := make(map[string]NodeBuf.NodeGeom, len(s.Nodes))
+	geoms := make(map[string]Geom.NodeGeom, len(s.Nodes))
 	base := make(map[string]polarindex.Index, len(s.Nodes))
 	drag := make(map[string]polarindex.Offset, len(s.Nodes))
 	for _, n := range s.Nodes {
@@ -50,12 +51,12 @@ func SeedGeometry(s TopoSpec, sceneCenter Vec3) (
 	return geoms, base, drag
 }
 
-func SeedNodeGeometry(n Node, sceneCenter Vec3, sc polarindex.SceneConstants) (NodeBuf.NodeGeom, polarindex.Index, polarindex.Offset) {
+func SeedNodeGeometry(n Node, sceneCenter Vec3, sc polarindex.SceneConstants) (Geom.NodeGeom, polarindex.Index, polarindex.Offset) {
 	g := toNodeGeom(n, sceneCenter, sc)
 
 	base := declaredIndex(n, sc)
 	if base == nil && g.HasPos {
-		p := polar.Cart2polar(polar.Vec3(NodeBuf.NodeWorldPos(g).Sub(NodeBuf.Vec3(sceneCenter))))
+		p := polar.Cart2polar(polar.Vec3(Geom.NodeWorldPos(g).Sub(Geom.Vec3(sceneCenter))))
 		m := polarindex.MeasureIndex(p, sc)
 		base = &m
 	}
@@ -63,12 +64,12 @@ func SeedNodeGeometry(n Node, sceneCenter Vec3, sc polarindex.SceneConstants) (N
 		base = &polarindex.Index{}
 	}
 
-	NodeBuf.SetNodeWorld(&g, *base)
+	Geom.SetNodeWorld(&g, *base)
 	return g, *base, dragIndex(n)
 }
 
-func toNodeGeom(n Node, sceneCenter Vec3, sc polarindex.SceneConstants) NodeBuf.NodeGeom {
-	g := NodeBuf.NodeGeom{NodeIdentity: NodeBuf.NodeIdentity{Kind: n.Type, Label: n.Label(), SceneCenter: NodeBuf.Vec3(sceneCenter), SceneConstants: sc}}
+func toNodeGeom(n Node, sceneCenter Vec3, sc polarindex.SceneConstants) Geom.NodeGeom {
+	g := Geom.NodeGeom{NodeIdentity: Geom.NodeIdentity{Kind: n.Type, Label: n.Label(), SceneCenter: Geom.Vec3(sceneCenter), SceneConstants: sc}}
 	if n.HasPoint() {
 		g.BaseIndex = n.Index()
 		g.Rest = n.Rest()

@@ -15,6 +15,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Tabs"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Block"
 	EdgeB "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	bead "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"
 	NodeShape "github.com/dtauraso/beadnetwork/Categories/Ring/NodeShape"
@@ -47,7 +48,7 @@ func openScene(processCtx context.Context, router *Startup.SceneRouter, topology
 
 	md.Sw.SetEdgeStreams(md.GS.EdgeSeeds, md.MR.Edges(), md.MR.NodeGeoms(), md.RT.NodeRowFor,
 		EdgeB.NewEdgeSink(scenePath, len(md.RT.EdgeRowTable)))
-	sinks := NodeKind.NewSinks(scenePath, len(md.RT.NodeRowTable))
+	sinks := Block.NewSinks(scenePath, len(md.RT.NodeRowTable))
 	md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), scenePath,
 		sinks.Beads, md.RT.NodeRowFor, sinks.Node, NodeKind.NodeKindID)
 	md.UI.WriteOwnTrace()

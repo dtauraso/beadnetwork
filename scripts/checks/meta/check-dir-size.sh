@@ -13,10 +13,6 @@ import os, re, subprocess, collections
 CEILING = 20
 
 ALLOWED = {
-    "Categories/Node":
-        "12 guards pinned here by their own PLACEMENT: Categories/Node/** headers; the node ACTOR, "
-        "whose methods Go pins to one package; and the edit codec, value file and record reader "
-        "every other category also keeps at its own root",
     "Categories/Node/BeadAnimation":
         "one Go package by the compiler: 9 unexported symbols cross its files, and Sender "
         "and Receiver reach BeadLine's unexported queue; plus its own TS and 3 guards",

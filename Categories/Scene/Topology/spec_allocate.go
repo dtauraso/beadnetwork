@@ -1,7 +1,7 @@
 package Topology
 
 import (
-	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 )
@@ -14,7 +14,7 @@ func NodeTypes(spec TopoSpec) map[string]string {
 	return nodeType
 }
 
-func AllocateBeadLines(spec TopoSpec, nodeGeoms map[string]NodeBuf.NodeGeom) (
+func AllocateBeadLines(spec TopoSpec, nodeGeoms map[string]Geom.NodeGeom) (
 	destRun map[string]*beadanimation.BeadLine,
 	edgeRun map[string]*beadanimation.BeadLine,
 	edgeEndpoints map[string]edge.EdgeEndpoints,

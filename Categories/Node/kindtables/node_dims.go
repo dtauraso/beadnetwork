@@ -17,7 +17,7 @@ func writeNodeDims(outPath string, kinds []KindEntry) error {
 	fmt.Fprintln(w, `// Source: Categories/NodeKinds/<Kind>/SPEC.md ## View width/height fields.`)
 	fmt.Fprintln(w, `// Regenerate with: go generate ./...`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `package Node`)
+	fmt.Fprintln(w, `package Geom`)
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `// KindDim is the render width/height for one node kind, mirroring`)
 	fmt.Fprintln(w, `// NODE_DEFS[kind].width/height in node-defs.ts.`)

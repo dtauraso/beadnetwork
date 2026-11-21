@@ -2,6 +2,8 @@ package Node
 
 import (
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Block"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
@@ -21,7 +23,7 @@ func (m *NodeGeometry) SetDragIndex(off polarindex.Offset) {
 }
 
 func (m *NodeGeometry) publishCenter() {
-	m.msg.PublishCenter(Vec3(NodeWorldPos(m.geom)))
+	m.msg.PublishCenter(Vec3(Geom.NodeWorldPos(m.geom)))
 }
 
 func (m *NodeGeometry) AddOutTarget(target string) {
@@ -48,10 +50,10 @@ func (m *NodeGeometry) WireInteriorStream(row int32, buildFrame func(tick uint32
 }
 
 func (m *NodeGeometry) writeInteriorFrames() {
-	m.interior.WriteFrames(interior.Vec3(NodeWorldPos(m.geom)))
+	m.interior.WriteFrames(interior.Vec3(Geom.NodeWorldPos(m.geom)))
 }
 
-func (m *NodeGeometry) WireStream(row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame NodeFrameBuilder, sceneRoot string) {
+func (m *NodeGeometry) WireStream(row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame Block.NodeFrameBuilder, sceneRoot string) {
 	m.stream.SetStream(row, kindID, buildFrame)
 	m.topo.SetNodeRowFor(nodeRowFor)
 	m.trace.Wire(sceneRoot, row)

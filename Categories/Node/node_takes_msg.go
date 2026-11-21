@@ -1,30 +1,32 @@
 package Node
 
 import (
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 const BreadcrumbDragCommit = "drag-commit"
 
-func (m *NodeGeometry) take(msg Msg) {
+func (m *NodeGeometry) take(msg Messaging.Msg) {
 	if msg.NodeID != m.id {
 		return
 	}
 	switch b := msg.Body.(type) {
-	case NeighborMoved:
+	case Messaging.NeighborMoved:
 		m.takeNeighborMove(b)
-	case Drag:
+	case Messaging.Drag:
 		m.takeDragOfSelf(b)
-	case DragStart:
+	case Messaging.DragStart:
 		m.beads.PostBeadDrag(true)
-	case DragEnd:
+	case Messaging.DragEnd:
 
 		m.beads.PostBeadDrag(false)
-	case Select:
+	case Messaging.Select:
 		m.ui.SetSelected(b.On)
-	case Hover:
+	case Messaging.Hover:
 		m.ui.SetHover(b.On, b.Port, b.IsInput)
-	case Latched:
+	case Messaging.Latched:
 		m.ui.SetLatched(b.On)
 	default:
 		panic("Node.take: node " + m.id + " was handed a move body it has no case for. " +
@@ -33,19 +35,19 @@ func (m *NodeGeometry) take(msg Msg) {
 	}
 }
 
-func (m *NodeGeometry) takeNeighborMove(msg NeighborMoved) {
+func (m *NodeGeometry) takeNeighborMove(msg Messaging.NeighborMoved) {
 	if msg.Delta != nil && msg.SenderID != "" {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
 	if msg.Center != nil {
-		idx := IndexAtTheta(m.geom.SceneCenter, Vec3(*msg.Center), m.ScenePolar().Theta, m.Constants())
+		idx := Geom.IndexAtTheta(m.geom.SceneCenter, Vec3(*msg.Center), m.ScenePolar().Theta, m.Constants())
 		m.ApplyCenter(idx)
 		return
 	}
 	m.emitGeometry()
 }
 
-func (m *NodeGeometry) takeDragOfSelf(msg Drag) {
+func (m *NodeGeometry) takeDragOfSelf(msg Messaging.Drag) {
 	haveIdx := m.ComposedIndex()
 
 	var delta polarindex.Offset
@@ -61,7 +63,7 @@ func (m *NodeGeometry) takeDragOfSelf(msg Drag) {
 	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
 
 	m.msg.CommitLocal(m.id, movedIdx)
-	newPos := WorldPosOf(m.geom, movedIdx)
+	newPos := Geom.WorldPosOf(m.geom, movedIdx)
 
 	m.writeStreamFrame([]RowEvent{{
 		Kind: KindBreadcrumb, Label: BreadcrumbDragCommit, Debug: 1,

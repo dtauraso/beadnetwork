@@ -8,7 +8,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
-	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 	Ports "github.com/dtauraso/beadnetwork/Categories/Node/Ports"
 	"github.com/dtauraso/beadnetwork/Categories/NodeKinds"
@@ -20,7 +20,7 @@ func BuildNodes(
 	spec Topology.TopoSpec,
 	md *Dispatch.MoveDispatch,
 	lines Ports.EdgeLines,
-	nodeGeoms map[string]NodeBuf.NodeGeom,
+	nodeGeoms map[string]Geom.NodeGeom,
 	clk clock.Clock,
 	speedSinks *SliderPanel.Sinks,
 ) ([]BuiltNode, map[string]*beadanimation.Sender, error) {

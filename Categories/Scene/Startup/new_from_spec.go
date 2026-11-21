@@ -17,13 +17,14 @@ import (
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 
-	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Messaging"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
-func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]NodeBuf.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*Dispatch.MoveDispatch, error) {
+func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]Geom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*Dispatch.MoveDispatch, error) {
 
 	nodeOrder := make([]string, len(spec.Nodes))
 	for i, n := range spec.Nodes {
@@ -99,8 +100,8 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		for to, told := range nm.RequestedDrag(polarindex.Offset{}) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
-				other.Msg().SendExternal(context.TODO(), NodeBuf.Msg{NodeID: to,
-					Body: NodeBuf.Drag{Delta: &d}})
+				other.Msg().SendExternal(context.TODO(), Messaging.Msg{NodeID: to,
+					Body: Messaging.Drag{Delta: &d}})
 			}
 		}
 	}

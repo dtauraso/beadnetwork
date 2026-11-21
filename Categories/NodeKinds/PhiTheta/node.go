@@ -6,6 +6,7 @@ import (
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -110,7 +111,7 @@ func (n *PhiTheta) apply() {
 		return
 	}
 	if c.Place {
-		if err := NodeCat.WritePlace(root, id, *n.peer.At); err != nil {
+		if err := Files.WritePlace(root, id, *n.peer.At); err != nil {
 			n.breadcrumb("place-persist", err.Error())
 		}
 		n.geom.KindPosts().PostPlace(*n.peer.At)
@@ -120,12 +121,12 @@ func (n *PhiTheta) apply() {
 		n.postTicks()
 	}
 	if c.Ref {
-		if err := NodeCat.WriteNodeRef(root, id, n.peer.Ref.Phi, n.peer.Ref.Theta, n.peer.Ref.S); err != nil {
+		if err := Files.WriteNodeRef(root, id, n.peer.Ref.Phi, n.peer.Ref.Theta, n.peer.Ref.S); err != nil {
 			n.breadcrumb("ref-persist", err.Error())
 		}
 	}
 	if len(c.Links) > 0 {
-		if err := Links.WriteLinks(NodeCat.NodeDir(root, id), n.peer.Links()); err != nil {
+		if err := Links.WriteLinks(Files.NodeDir(root, id), n.peer.Links()); err != nil {
 			n.breadcrumb("links-persist", err.Error())
 		}
 	}

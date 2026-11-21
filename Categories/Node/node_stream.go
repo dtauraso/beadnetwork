@@ -2,6 +2,8 @@ package Node
 
 import (
 	"fmt"
+
+	"github.com/dtauraso/beadnetwork/Categories/Node/Block"
 )
 
 func (m *NodeGeometry) emitGeometry() {
@@ -26,16 +28,16 @@ func (m *NodeGeometry) writeStreamFrame(events []RowEvent) {
 		}
 	}
 
-	m.stream.WriteFrame(BuildFrame(m.frameInputs(row)))
+	m.stream.WriteFrame(Block.BuildFrame(m.frameInputs(row)))
 }
 
-func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
+func (m *NodeGeometry) frameInputs(row int32) Block.FrameInputs {
 	coplanarEdges, upAxis := m.flags.Flags()
 	topIdx, bottomIdx, normalIdx, receivedIdx, receivedSet, latticePoints := m.tilt.FrameGeometryFields()
 	selected, latchedSel := m.ui.Flags()
 	startVectors, startPicked := m.tilt.StartVectors()
 
-	return FrameInputs{
+	return Block.FrameInputs{
 		Geom: m.geom,
 
 		Row:    row,

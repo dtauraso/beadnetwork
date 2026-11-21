@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { ownerCounts } from "../../Scene/owner-counts";
 import {
   nodeF32, NODE_RING_NAMES, NODE_BODY_NAMES,
-} from "../../Node/node-leaves";
-import { type NodeValueName } from "../../Node/node-values-gen";
+} from "../../Node/Block/node-leaves";
+import { type NodeValueName } from "../../Node/Block/node-values-gen";
 import { sceneValue } from "../../Scene/scene-leaves";
 import { postLog } from "../../../Start/extension/webview/log/post";
 
@@ -46,7 +46,7 @@ function logDrawnPositions(): void {
   postLog("node-drawn", { at: lines.join("  ~  ") });
 }
 
-import { nodeRowColors } from "../../Node/node-kind";
+import { nodeRowColors } from "../../Node/Block/node-kind";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 

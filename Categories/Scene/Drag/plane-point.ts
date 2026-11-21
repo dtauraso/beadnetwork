@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { nodeF32, nodeU8 } from "../../Node/node-leaves";
+import { nodeF32, nodeU8 } from "../../Node/Block/node-leaves";
 import { ownerCounts } from "../owner-counts";
 import { sceneValue } from "../scene-leaves";
 

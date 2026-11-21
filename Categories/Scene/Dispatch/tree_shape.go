@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 )
 
 func nodeIDsInTree(root string) []int {
@@ -86,10 +87,10 @@ func nodesPath(root string) string { return filepath.Join(root, "counts", "nodes
 func edgesPath(root string) string { return filepath.Join(root, "counts", "edges.bin") }
 
 func writeCounts(root string, nodes, edges int) error {
-	if err := NodeBuf.WriteAtomic(nodesPath(root), nodes); err != nil {
+	if err := Files.WriteAtomic(nodesPath(root), nodes); err != nil {
 		return err
 	}
-	return NodeBuf.WriteAtomic(edgesPath(root), edges)
+	return Files.WriteAtomic(edgesPath(root), edges)
 }
 
 type Link struct {

@@ -1,7 +1,7 @@
 import { ownerCounts } from "../../Scene/owner-counts";
-import { nodeF32 } from "../node-leaves";
+import { nodeF32 } from "../Block/node-leaves";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { SHADING_PARAM_NODE_RING_TUBE_RATIO } from "../shading-params";
+import { SHADING_PARAM_NODE_RING_TUBE_RATIO } from "../Geom/shading-params";
 import { postLog } from "../../../Start/extension/webview/log/post";
 
 const TOLERANCE = 0.05;

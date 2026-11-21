@@ -146,10 +146,10 @@ Consequences to keep in mind:
 ## The owner writes, and owns the path
 
 - A node writes its own `position/local-polars` and reads them back from one file,
-  `Categories/Node/nodefile_drag_index.go` — Write and Read beside each other, so the four filenames
+  `Categories/Node/Files/nodefile_drag_index.go` — Write and Read beside each other, so the four filenames
   and the directory are spelled once; the loader held a second reader.
 - The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.bin`, and writes it from
-  `Categories/Node/node_out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
+  `Categories/Node/OutEdges/node_out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
   since the node is what holds the vector being stored. The write is gated on the vector
   actually changing: derivation runs every tick, so an ungated write would rewrite the file
   every tick.

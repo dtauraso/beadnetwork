@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
@@ -118,7 +118,7 @@ func ApplyDragOverlay(root string, spec *TopoSpec) {
 		if !n.HasPoint() {
 			continue
 		}
-		if phi, theta, r, _, ok := NodeBuf.ReadDragIndex(root, n.ID); ok {
+		if phi, theta, r, _, ok := Files.ReadDragIndex(root, n.ID); ok {
 			n.DragIndexPhi, n.DragIndexTheta, n.DragIndexR = &phi, &theta, &r
 		}
 	}

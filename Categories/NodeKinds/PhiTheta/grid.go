@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"path/filepath"
 
-	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Geom"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
 func (n *PhiTheta) gridGeom() Links.GridGeom {
 	kind := n.geom.Kind()
-	steps := NodeCat.NodeTorusSteps(kind)
+	steps := Geom.NodeTorusSteps(kind)
 	return Links.GridGeom{
-		NodeR:     NodeCat.NodeRadius(kind),
+		NodeR:     Geom.NodeRadius(kind),
 		LineSteps: func(dist float64) int { return edgegeom.EdgeStepCount(dist, steps, steps) },
 	}
 }
@@ -24,7 +25,7 @@ func (n *PhiTheta) loadGrid(level string) {
 	if root != "" {
 		var ok bool
 		var err error
-		g, ok, err = Links.ReadGrid(Links.GridPath(NodeCat.NodeDir(filepath.Join(root, level), id)))
+		g, ok, err = Links.ReadGrid(Links.GridPath(Files.NodeDir(filepath.Join(root, level), id)))
 		if err != nil {
 			panic(fmt.Sprintf("PhiTheta.loadGrid: node %s could not read its grid at level %q: %v — the node is the only writer of this file, so a grid it cannot read was written by something else or cut short", id, level, err))
 		}
@@ -43,9 +44,9 @@ func (n *PhiTheta) convertGrid(root, level string) (Links.Grid, error) {
 	id := n.peer.ID
 	levelDir := filepath.Join(root, level)
 	dirs := map[int]string{}
-	old := []string{NodeCat.NodeDir(levelDir, id)}
+	old := []string{Files.NodeDir(levelDir, id)}
 	for _, s := range Links.StepNumbers(levelDir) {
-		dirs[s] = NodeCat.NodeDir(Links.StepDir(levelDir, s), id)
+		dirs[s] = Files.NodeDir(Links.StepDir(levelDir, s), id)
 		old = append(old, dirs[s])
 	}
 	g, err := Links.ConvertGrid(level, id, dirs, n.peer.Links(), *n.peer.At, *n.peer.Ref, n.peer.S)
@@ -68,7 +69,7 @@ func (n *PhiTheta) writeGrid() {
 		return
 	}
 	g := n.peer.Grid()
-	if err := Links.WriteGrid(Links.GridPath(NodeCat.NodeDir(filepath.Join(root, g.Level), g.ID)), g); err != nil {
+	if err := Links.WriteGrid(Links.GridPath(Files.NodeDir(filepath.Join(root, g.Level), g.ID)), g); err != nil {
 		n.breadcrumb("grid-persist", err.Error())
 	}
 }
