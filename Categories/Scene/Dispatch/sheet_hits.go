@@ -92,7 +92,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		return
 	}
 	if Builder.IsStepHead(a) {
-		md.runStepHead(ctx, a, sign)
+		md.runStepHead(ctx, a, sign, typed)
 		return
 	}
 	if Builder.IsStepDirOp(a) {

@@ -159,7 +159,7 @@ func playOf(m Model, step int) LinksBoard.Lock {
 	if m.Playing(step) {
 		glyph = "■ " + itoa(m.Play.K) + "/" + itoa(m.Play.N)
 	}
-	return LinksBoard.Lock{Label: glyph, Axis: "×" + itoa(m.headOf(step).PlayScale()), On: m.Playing(step),
+	return LinksBoard.Lock{Label: glyph, Axis: "×" + itoa(m.headOf(step).PlayScale()), Value: itoa(m.headOf(step).PlayScale()), On: m.Playing(step),
 		Cycle: Act{Op: OpAllPlay, I: step}, Press: Act{Op: OpAllScale, I: step}}
 }
 
