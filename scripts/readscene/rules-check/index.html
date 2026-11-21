@@ -14,7 +14,7 @@
     <h1>Link Rules Check</h1>
     <p>The editor draws nodes moving as links are stepped. A drawing can be faked, so this page sets the drawing aside and checks the numbers instead. Three separate things are involved:</p>
     <ul class="parts">
-      <li><b>The rules</b> are seven statements in words, below and in <code>summary_how_it_works.md</code>. They are not code.</li>
+      <li><b>The rules</b> are seven statements in words, below and in <code>docs/notes/summary_how_it_works.md</code>. They are not code.</li>
       <li><b>The editor</b> is Go. It applies the rules and made every number in <code>data/</code>, run outside the editor by <code>scripts/readscene</code>. Under each rule is the Go function that does it.</li>
       <li><b>This page's checker</b> is JavaScript in <code>rules-check/rules/</code>, written from the words alone. It is not a port of the Go: it sends no messages between nodes and never works angles back out of positions, as the editor does. It only predicts what the words say should happen and compares that with the numbers the Go recorded.</li>
     </ul>
