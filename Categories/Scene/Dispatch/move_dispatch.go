@@ -139,7 +139,7 @@ func (md *MoveDispatch) sFitsStarts(ctx context.Context) {
 	m := &md.UI.Builder
 	was := m.SceneS()
 	if want := Links.Lcm(was, m.SNeeded()); want != was {
-		m.SNote = fmt.Sprintf("s rose from %d to %d so every start's first decimal is a whole number of ticks", was, want)
+		m.SNote = fmt.Sprintf("s rose from %d to %d so every start's angles, to two decimals, are a whole number of ticks", was, want)
 		setAllS(ctx, md, want)
 	}
 }
