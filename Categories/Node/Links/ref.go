@@ -71,6 +71,7 @@ func (p *Peer) setRef(m SetRef) []Envelope {
 }
 
 func (p *Peer) refSet(m RefSet) []Envelope {
+	was := p.refs[m.From]
 	p.refs[m.From] = m.Ref
 	l, ok := p.own[m.From]
 	if !ok {
@@ -82,7 +83,11 @@ func (p *Peer) refSet(m RefSet) []Envelope {
 		return nil
 	}
 	p.touched(m.From)
-	return p.take(l, true)
+	d := p.vecOf(l).Sub(p.Frame.LinkVec(*l, was))
+	*p.At = p.Frame.GridAt(p.Pos().Add(d))
+	out := p.sat(m.From, false, true)
+	p.rebase()
+	return out
 }
 
 func (p *Peer) RefOf(id string) Turn {
