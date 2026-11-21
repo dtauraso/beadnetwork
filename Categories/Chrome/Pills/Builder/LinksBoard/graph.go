@@ -4,12 +4,11 @@ import (
 	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 )
 
 const (
-	nodeRad  = 13
-	headLen  = 7
+	nodeRad  = 9
+	headLen  = 6
 	headTurn = 0.45
 	twinGap  = 3
 )
@@ -42,7 +41,7 @@ func spots(r Rect, ns []NetNode) []pt {
 	return out
 }
 
-func graph(l *Board.Laid, clip uint8, r Rect, n Net, menus *[]placed) {
+func graph(l *Board.Laid, clip uint8, r Rect, n Net) {
 	l.Box(r, clip, Board.Back, Board.None)
 	at := spots(r, n.Nodes)
 	for i, row := range n.Cells {
@@ -57,16 +56,8 @@ func graph(l *Board.Laid, clip uint8, r Rect, n Net, menus *[]placed) {
 	for i, nd := range n.Nodes {
 		p := at[i]
 		box := Rect{X: p.x - nodeRad, Y: p.y - nodeRad, W: 2 * nodeRad, H: 2 * nodeRad}
-		fill, edge := Board.White, Board.Ink
-		if nd.MenuOpen {
-			fill, edge = Board.On, Board.Accent
-		}
-		l.Circle(box, clip, fill, edge)
+		l.Circle(box, clip, Board.White, Board.Ink)
 		l.Text(p.x, box.Y, box.H, clip, nd.ID, Board.SmallPx, Board.Ink, true, Board.Center)
-		l.Spot(box, clip, Sheet.Cell{Act: nd.Menu}, Sheet.PartBody)
-		if nd.MenuOpen {
-			*menus = append(*menus, placed{at: box, m: Menu{Drop: nd.Drop}})
-		}
 	}
 }
 
