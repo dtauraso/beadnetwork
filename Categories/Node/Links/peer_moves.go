@@ -205,15 +205,11 @@ func (p *Peer) count(was, now *Col) {
 	was.Counted, now.Counted = true, false
 }
 
-func (p *Peer) gapOf(l *Link, ref Turn) Vec3 {
-	t := *l
-	t.Delta, t.Total = Ints{S: l.Delta.S}, Ints{}
-	return p.Frame.LinkVec(t, ref)
-}
+func (p *Peer) gapOf(l *Link, ref Turn) Vec3 { return p.Frame.LinkVec(*l, ref) }
 
 func (p *Peer) remeasure(from string, gap Vec3) {
 	l := p.own[from]
 	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
-	p.setOrigin(from, l.Start)
+	p.setOrigin(from, baseOf(l.Start, l.Sum()).Origin)
 	p.touched(from)
 }

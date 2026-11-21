@@ -12,13 +12,14 @@ import (
 )
 
 const (
-	FileGrid    = "grid.bin"
-	gridMagic   = "GRID"
-	gridVersion = 2
-	BandNode    = "node"
-	BandIn      = "in "
-	BandOut     = "out "
-	rowPresent  = "present"
+	FileGrid          = "grid.bin"
+	gridMagic         = "GRID"
+	gridVersion       = 4
+	gapOriginsVersion = 4
+	BandNode          = "node"
+	BandIn            = "in "
+	BandOut           = "out "
+	rowPresent        = "present"
 )
 
 type GridRow struct {
@@ -127,6 +128,7 @@ func WriteGrid(path string, g Grid) error {
 type GridHead struct {
 	ID, Level string
 	Shown     int
+	Ver       int
 	Steps     []int
 	Base      []GridRow
 }
@@ -154,9 +156,10 @@ func ReadGridRows(path string) (GridHead, []GridRow, error) {
 	var ver, ncols, nrows uint32
 	var shown int64
 	_ = binary.Read(r, le, &ver)
-	if ver != 1 && ver != gridVersion {
-		return h, nil, fmt.Errorf("Links.ReadGridRows: %s is grid version %d, and this build reads versions 1 and %d", path, ver, gridVersion)
+	if ver < 1 || ver > gridVersion {
+		return h, nil, fmt.Errorf("Links.ReadGridRows: %s is grid version %d, and this build reads versions 1 to %d", path, ver, gridVersion)
 	}
+	h.Ver = int(ver)
 	h.ID, _ = getStr(r)
 	h.Level, _ = getStr(r)
 	_ = binary.Read(r, le, &shown)
