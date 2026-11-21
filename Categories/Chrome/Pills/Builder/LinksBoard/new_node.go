@@ -8,7 +8,6 @@ type NewNode struct {
 	Back, Add Act
 	Centers   []Board.Chip
 	At        []NetField
-	Lands     string
 }
 
 func newBar(l *Board.Laid, r Rect, n NewNode) {
@@ -48,8 +47,7 @@ func newNode(l *Board.Laid, r Rect, sy float32, n NewNode) float32 {
 		fx += l.Field(fx, cy, clip, f.Field) + Board.Gap
 	}
 	cy += h + Board.Gap
-	ax := cx + l.Chip(cx, cy, clip, Board.Chip{Label: "＋ add node", Act: n.Add, Lit: true, Px: Board.BtnPx}) + Board.Gap
-	l.Text(ax, cy, h, clip, n.Lands, Board.SmallPx, Board.Mute, false, Board.Left)
+	l.Chip(cx, cy, clip, Board.Chip{Label: "＋ add node", Act: n.Add, Lit: true, Px: Board.BtnPx})
 	y += ch + colGap
 	return max(0, y+sy-(r.Y+r.H))
 }
