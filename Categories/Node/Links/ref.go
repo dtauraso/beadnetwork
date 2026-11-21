@@ -78,7 +78,7 @@ func (p *Peer) refSet(m RefSet) []Envelope {
 		return nil
 	}
 	if !l.Picked {
-		p.remeasure(m.From)
+		p.remeasure(m.From, p.gapOf(l, was))
 		p.rebase()
 		return nil
 	}
