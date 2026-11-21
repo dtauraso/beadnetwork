@@ -29,7 +29,8 @@ func TenTo(s int) int {
 
 func (s Start) Pulled() Start {
 	p := float64(TenTo(s.S))
-	s.Tick = Ticks{int(math.Floor(s.Phi*p + 1e-9)), int(math.Floor(s.Theta*p + 1e-9))}
+	s.Phi, s.Theta = angleRound(s.Phi), angleRound(s.Theta)
+	s.Tick =Ticks{int(math.Floor(s.Phi*p + 1e-9)), int(math.Floor(s.Theta*p + 1e-9))}
 	return s
 }
 
@@ -125,7 +126,6 @@ func (l *Link) Drawn() (int, Start) {
 
 func Tenths(v float64) int { return int(math.Floor(v*10 + 1e-6)) }
 
-func (s Start) Tenth() Ones { return Ones{Tenths(s.Phi), Tenths(s.Theta), Tenths(s.R)} }
 
 func gcd(a, b int) int {
 	for b != 0 {
@@ -136,11 +136,15 @@ func gcd(a, b int) int {
 
 func Lcm(a, b int) int { return a / gcd(a, b) * b }
 
+const angleDigits = 100
+
+func angleRound(v float64) float64 { return math.Round(v*angleDigits) / angleDigits }
+
 func (s Start) TicksNeeded() int {
-	t := s.Tenth()
-	need := 1
-	for _, n := range []int{t.Phi, t.Theta, t.R} {
-		need = Lcm(need, 10/gcd(n, 10))
+	need := 10 / gcd(Tenths(s.R), 10)
+	for _, v := range []float64{s.Phi, s.Theta} {
+		n := int(math.Round(v * angleDigits))
+		need = Lcm(need, angleDigits/gcd(n, angleDigits))
 	}
 	return need
 }

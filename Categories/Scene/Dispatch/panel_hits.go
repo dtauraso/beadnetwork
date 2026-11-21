@@ -174,7 +174,7 @@ func setSceneS(ctx context.Context, md *MoveDispatch, v float64) {
 	want := Links.Lcm(int(v), m.SNeeded())
 	m.SNote = ""
 	if want != int(v) {
-		m.SNote = fmt.Sprintf("s %d rose to %d so every start's first decimal is a whole number of ticks", int(v), want)
+		m.SNote = fmt.Sprintf("s %d rose to %d so every start's angles, to two decimals, are a whole number of ticks", int(v), want)
 	}
 	setAllS(ctx, md, want)
 }
