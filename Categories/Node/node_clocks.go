@@ -11,6 +11,8 @@ type Clocks struct {
 	clk clock.Clock
 
 	humanTickMs chan int
+
+	humanOnlyMs int
 }
 
 func NewClocks(clockSrc clock.Clock) Clocks {

@@ -13,7 +13,7 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 		return
 	}
 	var clk clock.Clock
-	tickMs := 0
+	tickMs := g.clocks.humanOnlyMs
 	defer g.kindPosts.Close()
 
 	for {
