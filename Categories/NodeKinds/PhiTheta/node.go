@@ -154,7 +154,7 @@ var Builder = BuilderFor("PhiTheta",
 		}
 		n.peer = Links.NewPeer(a.Name, seed)
 		n.tickMs = max(seed.TickMs, 1)
-		n.geom.RunOnHumanTicks(n.tickMs)
+		n.geom.HumanTicksOnly(n.tickMs)
 		n.breadcrumb("built", fmt.Sprintf("node=%s s=%d at=%+v links=%d", a.Name, n.peer.S, *n.peer.At, len(n.peer.Links())))
 		return n, nil
 	})

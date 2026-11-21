@@ -12,8 +12,8 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 	if g == nil {
 		return
 	}
-	clk := clock.NewRealClock()
-	tickMs := 0
+	var clk clock.Clock
+	tickMs := g.clocks.humanOnlyMs
 	defer g.kindPosts.Close()
 
 	for {
@@ -38,11 +38,11 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 		g.DeriveOutEdgeGeometry()
 
 		g.writeStreamFrame(g.drainSelfEvents())
-		g.writeOutEdgeFrames(clk.Tick())
+		g.writeOutEdgeFrames(g.clocks.Tick())
 
 		g.writeInteriorFrames()
 
-		if err := g.pace(ctx, clk, &tickMs); err != nil {
+		if err := g.pace(ctx, &clk, &tickMs); err != nil {
 			return
 		}
 	}

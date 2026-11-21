@@ -85,11 +85,14 @@
   behind `h − 1`. This is timing only: the links model is numbered rounds of pure
   `Peer.Handle` calls, so no result depends on when a node ran. Δt is `view/tick-ms.bin`
   (default `MsPerTick`, a whole number of ms ≥ 1), sent to every node as `Links.SetTickMs`.
-  The node's geometry goroutine is told the same Δt by the kind's BUILDER, before any
-  goroutine starts (`NodeGeometry.RunOnHumanTicks`), so its very first pass already sleeps
-  to the next human tick (`clock.SleepToNextHumanTick`) and it never takes a machine pulse;
-  it does its derive-and-write pass once per human tick. The tick stamp on its node frame
-  reads 0, since it has no machine clock to read. While the tab's builder has nodes, the
+  The node's geometry goroutine is DECLARED human-tick-only by the kind's builder
+  (`NodeGeometry.HumanTicksOnly(Δt)`), before any goroutine starts. That is a mode, not a
+  race to deliver Δt first: the loop starts from that Δt, sleeps only to the next human
+  tick (`clock.SleepToNextHumanTick`), and panics if it ever reaches a machine pulse. A later
+  Δt change still arrives through `NodeGeometry.RunOnHumanTicks`. It does its
+  derive-and-write pass once per human tick. The geometry loop makes a machine clock only
+  the first time it takes a machine pulse, so a PhiTheta geometry goroutine never makes one;
+  the tick stamp on its node and edge frames reads 0. While the tab's builder has nodes, the
   gesture actor reads input every pass and collects reports once per human tick. A φθ3 node
   starts no bead animation.
 
