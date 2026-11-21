@@ -71,7 +71,7 @@ func (m *Model) NewEdit(a Act, sign int, typed *float64) {
 
 func newNodeData(m Model) *LinksBoard.NewNode {
 	center, at := m.NewCenter(), m.newAt()
-	n := &LinksBoard.NewNode{Back: Act{Op: OpNewFold}, Add: Act{Op: OpNewAdd}}
+	n := &LinksBoard.NewNode{Add: Act{Op: OpNewAdd}}
 	for _, id := range m.Nodes {
 		n.Centers = append(n.Centers, Board.Chip{Label: id, Act: Act{Op: OpNewCenter, Node: id}, Lit: id == center})
 		n.Drops = append(n.Drops, Board.Chip{Label: "✕ " + id, Act: Act{Op: OpNodeDrop, Node: id}})
