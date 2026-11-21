@@ -39,7 +39,6 @@ type Connect struct {
 
 type Linked struct {
 	From string
-	At   Place
 }
 
 type Put struct {
@@ -50,7 +49,6 @@ type Put struct {
 
 type Moved struct {
 	ID         string
-	At         Place
 	By         Vec3
 	KeepPicked bool
 	Measure    bool

@@ -113,13 +113,12 @@ func (p *Peer) sat(keep string, keepPicked, measure bool, by Vec3) []Envelope {
 func (p *Peer) movedTo(keepPicked, measure bool, by Vec3) []Envelope {
 	var out []Envelope
 	for _, id := range p.neighbours() {
-		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: *p.At, By: by, KeepPicked: keepPicked, Measure: measure, Round: p.round}})
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, By: by, KeepPicked: keepPicked, Measure: measure, Round: p.round}})
 	}
 	return out
 }
 
 func (p *Peer) moved(m Moved) []Envelope {
-	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
 	l, ok := p.own[m.ID]
 	if !ok {
