@@ -129,6 +129,10 @@ func row(l *Board.Laid, clip uint8, x, y, s, a, b, t float32, r CardRow) float32
 	if r.B.Steps.Op != "" {
 		l.Seg(b, mid-Board.SegH/2, clip, r.B)
 	}
+	if r.C.Steps.Op != "" {
+		l.Seg(t, mid-Board.SegH/2, clip, r.C)
+		return h
+	}
 	l.Text(t, y, h, clip, r.Total, 12, Board.Mute, false, Board.Left)
 	return h
 }

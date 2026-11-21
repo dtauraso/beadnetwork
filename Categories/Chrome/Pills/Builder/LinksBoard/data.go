@@ -26,7 +26,7 @@ type CardRow struct {
 	Dial    *Board.Dial
 	DialAct Act
 	Ruler   *Board.Ruler
-	A, B    Board.Stepper
+	A, B, C Board.Stepper
 	Total   string
 	Why     string
 }
