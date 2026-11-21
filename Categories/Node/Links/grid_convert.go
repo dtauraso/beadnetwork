@@ -30,6 +30,7 @@ func freshCol(step int, live []Link, at Place, ref Ref) Col {
 	c := Col{Step: step, At: at, Ref: ref}
 	for _, l := range live {
 		l.Picked = false
+		l.Delta = Ints{S: l.Delta.S}
 		c.In = append(c.In, InCell{Link: l})
 	}
 	return c
