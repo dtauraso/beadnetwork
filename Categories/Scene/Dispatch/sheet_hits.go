@@ -75,9 +75,7 @@ func (md *MoveDispatch) stopPlayFor(ctx context.Context, a Sheet.Act) {
 	if a.Op == Builder.OpAllPlay || a.Op == Builder.OpAllScale || a.Op == Builder.OpToastClose {
 		return
 	}
-	if _, was := md.UI.Builder.StopPlay(); was {
-		md.stopPlay(ctx)
-	}
+	md.stopPlay(ctx)
 }
 
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {

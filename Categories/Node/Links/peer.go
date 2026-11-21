@@ -36,6 +36,7 @@ type Peer struct {
 	sent      map[sentKey]OutLink
 	fresh     bool
 	drawn     map[string]Vec3
+	played    map[string]Ints
 
 	Changed Changes
 }
@@ -52,7 +53,7 @@ type Seed struct {
 func NewPeer(id string, seed Seed) *Peer {
 	at, ref := seed.Places[id], seed.Refs[id]
 	p := &Peer{ID: id, S: ShownS(seed.S), At: &at, Ref: &ref, Frame: seed.Frame, placed: true,
-		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, heard: map[string]int{}, drawn: map[string]Vec3{}}
+		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, heard: map[string]int{}, drawn: map[string]Vec3{}, played: map[string]Ints{}}
 	p.refs = map[string]Turn{}
 	p.Ref.S = p.S
 	for n, r := range seed.Refs {

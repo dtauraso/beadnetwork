@@ -118,13 +118,10 @@ func (l *Link) SetS(s int) {
 	l.Start = l.Start.Pulled()
 }
 
-func (l *Link) Drawn() (int, Start) { return l.DrawnAt(1) }
-
-func (l *Link) DrawnAt(frac float64) (int, Start) {
-	p, t, d := TenTo(l.Start.S), l.Total, l.Delta
+func (l *Link) Drawn() (int, Start) {
+	p, d := TenTo(l.Start.S), l.Sum()
 	f := float64(p)
-	at := func(t, d int) float64 { return float64(t) + float64(d)*frac }
-	return p, Start{Phi: l.Start.Phi*f + at(t.Phi, d.Phi)*f, Theta: l.Start.Theta*f + at(t.Theta, d.Theta)*f, R: l.Start.R + at(t.R, d.R)}
+	return p, Start{Phi: l.Start.Phi*f + float64(d.Phi*p), Theta: l.Start.Theta*f + float64(d.Theta*p), R: l.Start.R + float64(d.R)}
 }
 
 func (l *Link) Presses() int {

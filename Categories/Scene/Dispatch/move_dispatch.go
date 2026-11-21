@@ -193,9 +193,7 @@ func (md *MoveDispatch) runPlay(ctx context.Context, a Sheet.Act) bool {
 		return false
 	}
 	m := &md.UI.Builder
-	_, was := m.StopPlay()
-	md.stopPlay(ctx)
-	if !was {
+	if !md.stopPlay(ctx) {
 		md.showFor(ctx, a.I)
 		m.StartPlay(a.I, clock.HumanTick(m.TickMs))
 	}
@@ -203,23 +201,22 @@ func (md *MoveDispatch) runPlay(ctx context.Context, a Sheet.Act) bool {
 }
 
 func (md *MoveDispatch) playTick(ctx context.Context) bool {
-	m := &md.UI.Builder
-	f, ok := m.PlayTick(m.Now)
+	edits, ok := md.UI.Builder.PlayTick(md.UI.Builder.Now)
 	if !ok {
 		return false
 	}
-	md.sendPlay(ctx, f)
+	md.sendPlay(ctx, edits)
 	return true
 }
 
-func (md *MoveDispatch) sendPlay(ctx context.Context, f Links.PlayFrame) {
-	for _, id := range md.UI.Builder.Nodes {
-		md.sendLink(ctx, id, f)
+func (md *MoveDispatch) sendPlay(ctx context.Context, edits []Builder.HeadEdit) {
+	for _, e := range edits {
+		md.sendAfterWalk(ctx, e.To, e.Edit)
 	}
 }
 
-func (md *MoveDispatch) stopPlay(ctx context.Context) {
-	if run := md.UI.Builder.PlayRun; run > 0 {
-		md.sendPlay(ctx, Links.PlayFrame{Run: run, Stop: true})
-	}
+func (md *MoveDispatch) stopPlay(ctx context.Context) bool {
+	end, was := md.UI.Builder.StopPlay()
+	md.sendPlay(ctx, end)
+	return was
 }

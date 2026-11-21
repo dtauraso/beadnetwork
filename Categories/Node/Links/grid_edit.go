@@ -14,6 +14,7 @@ const (
 	EditHead    = "head"
 	EditHeadInc = "head-increment"
 	EditHeadOne = "head-one"
+	EditPlay    = "play"
 )
 
 type StepEdit struct {
@@ -26,6 +27,7 @@ type StepEdit struct {
 	IsTyped bool
 	Locks   Lock
 	FixedR  bool
+	Press   int
 }
 
 func (p *Peer) stepEdit(m StepEdit) []Envelope {
@@ -50,6 +52,11 @@ func (p *Peer) stepEdit(m StepEdit) []Envelope {
 			return p.unpick(Unpick{From: m.From})
 		}
 		return p.pickReq(PickReq{From: m.From})
+	}
+	if m.Op == EditPlay {
+		p.playPress(l, m)
+		p.touched(m.From)
+		return p.shift()
 	}
 	if !l.Picked && m.Op == EditPress {
 		p.Changed.Refused = fmt.Sprintf("%s Δ: %s→%s is not picked, so its Δ does not move %s; Δ stays at %+v", name, m.From, p.ID, p.ID, l.Delta)
