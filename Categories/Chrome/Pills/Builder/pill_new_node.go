@@ -78,8 +78,7 @@ func newNodeData(m Model) *LinksBoard.NewNode {
 		return LinksBoard.NetField{Name: label, Field: Board.Field{Value: Num(v), Fit: "000.00", Act: Act{Op: OpNewAt, K: k}}}
 	}
 	n.At = []LinksBoard.NetField{field(Links.KPhi, at.Phi, "φ"), field(Links.KTheta, at.Theta, "θ"), field(Links.KR, at.R, "r")}
-	p := m.NewPlace()
-	c := m.Frame.At(p)
-	n.Lands = "lands at (I) r " + Num(p.R) + " φ " + Num(p.Phi) + " θ " + Num(p.Theta) + " · C " + Num(c.X) + " " + Num(c.Y) + " " + Num(c.Z)
+	c := m.Frame.At(m.NewPlace())
+	n.Lands = "C " + Num(c.X) + " " + Num(c.Y) + " " + Num(c.Z)
 	return n
 }
