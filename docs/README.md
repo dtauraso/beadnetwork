@@ -15,12 +15,6 @@ history, and the repo holds what is current. If a page here is wrong, fix it or 
 `scripts/strip-branch-local-docs.sh`, so on `main` that directory is empty between changes.
 An untagged doc there escaped a merge — delete it.
 
-## Audits
-
-| Doc | What it covers |
-|---|---|
-| [audit-skills.md](audit-skills.md) | The three audits — which cost each one measures, and what happens to a finding. |
-
 ## The model
 
 | Doc | What it covers |
