@@ -52,12 +52,15 @@ func (n *PhiTheta) Update(ctx context.Context) {
 	var k int64
 	pending := false
 	for {
+		t := clock.NextHumanTickTimer(n.tickMs)
 		select {
 		case <-ctx.Done():
+			t.Stop()
 			return
 		case msg := <-n.In.In:
+			t.Stop()
 			pending = n.take(ctx, msg) || pending
-		default:
+		case <-t.C:
 		}
 		k++
 		if now := clock.HumanTick(n.tickMs); now != h {
