@@ -20,7 +20,18 @@ const (
 	FileLockOnTheta = "lock-on-theta.bin"
 	FileLockOnR     = "lock-on-r.bin"
 	FileLockOnBoth  = "lock-on-both.bin"
+	FileNetworkOpen = "network-open.bin"
 )
+
+func (m *Model) ReadNetworkOpen() {
+	m.NetworkOpen = false
+	Links.ReadIfExists(filepath.Join(PressDir(m.Root), FileNetworkOpen), &m.NetworkOpen)
+}
+
+func (m *Model) SetNetworkOpen(on bool) error {
+	m.NetworkOpen = on
+	return Links.WriteAtomicIfChanged(filepath.Join(PressDir(m.Root), FileNetworkOpen), on)
+}
 
 type LockOn struct{ Phi, Theta, R bool }
 
