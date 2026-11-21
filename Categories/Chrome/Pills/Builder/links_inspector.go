@@ -111,7 +111,7 @@ func (m Model) rRow(c *LinksBoard.Card, r *LinksBoard.CardRow, l Links.Link) {
 func (m Model) startBoardCard(id string, l Links.Link) *LinksBoard.Card {
 	b := m.Grids[id].Base[l.From]
 	l.Start = b.Origin
-	c := &LinksBoard.Card{Heads: [3]string{"start", "1", "turn of " + l.From}}
+	c := &LinksBoard.Card{Heads: [3]string{"start", "1", l.From + "'s reference"}}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: startPart} }
 	ref := m.Col(l.From).Ref
 	turn := func(k string, v int) Board.Stepper {
