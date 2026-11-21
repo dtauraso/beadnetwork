@@ -86,6 +86,26 @@ func (p *Peer) refSet(m RefSet) []Envelope {
 	return p.turnedBy(m.From, p.vecOf(l).Sub(p.Frame.LinkVec(*l, was)))
 }
 
+func (p *Peer) announce(by Vec3) []Envelope {
+	var out []Envelope
+	for _, id := range p.neighbours() {
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, By: by, At: p.Pos(), Jump: true, Round: p.round}})
+	}
+	return out
+}
+
+func (p *Peer) gapOf(l *Link, ref Turn) Vec3 { return p.Frame.LinkVec(*l, ref) }
+
+func (p *Peer) remeasure(from string, gap Vec3) {
+	l := p.own[from]
+	if at, ok := p.places[from]; ok {
+		gap = p.Pos().Sub(at)
+	}
+	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
+	p.setOrigin(from, baseOf(l.Start, l.Sum()).Origin)
+	p.touched(from)
+}
+
 func (p *Peer) RefOf(id string) Turn {
 	if id == p.ID {
 		return RefTurn(*p.Ref)

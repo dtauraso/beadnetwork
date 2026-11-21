@@ -192,6 +192,9 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 	if !walk && !fresh {
 		out = append(out, p.jumped(p.Pos().Sub(p.Frame.At(at)))...)
 	}
+	if fresh {
+		out = append(out, p.announce(Vec3{})...)
+	}
 	p.Changed.Place = true
 	for _, from := range p.order {
 		p.touched(from)

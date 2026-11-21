@@ -103,6 +103,9 @@ func (p *Peer) fitTotals() {
 }
 
 func (p *Peer) setOrigin(from string, s Start) {
+	if p.grid.Base == nil {
+		p.grid.Base = map[string]Base{}
+	}
 	b := p.grid.Base[from]
 	b.Origin = s
 	p.grid.Base[from] = b
