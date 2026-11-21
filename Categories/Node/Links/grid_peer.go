@@ -92,7 +92,7 @@ func (p *Peer) Snap() []Envelope {
 		c = p.grid.at(p.grid.Shown)
 	}
 	for to := range p.out {
-		c.outTo(to).End = p.posOf(to)
+		c.outTo(to)
 	}
 	c.Out = slices.DeleteFunc(c.Out, func(o OutCell) bool { return !p.out[o.Link.To] })
 	slices.SortFunc(c.Out, func(a, b OutCell) int { return cmp.Compare(a.Link.To, b.Link.To) })
@@ -189,6 +189,9 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 	}
 	*p.Ref = ref
 	out = append(out, p.refit(walk)...)
+	if !walk && !fresh {
+		out = append(out, p.jumped(p.Pos().Sub(p.Frame.At(at)))...)
+	}
 	p.Changed.Place = true
 	for _, from := range p.order {
 		p.touched(from)

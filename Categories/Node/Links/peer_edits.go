@@ -36,7 +36,6 @@ func (p *Peer) unpick(m Unpick) []Envelope {
 	return []Envelope{{To: m.From, Msg: PickSet{From: p.ID, On: false}}}
 }
 
-
 func (p *Peer) setS(m SetS) []Envelope {
 	if m.V < 1 {
 		return nil
@@ -61,11 +60,10 @@ func (p *Peer) connect(m Connect) []Envelope {
 	if _, ok := p.own[m.From]; ok || m.From == p.ID {
 		return nil
 	}
-	p.places[m.From] = m.At
 	p.heard[m.From] = p.round
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
-	l.Start = Measure(p.Frame, l.Dir(), p.posOf(m.From), p.Pos())
+	l.Start = Measure(p.Frame, l.Dir(), p.Frame.At(m.At), p.Pos())
 	l.SetS(p.S)
 	p.own[m.From] = l
 	if c := p.grid.at(p.grid.Shown); c != nil {
@@ -75,5 +73,5 @@ func (p *Peer) connect(m Connect) []Envelope {
 	p.drawn[m.From] = p.vecOf(l)
 	p.order = append(p.order, m.From)
 	p.touched(m.From)
-	return []Envelope{{To: m.From, Msg: Linked{From: p.ID, At: *p.At}}}
+	return []Envelope{{To: m.From, Msg: Linked{From: p.ID}}}
 }

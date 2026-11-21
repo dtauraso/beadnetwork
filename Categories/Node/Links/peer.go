@@ -26,7 +26,6 @@ type Peer struct {
 	order     []string
 	out       map[string]bool
 	outPicked map[string]bool
-	places    map[string]Place
 	round     int
 	point     Vec3
 	placed    bool
@@ -53,9 +52,7 @@ type Seed struct {
 func NewPeer(id string, seed Seed) *Peer {
 	at, ref := seed.Places[id], seed.Refs[id]
 	p := &Peer{ID: id, S: ShownS(seed.S), At: &at, Ref: &ref, Frame: seed.Frame, placed: true,
-		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}, drawn: map[string]Vec3{}}
-	maps.Copy(p.places, seed.Places)
-	delete(p.places, id)
+		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, heard: map[string]int{}, drawn: map[string]Vec3{}}
 	p.refs = map[string]Turn{}
 	p.Ref.S = p.S
 	for n, r := range seed.Refs {
@@ -91,18 +88,22 @@ func (p *Peer) Links() []Link {
 
 func (p *Peer) Pos() Vec3 { return p.Frame.At(*p.At) }
 
-func (p *Peer) posOf(id string) Vec3 {
-	if id == p.ID {
-		return p.Pos()
+func (p *Peer) outVec(to string) Vec3 {
+	if c := p.grid.at(p.grid.Shown); c != nil {
+		for _, o := range c.Out {
+			if o.Link.To == to {
+				return p.Frame.LinkVec(o.Link, RefTurn(*p.Ref))
+			}
+		}
 	}
-	return p.Frame.At(p.places[id])
+	return Vec3{}
 }
 
-func (p *Peer) Offset(id string) Vec3 { return p.posOf(id).Sub(p.Pos()) }
+func (p *Peer) Offset(from string) Vec3 { return Vec3{}.Sub(p.vecOf(p.own[from])) }
 
 func (p *Peer) OutVecs() (vecs []Vec3, picked []bool) {
 	for _, to := range slices.Sorted(maps.Keys(p.out)) {
-		vecs = append(vecs, p.posOf(to).Sub(p.Pos()))
+		vecs = append(vecs, p.outVec(to))
 		picked = append(picked, p.outPicked[to])
 	}
 	return vecs, picked
@@ -188,7 +189,6 @@ func (p *Peer) Handle(msg any) []Envelope {
 		return p.connect(m)
 	case Linked:
 		p.out[m.From] = true
-		p.places[m.From] = m.At
 		p.heard[m.From] = p.round
 	default:
 		panic(fmt.Sprintf("Links.Peer.Handle: node %s was handed a %T, which no case takes — every message a node can be sent has a case here, so an unhandled one is a sender naming the wrong thing", p.ID, msg))

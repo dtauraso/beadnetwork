@@ -113,16 +113,34 @@ func (p *Peer) sat(keep string, keepPicked, measure bool, by Vec3) []Envelope {
 func (p *Peer) movedTo(keepPicked, measure bool, by Vec3) []Envelope {
 	var out []Envelope
 	for _, id := range p.neighbours() {
-		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: *p.At, By: by, KeepPicked: keepPicked, Measure: measure, Round: p.round}})
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, By: by, KeepPicked: keepPicked, Measure: measure, Round: p.round}})
+	}
+	return out
+}
+
+func (p *Peer) jumped(by Vec3) []Envelope {
+	if by.Length() < 1e-12 {
+		return nil
+	}
+	for _, from := range p.order {
+		if l := p.own[from]; !l.Picked {
+			p.remeasure(from, p.gapOf(l, p.refs[from]).Add(by))
+		}
+	}
+	var out []Envelope
+	for _, id := range p.neighbours() {
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, By: by, Jump: true, Round: p.round}})
 	}
 	return out
 }
 
 func (p *Peer) moved(m Moved) []Envelope {
-	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
 	l, ok := p.own[m.ID]
 	if !ok {
+		return nil
+	}
+	if m.Jump && l.Picked {
 		return nil
 	}
 	if l.Picked && !(m.Measure && !m.KeepPicked) {
@@ -187,15 +205,11 @@ func (p *Peer) count(was, now *Col) {
 	was.Counted, now.Counted = true, false
 }
 
-func (p *Peer) gapOf(l *Link, ref Turn) Vec3 {
-	t := *l
-	t.Delta, t.Total = Ints{S: l.Delta.S}, Ints{}
-	return p.Frame.LinkVec(t, ref)
-}
+func (p *Peer) gapOf(l *Link, ref Turn) Vec3 { return p.Frame.LinkVec(*l, ref) }
 
 func (p *Peer) remeasure(from string, gap Vec3) {
 	l := p.own[from]
 	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
-	p.setOrigin(from, l.Start)
+	p.setOrigin(from, baseOf(l.Start, l.Sum()).Origin)
 	p.touched(from)
 }

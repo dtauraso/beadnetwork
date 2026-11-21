@@ -108,7 +108,23 @@ func ReadGrid(path string) (Grid, bool, error) {
 	for i := range g.Cols {
 		sortIn(g.Cols[i].In)
 	}
+	if h.Ver < gapOriginsVersion {
+		g.gapOrigins()
+	}
 	return g, true, nil
+}
+
+func (g Grid) gapOrigins() {
+	shown := g.ShownCol()
+	for from, b := range g.Base {
+		in, ok := shown.InFrom(from)
+		if !ok || in.Link.Picked {
+			continue
+		}
+		d := in.Link.Delta
+		b.Origin = baseOf(b.Origin, Ints{Phi: b.Total.Phi + d.Phi, Theta: b.Total.Theta + d.Theta, R: b.Total.R + d.R}).Origin
+		g.Base[from] = b
+	}
 }
 
 func at(vs map[string][]float64, name string, i int) float64 {
