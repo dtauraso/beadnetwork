@@ -118,10 +118,29 @@ func (p *Peer) movedTo(keepPicked, measure bool, by Vec3) []Envelope {
 	return out
 }
 
+func (p *Peer) jumped(by Vec3) []Envelope {
+	if by.Length() < 1e-12 {
+		return nil
+	}
+	for _, from := range p.order {
+		if l := p.own[from]; !l.Picked {
+			p.remeasure(from, p.gapOf(l, p.refs[from]).Add(by))
+		}
+	}
+	var out []Envelope
+	for _, id := range p.neighbours() {
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, By: by, Jump: true, Round: p.round}})
+	}
+	return out
+}
+
 func (p *Peer) moved(m Moved) []Envelope {
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
 	l, ok := p.own[m.ID]
 	if !ok {
+		return nil
+	}
+	if m.Jump && l.Picked {
 		return nil
 	}
 	if l.Picked && !(m.Measure && !m.KeepPicked) {

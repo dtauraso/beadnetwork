@@ -189,6 +189,9 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 	}
 	*p.Ref = ref
 	out = append(out, p.refit(walk)...)
+	if !walk && !fresh {
+		out = append(out, p.jumped(p.Pos().Sub(p.Frame.At(at)))...)
+	}
 	p.Changed.Place = true
 	for _, from := range p.order {
 		p.touched(from)

@@ -52,5 +52,6 @@ type Moved struct {
 	By         Vec3
 	KeepPicked bool
 	Measure    bool
+	Jump       bool
 	Round      int
 }
