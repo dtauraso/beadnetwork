@@ -49,7 +49,9 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		removeLink(md, a.Node, a.To)
 	case Builder.OpNewFold:
 		md.UI.Builder.NewOpen = !md.UI.Builder.NewOpen
-		md.UI.Builder.NetworkOpen = false
+		if err := md.UI.Builder.SetNetworkOpen(false); err != nil {
+			md.UI.Builder.Refused = fmt.Sprintf("could not save that the Network view is closed: %v", err)
+		}
 	case Builder.OpNewCenter:
 		md.UI.Builder.New.Center = a.Node
 	case Builder.OpNewAt:

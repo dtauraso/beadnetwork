@@ -76,6 +76,7 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.UI.Builder.Frame = Topology.LinkFrame(spec)
 	md.UI.Builder.Root = Scenes.NodesRoot(scenePath)
 	md.UI.Builder.Step = Builder.ReadStep(Builder.PressDir(md.UI.Builder.Root))
+	md.UI.Builder.ReadNetworkOpen()
 	Dispatch.LoadOpenStep(md, scenePath)
 
 	kindByID := make(map[string]string, len(spec.Nodes))

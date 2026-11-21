@@ -2,6 +2,7 @@ package Dispatch
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
@@ -114,7 +115,9 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpToastClose:
 		md.UI.Builder.Refused = ""
 	case Builder.OpNetFold:
-		md.UI.Builder.NetworkOpen = !md.UI.Builder.NetworkOpen
+		if err := md.UI.Builder.SetNetworkOpen(!md.UI.Builder.NetworkOpen); err != nil {
+			md.UI.Builder.Refused = fmt.Sprintf("could not save that the Network view is open: %v", err)
+		}
 		md.UI.Builder.NewOpen = false
 	case Builder.OpStartFold:
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
