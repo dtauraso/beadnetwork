@@ -28,13 +28,7 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	mid := Rect{X: box.X, Y: bar.Y + bar.H, W: box.W, H: st.Y - bar.Y - bar.H}
 	narrow := box.W < narrowW
 	var menus []placed
-	dropped := d.New != nil || d.Net != nil
-	if dropped {
-		bar.H = steps(l, box, bar, mid, 0, narrow, d, &menus)
-		l.MostY = dropCard(l, box, bar, st, sy, d, &menus)
-	} else {
-		bar.H = steps(l, box, bar, mid, sy, narrow, d, &menus)
-	}
+	bar.H = steps(l, box, bar, mid, sy, narrow, d, &menus)
 	strip(l, st, d)
 	if d.Toast != "" {
 		refusal(l, box, st, d)
@@ -63,7 +57,7 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 	}
 	mid.Y = bar.Y + bar.H
 	mid.H = end - mid.Y
-	if d.Empty != nil {
+	if d.Empty != nil && d.New == nil && d.Net == nil {
 		empty(l, mid, *d.Empty)
 	} else {
 		stack := mid
