@@ -49,7 +49,6 @@ func (n *PhiTheta) Update(ctx context.Context) {
 	n.publish()
 
 	h := clock.HumanTick(n.tickMs)
-	var k int64
 	pending := false
 	for {
 		t := clock.NextHumanTickTimer(n.tickMs)
@@ -62,14 +61,13 @@ func (n *PhiTheta) Update(ctx context.Context) {
 			pending = n.take(ctx, msg) || pending
 		case <-t.C:
 		}
-		k++
 		if now := clock.HumanTick(n.tickMs); now != h {
 			h = now
 			if pending && n.peer.Ready() && h >= n.showAt {
 				n.apply()
 				pending = false
 			}
-			n.mesh.PostTiming(Links.Timing{ID: n.peer.ID, H: h, K: k})
+			n.mesh.PostTiming(Links.Timing{ID: n.peer.ID, H: h})
 		}
 	}
 }
