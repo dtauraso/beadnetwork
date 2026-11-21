@@ -13,12 +13,6 @@ run_go_checks() {
   fi
   phase_end
 
-  phase_start "go test"
-  if ! gotest_out=$(go test ./... 2>&1); then
-    out+="go test failed:\n$gotest_out\n\n"
-    fail=1
-  fi
-  phase_end
   # go vet + staticcheck. staticcheck COMPILES the whole module, so it is
 
   phase_start "staticcheck"

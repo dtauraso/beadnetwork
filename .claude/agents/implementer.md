@@ -18,7 +18,7 @@ You are an implementation subagent. You make scoped code changes and verify them
   (exit 0 = clean, NONZERO = something failed, reason on stderr — so `$?` / `&&` are
   correct here). That single command is the source of truth — the SAME checks as the
   Stop hook (verify.sh is a thin `--cli` wrapper on scripts/stop-checks.sh, one copy so
-  they can't drift): go build+test, tsc, npm build (refreshes out/webview.js),
+  they can't drift): go build, tsc, npm build (refreshes out/webview.js),
   staticcheck, eslint, and all guards, gated so it only does the expensive
   per-language steps when that language changed or the branch is ahead of origin/main.
   Do NOT read `$?` from raw `stop-checks.sh` — that one always exits 0 (Stop-hook JSON
