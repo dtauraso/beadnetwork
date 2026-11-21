@@ -16,15 +16,16 @@ func netData(m Model) *LinksBoard.Net {
 	n := &LinksBoard.Net{Back: Act{Op: OpNetFold}, IDs: m.Nodes}
 	for _, id := range m.Nodes {
 		menu := Act{Op: OpMenu, K: menuNode, Node: id}
+		c := m.Frame.At(m.Col(id).At)
 		n.Nodes = append(n.Nodes, LinksBoard.NetNode{
-			Name: "node " + id, Sub: linkCount(len(m.linksTo(id))) + " in",
+			ID: id, X: float32(c.X), Y: float32(c.Y),
 			Menu: menu, MenuOpen: m.Menu == menu,
 			Drop: Board.Chip{Label: "Remove node " + id, Act: Act{Op: OpRemoveNode, Node: id}, Note: "and its links"},
 		})
 		var row []LinksBoard.NetCell
 		for _, to := range m.Nodes {
-			_, has := m.Link(id, to)
-			cell := LinksBoard.NetCell{Self: to == id, Linked: has, Act: Act{Op: OpConnect, Node: id, To: to}}
+			l, has := m.Link(id, to)
+			cell := LinksBoard.NetCell{Self: to == id, Linked: has, Picked: has && l.Picked, Act: Act{Op: OpConnect, Node: id, To: to}}
 			if has {
 				cell.Act.Op = OpDisconnect
 			}

@@ -12,10 +12,11 @@ type Net struct {
 }
 
 type NetNode struct {
-	Name, Sub string
-	Menu      Act
-	MenuOpen  bool
-	Drop      Board.Chip
+	ID       string
+	X, Y     float32
+	Menu     Act
+	MenuOpen bool
+	Drop     Board.Chip
 }
 
 type NetField struct {
@@ -24,8 +25,8 @@ type NetField struct {
 }
 
 type NetCell struct {
-	Self, Linked bool
-	Act          Act
+	Self, Linked, Picked bool
+	Act                  Act
 }
 
 const netHeadW = 104
@@ -49,8 +50,8 @@ func network(l *Board.Laid, r Rect, sy float32, n Net, menus *[]placed) float32 
 	h := Board.RowH()
 	w := max(160, r.W-2*colGap)
 	x, y := r.X+colGap, r.Y+colGap-sy
-	card := func(name, sub string, rows int, menu Act, open bool, drop Board.Chip) (float32, float32) {
-		ch := cheadH + float32(rows)*(h+Board.Gap) + cpad
+	card := func(name, sub string, rows int, extra float32, menu Act, open bool, drop Board.Chip) (float32, float32) {
+		ch := cheadH + float32(rows)*(h+Board.Gap) + extra + cpad
 		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y, W: w, H: ch}, Clip: clip, Fill: Board.White, Edge: Board.Guide, Radius: radius6, Stroke: 1, Alpha: 1})
 		l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x + 1, Y: y + 1, W: w - 2, H: cheadH - 1}, Clip: clip, Fill: Board.Card, Radius: radius6 - 1, Corner: 2, Alpha: 1})
 		tx := x + cpad
@@ -64,12 +65,14 @@ func network(l *Board.Laid, r Rect, sy float32, n Net, menus *[]placed) float32 
 		}
 		return x + cpad, y + cheadH + Board.Gap
 	}
-	for _, nd := range n.Nodes {
-		_, cy := card(nd.Name, nd.Sub, 0, nd.Menu, nd.MenuOpen, nd.Drop)
-		y = cy + cpad - Board.Gap + colGap
+	if len(n.Nodes) > 0 {
+		gh := min(320, max(160, w*0.6))
+		gx, gy := card("network", "seen along z · bright arrows are picked · click a node for its menu", 0, gh+Board.Gap, Act{}, false, Board.Chip{})
+		graph(l, clip, Rect{X: gx, Y: gy, W: w - 2*cpad, H: gh}, n, menus)
+		y = gy + gh + cpad + colGap
 	}
 	if len(n.IDs) > 1 {
-		cx, cy := card("links", "each node, then the nodes it feeds · click one to unlink", len(n.IDs), Act{}, false, Board.Chip{})
+		cx, cy := card("links", "each node, then the nodes it feeds · click one to unlink", len(n.IDs), 0, Act{}, false, Board.Chip{})
 		for i, row := range n.Cells {
 			ry := cy + float32(i)*(h+Board.Gap)
 			x := cx + l.Text(cx, ry, h, clip, n.IDs[i]+"  →", Board.Px, Board.Ink, true, Board.Left) + Board.Gap
