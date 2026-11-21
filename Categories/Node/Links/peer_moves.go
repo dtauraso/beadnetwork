@@ -58,7 +58,7 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 	p.round, p.point, p.placed = m.Round, p.Pos(), p.pickedIn() == nil
 	out := shifted
 	if p.placed {
-		out = append(append(out, p.tell()...), p.movedTo(true, false)...)
+		out = append(append(out, p.tell()...), p.movedTo(true, false, Vec3{})...)
 	}
 	held := p.held
 	p.held = nil
@@ -85,36 +85,40 @@ func (p *Peer) recover(m Put) []Envelope {
 	}
 	p.placed = true
 	p.point = p.Pos()
-	return append(p.tell(), p.movedTo(true, false)...)
+	return append(p.tell(), p.movedTo(true, false, Vec3{})...)
 }
 
 func (p *Peer) turnedBy(from string, d Vec3) []Envelope {
-	*p.At = p.Frame.GridAt(p.Pos().Add(d))
-	out := p.sat(from, false, true)
+	out := p.sat(from, false, true, p.step(d))
 	p.rebase()
 	return out
 }
 
-func (p *Peer) sat(keep string, keepPicked, measure bool) []Envelope {
+func (p *Peer) step(d Vec3) Vec3 {
+	was := p.Pos()
+	*p.At = p.Frame.GridAt(was.Add(d))
+	return p.Pos().Sub(was)
+}
+
+func (p *Peer) sat(keep string, keepPicked, measure bool, by Vec3) []Envelope {
 	p.Changed.Place = true
 	for _, from := range p.order {
 		if measure && from != keep && !(keepPicked && p.own[from].Picked) {
 			p.remeasure(from)
 		}
 	}
-	return p.movedTo(keepPicked, measure)
+	return p.movedTo(keepPicked, measure, by)
 }
 
-func (p *Peer) movedTo(keepPicked, measure bool) []Envelope {
+func (p *Peer) movedTo(keepPicked, measure bool, by Vec3) []Envelope {
 	var out []Envelope
 	for _, id := range p.neighbours() {
-		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: *p.At, KeepPicked: keepPicked, Measure: measure, Round: p.round}})
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: *p.At, By: by, KeepPicked: keepPicked, Measure: measure, Round: p.round}})
 	}
 	return out
 }
 
 func (p *Peer) moved(m Moved) []Envelope {
-	was := p.posOf(m.ID)
 	p.places[m.ID] = m.At
 	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
 	l, ok := p.own[m.ID]
@@ -125,7 +129,7 @@ func (p *Peer) moved(m Moved) []Envelope {
 		p.remeasure(m.ID)
 		p.rebase()
 	case l.Picked:
-		return p.moveBy(p.posOf(m.ID).Sub(was))
+		return p.moveBy(m.By)
 	}
 	return nil
 }
@@ -151,10 +155,10 @@ func (p *Peer) moveBy(d Vec3) []Envelope {
 	if d.Length() < 1e-12 {
 		return nil
 	}
-	*p.At = p.Frame.GridAt(p.Pos().Add(d))
+	by := p.step(d)
 	p.point = p.Pos()
 	p.Changed.Place = true
-	return p.movedTo(false, false)
+	return p.movedTo(false, false, by)
 }
 
 func (p *Peer) refit(walk bool) []Envelope {
