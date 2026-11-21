@@ -94,7 +94,7 @@ func (m Model) stepCol(n int) LinksBoard.Column {
 		{Label: "Duplicate", Act: Act{Op: OpStepCopy, I: n}},
 	}
 	c.Drop = Board.Chip{Label: "Delete step", Act: Act{Op: OpStepDrop, I: n}}
-	hd := &LinksBoard.Head{Picked: itoa(len(m.stepActive(n))) + " picked"}
+	hd := &LinksBoard.Head{Picked: itoa(len(m.stepActive(n))) + " picked", Play: playOf(m, n)}
 	for _, a := range axes {
 		hd.Locks = append(hd.Locks, lockOf(m, n, a))
 	}

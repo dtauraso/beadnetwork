@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
@@ -146,6 +147,9 @@ func (md *MoveDispatch) sFitsStarts(ctx context.Context) {
 
 func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int) {
 	m := &md.UI.Builder
+	if md.runPlay(ctx, a) {
+		return
+	}
 	edits := m.StepHeadEdit(a, sign)
 	md.persistStep()
 	if len(edits) > 0 {
@@ -177,7 +181,44 @@ func DrainLinkReports(md *MoveDispatch) {
 		m.TakeTiming(t)
 	}
 	m.Now = clock.HumanTick(m.TickMs)
-	if len(rs) > 0 || m.TimeKey() != before {
+	played := md.playTick(context.TODO())
+	if len(rs) > 0 || m.TimeKey() != before || played {
 		md.UI.EmitViewFrame(nil)
+	}
+}
+
+func (md *MoveDispatch) runPlay(ctx context.Context, a Sheet.Act) bool {
+	if a.Op != Builder.OpAllPlay {
+		return false
+	}
+	m := &md.UI.Builder
+	_, was := m.StopPlay()
+	md.stopPlay(ctx)
+	if !was {
+		md.showFor(ctx, a.I)
+		m.StartPlay(a.I, clock.HumanTick(m.TickMs))
+	}
+	return true
+}
+
+func (md *MoveDispatch) playTick(ctx context.Context) bool {
+	m := &md.UI.Builder
+	f, ok := m.PlayTick(m.Now)
+	if !ok {
+		return false
+	}
+	md.sendPlay(ctx, f)
+	return true
+}
+
+func (md *MoveDispatch) sendPlay(ctx context.Context, f Links.PlayFrame) {
+	for _, id := range md.UI.Builder.Nodes {
+		md.sendLink(ctx, id, f)
+	}
+}
+
+func (md *MoveDispatch) stopPlay(ctx context.Context) {
+	if run := md.UI.Builder.PlayRun; run > 0 {
+		md.sendPlay(ctx, Links.PlayFrame{Run: run, Stop: true})
 	}
 }

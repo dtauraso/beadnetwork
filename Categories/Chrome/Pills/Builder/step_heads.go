@@ -3,6 +3,7 @@ package Builder
 import (
 	"slices"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -44,7 +45,7 @@ func (m Model) stepActive(step int) []StepEdge {
 }
 
 func IsStepHead(a Act) bool {
-	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock || a.Op == OpAllLockCycle || a.Op == OpAllInc || a.Op == OpAllOne)
+	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock || a.Op == OpAllLockCycle || a.Op == OpAllInc || a.Op == OpAllOne || a.Op == OpAllScale || a.Op == OpAllPlay)
 }
 
 type HeadEdit struct {
@@ -83,6 +84,9 @@ func (m *Model) StepHeadEdit(a Act, sign int) []HeadEdit {
 	case OpAllLocks:
 		st.ToggleBoth()
 		return nil
+	case OpAllScale:
+		st.Scale = max(1, st.PlayScale()+sign)
+		return nil
 	case OpAllInc:
 		return m.stepHeadEdits(a.I, Links.EditHeadInc, a.K, sign, Links.Lock{})
 	case OpAllOne:
@@ -117,4 +121,65 @@ func (m Model) writeStepHeads() error {
 		}
 	}
 	return nil
+}
+
+const (
+	OpAllPlay  = "all-play"
+	OpAllScale = "all-scale"
+)
+
+type Play struct {
+	Step int
+	Run  int
+	K, N int
+	At   int64
+}
+
+func (m Model) PlayFrames(step int) int {
+	presses := 0
+	for _, e := range m.stepActive(step) {
+		if l, ok := m.gridLink(e); ok {
+			presses = max(presses, l.Presses())
+		}
+	}
+	return presses * m.headOf(step).PlayScale()
+}
+
+func (m Model) Playing(step int) bool { return m.Play != nil && m.Play.Step == step }
+
+func playOf(m Model, step int) LinksBoard.Lock {
+	glyph := "▶"
+	if m.Playing(step) {
+		glyph = "■ " + itoa(m.Play.K) + "/" + itoa(m.Play.N)
+	}
+	return LinksBoard.Lock{Label: glyph, Axis: "×" + itoa(m.headOf(step).PlayScale()), On: m.Playing(step),
+		Cycle: Act{Op: OpAllPlay, I: step}, Press: Act{Op: OpAllScale, I: step}}
+}
+
+func (m *Model) StartPlay(step int, now int64) {
+	m.PlayRun++
+	m.Play = &Play{Step: step, Run: m.PlayRun, N: max(1, m.PlayFrames(step)), At: now + 2}
+}
+
+func (m *Model) StopPlay() (run int, was bool) {
+	if m.Play == nil {
+		return 0, false
+	}
+	run = m.Play.Run
+	m.Play = nil
+	return run, true
+}
+
+func (m *Model) PlayTick(now int64) (Links.PlayFrame, bool) {
+	p := m.Play
+	if p == nil || now < p.At || m.Walking() {
+		return Links.PlayFrame{}, false
+	}
+	p.At = now + 1
+	f := Links.PlayFrame{Run: p.Run, K: p.K, N: p.N, Stop: p.K > p.N}
+	if f.Stop {
+		m.Play = nil
+	}
+	p.K++
+	return f, true
 }

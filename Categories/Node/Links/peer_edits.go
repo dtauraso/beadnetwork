@@ -1,6 +1,53 @@
 package Links
 
-import "fmt"
+import (
+	"fmt"
+	"maps"
+	"slices"
+)
+
+func (p *Peer) HasPickedIn() bool { return p.pickedIn() != nil }
+
+func (p *Peer) PlayIn(from string, frac float64) (Vec3, bool) {
+	l, ok := p.own[from]
+	if !ok || !l.Picked {
+		return Vec3{}, false
+	}
+	return p.Frame.LinkVecAt(*l, p.refs[from], frac), true
+}
+
+func (p *Peer) PlayOutVecs(frac float64) (vecs []Vec3, picked []bool) {
+	for _, to := range slices.Sorted(maps.Keys(p.out)) {
+		v := Vec3{}
+		if p.outPicked[to] {
+			v = p.outVecAt(to, frac)
+		}
+		vecs = append(vecs, v)
+		picked = append(picked, p.outPicked[to])
+	}
+	return vecs, picked
+}
+
+func (p *Peer) outVecAt(to string, frac float64) Vec3 {
+	if c := p.grid.at(p.grid.Shown); c != nil {
+		for _, o := range c.Out {
+			if o.Link.To == to {
+				return p.Frame.LinkVecAt(o.Link, RefTurn(*p.Ref), frac)
+			}
+		}
+	}
+	return Vec3{}
+}
+
+func (p *Peer) PlayTo(run int, at Vec3, k, n int) []Envelope {
+	var out []Envelope
+	for _, to := range slices.Sorted(maps.Keys(p.outPicked)) {
+		if p.outPicked[to] {
+			out = append(out, Envelope{To: to, Msg: PlayAt{Run: run, From: p.ID, P: at, K: k, N: n}})
+		}
+	}
+	return out
+}
 
 func (p *Peer) pickReq(m PickReq) []Envelope {
 	l, ok := p.own[m.From]
