@@ -50,6 +50,7 @@ type Put struct {
 type Moved struct {
 	ID         string
 	By         Vec3
+	At         Vec3
 	KeepPicked bool
 	Measure    bool
 	Jump       bool

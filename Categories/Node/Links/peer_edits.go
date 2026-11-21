@@ -19,7 +19,8 @@ func (p *Peer) pickReq(m PickReq) []Envelope {
 		out = p.unpick(Unpick{From: on.From})
 	}
 	l.Picked = true
-	p.touched(m.From)
+	p.remeasure(m.From, p.gapOf(l, p.refs[m.From]))
+	p.rebase()
 	return append(out, Envelope{To: m.From, Msg: PickSet{From: p.ID, On: true}})
 }
 
