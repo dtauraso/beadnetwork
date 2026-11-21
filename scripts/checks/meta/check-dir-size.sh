@@ -13,9 +13,6 @@ import os, re, subprocess, collections
 CEILING = 20
 
 ALLOWED = {
-    "Categories/Node/BeadAnimation":
-        "one Go package by the compiler: 9 unexported symbols cross its files, and Sender "
-        "and Receiver reach BeadLine's unexported queue; plus its own TS and 3 guards",
     ".":
         "go.mod, LICENSE and the main package live at the module root",
 }
