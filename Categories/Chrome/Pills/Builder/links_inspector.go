@@ -2,7 +2,6 @@ package Builder
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
@@ -110,16 +109,3 @@ func (m Model) fixedShort(l Links.Link) string {
 	return ""
 }
 
-func (m Model) fixedWhy(l Links.Link) string {
-	for _, id := range m.ManyIn() {
-		if id != l.From && id != l.To {
-			continue
-		}
-		var in []string
-		for _, f := range m.linksTo(id) {
-			in = append(in, f.Name())
-		}
-		return id + " has " + strconv.Itoa(len(in)) + " links in (" + strings.Join(in, ", ") + "), so its distance is held."
-	}
-	return ""
-}

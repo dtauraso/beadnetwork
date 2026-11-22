@@ -74,23 +74,6 @@ func cardW(d Card) float32 {
 	return w
 }
 
-func cardsW(d Data) float32 {
-	var w float32
-	for _, c := range d.Cols {
-		for _, n := range c.Nodes {
-			for _, lk := range n.Links {
-				if lk.Card != nil {
-					w = max(w, cardW(*lk.Card))
-				}
-			}
-		}
-	}
-	if w == 0 {
-		return 0
-	}
-	return w + 2*colGap + lindent + cpad
-}
-
 func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	box := len(l.Marks)
 	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y, W: w}, Clip: clip, Fill: Board.White, Edge: Board.Guide, Radius: radius6, Corner: 1, Stroke: 1, Alpha: 1})

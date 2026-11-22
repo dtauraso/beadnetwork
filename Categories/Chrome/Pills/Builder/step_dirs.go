@@ -89,7 +89,7 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 }
 
 func (m *Model) rereadSteps() error {
-	m.StepHeads, m.Touched = nil, StepEdge{}
+	m.StepHeads = nil
 	m.ReadNodeSteps()
 	m.ReadTree()
 	return nil

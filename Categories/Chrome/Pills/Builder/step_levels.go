@@ -48,9 +48,3 @@ func (m *Model) ShowStep(a Act, sign int) {
 	i := slices.Index(ns, was)
 	m.ShownStep = ns[min(max(i+sign, 0), len(ns)-1)]
 }
-
-func (m *Model) Touch(a Act) {
-	if a.Node != "" && a.To != "" && (a.I > 0 || a.I == startPart) {
-		m.Touched = StepEdge{Step: a.I, From: a.Node, To: a.To}
-	}
-}
