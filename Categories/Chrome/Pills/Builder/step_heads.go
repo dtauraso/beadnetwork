@@ -213,33 +213,6 @@ func (m *Model) SetNetworkOpen(on bool) error {
 	return Store.WriteAtomicIfChanged(filepath.Join(StepStore.PressDir(m.Root), FileNetworkOpen), on)
 }
 
-func (m Model) StepOf(id string) Step {
-	if id == "" {
-		return m.Step
-	}
-	if s := m.Steps[id]; s != nil {
-		return *s
-	}
-	return Step{}
-}
-
-func (m *Model) NodeStep(id string) *Step {
-	if id == "" {
-		return &m.Step
-	}
-	if m.Steps == nil {
-		m.Steps = map[string]*Step{}
-	}
-	if m.Steps[id] == nil {
-		s := Step{}
-		if m.Root != "" {
-			s = StepStore.ReadStep(StepStore.NodePressDir(m.Root, id))
-		}
-		m.Steps[id] = &s
-	}
-	return m.Steps[id]
-}
-
 func (m *Model) ReadNodeSteps() {
 	for _, id := range m.Nodes {
 		m.NodeStep(id)
@@ -251,16 +224,4 @@ func (m *Model) ReadNodeSteps() {
 			m.StepHead(step)
 		}
 	}
-}
-
-func (m Model) WriteSteps() error {
-	if err := StepStore.WriteStep(StepStore.PressDir(m.Root), m.Step); err != nil {
-		return err
-	}
-	for id, s := range m.Steps {
-		if err := StepStore.WriteStep(StepStore.NodePressDir(m.Root, id), *s); err != nil {
-			return err
-		}
-	}
-	return m.WriteHeads()
 }

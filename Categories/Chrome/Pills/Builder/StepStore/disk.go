@@ -12,6 +12,8 @@ import (
 )
 
 type Disk struct {
+	Step  Step
+	Steps map[string]*Step
 	Root  string
 	Level string
 	Nums  []int
@@ -103,7 +105,7 @@ func (d Disk) WriteHeads() error {
 	return nil
 }
 
-func (d Disk) SwapSteps(ns []int, n, by int) (int, string, error) {
+func (d Disk) swapSteps(ns []int, n, by int) (int, string, error) {
 	i := slices.Index(ns, n) + by
 	if i < 0 || i >= len(ns) {
 		return n, fmt.Sprintf("step %d is already the %s step, so it stays", n, map[int]string{-1: "first", 1: "last"}[by]), nil
@@ -136,4 +138,82 @@ func (d Disk) ShiftSteps(ns []int, after, by int) error {
 		}
 	}
 	return nil
+}
+
+func (d Disk) StepOf(id string) Step {
+	if id == "" {
+		return d.Step
+	}
+	if s := d.Steps[id]; s != nil {
+		return *s
+	}
+	return Step{}
+}
+
+func (d *Disk) NodeStep(id string) *Step {
+	if id == "" {
+		return &d.Step
+	}
+	if d.Steps == nil {
+		d.Steps = map[string]*Step{}
+	}
+	if d.Steps[id] == nil {
+		s := Step{}
+		if d.Root != "" {
+			s = ReadStep(NodePressDir(d.Root, id))
+		}
+		d.Steps[id] = &s
+	}
+	return d.Steps[id]
+}
+
+func (d Disk) WriteSteps() error {
+	if err := WriteStep(PressDir(d.Root), d.Step); err != nil {
+		return err
+	}
+	for id, s := range d.Steps {
+		if err := WriteStep(NodePressDir(d.Root, id), *s); err != nil {
+			return err
+		}
+	}
+	return d.WriteHeads()
+}
+
+func (d Disk) MoveDir(ns []int, from, to int) (string, error) {
+	by := 1
+	if to < from {
+		by = -1
+	}
+	for at := from; at != to; {
+		next, refused, err := d.swapSteps(ns, at, by)
+		if refused != "" || err != nil {
+			return refused, err
+		}
+		at = next
+	}
+	return "", nil
+}
+
+func ShiftedFrom(ns []int, n int, add, dup, drop bool) []int {
+	var from []int
+	for _, k := range ns {
+		switch {
+		case k < n || (k == n && !drop):
+			from = append(from, k)
+		case k > n && drop:
+			from = append(from, k)
+		}
+		if k == n && add {
+			from = append(from, 0)
+		}
+		if k == n && dup {
+			from = append(from, n)
+		}
+	}
+	return from
+}
+
+func MovedFrom(ns []int, from, to int) []int {
+	order := slices.DeleteFunc(slices.Clone(ns), func(k int) bool { return k == from })
+	return slices.Insert(order, slices.Index(ns, to), from)
 }

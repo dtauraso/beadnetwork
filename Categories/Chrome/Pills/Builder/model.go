@@ -18,8 +18,9 @@ type (
 	Pill  = Sheet.Pill
 	Group = Sheet.Group
 
-	Step   = StepStore.Step
-	LockOn = StepStore.LockOn
+	Step    = StepStore.Step
+	StepRow = StepStore.StepRow
+	LockOn  = StepStore.LockOn
 )
 
 var (
@@ -37,8 +38,6 @@ type Model struct {
 	Refused string
 
 	StepStore.Disk
-	Step  Step
-	Steps map[string]*Step
 
 	StepFrom  []int
 	Walk      Walk

@@ -8,6 +8,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
@@ -69,7 +70,7 @@ func (m *Model) AddInner(p []int) ([]int, error) {
 	if ns := StepStore.ReadStepNumbers(dir); len(ns) > 0 {
 		n = ns[len(ns)-1] + 1
 	}
-	if err := Store.WriteAtomic(filepath.Join(dir, FileTreeOpen), true); err != nil {
+	if err := Store.WriteAtomic(filepath.Join(dir, StepStore.FileTreeOpen), true); err != nil {
 		return nil, err
 	}
 	return append(slices.Clone(p), n), os.MkdirAll(StepStore.StepDir(dir, n), 0o755)
@@ -161,31 +162,34 @@ func (m Model) treeData(d *Fill.Data) {
 	}
 }
 
-func (m Model) findsIn(p []int) bool {
-	find := strings.ToLower(strings.TrimSpace(m.TreeFind))
-	if strings.Contains(strings.ToLower(StepStore.LabelAt(m.pathDir(p[:len(p)-1]), p[len(p)-1])), find) {
-		return true
+func (m *Model) StartSplit(left int) { m.Splitting, m.splitX0 = true, float32(left) }
+
+func (m *Model) SplitTo(x float64) bool {
+	if !m.Splitting {
+		return false
 	}
-	for _, n := range StepStore.ReadStepNumbers(m.pathDir(p)) {
-		if m.findsIn(append(slices.Clone(p), n)) {
-			return true
+	m.TreeW = max(LinksBoard.TreeMinW, float32(x)-m.splitX0)
+	return true
+}
+
+func (m *Model) EndSplit() bool {
+	was := m.Splitting
+	m.Splitting = false
+	return was
+}
+
+func (m *Model) TreeWheel(pl Sheet.Layout, x, y, dy float64) bool {
+	for _, p := range pl.Pills {
+		l, ok := p.Board.(*Board.Laid)
+		if !ok {
+			continue
+		}
+		for _, s := range l.Spots {
+			if v := map[string]*float32{OpTreeScroll: &m.TreeSY}[s.Cell.Act.Op]; v != nil && x >= float64(s.R.X) && x < float64(s.R.X+s.R.W) && y >= float64(s.R.Y) && y < float64(s.R.Y+s.R.H) {
+				*v = min(max(0, *v+float32(dy)), float32(s.Cell.Act.I))
+				return true
+			}
 		}
 	}
 	return false
-}
-
-func (m *Model) walkFind(parent, here []int) {
-	dir := m.pathDir(parent)
-	for _, n := range StepStore.ReadStepNumbers(dir) {
-		p := append(slices.Clone(parent), n)
-		if !m.findsIn(p) {
-			continue
-		}
-		r := StepRow{Path: p, Label: StepStore.LabelAt(dir, n), Depth: len(parent), Shown: slices.Equal(p, here)}
-		r.Here = len(p) <= len(here) && slices.Equal(p, here[:len(p)])
-		r.Kids = len(StepStore.ReadStepNumbers(StepStore.StepDir(dir, n)))
-		r.Open = r.Kids > 0
-		m.Tree = append(m.Tree, r)
-		m.walkFind(p, here)
-	}
 }
