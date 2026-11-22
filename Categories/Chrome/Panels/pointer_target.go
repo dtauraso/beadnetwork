@@ -9,6 +9,7 @@ const (
 	PointerInteractive
 	PointerRefusing
 	PointerResize
+	PointerSideResize
 )
 
 type PointerTarget struct {

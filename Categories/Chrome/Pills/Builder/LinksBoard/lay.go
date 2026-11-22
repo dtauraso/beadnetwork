@@ -9,6 +9,9 @@ type Rect = Board.Rect
 
 const (
 	pad      = 8
+	TreeMinW = 120
+	colsMinW = 240
+	splitW   = 8
 	narrowW  = 520
 	stripPad = 8
 )
@@ -48,17 +51,30 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, menus *[]placed) float32 {
 	bar.H = scopeBar(l, bar, narrow, d, menus)
 	end := mid.Y + mid.H
+	var split Rect
 	if !narrow && (len(d.Tree) > 0 || d.TreeFind != nil) {
 		top := bar.Y + bar.H
-		r := Rect{X: mid.X, Y: top, W: treeW, H: end - top}
+		tw := float32(treeW)
+		if d.TreeW > 0 {
+			tw = d.TreeW
+		}
+		tw = max(TreeMinW, min(tw, mid.W-colsMinW))
+		r := Rect{X: mid.X, Y: top, W: tw, H: end - top}
+		split = Rect{X: r.X + tw - splitW/2, Y: top, W: splitW, H: r.H}
 		most := treeMost(r, d)
 		if a := d.TreeScroll; a.Op != "" {
 			a.I = int(most)
 			l.Spot(r, l.Clip(r), Sheet.Cell{Act: a}, Sheet.PartInside)
 		}
 		treePane(l, r, Board.Clamp(d.TreeSY, most), d, menus)
-		mid.X, mid.W = mid.X+treeW, mid.W-treeW
+		mid.X, mid.W = mid.X+tw, mid.W-tw
 	}
+	defer func() {
+		if a := d.TreeSplit; a.Op != "" && split.W > 0 {
+			a.I = int(box.X)
+			l.Spot(split, l.Clip(split), Sheet.Cell{Act: a}, Sheet.PartBody)
+		}
+	}()
 	mid.Y = bar.Y + bar.H
 	mid.H = end - mid.Y
 	if d.Empty != nil && d.New == nil && d.Net == nil && d.Pop == nil {

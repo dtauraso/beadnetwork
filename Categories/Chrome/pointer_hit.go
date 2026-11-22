@@ -8,6 +8,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
 )
 
@@ -29,6 +30,8 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	}
 	if h := pl.Sheet.Hit(x, y); h.Part == Sheet.PartGrab {
 		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerResize}
+	} else if h.Part == Sheet.PartBody && h.Cell.Act.Op == Builder.OpTreeSplit {
+		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerSideResize}
 	} else if h.Part != Sheet.PartNone && h.Part != Sheet.PartInside {
 		t := Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 		if h.Part == Sheet.PartBody && h.Cell.Kind == Sheet.CellButton {
