@@ -16,7 +16,7 @@ import {
 } from "./shading-params";
 import { SCENE_NODE_TAG, SCENE_RING_TAG } from "../../../Start/extension/webview/scene/scene-tags";
 import { updateNodeInstances } from "./node-instances-update";
-import { getCanonicalRingSurfaceGeometry } from "../../Ring/NodeShape/ring-surface-geometry";
+import { getCanonicalRingSurfaceGeometry } from "./ring-surface-geometry";
 
 export function NodeInstances({ capacity }: { capacity: number }) {
   const envTex = useContext(EnvTexContext);

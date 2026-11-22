@@ -1,4 +1,4 @@
-import { nodeBytes } from "../Block/node-leaves";
+import { nodeBytes } from "../Block/read/node-leaves";
 import { TILT_VALUE_NAMES, type TiltValueName } from "./tilt-values-gen";
 
 export const tiltArrowBytes = (row: number, name: TiltValueName) => nodeBytes(row, name);

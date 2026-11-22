@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getEdgeStreamAccessor } from "../../Node/Edge/edge-stream-blocks";
-import { nodeF32 } from "../../Node/Block/node-leaves";
+import { nodeF32 } from "../../Node/Block/read/node-leaves";
 import { checkEdgeLandsOnNode } from "../../Node/Edge/check-edge-lands-on-node";
 import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../../Ring/Bead/bead-style";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";

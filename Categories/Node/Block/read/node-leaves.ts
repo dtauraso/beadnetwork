@@ -1,5 +1,5 @@
 import { makeRowLeafValues } from "./row-leaf-values";
-import { NODE_VALUE_NAMES, type NodeValueName } from "./node-values-gen";
+import { NODE_VALUE_NAMES, type NodeValueName } from "../node-values-gen";
 
 const values = makeRowLeafValues<NodeValueName>(
   "Categories/Node/Block/paths",
