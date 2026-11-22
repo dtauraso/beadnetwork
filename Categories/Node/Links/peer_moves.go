@@ -52,7 +52,9 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 		default:
 			l.Step(m.K, m.Sign)
 		}
-		l.MarkWays()
+		if m.Sign != 0 {
+			l.MarkWays()
+		}
 		p.touched(l.From)
 	}
 	shifted := p.shift()

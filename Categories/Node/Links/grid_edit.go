@@ -67,7 +67,7 @@ func (p *Peer) stepEdit(m StepEdit) []Envelope {
 		p.Changed.Refused = refused
 		return nil
 	}
-	if m.Op == EditPress || m.Op == EditHead {
+	if (m.Op == EditPress || m.Op == EditHead) && m.Sign != 0 {
 		l.MarkWays()
 	}
 	p.touched(m.From)
