@@ -33,7 +33,7 @@ func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Data, menus *[]pl
 	w := max(160, r.W-2*colGap)
 	y := r.Y + colGap - sy
 	if d.New != nil || d.Net != nil {
-		y = topCard(l, r, sy, d, menus)
+		return max(0, topCard(l, r, sy, d, menus)+sy-(r.Y+r.H))
 	}
 	for _, c := range d.Cols {
 		k := col{l: l, clip: clip, x: r.X + colGap, w: w, y: y, narrow: narrow, menus: menus}
