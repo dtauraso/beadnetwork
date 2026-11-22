@@ -61,19 +61,25 @@ Each node runs on its own goroutine, with its own inbox.
 3. Each node sends its new place to its neighbours, and shows the step only once it has
    heard that round from all of them.
 
-Each node checks its own links' changes, and refuses a length below zero or a second
-selected link into itself.
+Each node checks its own links' changes:
+
+- A length below zero is refused.
+- One link into a node is selected at a time. Selecting a second one moves the selection
+  to it, and says so.
+- No length into or out of a node with more than one incoming link changes. Its angles
+  still turn.
+- Nothing ties the angles of different links together. Each selected link turns by its
+  own step size.
 
 - **To read it:**
   - `peer_moves.go`, `Peer.stepAll`, `Peer.tell` and `Peer.recover`: step, send the
     place, place from it.
   - `peer.go`, `Peer.Ready`: shown once every neighbour is heard.
-  - `Peer.stepR` and `peer_edits.go`, `Peer.press`: a length below zero is refused.
-  - `peer_edits.go`, `Peer.pickReq`: a second selected link is refused.
-  - `Categories/Scene/Dispatch/move_dispatch.go`, `differentIncrement`: an angle step size
-    unlike the other links out of the same node is refused before it is sent.
-  - `move_dispatch.go`, `manyIn` and `refuseFixedR`, and `peer_moves.go`, `Peer.stepAll`
-    (`FixedR`): no length into or out of a node with more than one incoming link changes.
+  - `peer_moves.go`, `Peer.stepR`, and `grid_edit.go`, `editLink`: a length below zero is
+    refused.
+  - `peer_edits.go`, `Peer.pickReq`: selecting a second link moves the selection.
+  - `Categories/Chrome/Pills/Builder/model.go`, `ManyIn` and `FixedR`, and
+    `peer_moves.go`, `Peer.stepAll`: the lengths that stay fixed.
 
 ## Time
 
