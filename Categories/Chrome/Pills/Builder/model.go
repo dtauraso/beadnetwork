@@ -42,7 +42,6 @@ type Model struct {
 	Play      *Play
 	Rounds    map[string]int
 	StepHeads map[int]*Step
-	StepFolds map[StepNode]bool
 	CardsOpen map[StepEdge]bool
 
 	ShownStep   int

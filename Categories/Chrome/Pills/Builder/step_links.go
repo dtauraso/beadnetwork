@@ -2,17 +2,6 @@ package Builder
 
 import "github.com/dtauraso/beadnetwork/Categories/Node/Links"
 
-func (m Model) gridLinks(step int, id string) []Links.Link {
-	if step == 0 {
-		return m.Col(id).Links()
-	}
-	c, ok := m.StepCol(step, id)
-	if !ok {
-		return nil
-	}
-	return c.Links()
-}
-
 func (m Model) gridLink(e StepEdge) (Links.Link, bool) {
 	c, ok := m.StepCol(e.Step, e.To)
 	if !ok {

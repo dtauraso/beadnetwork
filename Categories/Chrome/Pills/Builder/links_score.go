@@ -109,18 +109,14 @@ func (m Model) stepCol(n int) LinksBoard.Column {
 }
 
 func (m Model) nodeOf(step int, id string, links []Links.Link) LinksBoard.Node {
-	n := LinksBoard.Node{Label: "into node " + id, Sub: "· " + linkCount(len(links)) + " in", Open: !m.StepFolded(step, id), Fold: Act{Op: OpStepFold, Node: id, I: step}}
-	if step == startPart {
-		n.Label = "node " + id
-		for _, l := range links {
-			n.Links = append(n.Links, m.startLink(id, l))
-		}
-		return n
-	}
+	var n LinksBoard.Node
 	for _, l := range links {
-		n.Links = append(n.Links, m.linkOf(step, l))
+		if step == startPart {
+			n.Links = append(n.Links, m.startLink(id, l))
+		} else {
+			n.Links = append(n.Links, m.linkOf(step, l))
+		}
 	}
-	n.Sub = ""
 	return n
 }
 

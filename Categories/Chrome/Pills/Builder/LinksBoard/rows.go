@@ -6,7 +6,6 @@ import (
 )
 
 const (
-	nodeH    = 24
 	lrowH    = 26
 	lindent  = 22
 	miniPx   = 20
@@ -21,22 +20,7 @@ const (
 )
 
 func (k *col) node(n Node) {
-	l, y := k.l, k.y
-	k.rule(y-1, Board.Hair)
-	glyph := "▸"
-	if n.Open {
-		glyph = "▾"
-	}
-	x := k.x + cpad
-	l.Text(x+6, y, nodeH, k.clip, glyph, 11, Board.Mute, false, Board.Center)
-	x += 12 + 6
-	x += l.Weighted(x, y, nodeH, k.clip, n.Label+" ", 12, Board.Mute, Board.Semi, Board.Left)
-	l.Text(x, y, nodeH, k.clip, n.Sub, 12, Board.Mute, false, Board.Left)
-	l.Spot(Rect{X: k.x, Y: y, W: k.w, H: nodeH}, k.clip, Sheet.Cell{Act: n.Fold}, Sheet.PartBody)
-	k.y += nodeH
-	if !n.Open {
-		return
-	}
+	k.rule(k.y-1, Board.Hair)
 	for _, lk := range n.Links {
 		k.link(lk)
 	}

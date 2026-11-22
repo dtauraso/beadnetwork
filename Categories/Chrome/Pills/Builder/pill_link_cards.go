@@ -138,12 +138,3 @@ var axes = []axis{
 	{"r", Links.KR, func(l Links.Link) string { return tenths(l.Start.R) }, func(l Links.Link) int { return l.Delta.R }, func(l Links.Link) int { return l.Increment.R }, func(l Links.Link) int { return l.Start.One.R }},
 }
 
-func linkCount(n int) string {
-	switch n {
-	case 0:
-		return "no links"
-	case 1:
-		return "1 link"
-	}
-	return strconv.Itoa(n) + " links"
-}
