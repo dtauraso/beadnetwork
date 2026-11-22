@@ -1,0 +1,191 @@
+<!doctype html>
+<!-- branch: task/one-click-pick -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One-click pick</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1d1f23; --mute: #6b7079; --hair: #e3e5e9;
+    --edge: #c9cdd4; --accent: #3b74d9; --on: #e4edfb; --warn: #c2410c; --good: #15803d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #16181c; --panel: #1f2227; --ink: #e8eaed; --mute: #9aa0a8; --hair: #2e3238;
+      --edge: #454a52; --accent: #6b9cf0; --on: #24324a; --warn: #f0894f; --good: #4ade80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 36px 0 10px; }
+  p.lead { color: var(--mute); margin: 0 0 24px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+  figure { margin: 0; }
+  figcaption { font-size: 12px; color: var(--mute); margin-bottom: 6px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .04em; }
+  .panel { background: var(--panel); border: 1px solid var(--edge); border-radius: 6px; overflow: hidden; }
+  .node { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px;
+    color: var(--mute); border-top: 1px solid var(--hair); font-size: 13px; }
+  .node b { font-weight: 600; }
+  .row { position: relative; display: flex; align-items: center; gap: 8px; height: 34px;
+    padding: 0 12px 0 28px; font-size: 14px; }
+  .row.open { background: var(--on); box-shadow: inset 2px 0 var(--accent); }
+  .row .sum { margin-left: auto; color: var(--mute); font-size: 13px; }
+  .row.off { color: var(--mute); }
+  .chip { border: 1px solid var(--edge); border-radius: 5px; padding: 0 6px; font-size: 12px;
+    height: 20px; line-height: 18px; background: var(--panel); }
+  .chip.on { background: var(--on); border-color: var(--accent); }
+  .chip.instead { color: var(--accent); border-color: var(--accent); }
+  .dial { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--edge); }
+  .radio { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--edge); flex: none; }
+  .radio.on { border-color: var(--accent); background: radial-gradient(var(--accent) 0 3.5px, transparent 4px); }
+  .to { color: var(--mute); font-size: 12px; width: 34px; flex: none; }
+  .click { position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--warn);
+    color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+  .click.g { background: var(--good); }
+  .note { font-size: 13px; color: var(--mute); margin-top: 8px; }
+  table { border-collapse: collapse; width: 100%; background: var(--panel); border: 1px solid var(--edge);
+    border-radius: 6px; overflow: hidden; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--hair); vertical-align: top; }
+  th { color: var(--mute); font-weight: 600; border-top: none; }
+  td.n { font-variant-numeric: tabular-nums; text-align: center; width: 80px; }
+  .rec { border: 2px solid var(--accent); border-radius: 8px; padding: 14px 16px; background: var(--panel); }
+  .rec h2 { margin-top: 0; }
+  ul { padding-left: 20px; margin: 6px 0; }
+  svg text { fill: var(--ink); font: 12px -apple-system, sans-serif; }
+  svg .m { fill: var(--mute); }
+  svg .box { fill: var(--panel); stroke: var(--edge); }
+  svg .hot { fill: var(--on); stroke: var(--accent); }
+  svg .ar { stroke: var(--mute); fill: none; marker-end: url(#a); }
+</style>
+</head>
+<body>
+<main>
+  <h1>One-click pick</h1>
+  <p class="lead">Proposal for the step list. Today a link has to be picked before any of its
+  numbers can change (Go refuses the edit otherwise), and picking and opening are two separate
+  targets on the same row. This page proposes making the row a single target.</p>
+
+  <h2>What it takes today vs. proposed</h2>
+  <div class="pair">
+    <figure>
+      <figcaption>Today: pick, then open (2 clicks)</figcaption>
+      <div class="panel">
+        <div class="node">▾ <b>into node 1</b> · 0 of 2 picked</div>
+        <div class="row"><span class="chip">pick</span> 2 → 1 <span class="dial"></span><span class="sum">not turned</span></div>
+        <div class="row"><span class="chip">pick</span> 4 → 1 <span class="dial"></span><span class="sum">not turned</span></div>
+        <div class="node">▾ <b>into node 3</b> · 1 of 1 picked</div>
+        <div class="row open"><span class="chip on">✓ picked</span> 2 → 3 <span class="dial"></span><span class="sum">+2φ +12θ</span></div>
+      </div>
+      <div style="position:relative;height:0">
+        <span class="click" style="left:30px;top:-132px">1</span>
+        <span class="click" style="left:150px;top:-132px">2</span>
+      </div>
+      <p class="note">① the <i>pick</i> chip toggles the pick. ② the rest of the row opens the
+      inspector. Click ② first on an unpicked link and every stepper you then press is refused.
+      Clicking ✓ picked by accident unpicks it.</p>
+    </figure>
+    <figure>
+      <figcaption>Proposed: click the row (1 click)</figcaption>
+      <div class="panel">
+        <div class="node">▾ <b>into node 1</b></div>
+        <div class="row off"><span class="radio"></span> 2 → 1 <span class="dial"></span><span class="sum">not turned</span></div>
+        <div class="row off"><span class="radio"></span> 4 → 1 <span class="dial"></span><span class="sum">not turned</span></div>
+        <div class="node">▾ <b>into node 3</b></div>
+        <div class="row open"><span class="radio on"></span> 2 → 3 <span class="dial"></span><span class="sum">+2φ +12θ</span></div>
+      </div>
+      <div style="position:relative;height:0">
+        <span class="click g" style="left:120px;top:-132px">1</span>
+      </div>
+      <p class="note">Clicking anywhere on a row picks it <b>and</b> opens it. The radio dot shows which
+      link into each node is picked; at most one is, so it reads as a radio group.
+      The “k of n picked” count goes, since the dots show it.</p>
+    </figure>
+  </div>
+
+  <h2>What one click does</h2>
+  <svg viewBox="0 0 940 210" width="100%" role="img" aria-label="Click flow">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill:var(--mute)"/></marker></defs>
+    <rect class="hot" x="10" y="80" width="150" height="48" rx="6"/>
+    <text x="85" y="100" text-anchor="middle">click row</text>
+    <text x="85" y="117" text-anchor="middle" class="m">4 → 1</text>
+
+    <rect class="box" x="230" y="20" width="200" height="48" rx="6"/>
+    <text x="330" y="40" text-anchor="middle">not picked</text>
+    <text x="330" y="57" text-anchor="middle" class="m">pick it (moves the pick off 2 → 1)</text>
+    <rect class="box" x="230" y="140" width="200" height="48" rx="6"/>
+    <text x="330" y="160" text-anchor="middle">already picked</text>
+    <text x="330" y="177" text-anchor="middle" class="m">no change to the pick</text>
+
+    <rect class="box" x="500" y="80" width="200" height="48" rx="6"/>
+    <text x="600" y="100" text-anchor="middle">open it in the inspector</text>
+    <text x="600" y="117" text-anchor="middle" class="m">(close any other open row)</text>
+
+    <rect class="box" x="770" y="80" width="160" height="48" rx="6"/>
+    <text x="850" y="100" text-anchor="middle">steppers work</text>
+    <text x="850" y="117" text-anchor="middle" class="m">nothing refused</text>
+
+    <path class="ar" d="M160,96 C195,96 195,44 228,44"/>
+    <path class="ar" d="M160,112 C195,112 195,164 228,164"/>
+    <path class="ar" d="M430,44 C465,44 465,96 498,96"/>
+    <path class="ar" d="M430,164 C465,164 465,112 498,112"/>
+    <path class="ar" d="M700,104 L768,104"/>
+  </svg>
+  <p class="note">Moving the pick still shows the existing “moved the pick” toast with Undo,
+  so a stray click costs one more click to take back.</p>
+
+  <h2>Unpicking (rare, so it gets the small target)</h2>
+  <div class="pair">
+    <figure>
+      <figcaption>Unpick from the row</figcaption>
+      <div class="panel">
+        <div class="row open"><span class="radio on"></span> 2 → 3 <span class="dial"></span><span class="sum">+2φ +12θ</span></div>
+      </div>
+      <p class="note">Click the dot of the picked row to clear it, leaving that node with nothing turning
+      this step. The dot is the only part of the row that does something other than pick and open.</p>
+    </figure>
+    <figure>
+      <figcaption>The inspector keeps its switch</figcaption>
+      <div class="panel" style="padding:8px 10px;font-size:13px">
+        <b>2 → 3</b> <span style="color:var(--mute)">· step 2</span>
+        <span style="float:right"><span class="chip on">✓ picked</span></span>
+      </div>
+      <p class="note">The inspector header’s picked switch stays as it is, the second way to unpick.</p>
+    </figure>
+  </div>
+
+  <h2>Clicks per task</h2>
+  <table>
+    <tr><th>Task</th><th>Today</th><th>Proposed</th></tr>
+    <tr><td>Turn an unpicked link (pick it, open it)</td><td class="n">2</td><td class="n">1</td></tr>
+    <tr><td>Switch which link into a node turns</td><td class="n">2</td><td class="n">1</td></tr>
+    <tr><td>Look at a picked link</td><td class="n">1</td><td class="n">1</td></tr>
+    <tr><td>Look at an unpicked link without picking it</td><td class="n">1</td><td class="n">— (see risk)</td></tr>
+    <tr><td>Unpick a link</td><td class="n">1</td><td class="n">1 (dot)</td></tr>
+  </table>
+
+  <h2>Risk</h2>
+  <ul>
+    <li>Opening an unpicked link just to read its numbers would now pick it. Hovering a row
+      already lights its edge in the scene, and an unpicked link has no turn of its own to read,
+      so little is lost. Undo on the toast covers the rest.</li>
+    <li>START rows stay as they are: they are not picked per step, so their click only opens.</li>
+  </ul>
+
+  <div class="rec" style="margin-top:32px">
+    <h2>Change, if agreed</h2>
+    <ul>
+      <li><code>LinksBoard/rows.go</code>: replace <code>pickChip</code> with a radio dot. The row
+        spot carries a new act that picks and opens; the dot keeps <code>lk.Pick</code>, enabled
+        only on the picked row.</li>
+      <li><code>Builder</code>: that act sends the existing pick edit when the link is not picked,
+        then opens its card, the same as the row click does now.</li>
+      <li><code>links_score.go</code>: drop “· k of n picked” from the node header.</li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>
