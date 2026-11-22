@@ -29,9 +29,19 @@ func totalOf(l Links.Link, k string) int {
 }
 
 func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
+	c := m.turnCard(step, l)
 	if !l.Picked {
-		return &LinksBoard.Card{Note: "Not picked in this step. Click “pick” to give it a turn."}
+		c.Note = "Not picked in this step, so it does not turn. These are the turns it would make; click the row to pick it and change them."
+		for i := range c.Rows {
+			for _, s := range []*Board.Stepper{&c.Rows[i].Start, &c.Rows[i].A, &c.Rows[i].B} {
+				s.Field, s.DownDim, s.UpDim = Board.Field{}, true, true
+			}
+		}
 	}
+	return c
+}
+
+func (m Model) turnCard(step int, l Links.Link) *LinksBoard.Card {
 	c := &LinksBoard.Card{Heads: [3]string{"this step turns", "one press", "ends at"}, StartHead: "starts at", Foot: "“starts at” is shared by every step of this sequence."}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	from := l
