@@ -107,17 +107,17 @@ func signOf(v int) int {
 	return 0
 }
 
-func awayAt(s Start, phiTicks int) int {
-	per := s.per()
-	if WrapTicks(per, phiTicks) >= TurnTicks*per/2 {
-		return -1
+func phiSense(ref Turn, per, thetaTicks int) int {
+	th := 2 * math.Pi * float64(thetaTicks) / float64(TurnTicks*per)
+	axis := ref.Rotate(Vec3{X: math.Sin(th), Z: -math.Cos(th)})
+	if v := -axis.Z; math.Abs(v) > 1e-9 {
+		return signOf(int(math.Copysign(1, v)))
 	}
-	return 1
+	return signOf(int(math.Copysign(1, axis.X)))
 }
 
 func (l *Link) MarkWays() {
-	away := awayAt(l.Start, l.Start.Tick.Phi+l.Total.Phi*l.Start.per())
-	l.Way = Ways{Phi: signOf(l.Delta.Phi) * away, Theta: signOf(l.Delta.Theta)}
+	l.Way = Ways{Phi: signOf(l.Delta.Phi), Theta: signOf(l.Delta.Theta)}
 }
 
 func (s *Start) otherPair() {
@@ -141,8 +141,7 @@ func (p *Peer) pickPair(from string, l *Link) bool {
 	}
 	holds := func(d Start) bool {
 		o := baseOf(d, l.Sum()).Origin
-		sign := signOf(t.Delta.Phi)
-		return sign*awayAt(o, o.Tick.Phi) == t.Way.Phi && sign*awayAt(o, o.Tick.Phi+t.Delta.Phi*o.per()-sign) == t.Way.Phi
+		return signOf(t.Delta.Phi)*phiSense(p.refs[from], o.per(), o.Tick.Theta+t.Total.Theta*o.per()) == t.Way.Phi
 	}
 	other := l.Start
 	other.otherPair()
