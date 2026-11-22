@@ -117,18 +117,10 @@ func (m Model) nodeOf(step int, id string, links []Links.Link) LinksBoard.Node {
 		}
 		return n
 	}
-	picked := 0
 	for _, l := range links {
-		lk := m.linkOf(step, l)
-		if lk.Picked {
-			picked++
-		}
-		n.Links = append(n.Links, lk)
+		n.Links = append(n.Links, m.linkOf(step, l))
 	}
-	for i := range n.Links {
-		n.Links[i].Instead = picked > 0 && !n.Links[i].Picked
-	}
-	n.Sub = "· " + itoa(picked) + " of " + itoa(len(links)) + " picked"
+	n.Sub = ""
 	return n
 }
 
@@ -148,6 +140,8 @@ func (m Model) linkOf(step int, l Links.Link) LinksBoard.Link {
 	}
 	if !sl.Picked {
 		lk.Dial.Turn = 0
+		lk.PickOpen = Act{Op: OpLinkPickOpen, Node: l.From, To: l.To, I: step}
+		lk.Gap = Act{Op: OpLinkGap, Node: l.From, To: l.To, I: step}
 		return lk
 	}
 	var parts []string

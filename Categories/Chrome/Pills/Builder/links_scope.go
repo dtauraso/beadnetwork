@@ -78,7 +78,7 @@ func boardData(m Model) LinksBoard.Data {
 
 func (m *Model) NotePick(a Act) {
 	m.UndoPick = Act{}
-	if a.Op != OpStepPick {
+	if a.Op != OpStepPick && a.Op != OpLinkPickOpen {
 		return
 	}
 	for _, l := range m.linksTo(a.To) {
