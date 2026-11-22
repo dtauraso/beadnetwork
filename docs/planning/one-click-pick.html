@@ -6,13 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>One-click pick</title>
 <style>
+  /* the links tab's own paints (Categories/Chrome/Panels/Board/draw-board.ts PAINT) */
   :root {
-    --bg: #f6f7f9; --panel: #ffffff; --ink: #1d1f23; --mute: #6b7079; --hair: #e3e5e9;
-    --edge: #c9cdd4; --accent: #3b74d9; --on: #e4edfb; --warn: #c2410c; --good: #15803d;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #16181c; --panel: #1f2227; --ink: #e8eaed; --mute: #9aa0a8; --hair: #2e3238;
-      --edge: #454a52; --accent: #6b9cf0; --on: #24324a; --warn: #f0894f; --good: #4ade80; }
+    --bg: #fafafa; --panel: #fff; --ink: #222; --mute: #555; --hair: #f0f1f3; --guide: #dde1e6;
+    --edge: #c8ccd2; --accent: #1565c0; --on: #e3eefc; --card: #f4f5f7;
+    --warn: #b26a00; --good: #1565c0; --phi: #FF9F1C; --theta: #3DDC84;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
@@ -39,7 +37,10 @@
     height: 20px; line-height: 18px; background: var(--panel); }
   .chip.on { background: var(--on); border-color: var(--accent); }
   .chip.instead { color: var(--accent); border-color: var(--accent); }
-  .dial { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--edge); }
+  .dial { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--edge);
+    border-top-color: var(--phi); border-right-color: var(--theta); }
+  .row.off .dial { border-top-color: var(--edge); border-right-color: var(--edge); }
+  .panel { border-color: var(--guide); }
   .radio { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--edge); flex: none; }
   .radio.on { border-color: var(--accent); background: radial-gradient(var(--accent) 0 3.5px, transparent 4px); }
   .to { color: var(--mute); font-size: 12px; width: 34px; flex: none; }
