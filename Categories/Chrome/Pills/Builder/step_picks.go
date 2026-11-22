@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -111,6 +113,34 @@ func (m *Model) PickOpen(a Act) Act {
 	}
 	a.Op = OpStepPick
 	return a
+}
+
+func (m Model) PickLoop(a Act) string {
+	if a.Op != OpStepPick {
+		return ""
+	}
+	if l, ok := m.gridLink(StepEdge{a.I, a.Node, a.To}); !ok || l.Picked {
+		return ""
+	}
+	path := []string{a.To, a.Node}
+	for cur := a.Node; len(path) <= len(m.Nodes)+1; {
+		next := ""
+		for _, l := range m.linksTo(cur) {
+			if sl, ok := m.gridLink(StepEdge{a.I, l.From, cur}); ok && sl.Picked {
+				next = l.From
+			}
+		}
+		if next == "" {
+			return ""
+		}
+		path = append(path, next)
+		if next == a.To {
+			slices.Reverse(path)
+			return fmt.Sprintf("step %d: picking %s→%s would close a loop of picked links (%s), where each node keeps moving the next, so it stays unpicked", a.I, a.Node, a.To, strings.Join(path, "→"))
+		}
+		cur = next
+	}
+	return ""
 }
 
 func (m Model) CardOpen(e StepEdge) bool {
