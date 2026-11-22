@@ -103,18 +103,18 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 		}
 		clip := gclip
 		s := gx + lw + g
-		o := s
+		a := s
 		if sw > 0 {
-			o = s + sw + g
+			a = s + sw + g
 			l.Weighted(s+sw/2, cy, headTxtH, clip, d.StartHead, 10.5, Board.Mute, Board.Semi, Board.Center)
 		}
-		a := o
+		b := a + aw + g
+		o := b + bw + g
+		t := o
 		if ow > 0 {
-			a = o + ow + g
+			t = o + ow + g
 			l.Weighted(o+ow/2, cy, headTxtH, clip, d.OneHead, 10.5, Board.Mute, Board.Semi, Board.Center)
 		}
-		b := a + aw + g
-		t := b + bw + g
 		l.Weighted(a+aw/2, cy, headTxtH, clip, d.Heads[0], 10.5, Board.Mute, Board.Semi, Board.Center)
 		l.Weighted(b+bw/2, cy, headTxtH, clip, d.Heads[1], 10.5, Board.Mute, Board.Semi, Board.Center)
 		l.Weighted(t, cy, headTxtH, clip, d.Heads[2], 10.5, Board.Mute, Board.Semi, Board.Left)
