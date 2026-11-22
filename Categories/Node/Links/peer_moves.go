@@ -194,5 +194,16 @@ func (p *Peer) refit(walk bool) []Envelope {
 }
 
 func (p *Peer) count(was, now *Col) {
+	for _, in := range now.In {
+		l := in.Link
+		if w, ok := was.InFrom(l.From); !now.Counted || !l.Picked || !ok || w.Link.Picked || p.grid.Base == nil {
+			continue
+		}
+		b := p.grid.Base[l.From]
+		b.Origin.Turn(KPhi, l.Delta.Phi)
+		b.Origin.Turn(KTheta, l.Delta.Theta)
+		b.Origin.R += float64(l.Delta.R)
+		p.grid.Base[l.From] = b
+	}
 	was.Counted, now.Counted = true, false
 }
