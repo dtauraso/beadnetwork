@@ -34,9 +34,6 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	if d.Toast != "" {
 		refusal(l, box, st, d)
 	}
-	if d.Pop != nil {
-		popover(l, box, bar, *d.Pop)
-	}
 	for i := 0; i < len(menus); i++ {
 		p := menus[i]
 		if p.pane {
@@ -64,7 +61,7 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 	}
 	mid.Y = bar.Y + bar.H
 	mid.H = end - mid.Y
-	if d.Empty != nil && d.New == nil && d.Net == nil {
+	if d.Empty != nil && d.New == nil && d.Net == nil && d.Pop == nil {
 		empty(l, mid, *d.Empty)
 	} else {
 		stack := mid
