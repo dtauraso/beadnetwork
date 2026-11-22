@@ -1,0 +1,126 @@
+<!-- branch: task/view-tabs -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Links View Tabs</title>
+<style>
+:root { --ink:#222; --mute:#555; --card:#f4f5f7; --hair:#dde1e6; --lit:#e3eefc; --edge:#c8ccd2; --accent:#1565c0; --white:#fff; --faint:#9aa0a8; --pane:#fafafa; --bad:#c62828; }
+body { margin:0; background:var(--pane); color:var(--ink); font:14px/1.5 -apple-system, system-ui, sans-serif; }
+main { max-width:920px; margin:0 auto; padding:24px 16px 48px; }
+h1 { font-size:22px; margin:0 0 4px; }
+h2 { font-size:16px; margin:28px 0 8px; }
+p, li { color:var(--mute); }
+b { color:var(--ink); }
+.pair { display:flex; gap:20px; flex-wrap:wrap; }
+.col { flex:1 1 300px; min-width:0; }
+.cap { font-size:12px; color:var(--faint); text-transform:uppercase; letter-spacing:.04em; margin:6px 0; }
+.panel { background:var(--white); border:1px solid var(--edge); border-radius:8px; overflow:hidden; }
+.panel.narrow { max-width:300px; }
+.bar { display:flex; gap:6px; align-items:center; padding:8px; border-bottom:1px solid var(--hair); flex-wrap:wrap; }
+.tabs { display:flex; gap:2px; padding:0 8px; border-bottom:1px solid var(--hair); background:var(--card); }
+.tab { padding:6px 10px; font-size:13px; color:var(--mute); border-bottom:2px solid transparent; }
+.tab.on { color:var(--accent); border-bottom-color:var(--accent); background:var(--white); font-weight:600; }
+.chip { border:1px solid var(--edge); border-radius:6px; padding:1px 8px; font-size:13px; background:var(--white); }
+.chip.lit { background:var(--lit); border-color:var(--accent); color:var(--accent); }
+.crumb { font-weight:700; }
+.field { border:1px solid var(--edge); border-radius:6px; padding:0 8px; font-size:13px; }
+.grow { flex:1; }
+.body { padding:10px; min-height:92px; font-size:13px; color:var(--faint); position:relative; }
+.card { border:1px solid var(--hair); border-radius:6px; overflow:hidden; }
+.card .hd { background:var(--card); padding:4px 8px; font-weight:700; color:var(--ink); }
+.card .hd span { font-weight:400; color:var(--mute); font-size:12px; }
+.row { display:flex; gap:8px; align-items:center; padding:4px 8px; color:var(--mute); }
+.row.new { background:var(--lit); }
+.menu { position:absolute; right:8px; top:2px; background:var(--white); border:1px solid var(--edge); border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.12); padding:6px 10px; color:var(--ink); }
+.menu div { padding:2px 0; }
+.strip { background:var(--card); border-top:1px solid var(--hair); padding:3px 8px; font-size:12px; color:var(--mute); }
+.bad { color:var(--bad); }
+table { border-collapse:collapse; width:100%; background:var(--white); border:1px solid var(--hair); }
+td, th { border-bottom:1px solid var(--hair); padding:6px 8px; text-align:left; vertical-align:top; font-size:13px; }
+th { background:var(--card); }
+code { background:var(--card); padding:0 4px; border-radius:4px; font-size:12px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Links tab: tabs instead of the ⋯ menu</h1>
+<p>Network, Nodes and Frame already behave as tabs: each one replaces the step cards under the bar, and opening one closes the other two. This plan names them as tabs and gives them their own row at every width, so nothing is left to collapse into ⋯.</p>
+
+<h2>Today</h2>
+<div class="pair">
+  <div class="col">
+    <div class="cap">wide (≥ 520px)</div>
+    <div class="panel">
+      <div class="bar"><span class="crumb">steps</span><span class="field">s 100</span><span class="grow"></span><span class="chip">Network ▾</span><span class="chip">Nodes ▾</span><span class="chip">Frame ▾</span></div>
+      <div class="body">step cards</div>
+      <div class="strip">showing step 1</div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="cap">narrow (&lt; 520px)</div>
+    <div class="panel narrow">
+      <div class="bar"><span class="crumb">steps</span><span class="grow"></span><span class="chip lit">⋯</span></div>
+      <div class="body">step cards
+        <div class="menu"><div>s · ticks per 1/12 turn <span class="field">100</span></div><div>Network ▾</div><div>Nodes ▾</div><div>Frame ▾</div></div>
+      </div>
+      <div class="strip">showing step 1</div>
+    </div>
+  </div>
+</div>
+<p>Problems: at narrow width, all three views and the <b>s</b> field are two clicks away. At either width, the only way back to the step cards is to click the lit door again, and nothing names the step cards as a view at all.</p>
+
+<h2>Proposed</h2>
+<div class="pair">
+  <div class="col">
+    <div class="cap">wide: step cards showing</div>
+    <div class="panel">
+      <div class="bar"><span class="crumb">steps</span></div>
+      <div class="tabs"><span class="tab on">Steps</span><span class="tab">Network</span><span class="tab">Nodes</span><span class="tab">Frame</span></div>
+      <div class="body">step cards</div>
+      <div class="strip">showing step 1</div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="cap">narrow: Frame tab open</div>
+    <div class="panel narrow">
+      <div class="bar"><span class="crumb">steps</span></div>
+      <div class="tabs"><span class="tab">Steps</span><span class="tab">Network</span><span class="tab">Nodes</span><span class="tab on">Frame</span></div>
+      <div class="body"><div class="card"><div class="hd">frame <span>shared by every step</span></div>
+        <div class="row new">s <span class="field">100</span> ticks per 1/12 turn · applies now</div>
+        <div class="row">ρ <span class="field">30</span> length of one unit of r</div>
+        <div class="row">…</div>
+        <div class="row">Δt <span class="field">16</span> ms a human tick lasts · applies now</div></div></div>
+      <div class="strip">showing step 1</div>
+    </div>
+  </div>
+</div>
+<ul>
+  <li><b>A tab row under the scope bar</b>, the same at every width: Steps · Network · Nodes · Frame. The open one is lit. Four short labels fit in about 260px, so there is no overflow menu. If the panel gets narrower than that, the tabs wrap onto a second line instead of being cut off.</li>
+  <li><b>Steps is a tab.</b> Clicking it closes whichever other view is open. Clicking the open tab does nothing; it no longer toggles that view closed.</li>
+  <li><b>s moves into the Frame card</b> as its first row, next to Δt. Both are timing settings shared by every step, and both apply the moment you type them, so neither waits for Apply.</li>
+  <li><b>The ⋯ chip and its menu are removed</b>, along with the ▾ on the door labels.</li>
+</ul>
+
+<h2>What changes</h2>
+<table>
+<tr><th>Where</th><th>Change</th></tr>
+<tr><td><code>LinksBoard/scope.go</code></td><td>The bar holds only the breadcrumbs. Removed: the s field, the doors and the ⋯ chip with its menu.</td></tr>
+<tr><td><code>LinksBoard/lay.go</code></td><td>A new tab band between the bar and the tree/cards split. It uses <code>flow</code>, so it wraps when narrow.</td></tr>
+<tr><td><code>LinksBoard/data.go</code>, <code>menu.go</code></td><td><code>Doors</code> → <code>Tabs</code>. Removed: <code>More</code>/<code>MoreOpen</code> and the menu's <code>Find</code>/<code>FindLabel</code>, since s was their only user.</td></tr>
+<tr><td><code>Builder/links_scope.go</code></td><td>The tabs list starts with Steps. <code>framePop</code> gains the s row, which uses the existing <code>frameAct(FrameS)</code> and applies at once.</td></tr>
+<tr><td><code>Builder/pill_links.go</code></td><td><code>menuMore</code> is removed. <code>OpStepsTab</code> is added.</td></tr>
+<tr><td><code>Scene/Dispatch</code></td><td><code>OpStepsTab</code> closes Network, Nodes and Frame. The three existing ops change from toggling a view to opening it.</td></tr>
+</table>
+
+<h2>Check in the editor</h2>
+<ul>
+  <li>At wide and at narrow width, each tab opens its view and Steps returns to the cards.</li>
+  <li>Typing a new s value in the Frame tab changes the animation speed straight away.</li>
+  <li>The Network view still reopens after "Developer: Reload Window", since it is saved to <code>network-open.bin</code>.</li>
+  <li>Leaving the Frame tab with unapplied edits discards them, as Cancel does today.</li>
+</ul>
+</main>
+</body>
+</html>
