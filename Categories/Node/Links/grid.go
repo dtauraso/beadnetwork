@@ -61,16 +61,28 @@ func (p *Peer) fitBase() {
 	}
 	for _, from := range p.order {
 		b, ok := p.grid.Base[from]
+		total := p.grid.ranTotal(from)
 		if !ok {
 			start := p.own[from].Start
 			if in, ok := shown.InFrom(from); ok {
 				start = in.Link.Start
 			}
-			b = baseOf(start, Ints{})
+			b = baseOf(start, total)
 		}
+		b.Total = total
 		b.Origin.Rescale(p.S)
 		p.grid.Base[from] = b
 	}
+}
+
+func (g Grid) ranTotal(from string) Ints {
+	var t Ints
+	for _, c := range g.Cols {
+		if in, ok := c.InFrom(from); ok && c.Counted && in.Link.Picked {
+			t.Phi, t.Theta, t.R = t.Phi+in.Link.Delta.Phi, t.Theta+in.Link.Delta.Theta, t.R+in.Link.Delta.R
+		}
+	}
+	return t
 }
 
 func (b Base) Add(d Ints) Base {
