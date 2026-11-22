@@ -1,6 +1,6 @@
-import { bootPhase, bootFail } from "../Start/extension/webview/log/boot-trace";
-import { vscode } from "../Start/extension/webview/vscode-api";
-import { postLog } from "../Start/extension/webview/log/post";
+import { bootPhase, bootFail } from "./extension/webview/log/boot-trace";
+import { vscode } from "./extension/webview/vscode-api";
+import { postLog } from "./extension/webview/log/post";
 
 declare global {
   interface Window { BEADNETWORK_BOOTED?: boolean }
@@ -12,10 +12,10 @@ bootPhase("bases", `scene=${window.BEADNETWORK_SCENE_BASE ? "set" : "MISSING"} s
 postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
-import { startSceneBaseReads } from "../Categories/Scene/scene-base";
-import { ThreeView } from "../Start/extension/webview/scene/ThreeView";
-import { ErrorBoundary } from "../Start/extension/webview/log/ErrorBoundary";
-import { CrashListeners } from "../Start/extension/webview/log/CrashListeners";
+import { startSceneBaseReads } from "../Categories/Scene/read/scene-base";
+import { ThreeView } from "./extension/webview/scene/ThreeView";
+import { ErrorBoundary } from "./extension/webview/log/ErrorBoundary";
+import { CrashListeners } from "./extension/webview/log/CrashListeners";
 
 
 function Root() {

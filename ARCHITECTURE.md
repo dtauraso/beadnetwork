@@ -14,7 +14,7 @@ extension host (Node)                webview (browser)
   Start/extension/runCommand.ts                  Start/extension/webview/scene/ThreeView.tsx
   Start/extension/handle-message.ts    Start/extension/webview/scene/scene-root.tsx
   Start/extension/html.ts                          Categories/Node/Labels/node-label.ts
-  Start/extension/goBuild.ts                     Categories/Scene/scene-leaves.ts
+  Start/extension/goBuild.ts                     Categories/Scene/read/scene-leaves.ts
 ```
 
 esbuild bundles each side separately ([esbuild.mjs](esbuild.mjs)).
@@ -25,7 +25,7 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 
 `Start/extension/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
-encoded editor→Go record built by the concern that owns the edit — `Categories/Scene/View/Flags/encode.ts`,
+encoded editor→Go record built by the concern that owns the edit — `Categories/Scene/View/Flags/send/encode.ts`,
 `Categories/Scene/encode.ts` and their siblings, each beside that concern's
 Go decoder — and written FRAMED to Go's stdin by `runCommand.ts`). Extension-side dispatch is
 `Start/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the block
@@ -74,10 +74,10 @@ generically from the block files each component reads, keyed off `NODE_DEFS`
 | File | Role |
 |---|---|
 | `Start/main.tsx` | Entry point and mount |
-| `Categories/Scene/scene-leaves.ts` | the scene's binary leaves, including `spawn`, whose change means Go was replaced |
+| `Categories/Scene/read/scene-leaves.ts` | the scene's binary leaves, including `spawn`, whose change means Go was replaced |
 | `Start/extension/webview/scene/scene-root.tsx` | Composition root of the render tree; each component it assembles reads its own block files |
 | `Start/extension/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`Categories/Scene/Gesture` package) |
-| `Categories/Scene/Drag/raw-input-build.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
+| `Categories/Scene/Drag/build/raw-input-build.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
 | `Categories/Scene/View/Flags/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
 | `webview/log/*` | Crash listeners, error boundary, log posting to the extension host |
 

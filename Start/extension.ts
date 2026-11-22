@@ -1,19 +1,19 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { BuildAndRunRunner } from "../Start/extension/runCommand";
-import { buildWebviewHtml, realPath } from "../Start/extension/html";
-import { resolveScenePath } from "../Start/extension/runner/scene-path";
-import { handleMessage } from "../Start/extension/handle-message";
-import { serveDocsOpen } from "../Start/extension/docs-open";
-import { armHostReloadWatcher } from "../Start/extension/host-reload-watcher";
-import { armBundleWatcher } from "../Start/extension/bundle-watcher";
-import { armBlockPush } from "../Start/extension/block-push";
-import { webviewOptions } from "../Start/extension/webview-options";
-import { armGoWatcher } from "../Start/extension/go-watcher";
-import { PROBE_FILES } from "../Start/extension/probe-files";
-import { resolveRepoRoot } from "../Start/extension/repo-root";
-import { sceneRoots } from "../Start/extension/scene-roots";
+import { BuildAndRunRunner } from "./extension/runCommand";
+import { buildWebviewHtml, realPath } from "./extension/html";
+import { resolveScenePath } from "./extension/runner/scene-path";
+import { handleMessage } from "./extension/handle-message";
+import { serveDocsOpen } from "./extension/docs-open";
+import { armHostReloadWatcher } from "./extension/watch/host-reload-watcher";
+import { armBundleWatcher } from "./extension/watch/bundle-watcher";
+import { armBlockPush } from "./extension/block-push";
+import { webviewOptions } from "./extension/webview-options";
+import { armGoWatcher } from "./extension/watch/go-watcher";
+import { PROBE_FILES } from "./extension/probe-files";
+import { resolveRepoRoot } from "./extension/repo-root";
+import { sceneRoots } from "./extension/scene-roots";
 
 export function activate(context: vscode.ExtensionContext) {
   const probeRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);

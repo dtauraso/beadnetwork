@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { ownerCounts } from "../../Scene/owner-counts";
-import { nodeBytes } from "../Block/node-leaves";
+import { ownerCounts } from "../../Scene/read/owner-counts";
+import { nodeBytes } from "../Block/read/node-leaves";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 
 const TICK_COLOR = "#8a8a8a";

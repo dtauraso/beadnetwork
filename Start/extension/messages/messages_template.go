@@ -1,9 +1,9 @@
 package main
 
-const tsMessagesSource = `import type { RawInputEvent } from "../Scene/Drag/raw-input";
-import type { OverlayEditMsg } from "../Scene/View/Flags/edits";
-import type { PanelEditMsg } from "../Chrome/Panels/Panel/edits";
-import type { ClockEditMsg } from "../Chrome/Panels/SliderPanel/edits";
+const tsMessagesSource = `import type { RawInputEvent } from "../Scene/Drag/build/raw-input";
+import type { OverlayEditMsg } from "../Scene/View/Flags/send/edits";
+import type { PanelEditMsg } from "../Chrome/Panels/Panel/send/edits";
+import type { ClockEditMsg } from "../Chrome/Panels/SliderPanel/send/edits";
 import type { SceneEditMsg } from "../Scene/edits";
 import type { OverlayFlag } from "../Scene/View/Flags/flags";
 import type { PanelFlag } from "../Chrome/Panels/Panel/flags";

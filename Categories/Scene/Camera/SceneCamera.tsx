@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { anglesToWorldOffset } from "./viewpoint-bridge";
-import { readCameraPose } from "./camera-leaves";
+import { readCameraPose } from "./read/camera-leaves";
 
 export function SceneCamera({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;

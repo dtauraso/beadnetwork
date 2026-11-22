@@ -130,7 +130,7 @@ and none is a source of truth.
   chain's length both read the one stored path above. The placement is owned by that bead's
   own goroutine (the deleted `beadchain` actor's
   `Bead`) — ownership + message passing, one writer, no locks/atomics
-  (`Categories/Node/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
+  (`Categories/Node/checks/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
   aim broadcast rather than a second
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +

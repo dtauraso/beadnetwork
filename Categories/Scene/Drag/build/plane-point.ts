@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { nodeF32, nodeU8 } from "../../Node/Block/node-leaves";
-import { ownerCounts } from "../owner-counts";
-import { sceneValue } from "../scene-leaves";
+import { nodeF32, nodeU8 } from "../../../Node/Block/read/node-leaves";
+import { ownerCounts } from "../../read/owner-counts";
+import { sceneValue } from "../../read/scene-leaves";
 
 const ray = new THREE.Ray();
 const plane = new THREE.Plane();

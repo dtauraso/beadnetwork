@@ -1,6 +1,6 @@
 import { ByteWriter, enumIndex } from "./record-writer";
 import { IN_KIND_RAW_INPUT, IN_EVENT_KINDS, IN_HIT_KINDS } from "./input-defs";
-import type { RawInputEvent } from "./raw-input";
+import type { RawInputEvent } from "./build/raw-input";
 
 export function encodeRawInput(ev: RawInputEvent): ArrayBuffer {
   const w = new ByteWriter();

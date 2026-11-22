@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { ownerCounts } from "../../Scene/owner-counts";
+import { ownerCounts } from "../../Scene/read/owner-counts";
 import {
   tiltArrowBytes, TILT_SHAFT_NAMES, TILT_HEAD_NAMES,
 } from "./tilt-leaves";

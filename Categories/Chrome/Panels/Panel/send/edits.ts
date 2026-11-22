@@ -1,4 +1,4 @@
-import type { PanelFlag } from "./flags";
+import type { PanelFlag } from "../flags";
 
 // EDIT_MSG_START
 export type PanelEditMsg =

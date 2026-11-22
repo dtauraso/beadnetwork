@@ -2,11 +2,11 @@ import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { overlayFlag, overlayFlagSignature } from "../View/Flags/overlay-flags";
-import { ownerCounts } from "../owner-counts";
+import { ownerCounts } from "../read/owner-counts";
 import {
   type NavNode, decodeNavNodes, sceneSphereFromColumns,
-} from "../../Node/Block/nav-nodes";
-import { navSignature } from "../../Node/Block/nav-nodes";
+} from "../../Node/Block/read/nav-nodes";
+import { navSignature } from "../../Node/Block/read/nav-nodes";
 import { Tori } from "../Tori/Tori";
 import { Handholds } from "../Handholds/Handholds";
 import { ScenePoles } from "../Poles/ScenePoles";

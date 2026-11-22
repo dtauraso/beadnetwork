@@ -1,7 +1,7 @@
 import { makeLeafValues } from "./leaf-values";
 import {
   OWNER_COUNTS_VALUE_NAMES, type OwnerCountsValueName,
-} from "./owner-counts-values-gen";
+} from "../owner-counts-values-gen";
 
 const values = makeLeafValues<OwnerCountsValueName>(
   "Categories/Scene/owner-counts-paths",

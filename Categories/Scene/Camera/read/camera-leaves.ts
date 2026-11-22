@@ -1,4 +1,4 @@
-import { FOCAL_PIXELS } from "./camera-consts";
+import { FOCAL_PIXELS } from "../camera-consts";
 import { makeLeafValues } from "./leaf-values";
 
 const VALUE_NAMES = [

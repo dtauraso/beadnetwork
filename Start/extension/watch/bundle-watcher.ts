@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { buildWebviewHtml } from "./html";
-import { webviewOptions } from "./webview-options";
+import { buildWebviewHtml } from "../html";
+import { webviewOptions } from "../webview-options";
 
 export function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, scenePath: string, anchorPath: string): vscode.FileSystemWatcher {
   const bundleWatcher = vscode.workspace.createFileSystemWatcher(

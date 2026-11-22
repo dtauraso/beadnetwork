@@ -1,9 +1,9 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { nodeLabel } from "./node-label";
-import { ndcToPixel } from "../../Scene/Drag/ndc";
-import { ownerCounts } from "../../Scene/owner-counts";
-import { nodeF32 } from "../Block/node-leaves";
+import { ndcToPixel } from "../../Scene/Drag/build/ndc";
+import { ownerCounts } from "../../Scene/read/owner-counts";
+import { nodeF32 } from "../Block/read/node-leaves";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 import { setLabelPositions } from "./label-canvas";
 import type { LabelPos } from "../../../Start/extension/webview/scene/scene-tags";
