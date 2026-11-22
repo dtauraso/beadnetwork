@@ -130,7 +130,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpToastClose:
 		md.UI.Builder.Refused = ""
 	case Builder.OpNetFold:
-		if err := md.UI.Builder.SetNetworkOpen(!md.UI.Builder.NetworkOpen); err != nil {
+		if err := md.UI.Builder.SetNetworkOpen(true); err != nil {
 			md.UI.Builder.Refused = fmt.Sprintf("could not save that the Network view is open: %v", err)
 		}
 		md.UI.Builder.NewOpen = false

@@ -102,10 +102,7 @@ type Data struct {
 	TreeSY     float32
 	TreeSplit  Act
 	TreeW      float32
-	S          Board.Field
-	Doors      []Board.Chip
-	More       Act
-	MoreOpen   bool
+	Tabs       []Board.Chip
 	Cols       []Column
 	Add        Act
 	Status     string

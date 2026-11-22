@@ -13,6 +13,7 @@ const (
 	OpFrameDraft = "frame-draft"
 	OpFrameApply = "frame-apply"
 	OpToastClose = "toast-close"
+	OpStepsTab   = "steps-tab"
 )
 
 func (m *Model) StageFrame(k string, v float64) {
@@ -31,8 +32,9 @@ func framePop(m Model) *LinksBoard.Pop {
 		}
 		return p
 	}
-	return &LinksBoard.Pop{Tag: "shared by every step", Apply: Act{Op: OpFrameApply}, Cancel: Act{Op: OpFramePop}, CanApply: len(m.FrameDraft) > 0,
+	return &LinksBoard.Pop{Tag: "shared by every step", Apply: Act{Op: OpFrameApply}, Cancel: Act{Op: OpStepsTab}, CanApply: len(m.FrameDraft) > 0,
 		Fields: []LinksBoard.PopField{
+			{Label: "s", What: "ticks per 1/12 turn · applies now", Field: Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "000.00", Act: frameAct(FrameS)}},
 			field("ρ", FrameRho, Num(f.Rho), "length of one unit of r"),
 			field("T_φ", FrameTphi, strconv.Itoa(f.Tphi), "index steps a turn in φ"),
 			field("T_θ", FrameTtheta, strconv.Itoa(f.Ttheta), "index steps a turn in θ"),
@@ -42,11 +44,12 @@ func framePop(m Model) *LinksBoard.Pop {
 }
 
 func boardData(m Model) LinksBoard.Data {
-	net := Board.Chip{Label: "Network ▾", Act: Act{Op: OpNetFold}, Lit: m.NetworkOpen && !m.NewOpen && !m.FramePop}
+	netOn := m.NetworkOpen && !m.NewOpen && !m.FramePop
+	net := Board.Chip{Label: "Network", Act: Act{Op: OpNetFold}, Lit: netOn}
 	d := LinksBoard.Data{
-		S:     Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "00", Act: frameAct(FrameS)},
-		Doors: []Board.Chip{net, {Label: "Nodes ▾", Act: Act{Op: OpNewFold}, Lit: m.NewOpen}, {Label: "Frame ▾", Act: Act{Op: OpFramePop}, Lit: m.FramePop}},
-		More:  Act{Op: OpMenu, K: menuMore}, MoreOpen: m.Menu == Act{Op: OpMenu, K: menuMore}, Cols: boardCols(m),
+		Tabs: []Board.Chip{{Label: "Steps", Act: Act{Op: OpStepsTab}, Lit: !netOn && !m.NewOpen && !m.FramePop}, net,
+			{Label: "Nodes", Act: Act{Op: OpNewFold}, Lit: m.NewOpen}, {Label: "Frame", Act: Act{Op: OpFramePop}, Lit: m.FramePop}},
+		Cols: boardCols(m),
 		Status: "showing step " + itoa(m.StepShown()),
 		Toast:  m.Refused, At: m.Pressed, Dismiss: Act{Op: OpToastClose}}
 	if ns := m.stepNums(); len(ns) > 0 {

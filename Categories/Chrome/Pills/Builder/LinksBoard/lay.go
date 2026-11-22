@@ -46,7 +46,10 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 }
 
 func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, menus *[]placed) float32 {
-	bar.H = scopeBar(l, bar, narrow, d, menus)
+	bar.H = scopeBar(l, bar, d)
+	if len(d.Tabs) > 0 {
+		bar.H += tabBand(l, Rect{X: bar.X, Y: bar.Y + bar.H, W: bar.W, H: Board.RowH()}, d.Tabs)
+	}
 	end := mid.Y + mid.H
 	var split Rect
 	tw := float32(treeW)

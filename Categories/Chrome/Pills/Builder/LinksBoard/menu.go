@@ -11,13 +11,11 @@ const (
 )
 
 type Menu struct {
-	Find      *Board.Field
-	FindLabel string
-	Note      string
-	Empty     string
-	Items     []Board.Chip
-	Extra     []Board.Chip
-	Drop      Board.Chip
+	Note  string
+	Empty string
+	Items []Board.Chip
+	Extra []Board.Chip
+	Drop  Board.Chip
 }
 
 type placed struct {
@@ -57,9 +55,6 @@ func drawMenu(l *Board.Laid, box Rect, p placed) {
 	if m.Drop.Act.Op != "" {
 		n, rules = n+1, rules+1
 	}
-	if m.Find != nil {
-		n++
-	}
 	if m.Note != "" {
 		n++
 	}
@@ -78,14 +73,6 @@ func drawMenu(l *Board.Laid, box Rect, p placed) {
 	l.Block(r, clip)
 	x, y := r.X+menuPad, r.Y+menuPad
 	iw := r.W - 2*menuPad
-	if m.Find != nil {
-		fx := x + 2
-		if m.FindLabel != "" {
-			fx += 6 + l.Text(x+8, y, h, clip, m.FindLabel, Board.SmallPx, Board.Mute, false, Board.Left) + 4
-		}
-		l.Field(fx, y, clip, *m.Find)
-		y += h
-	}
 	if m.Note != "" {
 		l.Text(x+8, y, h, clip, m.Note, Board.SmallPx, Board.Warn, false, Board.Left)
 		y += h
