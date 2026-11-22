@@ -11,7 +11,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
 
@@ -108,7 +108,7 @@ func (m *Model) walkTree(parent, here []int) {
 		r.Here = len(p) <= len(here) && slices.Equal(p, here[:len(p)])
 		r.Kids = len(ReadStepNumbers(stepDir(dir, n)))
 		r.Open = r.Here && !r.Shown
-		Links.ReadIfExists(filepath.Join(stepDir(dir, n), FileTreeOpen), &r.Open)
+		Store.ReadIfExists(filepath.Join(stepDir(dir, n), FileTreeOpen), &r.Open)
 		r.Open = r.Open && r.Kids > 0
 		m.Tree = append(m.Tree, r)
 		if r.Open {
@@ -120,7 +120,7 @@ func (m *Model) walkTree(parent, here []int) {
 func (m *Model) ToggleTreeFold(p []int) error {
 	for _, r := range m.Tree {
 		if slices.Equal(r.Path, p) {
-			if err := Links.WriteAtomic(filepath.Join(m.pathDir(p), FileTreeOpen), !r.Open); err != nil {
+			if err := Store.WriteAtomic(filepath.Join(m.pathDir(p), FileTreeOpen), !r.Open); err != nil {
 				return err
 			}
 		}

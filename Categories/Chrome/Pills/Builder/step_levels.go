@@ -5,12 +5,12 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 func stepLabelAt(dir string, n int) string {
 	var name string
-	if Links.ReadIfExists(filepath.Join(stepDir(dir, n), FileStepName), &name) && name != "" {
+	if Store.ReadIfExists(filepath.Join(stepDir(dir, n), FileStepName), &name) && name != "" {
 		return "step " + strconv.Itoa(n) + " · " + name
 	}
 	return "step " + strconv.Itoa(n)

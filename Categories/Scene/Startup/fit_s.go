@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
 
@@ -46,11 +47,11 @@ func subdirs(dir string) []string {
 }
 
 func readLayers(nodeDir, to string) ([]*linkLayer, error) {
-	base, err := Links.ReadBaseLinks(nodeDir, to)
+	base, err := Store.ReadBaseLinks(nodeDir, to)
 	if err != nil {
 		return nil, err
 	}
-	drag, err := Links.ReadDragLinks(nodeDir, to)
+	drag, err := Store.ReadDragLinks(nodeDir, to)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +123,7 @@ func (ly *linkLayer) fit(want int) error {
 		return nil
 	}
 	if ly.drag {
-		return Links.WriteLinks(ly.nodeDir, ly.links)
+		return Store.WriteLinks(ly.nodeDir, ly.links)
 	}
-	return Links.WriteBaseLinks(ly.nodeDir, ly.links)
+	return Store.WriteBaseLinks(ly.nodeDir, ly.links)
 }

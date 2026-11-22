@@ -33,7 +33,7 @@ type sentKey struct {
 func (p *Peer) SetGrid(g Grid, geom GridGeom) {
 	p.grid, p.geom, p.sent = g, geom, map[sentKey]OutLink{}
 	if len(p.grid.Cols) == 0 {
-		p.grid.Cols = []Col{freshCol(1, p.Links(), *p.At, *p.Ref)}
+		p.grid.Cols = []Col{FreshCol(1, p.Links(), *p.At, *p.Ref)}
 	}
 	if p.grid.at(p.grid.Shown) == nil {
 		p.grid.Shown = p.grid.Cols[0].Step

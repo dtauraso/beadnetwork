@@ -1,4 +1,4 @@
-package Links
+package Store
 
 import (
 	"bytes"
@@ -9,9 +9,11 @@ import (
 	"maps"
 	"slices"
 	"strings"
+
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
-func writeBase(b *bytes.Buffer, base map[string]Base) {
+func writeBase(b *bytes.Buffer, base map[string]Links.Base) {
 	le := binary.LittleEndian
 	_ = binary.Write(b, le, uint32(len(base)*len(baseRows)))
 	for _, from := range slices.Sorted(maps.Keys(base)) {
@@ -40,19 +42,19 @@ func readBase(r io.Reader) ([]GridRow, error) {
 	return out, nil
 }
 
-func ReadGrid(path string) (Grid, bool, error) {
+func ReadGrid(path string) (Links.Grid, bool, error) {
 	h, rows, err := ReadGridRows(path)
 	if errors.Is(err, fs.ErrNotExist) {
-		return Grid{}, false, nil
+		return Links.Grid{}, false, nil
 	}
 	if err != nil {
-		return Grid{}, false, err
+		return Links.Grid{}, false, err
 	}
-	g := Grid{ID: h.ID, Level: h.Level, Shown: h.Shown, Cols: make([]Col, len(h.Steps))}
+	g := Links.Grid{ID: h.ID, Level: h.Level, Shown: h.Shown, Cols: make([]Links.Col, len(h.Steps))}
 	for i, s := range h.Steps {
 		g.Cols[i].Step = s
 	}
-	g.Base = map[string]Base{}
+	g.Base = map[string]Links.Base{}
 	for _, r := range h.Base {
 		from := strings.TrimPrefix(r.Band, BandIn)
 		b := g.Base[from]
@@ -66,7 +68,7 @@ func ReadGrid(path string) (Grid, bool, error) {
 	for from, old := range legacyBase(h.Base) {
 		b := g.Base[from]
 		b.Origin.S = 100
-		b.Origin.Tick = Ticks{LegacyTicks(old[0], 100), LegacyTicks(old[1], 100)}
+		b.Origin.Tick = Links.Ticks{Phi: Links.LegacyTicks(old[0], 100), Theta: Links.LegacyTicks(old[1], 100)}
 		g.Base[from] = b
 	}
 	byBand := map[string]map[string][]float64{}
@@ -78,20 +80,20 @@ func ReadGrid(path string) (Grid, bool, error) {
 		}
 		byBand[r.Band][r.Name] = r.V
 	}
-	setRows(byBand[BandNode], nodeRows, func(i int) *Col { return &g.Cols[i] }, len(g.Cols))
+	setRows(byBand[BandNode], nodeRows, func(i int) *Links.Col { return &g.Cols[i] }, len(g.Cols))
 	for _, band := range bands {
 		vs := byBand[band]
 		for i := range g.Cols {
 			if p := vs[rowPresent]; p == nil || p[i] == 0 {
 				continue
 			}
-			var l Link
-			var sum Angles
+			var l Links.Link
+			var sum Links.Angles
 			for _, r := range linkRows {
 				r.set(&l, at(vs, r.name, i))
 			}
 			if vs[RowPhiTick] == nil {
-				l.Start.Tick = Ticks{LegacyTicks(at(vs, rowPhiOld, i), l.Start.S), LegacyTicks(at(vs, rowThetaOld, i), l.Start.S)}
+				l.Start.Tick = Links.Ticks{Phi: Links.LegacyTicks(at(vs, rowPhiOld, i), l.Start.S), Theta: Links.LegacyTicks(at(vs, rowThetaOld, i), l.Start.S)}
 			}
 			for _, r := range sumRows {
 				r.set(&sum, at(vs, r.name, i))
@@ -100,10 +102,10 @@ func ReadGrid(path string) (Grid, bool, error) {
 			switch {
 			case strings.HasPrefix(band, BandIn):
 				l.From, l.To = strings.TrimPrefix(band, BandIn), h.ID
-				c.In = append(c.In, InCell{Link: l, Sum: sum})
+				c.In = append(c.In, Links.InCell{Link: l, Sum: sum})
 			case strings.HasPrefix(band, BandOut):
 				l.From, l.To = h.ID, strings.TrimPrefix(band, BandOut)
-				o :=OutCell{Link: l, Sum: sum}
+				o := Links.OutCell{Link: l, Sum: sum}
 				for _, r := range outRows {
 					r.set(&o, at(vs, r.name, i))
 				}
@@ -115,12 +117,12 @@ func ReadGrid(path string) (Grid, bool, error) {
 		sortIn(g.Cols[i].In)
 	}
 	if h.Ver < gapOriginsVersion {
-		g.gapOrigins()
+		gapOrigins(g)
 	}
 	return g, true, nil
 }
 
-func (g Grid) gapOrigins() {
+func gapOrigins(g Links.Grid) {
 	shown := g.ShownCol()
 	for from, b := range g.Base {
 		in, ok := shown.InFrom(from)
@@ -128,7 +130,7 @@ func (g Grid) gapOrigins() {
 			continue
 		}
 		d := in.Link.Delta
-		b.Origin = baseOf(b.Origin, Ints{Phi: b.Total.Phi + d.Phi, Theta: b.Total.Theta + d.Theta, R: b.Total.R + d.R}).Origin
+		b.Origin = Links.BaseOf(b.Origin, Links.Ints{Phi: b.Total.Phi + d.Phi, Theta: b.Total.Theta + d.Theta, R: b.Total.R + d.R}).Origin
 		g.Base[from] = b
 	}
 }
@@ -169,17 +171,17 @@ func setRows[T any](vs map[string][]float64, rs []row[T], t func(i int) *T, n in
 	}
 }
 
-func sortIn(in []InCell) {
-	ls := make([]Link, len(in))
+func sortIn(in []Links.InCell) {
+	ls := make([]Links.Link, len(in))
 	for i, c := range in {
 		ls[i] = c.Link
 	}
 	SortLinks(ls)
-	sums := map[string]Angles{}
+	sums := map[string]Links.Angles{}
 	for _, c := range in {
 		sums[c.Link.From] = c.Sum
 	}
 	for i, l := range ls {
-		in[i] = InCell{Link: l, Sum: sums[l.From]}
+		in[i] = Links.InCell{Link: l, Sum: sums[l.From]}
 	}
 }

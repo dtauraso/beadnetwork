@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 func main() {
@@ -86,12 +86,12 @@ func migrateStep(root, old string, n int) error {
 			return err
 		}
 	}
-	base, _ := filepath.Glob(filepath.Join(nodes, "*", Links.DirLinks, "*"))
-	drag, _ := filepath.Glob(filepath.Join(nodes, "*", Links.DirDrag, Links.DirLinks, "*"))
+	base, _ := filepath.Glob(filepath.Join(nodes, "*", Store.DirLinks, "*"))
+	drag, _ := filepath.Glob(filepath.Join(nodes, "*", Store.DirDrag, Store.DirLinks, "*"))
 	for _, dir := range append(base, drag...) {
 		var on bool
-		Links.ReadIfExists(filepath.Join(old, "picks", name, filepath.Base(dir)+".bin"), &on)
-		if err := Links.WriteAtomic(filepath.Join(dir, Links.FilePicked), on); err != nil {
+		Store.ReadIfExists(filepath.Join(old, "picks", name, filepath.Base(dir)+".bin"), &on)
+		if err := Store.WriteAtomic(filepath.Join(dir, Store.FilePicked), on); err != nil {
 			return err
 		}
 	}

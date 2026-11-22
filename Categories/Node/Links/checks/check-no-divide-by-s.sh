@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Categories/Node/Links/*.go, Categories/Chrome/Pills/Builder/*.go | Δ, increment and the reference are whole numbers (Ints, Ref) and s only multiplies: no float Δ/increment/reference, no division by s
+# PLACEMENT: Categories/Node/Links/**/*.go, Categories/Chrome/Pills/Builder/**/*.go | Δ, increment and the reference are whole numbers (Ints, Ref) and s only multiplies: no float Δ/increment/reference, no division by s
 
 set -euo pipefail
 
@@ -23,10 +23,9 @@ for field in ("Delta", "Increment"):
 
 divide = re.compile(r'/\s*(float64\()?\s*(s|S|[\w.]*\.S|ShownS\([^)]*\)|ScaleOf\([^)]*\)|SOf\([^)]*\))\b\)?')
 for root in ("Categories/Node/Links", "Categories/Chrome/Pills/Builder", "Categories/Scene/Dispatch"):
-    for fn in sorted(os.listdir(root)):
-        if not fn.endswith(".go"):
+    for p in sorted(os.path.join(d, f) for d, _, fs in os.walk(root) for f in fs):
+        if not p.endswith(".go"):
             continue
-        p = os.path.join(root, fn)
         for i, line in enumerate(open(p, encoding="utf-8"), 1):
             code = line.split("//", 1)[0]
             if divide.search(code):

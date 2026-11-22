@@ -167,7 +167,7 @@ func (p *Peer) pickPair(from string, l *Link) bool {
 		return false
 	}
 	holds := func(d Start) bool {
-		o := baseOf(d, l.Sum()).Origin
+		o := BaseOf(d, l.Sum()).Origin
 		return signOf(t.Delta.Phi)*phiSense(p.refs[from], o.per(), o.Tick.Theta+t.Total.Theta*o.per()) == t.Way.Phi
 	}
 	other := l.Start

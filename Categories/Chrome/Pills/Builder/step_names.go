@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 const (
@@ -18,7 +18,7 @@ func (m *Model) readStepNames() {
 	m.StepNames = map[int]string{}
 	for _, n := range m.stepNums() {
 		var name string
-		if Links.ReadIfExists(filepath.Join(stepDir(m.lvl(), n), FileStepName), &name) && name != "" {
+		if Store.ReadIfExists(filepath.Join(stepDir(m.lvl(), n), FileStepName), &name) && name != "" {
 			m.StepNames[n] = name
 		}
 	}
@@ -46,7 +46,7 @@ func (m *Model) NameStep(n int, name string) string {
 			err = nil
 		}
 	} else {
-		err = Links.WriteAtomic(path, name)
+		err = Store.WriteAtomic(path, name)
 	}
 	if err != nil {
 		return "step " + strconv.Itoa(n) + ": " + err.Error()

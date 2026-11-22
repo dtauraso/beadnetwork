@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 const (
@@ -41,7 +41,7 @@ func DirOpOf(op string) string { return dirOpOf[op] }
 
 func (m Model) PathName(p []int) string {
 	var name string
-	Links.ReadIfExists(filepath.Join(m.pathDir(p), FileStepName), &name)
+	Store.ReadIfExists(filepath.Join(m.pathDir(p), FileStepName), &name)
 	return name
 }
 
@@ -52,7 +52,7 @@ func (m *Model) NamePath(p []int, name string) string {
 	if m.pathDir(p[:len(p)-1]) == filepath.Join(m.Root, m.Level) {
 		return m.NameStep(p[len(p)-1], name)
 	}
-	if err := Links.WriteAtomic(filepath.Join(m.pathDir(p), FileStepName), strings.TrimSpace(name)); err != nil {
+	if err := Store.WriteAtomic(filepath.Join(m.pathDir(p), FileStepName), strings.TrimSpace(name)); err != nil {
 		return "step " + PathKey(p) + ": " + err.Error()
 	}
 	m.ReadTree()
@@ -68,7 +68,7 @@ func (m *Model) AddInner(p []int) ([]int, error) {
 	if ns := ReadStepNumbers(dir); len(ns) > 0 {
 		n = ns[len(ns)-1] + 1
 	}
-	if err := Links.WriteAtomic(filepath.Join(dir, FileTreeOpen), true); err != nil {
+	if err := Store.WriteAtomic(filepath.Join(dir, FileTreeOpen), true); err != nil {
 		return nil, err
 	}
 	return append(slices.Clone(p), n), os.MkdirAll(stepDir(dir, n), 0o755)

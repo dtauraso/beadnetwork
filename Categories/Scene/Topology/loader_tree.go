@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
@@ -70,7 +70,7 @@ func LoadTree(root string) (TopoSpec, error) {
 		}
 		spec.Edges = append(spec.Edges, edges...)
 
-		links, err := Links.ReadLinks(filepath.Join(nodesDir, nodeID), nodeID)
+		links, err := Store.ReadLinks(filepath.Join(nodesDir, nodeID), nodeID)
 		if err != nil {
 			return spec, fmt.Errorf("loadTree: node %q links: %w", nodeID, err)
 		}

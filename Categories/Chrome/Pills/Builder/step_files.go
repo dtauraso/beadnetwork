@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 const (
@@ -26,12 +27,12 @@ const (
 
 func (m *Model) ReadNetworkOpen() {
 	m.NetworkOpen = false
-	Links.ReadIfExists(filepath.Join(PressDir(m.Root), FileNetworkOpen), &m.NetworkOpen)
+	Store.ReadIfExists(filepath.Join(PressDir(m.Root), FileNetworkOpen), &m.NetworkOpen)
 }
 
 func (m *Model) SetNetworkOpen(on bool) error {
 	m.NetworkOpen = on
-	return Links.WriteAtomicIfChanged(filepath.Join(PressDir(m.Root), FileNetworkOpen), on)
+	return Store.WriteAtomicIfChanged(filepath.Join(PressDir(m.Root), FileNetworkOpen), on)
 }
 
 type LockOn struct{ Phi, Theta, R bool }
@@ -161,15 +162,15 @@ func (m Model) WriteSteps() error {
 
 func ReadStep(dir string) Step {
 	var s Step
-	Links.ReadIfExists(filepath.Join(dir, FileLockPhi), &s.LockAll.Phi)
-	Links.ReadIfExists(filepath.Join(dir, FileLockTheta), &s.LockAll.Theta)
-	Links.ReadIfExists(filepath.Join(dir, FileLockR), &s.LockAll.R)
+	Store.ReadIfExists(filepath.Join(dir, FileLockPhi), &s.LockAll.Phi)
+	Store.ReadIfExists(filepath.Join(dir, FileLockTheta), &s.LockAll.Theta)
+	Store.ReadIfExists(filepath.Join(dir, FileLockR), &s.LockAll.R)
 	s.On = LockOn{s.LockAll.Phi != 0, s.LockAll.Theta != 0, s.LockAll.R != 0}
-	Links.ReadIfExists(filepath.Join(dir, FileLockOnPhi), &s.On.Phi)
-	Links.ReadIfExists(filepath.Join(dir, FileLockOnTheta), &s.On.Theta)
-	Links.ReadIfExists(filepath.Join(dir, FileLockOnR), &s.On.R)
-	Links.ReadIfExists(filepath.Join(dir, FileLockOnBoth), &s.Both)
-	Links.ReadIfExists(filepath.Join(dir, FilePlayScale), &s.Scale)
+	Store.ReadIfExists(filepath.Join(dir, FileLockOnPhi), &s.On.Phi)
+	Store.ReadIfExists(filepath.Join(dir, FileLockOnTheta), &s.On.Theta)
+	Store.ReadIfExists(filepath.Join(dir, FileLockOnR), &s.On.R)
+	Store.ReadIfExists(filepath.Join(dir, FileLockOnBoth), &s.Both)
+	Store.ReadIfExists(filepath.Join(dir, FilePlayScale), &s.Scale)
 	return s
 }
 
@@ -179,7 +180,7 @@ func WriteStep(dir string, s Step) error {
 	}
 	for name, v := range map[string]any{FileLockPhi: s.LockAll.Phi, FileLockTheta: s.LockAll.Theta, FileLockR: s.LockAll.R,
 		FileLockOnPhi: s.On.Phi, FileLockOnTheta: s.On.Theta, FileLockOnR: s.On.R, FileLockOnBoth: s.Both, FilePlayScale: s.PlayScale()} {
-		if err := Links.WriteAtomicIfChanged(filepath.Join(dir, name), v); err != nil {
+		if err := Store.WriteAtomicIfChanged(filepath.Join(dir, name), v); err != nil {
 			return err
 		}
 	}
