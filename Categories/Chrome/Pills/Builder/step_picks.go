@@ -120,7 +120,19 @@ type StepEdge struct {
 	From, To string
 }
 
-const OpCardFold = "card-fold"
+const (
+	OpCardFold     = "card-fold"
+	OpLinkPickOpen = "link-pick-open"
+	OpLinkGap      = "link-gap"
+)
+
+func (m *Model) PickOpen(a Act) Act {
+	if !m.CardOpen(StepEdge{a.I, a.Node, a.To}) {
+		m.ToggleCard(a)
+	}
+	a.Op = OpStepPick
+	return a
+}
 
 func (m Model) CardOpen(e StepEdge) bool {
 	if on, ok := m.CardsOpen[e]; ok || e.Step != 0 {

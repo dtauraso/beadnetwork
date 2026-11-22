@@ -42,16 +42,17 @@ type Card struct {
 }
 
 type Link struct {
-	Label   string
-	Picked  bool
-	Instead bool
-	Pick    Act
-	Open    bool
-	Fold    Act
-	Dial    Board.Dial
-	Sum     string
-	Hot     bool
-	Card    *Card
+	Label    string
+	Picked   bool
+	Pick     Act
+	PickOpen Act
+	Gap      Act
+	Open     bool
+	Fold     Act
+	Dial     Board.Dial
+	Sum      string
+	Hot      bool
+	Card     *Card
 }
 
 type Node struct {

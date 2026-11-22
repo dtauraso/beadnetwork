@@ -81,6 +81,12 @@ func (md *MoveDispatch) stopPlayFor(ctx context.Context, a Sheet.Act) {
 }
 
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
+	if a.Op == Builder.OpLinkGap {
+		return
+	}
+	if a.Op == Builder.OpLinkPickOpen {
+		a = md.UI.Builder.PickOpen(a)
+	}
 	md.UI.Builder.Refused = ""
 	md.stopPlayFor(ctx, a)
 	if a.Op != Builder.OpToastClose {
