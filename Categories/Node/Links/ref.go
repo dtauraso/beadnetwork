@@ -98,11 +98,18 @@ func (p *Peer) gapOf(l *Link, ref Turn) Vec3 { return p.Frame.LinkVec(*l, ref) }
 
 func (p *Peer) remeasure(from string, gap Vec3) {
 	l := p.own[from]
-	if at, ok := p.places[from]; ok {
+	given := gap
+	at, placed := p.places[from]
+	if placed {
 		gap = p.Pos().Sub(at)
 	}
+	was := l.Start
 	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
 	p.setOrigin(from, baseOf(l.Start, l.Sum()).Origin)
+	if p.Crumb != nil {
+		p.Crumb("remeasure", fmt.Sprintf("from=%s step=%d picked=%v pos=%+v place=%+v placed=%v given=%+v gap=%+v ref=%+v was=%+v now=%+v sum=%+v origin=%+v",
+			from, p.grid.Shown, l.Picked, p.Pos(), at, placed, given, gap, p.refs[from], was.Tick, l.Start.Tick, l.Sum(), p.grid.Base[from].Origin.Tick))
+	}
 	p.touched(from)
 }
 

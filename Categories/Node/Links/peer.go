@@ -39,6 +39,7 @@ type Peer struct {
 	places    map[string]Vec3
 
 	Changed Changes
+	Crumb   func(label, text string)
 }
 
 type Seed struct {

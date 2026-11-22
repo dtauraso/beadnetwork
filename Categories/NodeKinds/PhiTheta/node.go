@@ -154,6 +154,7 @@ var Builder = BuilderFor("PhiTheta",
 			return nil, fmt.Errorf("PhiTheta: node %q has no float place (base/at-r.bin, at-phi.bin, at-theta.bin) — a links node is placed on the scene sphere by its own place, and has nowhere to stand without one", a.Name)
 		}
 		n.peer = Links.NewPeer(a.Name, seed)
+		n.peer.Crumb = n.breadcrumb
 		n.tickMs = max(seed.TickMs, 1)
 		n.geom.HumanTicksOnly(n.tickMs)
 		n.breadcrumb("built", fmt.Sprintf("node=%s s=%d at=%+v links=%d", a.Name, n.peer.S, *n.peer.At, len(n.peer.Links())))
