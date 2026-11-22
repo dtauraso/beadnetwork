@@ -62,19 +62,17 @@ func (in *ins) axis(a Axis) {
 	}
 	l, h := in.l, Board.RowH()
 	x, y, bottom := in.x, in.y, in.y
-	switch {
-	case in.slot < 0 && a.DialSize > 0:
+	if in.slot < 0 && a.DialSize > 0 {
 		size := min(a.DialSize, in.w())
 		in.dial(a, Rect{X: in.x + (in.w()-size)/2, Y: y, W: size, H: size})
 		y += size + 6
-	case in.slot > 0:
-		if a.DialSize > 0 {
-			in.dial(a, Rect{X: in.x + (in.slot-a.DialSize)/2, Y: y, W: a.DialSize, H: a.DialSize})
-			bottom = y + a.DialSize
-		}
 	}
 	right := in.r.X + in.r.W - ctrlPadR
 	x = max(x, right-in.ctrl)
+	if in.slot > 0 && a.DialSize > 0 {
+		in.dial(a, Rect{X: x - dialGap - (in.slot+a.DialSize)/2, Y: y, W: a.DialSize, H: a.DialSize})
+		bottom = y + a.DialSize
+	}
 	l.Weighted(x, y, headTH, in.clip, a.Label, 11, Board.Mute, Board.Semi, Board.Left)
 	y += headTH
 	l.Stepper(right-segW(a.Turn), y, in.clip, a.Turn)
