@@ -88,3 +88,45 @@ func (f Frame) cart(s int, r, phi, theta float64) Vec3 {
 	}
 	return v
 }
+
+type Ways struct{ Phi, Theta int }
+
+const (
+	WayNone = 0
+	WayCW   = 1
+	WayCCW  = -1
+)
+
+func signOf(v int) int {
+	switch {
+	case v > 0:
+		return 1
+	case v < 0:
+		return -1
+	}
+	return 0
+}
+
+func (l *Link) phiAway() int {
+	per := l.Start.per()
+	if WrapTicks(per, l.Start.Tick.Phi+l.Total.Phi*per) >= TurnTicks*per/2 {
+		return -1
+	}
+	return 1
+}
+
+func (l *Link) MarkWays() {
+	l.Way = Ways{Phi: signOf(l.Delta.Phi) * l.phiAway(), Theta: signOf(l.Delta.Theta)}
+}
+
+func (l *Link) FaceWays() bool {
+	if l.Way.Phi == WayNone || l.Delta.Phi == 0 || signOf(l.Delta.Phi)*l.phiAway() == l.Way.Phi {
+		return false
+	}
+	per := l.Start.per()
+	l.Start.Tick = Ticks{
+		Phi:   WrapTicks(per, -l.Start.Tick.Phi-2*l.Total.Phi*per),
+		Theta: WrapTicks(per, l.Start.Tick.Theta+TurnTicks*per/2),
+	}
+	return true
+}

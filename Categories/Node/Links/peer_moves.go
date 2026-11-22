@@ -52,6 +52,7 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 		default:
 			l.Step(m.K, m.Sign)
 		}
+		l.MarkWays()
 		p.touched(l.From)
 	}
 	shifted := p.shift()
@@ -183,11 +184,26 @@ func (p *Peer) moveBy(d Vec3) []Envelope {
 
 func (p *Peer) refit(walk bool) []Envelope {
 	p.fitTotals()
+	p.faceWays()
 	if walk {
 		return p.shift()
 	}
 	p.rebase()
 	return nil
+}
+
+func (p *Peer) faceWays() {
+	for _, from := range p.order {
+		l := p.own[from]
+		was := l.Start.Tick
+		if !l.Picked || !l.FaceWays() {
+			continue
+		}
+		if p.Crumb != nil {
+			p.Crumb("face-ways", fmt.Sprintf("from=%s step=%d way=%+v delta=%+v total=%+v was=%+v now=%+v", from, p.grid.Shown, l.Way, l.Delta, l.Total, was, l.Start.Tick))
+		}
+		p.setOrigin(from, l.Start)
+	}
 }
 
 func (p *Peer) count(was, now *Col) {
