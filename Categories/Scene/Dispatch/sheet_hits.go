@@ -130,10 +130,18 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 		md.UI.Builder.NewOpen = false
 		md.UI.Builder.FramePop, md.UI.Builder.FrameDraft = false, nil
+		md.UI.Builder.InspOpen = md.UI.Builder.InspOpen && !md.UI.Builder.NetworkOpen
 	case Builder.OpStartFold:
 		md.UI.Builder.StartOpen = !md.UI.Builder.StartOpen
 	case Builder.OpInspTab:
 		md.UI.Builder.InspOpen = !md.UI.Builder.InspOpen
+		if md.UI.Builder.InspOpen {
+			md.UI.Builder.NewOpen = false
+			md.UI.Builder.FramePop, md.UI.Builder.FrameDraft = false, nil
+			if err := md.UI.Builder.SetNetworkOpen(false); err != nil {
+				md.UI.Builder.Refused = fmt.Sprintf("could not save that the Network view is closed: %v", err)
+			}
+		}
 	case Pills.OpOverlay, Pills.OpOverlayBoth:
 		applyOverlayAct(md, a)
 	}
