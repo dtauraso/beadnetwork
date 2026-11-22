@@ -16,12 +16,10 @@
   body { margin: 0; background: var(--bg); color: var(--ink);
     font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  h2 { font-size: 16px; margin: 36px 0 10px; }
-  p.lead { color: var(--mute); margin: 0 0 24px; }
+  h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 36px 0 10px; }
+  p.lead { color: var(--mute); margin: 0 0 24px; } figure { margin: 0; }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
-  figure { margin: 0; }
   figcaption { font-size: 12px; color: var(--mute); margin-bottom: 6px; font-weight: 600;
     text-transform: uppercase; letter-spacing: .04em; }
   .panel { background: var(--panel); border: 1px solid var(--guide); border-radius: 6px; overflow: hidden; }
@@ -30,12 +28,10 @@
   .row { position: relative; display: flex; align-items: center; gap: 8px; height: 34px;
     padding: 0 12px 0 28px; font-size: 14px; }
   .row.open { background: var(--on); box-shadow: inset 2px 0 var(--accent); }
-  .row .sum { margin-left: auto; color: var(--mute); font-size: 13px; }
-  .row.off { color: var(--mute); }
+  .row .sum { margin-left: auto; color: var(--mute); font-size: 13px; } .row.off { color: var(--mute); }
   .chip { border: 1px solid var(--edge); border-radius: 5px; padding: 0 6px; font-size: 12px;
     height: 20px; line-height: 18px; background: var(--panel); }
-  .chip.on { background: var(--on); border-color: var(--accent); }
-  .chip.look { color: var(--mute); }
+  .chip.on { background: var(--on); border-color: var(--accent); } .chip.look { color: var(--mute); }
   .dial { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--edge);
     border-top-color: var(--phi); border-right-color: var(--theta); }
   .row.off .dial { border-top-color: var(--edge); border-right-color: var(--edge); }
@@ -43,8 +39,7 @@
   .radio.on { border-color: var(--accent); background: radial-gradient(var(--accent) 0 3.5px, transparent 4px); }
   .click { position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--warn);
     color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
-  .click.g { background: var(--good); }
-  .note { font-size: 13px; color: var(--mute); margin-top: 8px; }
+  .click.g { background: var(--good); } .note { font-size: 13px; color: var(--mute); margin-top: 8px; }
   table { border-collapse: collapse; width: 100%; background: var(--panel); border: 1px solid var(--edge);
     border-radius: 6px; overflow: hidden; font-size: 13px; }
   th, td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--hair); vertical-align: top; }
@@ -52,10 +47,8 @@
   td.n { font-variant-numeric: tabular-nums; text-align: center; width: 80px; }
   .rec { border: 2px solid var(--accent); border-radius: 8px; padding: 0 16px 14px; background: var(--panel); }
   ul { padding-left: 20px; margin: 6px 0; }
-  svg text { fill: var(--ink); font: 12px -apple-system, sans-serif; }
-  svg .m { fill: var(--mute); }
-  svg .box { fill: var(--panel); stroke: var(--edge); }
-  svg .hot { fill: var(--on); stroke: var(--accent); }
+  svg text { fill: var(--ink); font: 12px -apple-system, sans-serif; } svg .m { fill: var(--mute); }
+  svg .box { fill: var(--panel); stroke: var(--edge); } svg .hot { fill: var(--on); stroke: var(--accent); }
   svg .ar { stroke: var(--mute); fill: none; marker-end: url(#a); }
 </style>
 </head>
@@ -175,22 +168,27 @@
     <figure>
       <figcaption>Hovered, unpicked row</figcaption>
       <div class="panel">
-        <div class="row off" style="background:var(--on);opacity:1"><span class="radio"></span> 4 → 1 <span class="dial"></span>
-          <span class="sum"><span class="chip look">look</span></span></div>
+        <div class="row off" style="background:var(--on);padding-right:0"><span class="radio"></span> 4 → 1 <span class="dial"></span>
+          <span style="margin-left:auto;width:12px;align-self:stretch;background:var(--panel)"></span>
+          <span style="width:30%;align-self:stretch;display:grid;place-items:center end;padding-right:12px;background:var(--hair);border-left:1px solid var(--guide)"><span class="chip look">look</span></span></div>
       </div>
+      <div style="display:flex;font-size:11px;color:var(--mute);margin-top:4px">
+        <span style="flex:1">pick &amp; open</span><span style="width:12px"></span><span style="width:30%;text-align:center">look</span></div>
     </figure>
   </div>
-  <p class="note">Looking at an unpicked link is the least common thing done on a row, so it gets
-  the least prominent spot: a small <i>look</i> chip at the right end, drawn only while the
-  pointer is over an <b>unpicked</b> row. It takes the place of “not turned”, which says nothing
-  for an unpicked link anyway. Clicking it opens the inspector with the pick unchanged; the
-  steppers there stay dimmed and the picked switch in its header is the way to pick from there.
-  A picked row never shows it: clicking that row already only opens it.</p>
+  <p class="note">Looking at an unpicked link is the least common thing done on a row, so it shows
+  only while the pointer is over an <b>unpicked</b> row. It replaces “not turned”, which says
+  nothing for an unpicked link anyway. It opens the inspector with the pick unchanged. The
+  steppers there stay dimmed, and the picked switch in its header picks from there. A picked
+  row never shows it, because clicking that row already only opens it.</p>
+  <p class="note"><b>No near misses.</b> <i>look</i> is not just the chip. While hovered, the row
+  splits in two: the right 30% is all <i>look</i>, tinted so its edge shows before the click. A
+  12px strip between the two halves does nothing, so a click that lands just short of <i>look</i>
+  is dropped instead of picking the link.</p>
 
   <h2>Risk</h2>
   <ul>
-    <li>A click on an unpicked row aimed at <i>look</i> but landing beside it picks the link.
-      The “moved the pick” toast’s Undo takes it back in one click.</li>
+    <li>A click in the left part of a row still picks, as intended. Only a deliberate click picks.</li>
     <li>START rows stay as they are: they are not picked per step, so their click only opens.</li>
   </ul>
 
@@ -203,8 +201,9 @@
       <li><code>Builder</code>: that act sends the existing pick edit when the link is not picked,
         then opens its card, the same as the row click does now.</li>
       <li><code>LinksBoard/rows.go</code>: on a hovered unpicked row (<code>lk.Hot</code>), draw a
-        <i>look</i> chip in place of the sum; its spot carries the existing open act
-        (<code>lk.Fold</code>), so it opens without picking.</li>
+        <i>look</i> chip in place of the sum and split the row's spot: the right 30% carries the
+        existing open act (<code>lk.Fold</code>), a 12px strip carries no act, and the rest
+        picks and opens.</li>
       <li><code>links_score.go</code>: drop “· k of n picked” from the node header.</li>
     </ul>
   </div>
