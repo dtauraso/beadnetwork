@@ -82,7 +82,7 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 		l.Field(x+2, y, clip, s)
 	}
 	doors := d.Doors
-	if d.Insp.Title != "" {
+	if d.InspTab.Op != "" {
 		insp := Board.Chip{Label: "◂ inspect", Act: d.InspTab}
 		if d.InspOpen {
 			insp = Board.Chip{Label: "▸ inspect", Act: d.InspTab, Lit: true}

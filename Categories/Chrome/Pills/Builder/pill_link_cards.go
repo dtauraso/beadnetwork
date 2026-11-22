@@ -24,6 +24,9 @@ func endsAt(l Links.Link, k string) string {
 
 func boardInspector(m Model) LinksBoard.Inspector {
 	e := m.Touched
+	if e.Step == 0 {
+		e = m.firstStart()
+	}
 	if e.Step == startPart {
 		return m.startInspector(e)
 	}
@@ -79,6 +82,15 @@ func (m Model) rAxis(x *LinksBoard.Axis, l Links.Link) {
 	} else if atZero {
 		x.Lines = []string{"at 0, the closest it can go"}
 	}
+}
+
+func (m Model) firstStart() StepEdge {
+	for _, id := range m.Nodes {
+		if links := m.linksTo(id); len(links) > 0 {
+			return StepEdge{startPart, links[0].From, links[0].To}
+		}
+	}
+	return StepEdge{}
 }
 
 func (m Model) startInspector(e StepEdge) LinksBoard.Inspector {

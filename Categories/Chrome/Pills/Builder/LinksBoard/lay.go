@@ -81,7 +81,7 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 		empty(l, mid, *d.Empty)
 	} else {
 		stack := mid
-		if d.Insp.Title != "" && d.InspOpen {
+		if d.InspOpen {
 			iw := min(inspW, max(inspMinW, mid.W*0.45))
 			stack.W -= iw
 			ir := Rect{X: mid.X + stack.W, Y: mid.Y, W: iw, H: mid.H}
