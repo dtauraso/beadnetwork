@@ -79,14 +79,19 @@ func (m Model) rRow(c *LinksBoard.Card, r *LinksBoard.CardRow, l Links.Link) {
 func (m Model) startBoardCard(id string, l Links.Link) *LinksBoard.Card {
 	b := m.Grids[id].Base[l.From]
 	l.Start = b.Origin
-	c := &LinksBoard.Card{Heads: [3]string{"start", "1", l.From + "'s reference"}}
+	c := &LinksBoard.Card{Heads: [3]string{"start", "1", l.From + "'s reference"}, OneHead: "one press"}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: startPart} }
+	shown := m.StepShown()
+	sl, hasStep := m.gridLink(StepEdge{shown, l.From, l.To})
 	ref := m.Col(l.From).Ref
 	turn := func(k string, v int) Board.Stepper {
 		return stepper(itoa(v), Act{Op: OpNodeRef, Node: l.From, K: k}, true)
 	}
 	for _, a := range axes {
 		r := LinksBoard.CardRow{Axis: a.label, A: stepper(a.at(l), act(OpLinkStart, a.k), true), B: stepper(itoa(a.one(l)), act(OpLinkOne, a.k), false)}
+		if hasStep {
+			r.One = stepper(itoa(a.times(sl)), Act{Op: OpIncrement, Node: l.From, To: l.To, K: a.k, I: shown}, true)
+		}
 		switch a.k {
 		case Links.KPhi:
 			r.Dial = &Board.Dial{Axis: Board.Phi, Start: float32(l.Start.Tick.Phi)}
