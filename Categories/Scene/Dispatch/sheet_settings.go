@@ -79,7 +79,7 @@ func runFramePop(md *MoveDispatch, a Sheet.Act, typed *float64) bool {
 	case Builder.OpFramePop:
 		m.FramePop, m.FrameDraft = !m.FramePop, nil
 		if m.FramePop {
-			m.NewOpen, m.InspOpen = false, false
+			m.NewOpen = false
 			if err := m.SetNetworkOpen(false); err != nil {
 				m.Refused = fmt.Sprintf("could not save that the Network view is closed: %v", err)
 			}

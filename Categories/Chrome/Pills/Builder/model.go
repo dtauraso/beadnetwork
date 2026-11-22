@@ -52,11 +52,9 @@ type Model struct {
 	StartOpen   bool
 	TreePop     bool
 	TreeSY      float32
-	InspSY      float32
 	TreeW       float32
 	splitX0     float32
 	Splitting   bool
-	InspOpen    bool
 	StepsOpen   map[StepNode]bool
 	FramePop    bool
 	FrameDraft  map[string]float64
@@ -64,7 +62,6 @@ type Model struct {
 	Menu        Act
 	Pressed     Act
 	UndoPick    Act
-	Touched     StepEdge
 	Level       string
 	Scene       string
 	OpenTop     int

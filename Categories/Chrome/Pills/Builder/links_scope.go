@@ -46,7 +46,7 @@ func boardData(m Model) LinksBoard.Data {
 	d := LinksBoard.Data{
 		S:     Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "00", Act: frameAct(FrameS)},
 		Doors: []Board.Chip{net, {Label: "Nodes ▾", Act: Act{Op: OpNewFold}, Lit: m.NewOpen}, {Label: "Frame ▾", Act: Act{Op: OpFramePop}, Lit: m.FramePop}},
-		More:  Act{Op: OpMenu, K: menuMore}, MoreOpen: m.Menu == Act{Op: OpMenu, K: menuMore}, Cols: boardCols(m), Insp: boardInspector(m), InspOpen: m.InspOpen, InspTab: Act{Op: OpInspTab},
+		More:  Act{Op: OpMenu, K: menuMore}, MoreOpen: m.Menu == Act{Op: OpMenu, K: menuMore}, Cols: boardCols(m),
 		Status: "showing step " + itoa(m.StepShown()),
 		Toast:  m.Refused, At: m.Pressed, Dismiss: Act{Op: OpToastClose}}
 	if ns := m.stepNums(); len(ns) > 0 {
@@ -55,7 +55,6 @@ func boardData(m Model) LinksBoard.Data {
 	m.treeData(&d)
 	d.Crumbs, d.CrumbName = m.Crumbs()
 	d.TreeScroll, d.TreeSY = Act{Op: OpTreeScroll}, m.TreeSY
-	d.InspScroll, d.InspSY = Act{Op: OpInspScroll}, m.InspSY
 	d.TreeSplit, d.TreeW = Act{Op: OpTreeSplit}, m.TreeW
 	if d.TreeFind != nil {
 		d.PathMenu, d.PathOpen = Act{Op: OpTreePop}, m.TreePop
@@ -107,7 +106,6 @@ func (m *Model) SelectEdge(a, b string) bool {
 	}
 	m.setStepOpen(e.Step, true)
 	m.ToggleCard(Act{Node: e.From, To: e.To, I: e.Step})
-	m.Touched = e
 	return true
 }
 

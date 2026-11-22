@@ -14,6 +14,8 @@ const (
 	splitW   = 8
 	narrowW  = 520
 	stripPad = 8
+
+	colNarrowW = 320
 )
 
 func Lay(box Rect, sx, sy float32, d Data) *Board.Laid {
@@ -80,22 +82,7 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 	if d.Empty != nil && d.New == nil && d.Net == nil && d.Pop == nil {
 		empty(l, mid, *d.Empty)
 	} else {
-		stack := mid
-		if d.InspOpen {
-			iw := min(inspW, max(inspMinW, mid.W*0.45))
-			if need := cardsW(d); need > 0 {
-				iw = max(inspMin(d.Insp), min(iw, mid.W-need))
-			}
-			stack.W -= iw
-			ir := Rect{X: mid.X + stack.W, Y: mid.Y, W: iw, H: mid.H}
-			most := inspector(Board.New(ir), ir, 0, d.Insp)
-			if a := d.InspScroll; a.Op != "" {
-				a.I = int(most)
-				l.Spot(ir, l.Clip(ir), Sheet.Cell{Act: a}, Sheet.PartInside)
-			}
-			inspector(l, ir, Board.Clamp(d.InspSY, most), d.Insp)
-		}
-		l.MostY = columns(l, stack, sy, stack.W < colNarrowW, d, menus)
+		l.MostY = columns(l, mid, sy, mid.W < colNarrowW, d, menus)
 	}
 	return bar.H
 }

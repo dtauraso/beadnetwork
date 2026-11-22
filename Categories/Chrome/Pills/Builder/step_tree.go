@@ -129,7 +129,7 @@ func (m *Model) ToggleTreeFold(p []int) error {
 	return nil
 }
 
-const OpTreeSplit, OpInspScroll = "tree-split", "insp-scroll"
+const OpTreeSplit = "tree-split"
 
 func (m *Model) StartSplit(left int) { m.Splitting, m.splitX0 = true, float32(left) }
 
@@ -154,7 +154,7 @@ func (m *Model) TreeWheel(pl Sheet.Layout, x, y, dy float64) bool {
 			continue
 		}
 		for _, s := range l.Spots {
-			if v := map[string]*float32{OpTreeScroll: &m.TreeSY, OpInspScroll: &m.InspSY}[s.Cell.Act.Op]; v != nil && x >= float64(s.R.X) && x < float64(s.R.X+s.R.W) && y >= float64(s.R.Y) && y < float64(s.R.Y+s.R.H) {
+			if v := map[string]*float32{OpTreeScroll: &m.TreeSY}[s.Cell.Act.Op]; v != nil && x >= float64(s.R.X) && x < float64(s.R.X+s.R.W) && y >= float64(s.R.Y) && y < float64(s.R.Y+s.R.H) {
 				*v = min(max(0, *v+float32(dy)), float32(s.Cell.Act.I))
 				return true
 			}

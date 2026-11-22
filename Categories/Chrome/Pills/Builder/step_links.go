@@ -58,7 +58,6 @@ func IsStepEdit(a Act) bool {
 const (
 	startPart   = -1
 	OpStartFold = "start-fold"
-	OpInspTab   = "insp-tab"
 )
 
 func StepEditOf(a Act, sign int, typed *float64) Links.StepEdit {

@@ -77,32 +77,6 @@ type Column struct {
 	Nodes    []Node
 }
 
-type Axis struct {
-	Label     string
-	Sub       string
-	Short     string
-	Dial      Board.Dial
-	DialSize  float32
-	Turn      Board.Stepper
-	IncTag    string
-	Inc       Board.Stepper
-	Lines     []string
-	Ruler     *Board.Ruler
-	RulerTags [3]string
-	Ends      string
-	Fixed     string
-}
-
-type Inspector struct {
-	Title  string
-	Sub    string
-	Moves  string
-	Switch Board.Chip
-	Note   string
-	Axes   []Axis
-	Hint   string
-}
-
 type PopField struct {
 	Label, What, Was string
 	Field            Board.Field
@@ -126,8 +100,6 @@ type Data struct {
 	CrumbName  Act
 	TreeScroll Act
 	TreeSY     float32
-	InspScroll Act
-	InspSY     float32
 	TreeSplit  Act
 	TreeW      float32
 	PathMenu   Act
@@ -138,9 +110,6 @@ type Data struct {
 	MoreOpen   bool
 	Cols       []Column
 	Add        Act
-	Insp       Inspector
-	InspOpen   bool
-	InspTab    Act
 	Status     string
 	Toast      string
 	At         Act
