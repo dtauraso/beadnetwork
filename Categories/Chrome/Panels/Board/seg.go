@@ -16,12 +16,22 @@ func (l *Laid) Weighted(x, y, h float32, clip uint8, s string, px float32, ink P
 	return w
 }
 
+func SegW(s Stepper) float32 { return 2*segB + segValW(s) }
+
+func segValW(s Stepper) float32 {
+	v := s.Plain
+	if s.Act.Op != "" {
+		v = s.Value
+	}
+	return max(segMinV, W(v, BtnPx)+10, W(s.Fit, BtnPx)+10)
+}
+
 func (l *Laid) Seg(x, y float32, clip uint8, s Stepper) float32 {
 	v := s.Plain
 	if s.Act.Op != "" {
 		v = s.Value
 	}
-	vw := max(segMinV, W(v, BtnPx)+10)
+	vw := segValW(s)
 	w := 2*segB + vw
 	r := Rect{X: x, Y: y, W: w, H: SegH}
 	l.Box(r, clip, Card, Edge)
