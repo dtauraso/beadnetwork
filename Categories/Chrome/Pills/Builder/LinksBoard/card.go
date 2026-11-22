@@ -43,6 +43,60 @@ func segW(s Board.Stepper) float32 {
 
 func headW(s string) float32 { return Board.TextW(s, 10.5, Board.Semi) }
 
+type cardWidths struct{ lw, sw, aw, bw, tw, g float32 }
+
+func cardCols(d Card) cardWidths {
+	var c cardWidths
+	for _, r := range d.Rows {
+		c.lw = max(c.lw, Board.TextW(r.Axis, Board.Px, 7))
+		c.aw, c.bw = max(c.aw, segW(r.A)), max(c.bw, segW(r.B))
+		if r.C.Steps.Op != "" {
+			c.tw = max(c.tw, segW(r.C))
+		} else if r.Why == "" {
+			c.tw = max(c.tw, Board.W(r.Total, 12))
+		}
+		if r.Start.Steps.Op != "" {
+			c.sw = max(c.sw, segW(r.Start))
+		}
+	}
+	hs, h0, h1 := headW(d.StartHead), headW(d.Heads[0]), headW(d.Heads[1])
+	c.tw = max(c.tw, headW(d.Heads[2]))
+	c.g = max(float32(gapX), (h0+h1-c.aw-c.bw)/2+gapX, (h1-c.bw)/2+gapX)
+	if c.sw > 0 {
+		c.g = max(c.g, (hs+h0-c.sw-c.aw)/2+gapX)
+	}
+	return c
+}
+
+func cardW(d Card) float32 {
+	if len(d.Rows) == 0 {
+		return 0
+	}
+	c := cardCols(d)
+	w := 2*cardPadX + c.lw + c.g + c.aw + c.g + c.bw + c.g + c.tw
+	if c.sw > 0 {
+		w += c.sw + c.g
+	}
+	return w
+}
+
+func cardsW(d Data) float32 {
+	var w float32
+	for _, c := range d.Cols {
+		for _, n := range c.Nodes {
+			for _, lk := range n.Links {
+				if lk.Card != nil {
+					w = max(w, cardW(*lk.Card))
+				}
+			}
+		}
+	}
+	if w == 0 {
+		return 0
+	}
+	return w + 2*colGap + lindent + cpad
+}
+
 func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	box := len(l.Marks)
 	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y, W: w}, Clip: clip, Fill: Board.White, Edge: Board.Guide, Radius: radius6, Corner: 1, Stroke: 1, Alpha: 1})
@@ -58,29 +112,8 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 		lines(d.Note, 12, Board.Mute, cx)
 	}
 	if len(d.Rows) > 0 {
-		var aw, bw float32
-		for _, r := range d.Rows {
-			aw, bw = max(aw, segW(r.A)), max(bw, segW(r.B))
-		}
-		var tw, sw float32
-		for _, r := range d.Rows {
-			if r.Why == "" {
-				tw = max(tw, Board.W(r.Total, 12))
-			}
-			if r.Start.Steps.Op != "" {
-				sw = max(sw, segW(r.Start))
-			}
-		}
-		hs, h0, h1 := headW(d.StartHead), headW(d.Heads[0]), headW(d.Heads[1])
-		g := max(float32(gapX), (h0+h1-aw-bw)/2+gapX, (h1-bw)/2+gapX)
-		if sw > 0 {
-			g = max(g, (hs+h0-sw-aw)/2+gapX)
-		}
-
-		var lw float32
-		for _, r := range d.Rows {
-			lw = max(lw, Board.TextW(r.Axis, Board.Px, 7))
-		}
+		c := cardCols(d)
+		lw, sw, aw, bw, g := c.lw, c.sw, c.aw, c.bw, c.g
 		s := cx + lw + g
 		a := s
 		if sw > 0 {
