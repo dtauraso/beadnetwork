@@ -57,6 +57,18 @@ func (c *fitCard) row(label string, items []fitItem) {
 			start = cx
 		}
 	}
+	c.rowFrom(start, items)
+}
+
+func (c *fitCard) lead(s string, items []fitItem) {
+	h := Board.RowH()
+	cx := c.x + cpad
+	start := cx + c.l.Text(cx, c.cy, h, c.clip, s, Board.Px, Board.Ink, true, Board.Left) + Board.Gap
+	c.rowFrom(start, items)
+}
+
+func (c *fitCard) rowFrom(start float32, items []fitItem) {
+	h, right := Board.RowH(), c.x+c.w-cpad
 	f := flow{x0: start, right: right, x: start, y: c.cy, h: h, gap: Board.Gap}
 	for _, it := range items {
 		if it.text != "" && f.x+it.w > right {
@@ -101,6 +113,16 @@ func (c *fitCard) close() float32 {
 func (c *fitCard) chip(ch Board.Chip) fitItem {
 	ch.Px = Board.BtnPx
 	return fitItem{w: Board.W(ch.Label, Board.BtnPx) + 14, draw: func(x, y float32) { c.l.Chip(x, y, c.clip, ch) }}
+}
+
+func (c *fitCard) faded(ch Board.Chip) fitItem {
+	it := c.chip(ch)
+	draw := it.draw
+	it.draw = func(x, y float32) {
+		draw(x, y)
+		c.l.Marks[len(c.l.Marks)-1].Alpha = 0.55
+	}
+	return it
 }
 
 func (c *fitCard) field(name string, f Board.Field) fitItem {
