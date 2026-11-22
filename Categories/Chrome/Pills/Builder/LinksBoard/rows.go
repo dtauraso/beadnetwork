@@ -81,7 +81,7 @@ func (k *col) link(lk Link) {
 	k.y += lrowH
 	if lk.Card != nil {
 		cx, cw := k.x+lindent, k.w-lindent-cpad
-		if cw < cardFitW {
+		if cw < max(cardFitW, cardW(*lk.Card)) {
 			cx, cw = k.x+cpad, k.w-2*cpad
 		}
 		k.y += card(l, k.clip, cx, k.y, cw, *lk.Card) + 6
