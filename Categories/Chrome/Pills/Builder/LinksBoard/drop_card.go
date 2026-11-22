@@ -5,6 +5,9 @@ import (
 )
 
 func dropBody(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float32 {
+	if d.Pop != nil {
+		return frameCard(l, r, sy, *d.Pop)
+	}
 	if d.New != nil {
 		return newNode(l, r, sy, *d.New)
 	}
@@ -12,7 +15,7 @@ func dropBody(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float3
 }
 
 func topCard(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float32 {
-	if d.New == nil && d.Net == nil {
+	if d.New == nil && d.Net == nil && d.Pop == nil {
 		return r.Y - sy
 	}
 	var scratch []placed
