@@ -40,6 +40,7 @@ type Model struct {
 	StepFrom  []int
 	Walk      Walk
 	Play      *Play
+	Folder    *FolderRun
 	Rounds    map[string]int
 	StepHeads map[int]*Step
 	CardsOpen map[StepEdge]bool

@@ -180,6 +180,15 @@ func DrainLinkReports(md *MoveDispatch) {
 	}
 }
 
+func (md *MoveDispatch) runFolderPlay(ctx context.Context) {
+	m := &md.UI.Builder
+	if !md.stopPlay(ctx) {
+		n := m.StartFolder()
+		md.showFor(ctx, n)
+		m.StartPlay(n, clock.HumanTick(m.TickMs))
+	}
+}
+
 func (md *MoveDispatch) runPlay(ctx context.Context, a Sheet.Act) bool {
 	if a.Op != Builder.OpAllPlay {
 		return false
@@ -193,7 +202,13 @@ func (md *MoveDispatch) runPlay(ctx context.Context, a Sheet.Act) bool {
 }
 
 func (md *MoveDispatch) playTick(ctx context.Context) bool {
-	edits, ok := md.UI.Builder.PlayTick(md.UI.Builder.Now)
+	m := &md.UI.Builder
+	if n, ok := m.NextFolderStep(); ok {
+		md.showFor(ctx, n)
+		m.StartPlay(n, clock.HumanTick(m.TickMs))
+		return true
+	}
+	edits, ok := m.PlayTick(m.Now)
 	if !ok {
 		return false
 	}
