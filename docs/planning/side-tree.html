@@ -22,6 +22,7 @@ figure { margin: 0; }
 figcaption { color: var(--mute); font-size: 12.5px; margin-top: 8px; max-width: 300px; }
 svg text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 .tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; }
+.today { background: var(--card); color: var(--mute); border: 1px solid var(--edge); }
 .new { background: var(--lit); color: var(--accent); border: 1px solid var(--accent); }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 td, th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--hair); vertical-align: top; }
@@ -36,6 +37,43 @@ code { background: var(--card); border: 1px solid var(--hair); border-radius: 4p
 <p class="sub">Links tab, narrow panel. Keep the layout wide panels already use, with the tree on the left and the cards on the right, and use it at narrow widths too. The handle stays vertical. The only new part is letting both halves get narrower. <a href="stacked-tree.html">Option A (stacked) is here.</a></p>
 
 <div class="row">
+  <figure>
+    <span class="tag today">Today · 360px panel</span>
+    <svg width="360" height="420" viewBox="0 0 360 420">
+      <rect x="0.5" y="0.5" width="359" height="419" rx="6" fill="#fff" stroke="#c8ccd2"/>
+      <rect x="10" y="10" width="72" height="22" rx="5" fill="#e3eefc" stroke="#1565c0"/>
+      <text x="20" y="25" font-size="11" fill="#1565c0">steps ▾</text>
+      <rect x="90" y="10" width="72" height="22" rx="5" fill="#fff" stroke="#c8ccd2"/>
+      <text x="100" y="25" font-size="11" fill="#222">Network ▾</text>
+      <line x1="0" y1="42" x2="360" y2="42" stroke="#dde1e6"/>
+      <rect x="10" y="52" width="340" height="30" rx="6" fill="#f4f5f7" stroke="#dde1e6"/>
+      <text x="22" y="71" font-size="12" font-weight="600" fill="#222">▸ START</text>
+      <rect x="10" y="90" width="340" height="150" rx="6" fill="#fff" stroke="#1565c0"/>
+      <text x="22" y="110" font-size="12" font-weight="600" fill="#222">▾ step 1</text>
+      <text x="270" y="110" font-size="11" fill="#1565c0">● shown in scene</text>
+      <text x="342" y="174" font-size="11" fill="#555" text-anchor="end">not turned</text>
+      <text x="342" y="204" font-size="11" fill="#555" text-anchor="end">not turned</text>
+      <text x="342" y="234" font-size="11" fill="#555" text-anchor="end">not turned</text>
+      <rect x="10" y="250" width="340" height="30" rx="6" fill="#f4f5f7" stroke="#dde1e6"/>
+      <text x="22" y="269" font-size="12" font-weight="600" fill="#222">▸ step 2</text>
+      <rect x="10" y="38" width="230" height="250" rx="6" fill="#f4f5f7" stroke="#c8ccd2" filter="drop-shadow(0 4px 8px rgba(0,0,0,.15))"/>
+      <rect x="20" y="48" width="110" height="20" rx="4" fill="#fff" stroke="#c8ccd2"/>
+      <text x="22" y="92" font-size="11" fill="#222" font-weight="600">› step 1 · rotate 1, rotate2</text>
+      <text x="22" y="112" font-size="11" fill="#555">› step 2 · rotate 3, rotate 2</text>
+      <text x="22" y="132" font-size="11" fill="#555">› step 3 · rotate 2, rotate 1</text>
+      <text x="22" y="152" font-size="11" fill="#555">› step 4 · rotate triangle…</text>
+      <text x="22" y="172" font-size="11" fill="#555">› step 5 · different cent…</text>
+      <text x="22" y="192" font-size="11" fill="#555">› step 6 · rotate theta…</text>
+      <text x="22" y="212" font-size="11" fill="#555">› step 7 · rotate theta…</text>
+      <text x="22" y="232" font-size="11" fill="#555">› step 8 · rotate theta…</text>
+      <text x="22" y="252" font-size="11" fill="#555">› step 9 · 1 ccw, 3 cw</text>
+      <text x="22" y="272" font-size="11" fill="#555">⌄ step 10 · rotate triangle</text>
+      <g font-size="11" fill="#555" text-anchor="end"><text x="216" y="92">2</text><text x="216" y="112">2</text><text x="216" y="132">2</text><text x="216" y="152">2</text><text x="216" y="172">2</text><text x="216" y="192">2</text><text x="216" y="212">2</text><text x="216" y="232">2</text><text x="216" y="252">2</text><text x="216" y="272">1</text></g>
+      <text x="250" y="320" font-size="10.5" fill="#c62828">the popup covers</text>
+      <text x="250" y="334" font-size="10.5" fill="#c62828">the step cards</text>
+    </svg>
+    <figcaption style="max-width:360px">The tree only appears when you click <b>steps ▾</b>, and it covers the step cards. Picking a step closes it, so jumping to another step means opening it again.</figcaption>
+  </figure>
   <figure>
     <span class="tag new">Proposed · 360px panel</span>
     <svg width="360" height="420" viewBox="0 0 360 420">
