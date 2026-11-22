@@ -162,3 +162,26 @@ func (m Model) shiftSteps(ns []int, after, by int) error {
 	}
 	return nil
 }
+
+func (m *Model) DropLevel(p []int) (bool, error) {
+	inner := p
+	if m.OpenTop > 0 && len(p) > 0 {
+		inner = p[1:]
+	}
+	up := p[:max(0, len(p)-1)]
+	if len(inner) == 0 || (len(inner) == 1 && m.OpenTop == 0) || len(ReadStepNumbers(m.pathDir(up))) != 1 {
+		return false, nil
+	}
+	if len(inner) == 1 {
+		if err := m.WriteSteps(); err != nil {
+			return true, err
+		}
+		m.Level, m.ShownStep, m.StepClosed = "", 1, false
+	} else if err := m.TreeGo(up); err != nil {
+		return true, err
+	}
+	if err := os.RemoveAll(StepsDir(m.pathDir(up))); err != nil {
+		return true, err
+	}
+	return true, m.rereadSteps()
+}
