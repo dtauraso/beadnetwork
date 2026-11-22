@@ -56,7 +56,7 @@ func boardInspector(m Model) LinksBoard.Inspector {
 		}
 		d := boardDial(axisDial(l, a.k))
 		d.Inc = float32(a.times(l))
-		x.Dial, x.DialAct, x.DialSize = d, press, 72
+		x.Dial, x.DialSize = d, 72
 		x.Ends = a.label + " " + a.at(l) + " → " + endsAt(l, a.k)
 		if a.k == Links.KPhi {
 			x.DialSize = 120

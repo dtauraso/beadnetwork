@@ -1,55 +1,13 @@
 package Builder
 
 import (
-	"math"
 	"strconv"
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
-
-type Turning struct {
-	Act        Act
-	X, Y       float64
-	Last, Turn float64
-	From, Inc  int
-}
-
-func twelfths(dx, dy float64) float64 { return math.Atan2(dx, -dy) / (2 * math.Pi) * Links.TurnTicks }
-
-func (m *Model) StartTurn(c Cell, r Sheet.Rect, x, y float64) bool {
-	l, ok := m.gridLink(StepEdge{c.Act.I, c.Act.Node, c.Act.To})
-	inc := *l.Increment.At(c.Act.K)
-	if !ok || c.Act.Op != OpLinkPress || c.Dial.Axis == Sheet.DialNone || inc <= 0 {
-		return false
-	}
-	d := *l.Delta.At(c.Act.K)
-	cx, cy := float64(r.X+r.H/2), float64(r.Y+r.H/2)
-	m.Turning = Turning{Act: c.Act, X: cx, Y: cy, Last: twelfths(x-cx, y-cy), Turn: float64(d), From: d, Inc: inc}
-	return true
-}
-
-func (m *Model) TurnTo(x, y float64) bool {
-	t := &m.Turning
-	if t.Act.Op == "" {
-		return false
-	}
-	u := twelfths(x-t.X, y-t.Y)
-	d := math.Mod(u-t.Last+1.5*Links.TurnTicks, Links.TurnTicks) - Links.TurnTicks/2
-	t.Turn, t.Last = t.Turn+d, u
-	return true
-}
-
-func (t Turning) presses() int { return int(math.Round((t.Turn - float64(t.From)) / float64(t.Inc))) }
-
-func (m *Model) EndTurn() (Act, int, bool) {
-	t := m.Turning
-	m.Turning = Turning{}
-	return t.Act, t.presses(), t.Act.Op != ""
-}
 
 func stepper(value string, a Act, typed bool) Board.Stepper {
 	s := Board.Stepper{Steps: a, Plain: value}
@@ -88,7 +46,7 @@ func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 		} else {
 			d := boardDial(axisDial(l, a.k))
 			d.Inc = float32(a.times(l))
-			r.Dial, r.DialAct = &d, press
+			r.Dial = &d
 		}
 		c.Rows = append(c.Rows, r)
 	}

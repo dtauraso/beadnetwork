@@ -97,9 +97,6 @@ func (m *Model) Hover(a Act) bool {
 }
 
 func (m Model) Preview() (from, to string) {
-	if t := m.Turning; t.Act.Op != "" {
-		return t.Act.Node, t.Act.To
-	}
 	return m.Hot.Node, m.Hot.To
 }
 
