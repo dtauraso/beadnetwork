@@ -50,7 +50,9 @@ code { background: var(--card); border: 1px solid var(--hair); border-radius: 4p
   </defs>
 </svg>
 
-<h2>Today vs. proposed</h2>
+<p>There are two options: <b>A</b> stacks the tree above the cards, and <b>B</b> puts the tree beside the cards. Both remove the popup. Option B, and a comparison of the two, is on <a href="side-tree.html" style="color:#1565c0">its own page</a>.</p>
+
+<h2>Option A: stacked (today vs. proposed)</h2>
 <div class="row">
   <figure>
     <span class="tag today">Today</span>
@@ -124,7 +126,7 @@ code { background: var(--card); border: 1px solid var(--hair); border-radius: 4p
   </figure>
 </div>
 
-<h2>Dragging the handle</h2>
+<h2>A · Dragging the handle</h2>
 <div class="row">
   <figure>
     <svg width="200" height="260" viewBox="0 0 200 260">
@@ -175,7 +177,7 @@ code { background: var(--card); border: 1px solid var(--hair); border-radius: 4p
   <figcaption style="max-width:520px">At 520px and wider, the tree already sits to the left with a vertical handle. This is the same idea turned on its side.</figcaption>
 </figure>
 
-<h2>What changes</h2>
+<h2>A · What changes</h2>
 <table>
   <tr><th>Where</th><th>Change</th></tr>
   <tr><td><code>LinksBoard/lay.go</code> · <code>steps</code></td><td>When narrow, cut the tree pane off the top of the card area, put the handle under it, and lay the cards out in what's left. The tree scroll area already exists, so it's reused.</td></tr>
@@ -186,6 +188,8 @@ code { background: var(--card); border: 1px solid var(--hair); border-radius: 4p
   <tr class="gone"><td><code>tree_pane.go</code>, <code>data.go</code></td><td>Removed: <code>OpTreePop</code>, <code>TreePop</code>, <code>PathMenu</code>, <code>PathOpen</code>.</td></tr>
   <tr><td>Scrolling</td><td>No change. The scroll handler already chooses the tree or the cards by which area the pointer is over.</td></tr>
 </table>
+
+<p><a href="side-tree.html" style="color:#1565c0">Option B: tree beside the cards →</a></p>
 </main>
 </body>
 </html>
