@@ -84,9 +84,15 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 		if d.Insp.Title != "" && d.InspOpen {
 			iw := min(inspW, max(inspMinW, mid.W*0.45))
 			stack.W -= iw
-			l.MostY = inspector(l, Rect{X: mid.X + stack.W, Y: mid.Y, W: iw, H: mid.H}, sy, d.Insp)
+			ir := Rect{X: mid.X + stack.W, Y: mid.Y, W: iw, H: mid.H}
+			most := inspector(Board.New(ir), ir, 0, d.Insp)
+			if a := d.InspScroll; a.Op != "" {
+				a.I = int(most)
+				l.Spot(ir, l.Clip(ir), Sheet.Cell{Act: a}, Sheet.PartInside)
+			}
+			inspector(l, ir, Board.Clamp(d.InspSY, most), d.Insp)
 		}
-		l.MostY = max(l.MostY, columns(l, stack, sy, stack.W < colNarrowW, d, menus))
+		l.MostY = columns(l, stack, sy, stack.W < colNarrowW, d, menus)
 	}
 	return bar.H
 }
