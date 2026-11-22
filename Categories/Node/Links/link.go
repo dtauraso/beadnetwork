@@ -208,12 +208,17 @@ func Measure(f Frame, was Angles, p, t Vec3) Angles {
 		d := Wrap(s, a-b)
 		return math.Min(d, float64(TurnTicks*s)-d)
 	}
-	off := func(c Angles) float64 { return gap(c.Phi, was.Phi) + gap(c.Theta, was.Theta) }
+	nearer := func(c, b Angles) bool {
+		if dt := gap(c.Theta, was.Theta) - gap(b.Theta, was.Theta); math.Abs(dt) > 1e-9 {
+			return dt < 0
+		}
+		return gap(c.Phi, was.Phi) < gap(b.Phi, was.Phi)
+	}
 	half := float64(TurnTicks) * s / 2
 	best := Angles{Phi: phi, Theta: theta}
 	for _, c := range []Angles{{Phi: -phi, Theta: theta + half}, {Phi: theta, Theta: theta}, {Phi: theta + half, Theta: theta + half}} {
 		d := f.Vec(s, Angles{Phi: c.Phi, Theta: c.Theta, R: n / f.Rho}).Sub(v)
-		if d.Length() < 1e-6*n && off(c) < off(best) {
+		if d.Length() < 1e-6*n && nearer(c, best) {
 			best = c
 		}
 	}
@@ -221,5 +226,5 @@ func Measure(f Frame, was Angles, p, t Vec3) Angles {
 }
 
 func (l *Link) Remeasure(f Frame, ref Turn, p, t Vec3) {
-	l.Start.Cut(Measure(f, l.Start.Angles(), Vec3{}, ref.Unrotate(t.Sub(p))))
+	l.Start.Cut(Measure(f, l.Dir(), Vec3{}, ref.Unrotate(t.Sub(p))))
 }

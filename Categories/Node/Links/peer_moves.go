@@ -100,7 +100,7 @@ func (p *Peer) turnedBy(from string, d Vec3) []Envelope {
 
 func (p *Peer) step(d Vec3) Vec3 {
 	was := p.Pos()
-	*p.At = p.Frame.GridAt(was.Add(d))
+	*p.At = p.Frame.GridNear(was.Add(d), *p.At)
 	return p.Pos().Sub(was)
 }
 

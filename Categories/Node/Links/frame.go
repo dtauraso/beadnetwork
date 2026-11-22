@@ -65,6 +65,20 @@ func (f Frame) GridAt(p Vec3) Place {
 	return j
 }
 
+func (f Frame) GridNear(p Vec3, was Place) Place {
+	j := f.GridAt(p)
+	tt := float64(f.Ttheta)
+	gap := func(a float64) float64 {
+		d := math.Mod(math.Mod(a-was.Theta, tt)+tt, tt)
+		return math.Min(d, tt-d)
+	}
+	o := Place{R: j.R, Phi: float64(f.Tphi) - j.Phi, Theta: math.Mod(j.Theta+tt/2, tt)}
+	if gap(o.Theta) < gap(j.Theta)-1e-9 {
+		return o
+	}
+	return j
+}
+
 func (f Frame) Vec(s int, t Angles) Vec3 {
 	return f.cart(s, t.R, Wrap(s, t.Phi), Wrap(s, t.Theta))
 }
@@ -134,9 +148,18 @@ func (g Grid) countedWay(from string) (Link, bool) {
 	return Link{}, false
 }
 
+func (g Grid) thetaPressed(from string) bool {
+	for _, c := range g.Cols {
+		if in, ok := c.InFrom(from); ok && in.Link.Way.Theta != WayNone {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *Peer) pickPair(from string, l *Link) bool {
 	t, ok := p.grid.countedWay(from)
-	if !ok {
+	if !ok || !p.grid.thetaPressed(from) {
 		return false
 	}
 	holds := func(d Start) bool {
