@@ -8,7 +8,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -88,8 +88,8 @@ func (m Model) treeMenu(r StepRow) ([]Board.Chip, Board.Chip) {
 	return items, Board.Chip{Label: "Delete step", Act: Act{Op: OpTreeDrop, Node: key}}
 }
 
-func (m Model) treeRows() []LinksBoard.TreeRow {
-	var out []LinksBoard.TreeRow
+func (m Model) treeRows() []Fill.TreeRow {
+	var out []Fill.TreeRow
 	last := map[int]string{}
 	for i, r := range m.Tree {
 		last[r.Depth] = PathKey(r.Path)
@@ -99,15 +99,15 @@ func (m Model) treeRows() []LinksBoard.TreeRow {
 		}
 		out = append(out, m.treeRow(r))
 		for d := r.Depth; d > next && strings.TrimSpace(m.TreeFind) == ""; d-- {
-			out = append(out, LinksBoard.TreeRow{Depth: d, Add: true, Go: Act{Op: OpTreeAdd, Node: last[d]}})
+			out = append(out, Fill.TreeRow{Depth: d, Add: true, Go: Act{Op: OpTreeAdd, Node: last[d]}})
 		}
 	}
 	return out
 }
 
-func (m Model) treeRow(r StepRow) LinksBoard.TreeRow {
+func (m Model) treeRow(r StepRow) Fill.TreeRow {
 	key := PathKey(r.Path)
-	t := LinksBoard.TreeRow{Label: r.Label, Depth: r.Depth, Kids: r.Kids, Open: r.Open, Here: r.Here, Shown: r.Shown,
+	t := Fill.TreeRow{Label: r.Label, Depth: r.Depth, Kids: r.Kids, Open: r.Open, Here: r.Here, Shown: r.Shown,
 		Go: Act{Op: OpTreeGo, Node: key}, Fold: Act{Op: OpTreeFold, Node: key}, Menu: Act{Op: OpMenu, K: menuTree, Node: key},
 		Name: Act{Op: OpTreeName, Node: key}}
 	if t.MenuOpen = m.Menu == t.Menu; t.MenuOpen {
@@ -149,7 +149,7 @@ func (m *Model) FindStep(e Sheet.Edit, key string) {
 	m.ReadTree()
 }
 
-func (m Model) treeData(d *LinksBoard.Data) {
+func (m Model) treeData(d *Fill.Data) {
 	if m.Scene == "" {
 		return
 	}

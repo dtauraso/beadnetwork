@@ -3,6 +3,7 @@ package LinksBoard
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
 const thumbH = 3
@@ -13,7 +14,7 @@ func meet(a, b Rect) Rect {
 	return Rect{X: x0, Y: y0, W: max(0, x1-x0), H: max(0, y1-y0)}
 }
 
-func sideScroll(l *Board.Laid, clip uint8, view Rect, most float32, d Card, cy *float32) (float32, uint8, func()) {
+func sideScroll(l *Board.Laid, clip uint8, view Rect, most float32, d Fill.Card, cy *float32) (float32, uint8, func()) {
 	sx := Board.Clamp(d.SX, most)
 	a := d.Scroll
 	a.Sign = int(most + 0.5)

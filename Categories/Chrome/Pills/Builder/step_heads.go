@@ -4,7 +4,7 @@ import (
 	"slices"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -155,12 +155,12 @@ func (m Model) playEdits(step, press, of int) []HeadEdit {
 
 func (m Model) Playing(step int) bool { return m.Play != nil && m.Play.Step == step }
 
-func playOf(m Model, step int) LinksBoard.Lock {
+func playOf(m Model, step int) Fill.Lock {
 	glyph := "▶"
 	if m.Playing(step) {
 		glyph = "■ " + itoa(m.Play.K) + "/" + itoa(m.Play.N)
 	}
-	return LinksBoard.Lock{Label: glyph, Axis: "×" + itoa(m.headOf(step).PlayScale()), Value: itoa(m.headOf(step).PlayScale()), On: m.Playing(step),
+	return Fill.Lock{Label: glyph, Axis: "×" + itoa(m.headOf(step).PlayScale()), Value: itoa(m.headOf(step).PlayScale()), On: m.Playing(step),
 		Cycle: Act{Op: OpAllPlay, I: step}, Press: Act{Op: OpAllScale, I: step}}
 }
 

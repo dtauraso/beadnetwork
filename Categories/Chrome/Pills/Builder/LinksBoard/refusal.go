@@ -3,6 +3,7 @@ package LinksBoard
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
 const noteBH = 20
@@ -19,7 +20,7 @@ func pressedAt(l *Board.Laid, at Sheet.Act) (Rect, bool) {
 	return Rect{}, false
 }
 
-func noteW(d Data) float32 {
+func noteW(d Fill.Data) float32 {
 	w := Board.W(d.Toast, Board.Px) + 18 + 10 + Board.W("×", Board.Px)
 	if d.Undo.Op != "" {
 		w += Board.W("Undo", Board.BtnPx) + 14 + 10
@@ -27,7 +28,7 @@ func noteW(d Data) float32 {
 	return w
 }
 
-func refusal(l *Board.Laid, box, strip Rect, d Data) {
+func refusal(l *Board.Laid, box, strip Rect, d Fill.Data) {
 	h := float32(noteBH + 10)
 	w := min(noteW(d), box.W-2*pad)
 	r := Rect{X: box.X + pad, Y: strip.Y - h - pad, W: w, H: h}
@@ -43,7 +44,7 @@ func refusal(l *Board.Laid, box, strip Rect, d Data) {
 	note(l, r, d, beside)
 }
 
-func note(l *Board.Laid, r Rect, d Data, beside bool) {
+func note(l *Board.Laid, r Rect, d Fill.Data, beside bool) {
 	clip := l.Clip(Rect{X: r.X - 4, Y: r.Y - 4, W: r.W + 8, H: r.H + 8})
 	edge := Board.Edge
 	if beside {

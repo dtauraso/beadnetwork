@@ -1,4 +1,4 @@
-package LinksBoard
+package Fill
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
@@ -123,4 +123,49 @@ type Data struct {
 	Tree      []TreeRow
 	TreeFind  *Board.Field
 	TreeEmpty string
+}
+
+type Net struct {
+	Nodes []NetNode
+	IDs   []string
+	Cells [][]NetCell
+}
+
+type NetNode struct {
+	ID   string
+	X, Y float32
+}
+
+type NetField struct {
+	Name  string
+	Field Board.Field
+}
+
+type NetCell struct {
+	Self, Linked, Picked bool
+	Act                  Act
+}
+
+type TreeRow struct {
+	Label    string
+	Depth    int
+	Kids     int
+	Add      bool
+	Open     bool
+	Here     bool
+	Shown    bool
+	Go       Act
+	Fold     Act
+	Menu     Act
+	Name     Act
+	MenuOpen bool
+	Items    []Board.Chip
+	Drop     Board.Chip
+}
+
+type NewNode struct {
+	Add     Act
+	Centers []Board.Chip
+	At      []NetField
+	Drops   []Board.Chip
 }

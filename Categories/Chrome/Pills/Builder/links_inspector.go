@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -27,7 +27,7 @@ func totalOf(l Links.Link, k string) int {
 	return l.Total.R
 }
 
-func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
+func (m Model) stepCard(step int, l Links.Link) *Fill.Card {
 	c := m.turnCard(step, l)
 	if !l.Picked {
 		c.Note = "Not picked in this step, so it does not turn. These are the turns it would make; click the row to pick it and change them."
@@ -40,8 +40,8 @@ func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 	return c
 }
 
-func (m Model) turnCard(step int, l Links.Link) *LinksBoard.Card {
-	c := &LinksBoard.Card{Heads: [3]string{"this step turns", "one press", "ends at"}, StartHead: "starts at", Foot: "“starts at” is shared by every step of this sequence."}
+func (m Model) turnCard(step int, l Links.Link) *Fill.Card {
+	c := &Fill.Card{Heads: [3]string{"this step turns", "one press", "ends at"}, StartHead: "starts at", Foot: "“starts at” is shared by every step of this sequence."}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	from := l
 	if b, ok := m.Grids[l.To].Base[l.From]; ok {
@@ -49,7 +49,7 @@ func (m Model) turnCard(step int, l Links.Link) *LinksBoard.Card {
 	}
 	for _, a := range axes {
 		press := act(OpLinkPress, a.k)
-		r := LinksBoard.CardRow{Axis: a.label, Start: stepper(a.at(from), Act{Op: OpLinkStart, Node: l.From, To: l.To, K: a.k, I: startPart}, true), A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
+		r := Fill.CardRow{Axis: a.label, Start: stepper(a.at(from), Act{Op: OpLinkStart, Node: l.From, To: l.To, K: a.k, I: startPart}, true), A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
 		r.A.Faded = a.delta(l) == 0
 		if a.k == Links.KR {
 			m.rRow(c, &r, l)
@@ -63,7 +63,7 @@ func (m Model) turnCard(step int, l Links.Link) *LinksBoard.Card {
 	return c
 }
 
-func (m Model) rRow(c *LinksBoard.Card, r *LinksBoard.CardRow, l Links.Link) {
+func (m Model) rRow(c *Fill.Card, r *Fill.CardRow, l Links.Link) {
 	start, end := l.Start.R, l.Start.R+float64(l.Sum().R)
 	fixed := m.FixedR(l)
 	r.Ruler = &Board.Ruler{Start: float32(start), Delta: float32(end - start), Most: float32(max(start, end) * 1.25), Fixed: fixed}
@@ -76,10 +76,10 @@ func (m Model) rRow(c *LinksBoard.Card, r *LinksBoard.CardRow, l Links.Link) {
 	}
 }
 
-func (m Model) startBoardCard(id string, l Links.Link) *LinksBoard.Card {
+func (m Model) startBoardCard(id string, l Links.Link) *Fill.Card {
 	b := m.Grids[id].Base[l.From]
 	l.Start = b.Origin
-	c := &LinksBoard.Card{Heads: [3]string{"start", "1", l.From + "'s reference"}, OneHead: "one press"}
+	c := &Fill.Card{Heads: [3]string{"start", "1", l.From + "'s reference"}, OneHead: "one press"}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: startPart} }
 	shown := m.StepShown()
 	sl, hasStep := m.gridLink(StepEdge{shown, l.From, l.To})
@@ -88,7 +88,7 @@ func (m Model) startBoardCard(id string, l Links.Link) *LinksBoard.Card {
 		return stepper(itoa(v), Act{Op: OpNodeRef, Node: l.From, K: k}, true)
 	}
 	for _, a := range axes {
-		r := LinksBoard.CardRow{Axis: a.label, A: stepper(a.at(l), act(OpLinkStart, a.k), true), B: stepper(itoa(a.one(l)), act(OpLinkOne, a.k), false)}
+		r := Fill.CardRow{Axis: a.label, A: stepper(a.at(l), act(OpLinkStart, a.k), true), B: stepper(itoa(a.one(l)), act(OpLinkOne, a.k), false)}
 		if hasStep {
 			r.One = stepper(itoa(a.times(sl)), Act{Op: OpIncrement, Node: l.From, To: l.To, K: a.k, I: shown}, true)
 		}

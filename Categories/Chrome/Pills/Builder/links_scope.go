@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
 const (
@@ -23,17 +23,17 @@ func (m *Model) StageFrame(k string, v float64) {
 	m.FrameDraft[k] = v
 }
 
-func framePop(m Model) *LinksBoard.Pop {
+func framePop(m Model) *Fill.Pop {
 	f := m.Frame
-	field := func(label, k, now, what string) LinksBoard.PopField {
-		p := LinksBoard.PopField{Label: label, What: what, Field: Board.Field{Value: now, Fit: "000.00", Act: Act{Op: OpFrameDraft, K: k}}}
+	field := func(label, k, now, what string) Fill.PopField {
+		p := Fill.PopField{Label: label, What: what, Field: Board.Field{Value: now, Fit: "000.00", Act: Act{Op: OpFrameDraft, K: k}}}
 		if v, ok := m.FrameDraft[k]; ok {
 			p.Field.Value, p.Was = Num(v), now
 		}
 		return p
 	}
-	return &LinksBoard.Pop{Tag: "shared by every step", Apply: Act{Op: OpFrameApply}, Cancel: Act{Op: OpStepsTab}, CanApply: len(m.FrameDraft) > 0,
-		Fields: []LinksBoard.PopField{
+	return &Fill.Pop{Tag: "shared by every step", Apply: Act{Op: OpFrameApply}, Cancel: Act{Op: OpStepsTab}, CanApply: len(m.FrameDraft) > 0,
+		Fields: []Fill.PopField{
 			{Label: "s", What: "ticks per 1/12 turn · applies now", Field: Board.Field{Value: strconv.Itoa(m.SceneS()), Fit: "000.00", Act: frameAct(FrameS)}},
 			field("ρ", FrameRho, Num(f.Rho), "length of one unit of r"),
 			field("T_φ", FrameTphi, strconv.Itoa(f.Tphi), "index steps a turn in φ"),
@@ -43,13 +43,13 @@ func framePop(m Model) *LinksBoard.Pop {
 		}}
 }
 
-func boardData(m Model) LinksBoard.Data {
+func boardData(m Model) Fill.Data {
 	netOn := m.NetworkOpen && !m.NewOpen && !m.FramePop
 	net := Board.Chip{Label: "Network", Act: Act{Op: OpNetFold}, Lit: netOn}
-	d := LinksBoard.Data{
+	d := Fill.Data{
 		Tabs: []Board.Chip{{Label: "Steps", Act: Act{Op: OpStepsTab}, Lit: !netOn && !m.NewOpen && !m.FramePop}, net,
 			{Label: "Nodes", Act: Act{Op: OpNewFold}, Lit: m.NewOpen}, {Label: "Frame", Act: Act{Op: OpFramePop}, Lit: m.FramePop}},
-		Cols: boardCols(m),
+		Cols:   boardCols(m),
 		Status: "showing step " + itoa(m.StepShown()),
 		Toast:  m.Refused, At: m.Pressed, Dismiss: Act{Op: OpToastClose}}
 	if ns := m.stepNums(); len(ns) > 0 {
@@ -69,7 +69,7 @@ func boardData(m Model) LinksBoard.Data {
 		d.Pop = framePop(m)
 	}
 	if len(m.allLinks()) == 0 {
-		e := &LinksBoard.Empty{Title: "No links yet.", Sub: "add nodes and links, then come back here to animate them", Door: Board.Chip{Label: "Open Network…", Act: net.Act}}
+		e := &Fill.Empty{Title: "No links yet.", Sub: "add nodes and links, then come back here to animate them", Door: Board.Chip{Label: "Open Network…", Act: net.Act}}
 		if len(m.Nodes) == 1 {
 			e.Title, e.Sub = "Node "+m.Nodes[0]+" has nothing to turn against.", "A link needs two nodes."
 		}

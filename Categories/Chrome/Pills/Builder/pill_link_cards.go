@@ -6,13 +6,13 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
 const OpCardScroll = "card-scroll"
 
-func (m Model) scrollCard(c *LinksBoard.Card, e StepEdge) {
+func (m Model) scrollCard(c *Fill.Card, e StepEdge) {
 	if c == nil {
 		return
 	}

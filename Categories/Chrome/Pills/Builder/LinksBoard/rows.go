@@ -3,6 +3,7 @@ package LinksBoard
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
 const (
@@ -19,14 +20,14 @@ const (
 	lookShare = 0.3
 )
 
-func (k *col) node(n Node) {
+func (k *col) node(n Fill.Node) {
 	k.rule(k.y-1, Board.Hair)
 	for _, lk := range n.Links {
 		k.link(lk)
 	}
 }
 
-func pickDot(l *Board.Laid, clip uint8, x, mid float32, lk Link) {
+func pickDot(l *Board.Laid, clip uint8, x, mid float32, lk Fill.Link) {
 	edge := Board.Edge
 	if lk.Picked {
 		edge = Board.Accent
@@ -40,7 +41,7 @@ func pickDot(l *Board.Laid, clip uint8, x, mid float32, lk Link) {
 	}
 }
 
-func (k *col) look(row Rect, lk Link, label string) {
+func (k *col) look(row Rect, lk Fill.Link, label string) {
 	l, w := k.l, row.W*lookShare
 	r := Rect{X: row.X + row.W - w, Y: row.Y, W: w, H: row.H}
 	l.Line(Rect{X: r.X + 0.5, Y: r.Y, W: 0, H: r.H}, k.clip, Board.Guide, 1, false)
@@ -52,7 +53,7 @@ func (k *col) look(row Rect, lk Link, label string) {
 	l.Spot(r, k.clip, Sheet.Cell{Act: lk.Fold}, Sheet.PartBody)
 }
 
-func (k *col) link(lk Link) {
+func (k *col) link(lk Fill.Link) {
 	l := k.l
 	row := Rect{X: k.x + 1, Y: k.y, W: k.w - 2, H: lrowH}
 	switch {
