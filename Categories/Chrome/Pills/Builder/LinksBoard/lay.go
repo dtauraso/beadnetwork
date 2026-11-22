@@ -84,7 +84,7 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 		if d.InspOpen {
 			iw := min(inspW, max(inspMinW, mid.W*0.45))
 			if need := cardsW(d); need > 0 {
-				iw = max(inspMinW, min(iw, mid.W-need))
+				iw = max(inspMin(d.Insp), min(iw, mid.W-need))
 			}
 			stack.W -= iw
 			ir := Rect{X: mid.X + stack.W, Y: mid.Y, W: iw, H: mid.H}
