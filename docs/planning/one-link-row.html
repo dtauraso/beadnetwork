@@ -1,0 +1,109 @@
+<!doctype html>
+<!-- branch: task/one-link-row -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One link, one row</title>
+<style>
+  :root { --bg: #fafafa; --ink: #222; --mute: #555; --hair: #f0f1f3; --guide: #dde1e6;
+    --edge: #c8ccd2; --accent: #1565c0; --on: #e3eefc; --start: #9aa0a8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 36px 0 10px; }
+  p.lead { color: var(--mute); margin: 0 0 24px; } figure { margin: 0; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 860px) { .pair { grid-template-columns: 1fr; } }
+  figcaption { font-size: 12px; color: var(--mute); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .note { font-size: 13px; color: var(--mute); margin-top: 10px; }
+  .col { background: #fff; border: 1px solid var(--guide); border-radius: 4px; max-width: 420px; overflow: hidden; line-height: 1; user-select: none; }
+  .nd { height: 24px; display: flex; align-items: center; padding-left: 8px; font-size: 12px; color: var(--mute); border-top: 1px solid var(--hair); white-space: nowrap; }
+  .nd:first-child { border-top: none; }
+  .nd .g { width: 12px; text-align: center; font-size: 11px; margin-right: 6px; }
+  .nd b { font-weight: 600; margin-right: 4px; }
+  .rw { height: 26px; display: flex; align-items: center; padding: 0 8px 0 22px; font-size: 13px; white-space: nowrap; }
+  .rw.solo { border-top: 1px solid var(--hair); padding-left: 8px; }
+  .col > .rw.solo:first-child { border-top: none; }
+  .rw.hot { background: rgba(227, 238, 252, .6); }
+  .rw .lb { margin: 0 6px; } .rw svg { width: 20px; height: 20px; flex: none; }
+  .rw .sum { margin-left: auto; font-size: 12px; color: var(--mute); }
+  .rw .to { color: var(--mute); font-size: 12px; margin-left: 8px; }
+  .rd { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--edge); background: #fff; flex: none; }
+  .rd.on { border-color: var(--accent); background: radial-gradient(var(--accent) 0 3px, #fff 3.5px); }
+  table { border-collapse: collapse; width: 100%; background: #fff; border: 1px solid var(--guide); font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--hair); }
+  th { color: var(--mute); font-weight: 600; } td.n { text-align: center; width: 90px; }
+  .rec { border: 2px solid var(--accent); border-radius: 8px; padding: 0 16px 14px; background: #fff; margin-top: 32px; }
+  ul { padding-left: 20px; margin: 6px 0; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="d0" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.5" fill="#fff" stroke="#dde1e6"/>
+    <path d="M10 10V4.5" stroke="#9aa0a8" stroke-width="1.2"/><circle cx="10" cy="10" r="1.2" fill="#222"/></symbol>
+  <symbol id="d2" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.5" fill="#fff" stroke="#dde1e6"/>
+    <path d="M10 3.5A6.5 6.5 0 0 1 15.63 6.75" fill="none" stroke="#FF9F1C" stroke-width="2" stroke-linecap="round"/>
+    <path d="M10 10V4.5" stroke="#9aa0a8" stroke-width="1.2"/><path d="M10 10L14.76 7.25" stroke="#222" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="10" cy="10" r="1.2" fill="#222"/></symbol>
+</svg>
+<main>
+  <h1>One link, one row</h1>
+  <p class="lead">Proposal for the step list. Every node gets an "into node N" header, even when only
+  one link comes in. Then the header is a fold you must open before the one row under it can be
+  clicked, and the header says nothing the row doesn't: "2 → 1" already names node 1.
+  This page proposes drawing a node with one link in as that link's row alone.</p>
+
+  <h2>Today vs. proposed</h2>
+  <div class="pair">
+    <figure><figcaption>Today</figcaption>
+      <div class="col">
+        <div class="nd"><span class="g">▾</span><b>into node 1</b></div>
+        <div class="rw"><span class="rd on"></span><span class="lb">2 → 1</span><svg><use href="#d2"/></svg><span class="sum">+2φ</span></div>
+        <div class="nd"><span class="g">▸</span><b>into node 3</b></div>
+        <div class="nd"><span class="g">▾</span><b>into node 4</b></div>
+        <div class="rw"><span class="rd on"></span><span class="lb">2 → 4</span><svg><use href="#d2"/></svg><span class="sum">+2φ</span></div>
+        <div class="rw"><span class="rd"></span><span class="lb">3 → 4</span><svg><use href="#d0"/></svg><span class="sum">not turned</span></div>
+      </div>
+      <p class="note">Node 3 is folded: reaching 2 → 3 takes a click on the header, then a click on the row.</p>
+    </figure>
+    <figure><figcaption>Proposed</figcaption>
+      <div class="col">
+        <div class="rw solo"><span class="rd on"></span><span class="lb">2 → 1</span><svg><use href="#d2"/></svg><span class="sum">+2φ</span></div>
+        <div class="rw solo hot"><span class="rd"></span><span class="lb">2 → 3</span><svg><use href="#d0"/></svg><span class="sum">not turned</span></div>
+        <div class="nd"><span class="g">▾</span><b>into node 4</b></div>
+        <div class="rw"><span class="rd on"></span><span class="lb">2 → 4</span><svg><use href="#d2"/></svg><span class="sum">+2φ</span></div>
+        <div class="rw"><span class="rd"></span><span class="lb">3 → 4</span><svg><use href="#d0"/></svg><span class="sum">not turned</span></div>
+      </div>
+      <p class="note">Nodes 1 and 3 have one link in, so each is a single row at the header's indent, with
+      the header's hairline above it. Node 4 has two, so it keeps its header: there the header groups
+      the rows a pick chooses between.</p>
+    </figure>
+  </div>
+
+  <h2>Clicks</h2>
+  <table>
+    <tr><th>To reach a link into a node with one link in</th><th>Today</th><th>Proposed</th></tr>
+    <tr><td>Pick it and open its card (node unfolded)</td><td class="n">1</td><td class="n">1</td></tr>
+    <tr><td>Pick it and open its card (node folded)</td><td class="n">2</td><td class="n">1</td></tr>
+    <tr><td>See whether it is picked and how it turns</td><td class="n">0–1</td><td class="n">0</td></tr>
+  </table>
+
+  <h2>What goes away</h2>
+  <ul>
+    <li>Folding a node with one link in. Folding it hid one 26px row behind a 24px header, so it saved 2px.</li>
+    <li>Fold state already saved for those nodes stays on disk unused; it applies again if a second link is added.</li>
+  </ul>
+
+  <div class="rec">
+    <h2>Change, if agreed</h2>
+    <ul>
+      <li><code>LinksBoard/data.go</code>: <code>Node</code> gains <code>Solo bool</code>.</li>
+      <li><code>Builder/links_score.go</code>: <code>nodeOf</code> sets <code>Solo</code> when the node has one link in, in every step and in START.</li>
+      <li><code>LinksBoard/rows.go</code>: <code>node</code> for a solo node draws no header, puts the hairline above the row, and draws the link at the header's indent (8px) instead of 22px. The row's clicks are unchanged: click picks and opens, the dot unpicks, look and hide as now.</li>
+      <li>The hover preview and the network view's edge click still find the row, since they match on the link, not the header.</li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>
