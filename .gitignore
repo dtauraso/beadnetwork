@@ -231,9 +231,11 @@ topology*/view/trace.bin
 # on every single run.
 topology*/view/spawn.bin
 
-# The φ, θ tab's node count, and every top step: written from editor use, kept local.
+# The φ, θ and alpha tabs' node counts, and every top step: written from editor use, kept local.
 topology-phi-theta/counts/nodes.bin
 topology-phi-theta/steps/
+topology-alpha/counts/nodes.bin
+topology-alpha/steps/
 
 # A top step's step state (the press locks in press/ and nodes/<id>/press/, and each step's
 # directory under steps/: its head locks and its copies of the links, each with its pick):
