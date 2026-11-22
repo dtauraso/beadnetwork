@@ -3,6 +3,7 @@ import { drawPill, drawPopoverBox, ROW_PAD_X } from "../pill";
 import { decodeAt } from "../../leaf-text";
 import * as T from "../../chrome-theme";
 import { drawPlusButton } from "./draw-plus-button";
+import { requestRedraw } from "../../../../Start/extension/webview/scene/redraw";
 import {
   pillBytes, pillF32, pillU8, pillU32, pillU32Run, pillF32Run, pillText,
 } from "./pill-leaves";
@@ -17,7 +18,10 @@ let noticeUntil = 0;
 function noticeShowing(): boolean {
   const count = pillU32("refusedCount");
   if (count !== noticeSeen) {
-    if (noticeSeen >= 0) noticeUntil = performance.now() + NOTICE_MS;
+    if (noticeSeen >= 0) {
+      noticeUntil = performance.now() + NOTICE_MS;
+      setTimeout(requestRedraw, NOTICE_MS + 16);
+    }
     noticeSeen = count;
   }
   return performance.now() < noticeUntil;
