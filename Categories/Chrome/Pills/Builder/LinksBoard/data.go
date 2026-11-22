@@ -56,10 +56,7 @@ type Link struct {
 }
 
 type Node struct {
-	Label, Sub string
-	Open       bool
-	Fold       Act
-	Links      []Link
+	Links []Link
 }
 
 type Column struct {

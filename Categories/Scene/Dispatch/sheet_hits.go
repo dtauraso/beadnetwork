@@ -121,7 +121,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpCardFold:
 		md.UI.Builder.ToggleCard(a)
 	case Builder.OpStepFold:
-		md.UI.Builder.ToggleStepFold(a.I, a.Node)
+		md.UI.Builder.ToggleStepFold(a.I)
 	case Builder.OpStepShow:
 		was := md.UI.Builder.StepShown()
 		md.UI.Builder.ShowStep(a, sign)

@@ -36,18 +36,6 @@ const (
 	FileStepOpen = "open.bin"
 )
 
-func (m Model) StepFolded(step int, id string) bool {
-	if f, ok := m.StepFolds[StepNode{step, id}]; ok {
-		return f
-	}
-	for _, l := range m.gridLinks(step, id) {
-		if step == 0 && l.Picked || m.StepPicked(step, l) {
-			return false
-		}
-	}
-	return true
-}
-
 func (m Model) StepOpen(step int) bool {
 	if on, ok := m.StepsOpen[StepNode{step, m.Level}]; ok {
 		return on
@@ -88,7 +76,7 @@ func (m Model) EdgeStates() []EdgeState {
 		if !ok {
 			continue
 		}
-		out = append(out, EdgeState{From: l.From, To: l.To, Picked: sl.Picked, Open: m.StepOpen(step) && !m.StepFolded(step, l.To) && m.CardOpen(e)})
+		out = append(out, EdgeState{From: l.From, To: l.To, Picked: sl.Picked, Open: m.StepOpen(step) && m.CardOpen(e)})
 	}
 	return out
 }
@@ -104,16 +92,7 @@ func (m *Model) readStepsOpen() {
 	}
 }
 
-func (m *Model) ToggleStepFold(step int, id string) {
-	if id == "" {
-		m.setStepOpen(step, !m.StepOpen(step))
-		return
-	}
-	if m.StepFolds == nil {
-		m.StepFolds = map[StepNode]bool{}
-	}
-	m.StepFolds[StepNode{step, id}] = !m.StepFolded(step, id)
-}
+func (m *Model) ToggleStepFold(step int) { m.setStepOpen(step, !m.StepOpen(step)) }
 
 type StepEdge struct {
 	Step     int

@@ -106,10 +106,6 @@ func (m *Model) SelectEdge(a, b string) bool {
 		return false
 	}
 	m.setStepOpen(e.Step, true)
-	if m.StepFolds == nil {
-		m.StepFolds = map[StepNode]bool{}
-	}
-	m.StepFolds[StepNode{e.Step, e.To}] = false
 	m.ToggleCard(Act{Node: e.From, To: e.To, I: e.Step})
 	m.Touched = e
 	return true
