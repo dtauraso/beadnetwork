@@ -47,16 +47,28 @@ func (in *ins) dial(a Axis, dr Rect) {
 	in.l.Dial(dr, in.clip, a.Dial)
 }
 
-func (in *ins) left() float32 {
-	right := in.r.X + in.r.W - ctrlPadR
-	x := right - max(in.ctrl, in.sum)
+func (in *ins) group() float32 {
+	g := max(in.ctrl, in.sum)
 	if in.ctrl > 0 && in.slot > 0 {
-		x -= dialGap + in.slot
+		g += dialGap + in.slot
 	}
-	if x >= right {
+	return g
+}
+
+func (in *ins) left() float32 {
+	g, room := in.group(), in.r.X+in.r.W-ctrlPadR-in.x
+	if g <= 0 || g >= room {
 		return in.x
 	}
-	return max(in.x, x)
+	return in.x + (room-g)/2
+}
+
+func (in *ins) right() float32 {
+	edge := in.r.X + in.r.W - ctrlPadR
+	if g := in.group(); g > 0 {
+		return min(edge, in.left()+g)
+	}
+	return edge
 }
 
 func (in *ins) axis(a Axis) {
@@ -71,7 +83,7 @@ func (in *ins) axis(a Axis) {
 		in.dial(a, Rect{X: in.x + (in.w()-size)/2, Y: y, W: size, H: size})
 		y += size + 6
 	}
-	right := in.r.X + in.r.W - ctrlPadR
+	right := in.right()
 	x = max(x, right-in.ctrl)
 	if in.slot > 0 && a.DialSize > 0 {
 		in.dial(a, Rect{X: x - dialGap - (in.slot+a.DialSize)/2, Y: y, W: a.DialSize, H: a.DialSize})
