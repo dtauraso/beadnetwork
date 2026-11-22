@@ -2,6 +2,7 @@ package LinksBoard
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 )
 
 type Rect = Board.Rect
@@ -52,7 +53,13 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 	end := mid.Y + mid.H
 	if !narrow && (len(d.Tree) > 0 || d.TreeFind != nil) {
 		top := bar.Y + bar.H
-		l.MostY = treePane(l, Rect{X: mid.X, Y: top, W: treeW, H: end - top}, sy, d, menus)
+		r := Rect{X: mid.X, Y: top, W: treeW, H: end - top}
+		most := treeMost(r, d)
+		if a := d.TreeScroll; a.Op != "" {
+			a.I = int(most)
+			l.Spot(r, l.Clip(r), Sheet.Cell{Act: a}, Sheet.PartInside)
+		}
+		treePane(l, r, Board.Clamp(d.TreeSY, most), d, menus)
 		mid.X, mid.W = mid.X+treeW, mid.W-treeW
 	}
 	mid.Y = bar.Y + bar.H

@@ -90,6 +90,18 @@ func treePane(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float3
 	return max(0, y+pad+sy-(r.Y+r.H))
 }
 
+func treeMost(r Rect, d Data) float32 {
+	h := Board.RowH()
+	y := 2*pad + float32(len(d.Tree))*h
+	if d.TreeFind != nil {
+		y += h + 4
+	}
+	if len(d.Tree) == 0 && d.TreeEmpty != "" {
+		y += h
+	}
+	return max(0, y-r.H)
+}
+
 func treePop(l *Board.Laid, box, at Rect, d Data, menus *[]placed) {
 	h := Board.RowH()
 	n := len(d.Tree)
