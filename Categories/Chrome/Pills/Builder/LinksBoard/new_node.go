@@ -5,57 +5,36 @@ import (
 )
 
 type NewNode struct {
-	Add       Act
-	Centers   []Board.Chip
-	At        []NetField
-	Drops     []Board.Chip
+	Add     Act
+	Centers []Board.Chip
+	At      []NetField
+	Drops   []Board.Chip
 }
 
 func newNode(l *Board.Laid, r Rect, sy float32, n NewNode) float32 {
 	clip := l.Clip(r)
 	l.Add(Board.Mark{Kind: Board.KBox, R: r, Clip: clip, Fill: Board.Back, Alpha: 1})
-	h := Board.RowH()
 	w := max(160, r.W-2*colGap)
 	x, y := r.X+colGap, r.Y+colGap-sy
-	ch := cheadH + 3*(h+Board.Gap) + cpad
-	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y, W: w, H: ch}, Clip: clip, Fill: Board.White, Edge: Board.Guide, Radius: radius6, Stroke: 1, Alpha: 1})
-	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x + 1, Y: y + 1, W: w - 2, H: cheadH - 1}, Clip: clip, Fill: Board.Card, Radius: radius6 - 1, Corner: 2, Alpha: 1})
-	tx := x + cpad
-	tx += l.Text(tx, y+(cheadH-h)/2, h, clip, "new node", Board.Px, Board.Ink, true, Board.Left) + Board.Gap
-	l.Text(tx, y+(cheadH-h)/2, h, clip, "placed from a center node, as a link from it would be", Board.SmallPx, Board.Mute, false, Board.Left)
-	cx, cy := x+cpad, y+cheadH+Board.Gap
-	fx := cx + l.Text(cx, cy, h, clip, "center", Board.SmallPx, Board.Mute, false, Board.Left)
-	fx = max(fx+Board.Gap, cx+netHeadW)
-	for _, c := range n.Centers {
-		c.Px = Board.BtnPx
-		fx += l.Chip(fx, cy, clip, c) + Board.Gap
+	c := openFitCard(l, clip, x, y, w, "new node", "placed from a center node, as a link from it would be")
+	var centers []fitItem
+	for _, ch := range n.Centers {
+		centers = append(centers, c.chip(ch))
 	}
-	cy += h + Board.Gap
-	fx = cx + netHeadW
-	l.Text(cx, cy, h, clip, "angles and r", Board.SmallPx, Board.Mute, false, Board.Left)
+	c.row("center", centers)
+	var at []fitItem
 	for _, f := range n.At {
-		fx += l.Text(fx, cy, h, clip, f.Name, Board.SmallPx, Board.Mute, false, Board.Left) + 3
-		fx += l.Field(fx, cy, clip, f.Field) + Board.Gap
+		at = append(at, c.field(f.Name, f.Field))
 	}
-	cy += h + Board.Gap
-	l.Chip(cx, cy, clip, Board.Chip{Label: "＋ add node", Act: n.Add, Lit: true, Px: Board.BtnPx})
-	y += ch + colGap
-	y = removeCard(l, clip, x, y, w, n)
+	c.row("angles and r", at)
+	c.row("", []fitItem{c.chip(Board.Chip{Label: "＋ add node", Act: n.Add, Lit: true})})
+	y = c.close()
+	c = openFitCard(l, clip, x, y, w, "remove node", "removes the node and every link to or from it")
+	var drops []fitItem
+	for _, ch := range n.Drops {
+		drops = append(drops, c.chip(ch))
+	}
+	c.row("", drops)
+	y = c.close()
 	return max(0, y+sy-(r.Y+r.H))
-}
-
-func removeCard(l *Board.Laid, clip uint8, x, y, w float32, n NewNode) float32 {
-	h := Board.RowH()
-	ch := cheadH + h + Board.Gap + cpad
-	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y, W: w, H: ch}, Clip: clip, Fill: Board.White, Edge: Board.Guide, Radius: radius6, Stroke: 1, Alpha: 1})
-	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x + 1, Y: y + 1, W: w - 2, H: cheadH - 1}, Clip: clip, Fill: Board.Card, Radius: radius6 - 1, Corner: 2, Alpha: 1})
-	tx := x + cpad
-	tx += l.Text(tx, y+(cheadH-h)/2, h, clip, "remove node", Board.Px, Board.Ink, true, Board.Left) + Board.Gap
-	l.Text(tx, y+(cheadH-h)/2, h, clip, "removes the node and every link to or from it", Board.SmallPx, Board.Mute, false, Board.Left)
-	fx, cy := x+cpad, y+cheadH+Board.Gap
-	for _, c := range n.Drops {
-		c.Px = Board.BtnPx
-		fx += l.Chip(fx, cy, clip, c) + Board.Gap
-	}
-	return y + ch + colGap
 }
