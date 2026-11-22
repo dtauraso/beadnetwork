@@ -73,7 +73,7 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 }
 
 func (md *MoveDispatch) stopPlayFor(ctx context.Context, a Sheet.Act) {
-	if a.Op == Builder.OpAllPlay || a.Op == Builder.OpAllScale || a.Op == Builder.OpToastClose {
+	if a.Op == Builder.OpAllPlay || a.Op == Builder.OpAllScale || a.Op == Builder.OpToastClose || a.Op == Builder.OpFolderPlay {
 		return
 	}
 	md.stopPlay(ctx)
@@ -120,6 +120,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	switch a.Op {
 	case AngleDropdown.OpLattice:
 		setLatticeStep(md, sign, typed)
+	case Builder.OpFolderPlay:
+		md.runFolderPlay(ctx)
 	case Builder.OpCardFold:
 		md.UI.Builder.ToggleCard(a)
 	case Builder.OpStepFold:

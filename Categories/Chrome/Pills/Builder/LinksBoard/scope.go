@@ -63,5 +63,9 @@ func scopeBar(l *Board.Laid, r Rect, d Data) float32 {
 	clip, bg := band(l, r, Board.White)
 	f := flow{x0: r.X + pad, right: r.X + r.W - pad, x: r.X + pad, y: r.Y + pad, h: Board.RowH(), gap: Board.Gap}
 	crumbs(l, &f, clip, d.Crumbs, d.CrumbName)
+	if c := d.FolderPlay; c != nil {
+		x, y := f.at(chipW(*c))
+		l.Chip(x, y, clip, *c)
+	}
 	return closeBand(l, r, clip, bg, f)
 }

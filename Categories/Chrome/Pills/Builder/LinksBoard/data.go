@@ -102,6 +102,7 @@ type Empty struct {
 type Data struct {
 	Crumbs     []Board.Chip
 	CrumbName  Act
+	FolderPlay *Board.Chip
 	TreeScroll Act
 	TreeSY     float32
 	TreeSplit  Act

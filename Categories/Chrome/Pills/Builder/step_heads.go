@@ -3,6 +3,7 @@ package Builder
 import (
 	"slices"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
@@ -167,10 +168,44 @@ func (m *Model) StartPlay(step int, now int64) {
 	m.Play = &Play{Step: step, N: max(1, m.PlayPresses(step)*m.headOf(step).PlayScale()), At: now + 2}
 }
 
+const OpFolderPlay = "folder-play"
+
+type FolderRun struct {
+	Steps []int
+	I     int
+}
+
+func (m Model) folderPlayChip() *Board.Chip {
+	c := Board.Chip{Label: "▶", Act: Act{Op: OpFolderPlay}}
+	if f := m.Folder; f != nil {
+		c.Label, c.Lit = "■ step "+itoa(f.I+1)+"/"+itoa(len(f.Steps)), true
+	}
+	return &c
+}
+
+func (m *Model) StartFolder() int {
+	m.Folder = &FolderRun{Steps: slices.Clone(m.stepNums())}
+	return m.Folder.Steps[0]
+}
+
+func (m *Model) NextFolderStep() (int, bool) {
+	f := m.Folder
+	if f == nil || m.Play != nil {
+		return 0, false
+	}
+	if f.I++; f.I >= len(f.Steps) {
+		m.Folder = nil
+		return 0, false
+	}
+	return f.Steps[f.I], true
+}
+
 func (m *Model) StopPlay() (end []HeadEdit, was bool) {
+	folder := m.Folder != nil
+	m.Folder = nil
 	p := m.Play
 	if p == nil {
-		return nil, false
+		return nil, folder
 	}
 	m.Play = nil
 	if p.K > 0 {
