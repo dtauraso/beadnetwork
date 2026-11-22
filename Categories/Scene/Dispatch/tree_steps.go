@@ -111,8 +111,14 @@ func runTreeStepOp(ctx context.Context, md *MoveDispatch, a Sheet.Act) bool {
 		}
 		md.ShowStep(ctx)
 	default:
-		err := m.TreeGo(p)
-		if err == nil {
+		dropped, err := false, error(nil)
+		if a.Op == Builder.OpTreeDrop {
+			dropped, err = m.DropLevel(p)
+		}
+		if !dropped {
+			err = m.TreeGo(p)
+		}
+		if err == nil && !dropped {
 			m.Refused, err = m.StepDirOp(Sheet.Act{Op: Builder.DirOpOf(a.Op), I: p[len(p)-1]})
 		}
 		if err != nil {
