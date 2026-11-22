@@ -6,9 +6,10 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
 
@@ -46,11 +47,11 @@ func subdirs(dir string) []string {
 }
 
 func readLayers(nodeDir, to string) ([]*linkLayer, error) {
-	base, err := Links.ReadBaseLinks(nodeDir, to)
+	base, err := Store.ReadBaseLinks(nodeDir, to)
 	if err != nil {
 		return nil, err
 	}
-	drag, err := Links.ReadDragLinks(nodeDir, to)
+	drag, err := Store.ReadDragLinks(nodeDir, to)
 	if err != nil {
 		return nil, err
 	}
@@ -63,9 +64,9 @@ func fitS(root string) error {
 	for _, to := range ids {
 		dirs = append(dirs, [2]string{Files.NodeDir(root, to), to})
 	}
-	steps := Builder.StepsDir(root)
+	steps := StepStore.StepsDir(root)
 	for _, step := range subdirs(steps) {
-		nodes := filepath.Join(steps, step, Builder.DirNodes)
+		nodes := filepath.Join(steps, step, StepStore.DirNodes)
 		for _, to := range subdirs(nodes) {
 			dirs = append(dirs, [2]string{filepath.Join(nodes, to), to})
 		}
@@ -122,7 +123,7 @@ func (ly *linkLayer) fit(want int) error {
 		return nil
 	}
 	if ly.drag {
-		return Links.WriteLinks(ly.nodeDir, ly.links)
+		return Store.WriteLinks(ly.nodeDir, ly.links)
 	}
-	return Links.WriteBaseLinks(ly.nodeDir, ly.links)
+	return Store.WriteBaseLinks(ly.nodeDir, ly.links)
 }

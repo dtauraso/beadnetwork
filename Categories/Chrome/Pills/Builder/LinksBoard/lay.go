@@ -3,9 +3,12 @@ package LinksBoard
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
 type Rect = Board.Rect
+
+type Act = Sheet.Act
 
 const (
 	pad      = 8
@@ -18,7 +21,7 @@ const (
 	colNarrowW = 320
 )
 
-func Lay(box Rect, sx, sy float32, d Data) *Board.Laid {
+func Lay(box Rect, sx, sy float32, d Fill.Data) *Board.Laid {
 	l := lay(box, sx, sy, d)
 	if cx, cy := Board.Clamp(sx, l.MostX), Board.Clamp(sy, l.MostY); cx != sx || cy != sy {
 		return lay(box, cx, cy, d)
@@ -26,7 +29,7 @@ func Lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	return l
 }
 
-func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
+func lay(box Rect, sx, sy float32, d Fill.Data) *Board.Laid {
 	l := Board.New(box)
 	h := Board.RowH()
 	bar := Rect{X: box.X, Y: box.Y, W: box.W, H: h + 2*pad}
@@ -45,7 +48,7 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 	return l
 }
 
-func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, menus *[]placed) float32 {
+func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Fill.Data, menus *[]placed) float32 {
 	bar.H = scopeBar(l, bar, d)
 	if len(d.Tabs) > 0 {
 		bar.H += tabBand(l, Rect{X: bar.X, Y: bar.Y + bar.H, W: bar.W, H: Board.RowH()}, d.Tabs)
@@ -88,7 +91,7 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 	return bar.H
 }
 
-func strip(l *Board.Laid, r Rect, d Data) {
+func strip(l *Board.Laid, r Rect, d Fill.Data) {
 	clip := l.Clip(r)
 	l.Box(Rect{X: r.X, Y: r.Y, W: r.W, H: r.H + 4}, clip, Board.Card, Board.None)
 	l.Line(Rect{X: r.X, Y: r.Y + 0.5, W: r.W, H: 0}, clip, Board.Guide, 1, false)
@@ -101,7 +104,7 @@ func strip(l *Board.Laid, r Rect, d Data) {
 	}
 }
 
-func empty(l *Board.Laid, r Rect, e Empty) {
+func empty(l *Board.Laid, r Rect, e Fill.Empty) {
 	clip := l.Clip(r)
 	h := Board.RowH()
 	cx, y := r.X+r.W/2, r.Y+28

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 func main() {
@@ -39,7 +39,7 @@ func copysign(v float64) float64 {
 }
 
 func dump(path string) error {
-	h, rows, err := Links.ReadGridRows(path)
+	h, rows, err := Store.ReadGridRows(path)
 	if err != nil {
 		return err
 	}

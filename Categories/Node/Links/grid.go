@@ -41,7 +41,7 @@ type Base struct {
 	Total  Ints
 }
 
-func baseOf(start Start, total Ints) Base {
+func BaseOf(start Start, total Ints) Base {
 	o := start
 	o.Turn(KPhi, -total.Phi)
 	o.Turn(KTheta, -total.Theta)
@@ -66,7 +66,7 @@ func (p *Peer) fitBase() {
 			if in, ok := shown.InFrom(from); ok {
 				start = in.Link.Start
 			}
-			b = baseOf(start, Ints{})
+			b = BaseOf(start, Ints{})
 		}
 		b.Origin.Rescale(p.S)
 		p.grid.Base[from] = b

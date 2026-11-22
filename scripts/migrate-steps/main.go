@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 func main() {
@@ -32,19 +32,19 @@ func migrate(root string) error {
 	if _, err := os.Stat(old); err != nil {
 		return nil
 	}
-	if _, err := os.Stat(Builder.StepsDir(root)); err == nil {
-		return fmt.Errorf("both step/ and %s/ exist, so nothing was moved", Builder.DirSteps)
+	if _, err := os.Stat(StepStore.StepsDir(root)); err == nil {
+		return fmt.Errorf("both step/ and %s/ exist, so nothing was moved", StepStore.DirSteps)
 	}
-	if err := moveLocks(old, Builder.PressDir(root)); err != nil {
+	if err := moveLocks(old, StepStore.PressDir(root)); err != nil {
 		return err
 	}
 	entries, _ := os.ReadDir(old)
 	for _, e := range entries {
-		nodeDir := filepath.Join(root, Builder.DirNodes, e.Name())
+		nodeDir := filepath.Join(root, StepStore.DirNodes, e.Name())
 		if _, err := os.Stat(nodeDir); err != nil || !e.IsDir() { // path-resolution-ok: old step/ held one directory per node
 			continue
 		}
-		if err := moveLocks(filepath.Join(old, e.Name()), filepath.Join(nodeDir, Builder.DirPress)); err != nil {
+		if err := moveLocks(filepath.Join(old, e.Name()), filepath.Join(nodeDir, StepStore.DirPress)); err != nil {
 			return err
 		}
 	}
@@ -62,14 +62,14 @@ func migrate(root string) error {
 			return err
 		}
 	}
-	fmt.Printf("migrate-steps: %s: steps %v\n", root, Builder.ReadStepNumbers(root))
+	fmt.Printf("migrate-steps: %s: steps %v\n", root, StepStore.ReadStepNumbers(root))
 	return os.RemoveAll(old)
 }
 
 func migrateStep(root, old string, n int) error {
 	name := "step-" + strconv.Itoa(n)
-	dst := filepath.Join(Builder.StepsDir(root), strconv.Itoa(n))
-	nodes := filepath.Join(dst, Builder.DirNodes)
+	dst := filepath.Join(StepStore.StepsDir(root), strconv.Itoa(n))
+	nodes := filepath.Join(dst, StepStore.DirNodes)
 	if err := os.MkdirAll(nodes, 0o755); err != nil {
 		return err
 	}
@@ -86,12 +86,12 @@ func migrateStep(root, old string, n int) error {
 			return err
 		}
 	}
-	base, _ := filepath.Glob(filepath.Join(nodes, "*", Links.DirLinks, "*"))
-	drag, _ := filepath.Glob(filepath.Join(nodes, "*", Links.DirDrag, Links.DirLinks, "*"))
+	base, _ := filepath.Glob(filepath.Join(nodes, "*", Store.DirLinks, "*"))
+	drag, _ := filepath.Glob(filepath.Join(nodes, "*", Store.DirDrag, Store.DirLinks, "*"))
 	for _, dir := range append(base, drag...) {
 		var on bool
-		Links.ReadIfExists(filepath.Join(old, "picks", name, filepath.Base(dir)+".bin"), &on)
-		if err := Links.WriteAtomic(filepath.Join(dir, Links.FilePicked), on); err != nil {
+		Store.ReadIfExists(filepath.Join(old, "picks", name, filepath.Base(dir)+".bin"), &on)
+		if err := Store.WriteAtomic(filepath.Join(dir, Store.FilePicked), on); err != nil {
 			return err
 		}
 	}

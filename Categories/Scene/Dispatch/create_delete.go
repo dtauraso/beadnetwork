@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
@@ -142,7 +142,7 @@ func removeLink(md *MoveDispatch, from, to string) {
 		m.Refused = fmt.Sprintf("%s→%s: this scene was opened with no nodes root to reload from, so the link stays", from, to)
 		return
 	}
-	if err := Links.RemoveLinksTo(Files.NodeDir(root, to), from, to); err != nil {
+	if err := Store.RemoveLinksTo(Files.NodeDir(root, to), from, to); err != nil {
 		m.Refused = fmt.Sprintf("could not remove %s→%s: %v", from, to, err)
 		return
 	}
@@ -164,7 +164,7 @@ func removeLinkNode(md *MoveDispatch, id string) {
 		if other == id {
 			continue
 		}
-		if err := Links.RemoveLinksTo(Files.NodeDir(root, other), id, other); err != nil {
+		if err := Store.RemoveLinksTo(Files.NodeDir(root, other), id, other); err != nil {
 			m.Refused = fmt.Sprintf("could not remove %s→%s: %v", id, other, err)
 			return
 		}

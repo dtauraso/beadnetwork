@@ -9,7 +9,9 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 const (
@@ -41,7 +43,7 @@ func DirOpOf(op string) string { return dirOpOf[op] }
 
 func (m Model) PathName(p []int) string {
 	var name string
-	Links.ReadIfExists(filepath.Join(m.pathDir(p), FileStepName), &name)
+	Store.ReadIfExists(filepath.Join(m.pathDir(p), StepStore.FileStepName), &name)
 	return name
 }
 
@@ -52,8 +54,8 @@ func (m *Model) NamePath(p []int, name string) string {
 	if m.pathDir(p[:len(p)-1]) == filepath.Join(m.Root, m.Level) {
 		return m.NameStep(p[len(p)-1], name)
 	}
-	if err := Links.WriteAtomic(filepath.Join(m.pathDir(p), FileStepName), strings.TrimSpace(name)); err != nil {
-		return "step " + PathKey(p) + ": " + err.Error()
+	if err := Store.WriteAtomic(filepath.Join(m.pathDir(p), StepStore.FileStepName), strings.TrimSpace(name)); err != nil {
+		return "step " + StepStore.PathKey(p) + ": " + err.Error()
 	}
 	m.ReadTree()
 	return ""
@@ -65,17 +67,17 @@ func (m *Model) AddInner(p []int) ([]int, error) {
 	}
 	dir := m.pathDir(p)
 	n := 1
-	if ns := ReadStepNumbers(dir); len(ns) > 0 {
+	if ns := StepStore.ReadStepNumbers(dir); len(ns) > 0 {
 		n = ns[len(ns)-1] + 1
 	}
-	if err := Links.WriteAtomic(filepath.Join(dir, FileTreeOpen), true); err != nil {
+	if err := Store.WriteAtomic(filepath.Join(dir, StepStore.FileTreeOpen), true); err != nil {
 		return nil, err
 	}
-	return append(slices.Clone(p), n), os.MkdirAll(stepDir(dir, n), 0o755)
+	return append(slices.Clone(p), n), os.MkdirAll(StepStore.StepDir(dir, n), 0o755)
 }
 
 func (m Model) treeMenu(r StepRow) ([]Board.Chip, Board.Chip) {
-	key := PathKey(r.Path)
+	key := StepStore.PathKey(r.Path)
 	items := []Board.Chip{
 		{Label: "Open", Act: Act{Op: OpTreeGo, Node: key}},
 		{Label: "Rename", Act: Act{Op: OpRename, K: renamePath, Node: key}},
@@ -88,26 +90,26 @@ func (m Model) treeMenu(r StepRow) ([]Board.Chip, Board.Chip) {
 	return items, Board.Chip{Label: "Delete step", Act: Act{Op: OpTreeDrop, Node: key}}
 }
 
-func (m Model) treeRows() []LinksBoard.TreeRow {
-	var out []LinksBoard.TreeRow
+func (m Model) treeRows() []Fill.TreeRow {
+	var out []Fill.TreeRow
 	last := map[int]string{}
 	for i, r := range m.Tree {
-		last[r.Depth] = PathKey(r.Path)
+		last[r.Depth] = StepStore.PathKey(r.Path)
 		next := -1
 		if i+1 < len(m.Tree) {
 			next = m.Tree[i+1].Depth
 		}
 		out = append(out, m.treeRow(r))
 		for d := r.Depth; d > next && strings.TrimSpace(m.TreeFind) == ""; d-- {
-			out = append(out, LinksBoard.TreeRow{Depth: d, Add: true, Go: Act{Op: OpTreeAdd, Node: last[d]}})
+			out = append(out, Fill.TreeRow{Depth: d, Add: true, Go: Act{Op: OpTreeAdd, Node: last[d]}})
 		}
 	}
 	return out
 }
 
-func (m Model) treeRow(r StepRow) LinksBoard.TreeRow {
-	key := PathKey(r.Path)
-	t := LinksBoard.TreeRow{Label: r.Label, Depth: r.Depth, Kids: r.Kids, Open: r.Open, Here: r.Here, Shown: r.Shown,
+func (m Model) treeRow(r StepRow) Fill.TreeRow {
+	key := StepStore.PathKey(r.Path)
+	t := Fill.TreeRow{Label: r.Label, Depth: r.Depth, Kids: r.Kids, Open: r.Open, Here: r.Here, Shown: r.Shown,
 		Go: Act{Op: OpTreeGo, Node: key}, Fold: Act{Op: OpTreeFold, Node: key}, Menu: Act{Op: OpMenu, K: menuTree, Node: key},
 		Name: Act{Op: OpTreeName, Node: key}}
 	if t.MenuOpen = m.Menu == t.Menu; t.MenuOpen {
@@ -126,15 +128,15 @@ func (m Model) Crumbs() ([]Board.Chip, Act) {
 	}
 	out := make([]Board.Chip, len(p))
 	for i := range p {
-		out[i] = Board.Chip{Label: stepLabelAt(m.pathDir(p[:i]), p[i]), Act: Act{Op: OpTreeGo, Node: PathKey(p[:i+1])}}
+		out[i] = Board.Chip{Label: StepStore.LabelAt(m.pathDir(p[:i]), p[i]), Act: Act{Op: OpTreeGo, Node: StepStore.PathKey(p[:i+1])}}
 	}
-	if ns := ReadStepNumbers(m.pathDir(p[:1])); m.OpenTop > 0 && len(p) > 1 && len(ns) > 0 {
-		out[0].Act.Node = PathKey([]int{p[0], ns[0]})
+	if ns := StepStore.ReadStepNumbers(m.pathDir(p[:1])); m.OpenTop > 0 && len(p) > 1 && len(ns) > 0 {
+		out[0].Act.Node = StepStore.PathKey([]int{p[0], ns[0]})
 	}
 	if len(p) == 0 {
 		return out, Act{}
 	}
-	key := PathKey(p)
+	key := StepStore.PathKey(p)
 	out[len(p)-1].Act, out[len(p)-1].Lit = Act{Op: OpRename, K: renamePath, Node: key}, true
 	return out, Act{Op: OpTreeName, Node: key}
 }
@@ -149,7 +151,7 @@ func (m *Model) FindStep(e Sheet.Edit, key string) {
 	m.ReadTree()
 }
 
-func (m Model) treeData(d *LinksBoard.Data) {
+func (m Model) treeData(d *Fill.Data) {
 	if m.Scene == "" {
 		return
 	}
@@ -160,31 +162,34 @@ func (m Model) treeData(d *LinksBoard.Data) {
 	}
 }
 
-func (m Model) findsIn(p []int) bool {
-	find := strings.ToLower(strings.TrimSpace(m.TreeFind))
-	if strings.Contains(strings.ToLower(stepLabelAt(m.pathDir(p[:len(p)-1]), p[len(p)-1])), find) {
-		return true
+func (m *Model) StartSplit(left int) { m.Splitting, m.splitX0 = true, float32(left) }
+
+func (m *Model) SplitTo(x float64) bool {
+	if !m.Splitting {
+		return false
 	}
-	for _, n := range ReadStepNumbers(m.pathDir(p)) {
-		if m.findsIn(append(slices.Clone(p), n)) {
-			return true
+	m.TreeW = max(LinksBoard.TreeMinW, float32(x)-m.splitX0)
+	return true
+}
+
+func (m *Model) EndSplit() bool {
+	was := m.Splitting
+	m.Splitting = false
+	return was
+}
+
+func (m *Model) TreeWheel(pl Sheet.Layout, x, y, dy float64) bool {
+	for _, p := range pl.Pills {
+		l, ok := p.Board.(*Board.Laid)
+		if !ok {
+			continue
+		}
+		for _, s := range l.Spots {
+			if v := map[string]*float32{OpTreeScroll: &m.TreeSY}[s.Cell.Act.Op]; v != nil && x >= float64(s.R.X) && x < float64(s.R.X+s.R.W) && y >= float64(s.R.Y) && y < float64(s.R.Y+s.R.H) {
+				*v = min(max(0, *v+float32(dy)), float32(s.Cell.Act.I))
+				return true
+			}
 		}
 	}
 	return false
-}
-
-func (m *Model) walkFind(parent, here []int) {
-	dir := m.pathDir(parent)
-	for _, n := range ReadStepNumbers(dir) {
-		p := append(slices.Clone(parent), n)
-		if !m.findsIn(p) {
-			continue
-		}
-		r := StepRow{Path: p, Label: stepLabelAt(dir, n), Depth: len(parent), Shown: slices.Equal(p, here)}
-		r.Here = len(p) <= len(here) && slices.Equal(p, here[:len(p)])
-		r.Kids = len(ReadStepNumbers(stepDir(dir, n)))
-		r.Open = r.Kids > 0
-		m.Tree = append(m.Tree, r)
-		m.walkFind(p, here)
-	}
 }

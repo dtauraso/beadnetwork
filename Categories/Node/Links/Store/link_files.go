@@ -1,4 +1,4 @@
-package Links
+package Store
 
 import (
 	"fmt"
@@ -6,34 +6,36 @@ import (
 	"path/filepath"
 	"slices"
 	"sort"
+
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
 const (
 	DirLinks = "links"
 	DirDrag  = "drag"
 
-	FileSource     = "source.bin"
-	FileOrder      = "order.bin"
+	FileSource        = "source.bin"
+	FileOrder         = "order.bin"
 	FileStartPhi      = "start-phi-tick.bin"
 	FileStartTheta    = "start-theta-tick.bin"
 	fileStartPhiOld   = "start-phi.bin"
 	fileStartThetaOld = "start-theta.bin"
-	FileStartR     = "start-r.bin"
-	FileDeltaPhi   = "delta-phi.bin"
-	FileDeltaTheta = "delta-theta.bin"
-	FileDeltaR     = "delta-r.bin"
-	FileIncPhi     = "increment-phi.bin"
-	FileIncTheta   = "increment-theta.bin"
-	FileIncR       = "increment-r.bin"
-	FileLockPhi    = "lock-phi.bin"
-	FileLockTheta  = "lock-theta.bin"
-	FilePicked     = "picked.bin"
-	FileStartS     = "start-s.bin"
-	FileDeltaS     = "delta-s.bin"
-	FileIncS       = "increment-s.bin"
-	FileOnePhi     = "one-phi.bin"
-	FileOneTheta   = "one-theta.bin"
-	FileOneR       = "one-r.bin"
+	FileStartR        = "start-r.bin"
+	FileDeltaPhi      = "delta-phi.bin"
+	FileDeltaTheta    = "delta-theta.bin"
+	FileDeltaR        = "delta-r.bin"
+	FileIncPhi        = "increment-phi.bin"
+	FileIncTheta      = "increment-theta.bin"
+	FileIncR          = "increment-r.bin"
+	FileLockPhi       = "lock-phi.bin"
+	FileLockTheta     = "lock-theta.bin"
+	FilePicked        = "picked.bin"
+	FileStartS        = "start-s.bin"
+	FileDeltaS        = "delta-s.bin"
+	FileIncS          = "increment-s.bin"
+	FileOnePhi        = "one-phi.bin"
+	FileOneTheta      = "one-theta.bin"
+	FileOneR          = "one-r.bin"
 )
 
 func BaseLinksDir(nodeDir string) string { return filepath.Join(nodeDir, DirLinks) }
@@ -42,7 +44,7 @@ func DragLinksDir(nodeDir string) string { return filepath.Join(nodeDir, DirDrag
 
 func linkName(from, to string) string { return from + "To" + to }
 
-func ReadLinks(nodeDir, to string) ([]Link, error) {
+func ReadLinks(nodeDir, to string) ([]Links.Link, error) {
 	dir := DragLinksDir(nodeDir)
 	if _, err := os.Stat(dir); err == nil { // path-resolution-ok: a node's edits replace its grid's links only once it has made one
 		return readLinksIn(dir, to)
@@ -54,11 +56,15 @@ func ReadLinks(nodeDir, to string) ([]Link, error) {
 	return g.ShownCol().Links(), nil
 }
 
-func ReadBaseLinks(nodeDir, to string) ([]Link, error) { return readLinksIn(BaseLinksDir(nodeDir), to) }
+func ReadBaseLinks(nodeDir, to string) ([]Links.Link, error) {
+	return readLinksIn(BaseLinksDir(nodeDir), to)
+}
 
-func ReadDragLinks(nodeDir, to string) ([]Link, error) { return readLinksIn(DragLinksDir(nodeDir), to) }
+func ReadDragLinks(nodeDir, to string) ([]Links.Link, error) {
+	return readLinksIn(DragLinksDir(nodeDir), to)
+}
 
-func readLinksIn(linksDir, to string) ([]Link, error) {
+func readLinksIn(linksDir, to string) ([]Links.Link, error) {
 	entries, err := os.ReadDir(linksDir)
 	if os.IsNotExist(err) {
 		return nil, nil
@@ -66,13 +72,13 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	var all []Link
+	var all []Links.Link
 	for _, e := range entries {
 		if !e.IsDir() { // path-resolution-ok: a link is a directory; skipping strays under links/
 			continue
 		}
 		dir := filepath.Join(linksDir, e.Name())
-		l := Link{To: to, Increment: Ints{Phi: 1, Theta: 1, R: 1}}
+		l := Links.Link{To: to, Increment: Links.Ints{Phi: 1, Theta: 1, R: 1}}
 		if !ReadIfExists(filepath.Join(dir, FileSource), &l.From) {
 			continue
 		}
@@ -101,26 +107,26 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 	return all, nil
 }
 
-func readStartTicks(dir string, s *Start) {
+func readStartTicks(dir string, s *Links.Start) {
 	if ReadIfExists(filepath.Join(dir, FileStartPhi), &s.Tick.Phi) && ReadIfExists(filepath.Join(dir, FileStartTheta), &s.Tick.Theta) {
 		return
 	}
 	var phi, theta float64
 	ReadIfExists(filepath.Join(dir, fileStartPhiOld), &phi)
 	ReadIfExists(filepath.Join(dir, fileStartThetaOld), &theta)
-	s.Tick = Ticks{LegacyTicks(phi, s.S), LegacyTicks(theta, s.S)}
+	s.Tick = Links.Ticks{Phi: Links.LegacyTicks(phi, s.S), Theta: Links.LegacyTicks(theta, s.S)}
 }
 
-func mustBeCounts(dir string, l Link) {
+func mustBeCounts(dir string, l Links.Link) {
 	const most = 1 << 40
 	for _, v := range []int{l.Delta.Phi, l.Delta.Theta, l.Delta.R, l.Increment.Phi, l.Increment.Theta, l.Increment.R, l.Start.S, l.Delta.S, l.Increment.S, l.Start.One.Phi, l.Start.One.Theta, l.Start.One.R} {
 		if v > most || v < -most {
-			panic(fmt.Sprintf("Links.readLinksIn: %s holds %d in a Δ, nΔ or s file, which is a float64 read as an int64 — Δ and nΔ are whole numbers stored as int64, so this file was written before they were, or by something writing floats into them", dir, v))
+			panic(fmt.Sprintf("Store.readLinksIn: %s holds %d in a Δ, nΔ or s file, which is a float64 read as an int64 — Δ and nΔ are whole numbers stored as int64, so this file was written before they were, or by something writing floats into them", dir, v))
 		}
 	}
 }
 
-func SortLinks(ls []Link) {
+func SortLinks(ls []Links.Link) {
 	sort.SliceStable(ls, func(i, j int) bool {
 		if ls[i].Order != ls[j].Order {
 			return ls[i].Order < ls[j].Order
@@ -132,11 +138,11 @@ func SortLinks(ls []Link) {
 	})
 }
 
-func WriteBaseLinks(nodeDir string, links []Link) error {
+func WriteBaseLinks(nodeDir string, links []Links.Link) error {
 	return writeLinksIn(BaseLinksDir(nodeDir), links)
 }
 
-func WriteLinks(nodeDir string, links []Link) error {
+func WriteLinks(nodeDir string, links []Links.Link) error {
 	return writeLinksIn(DragLinksDir(nodeDir), links)
 }
 
@@ -153,12 +159,12 @@ func RemoveLinksTo(nodeDir, from, to string) error {
 	}
 	for i := range g.Cols {
 		c := &g.Cols[i]
-		c.In = slices.DeleteFunc(c.In, func(in InCell) bool { return in.Link.From == from })
+		c.In = slices.DeleteFunc(c.In, func(in Links.InCell) bool { return in.Link.From == from })
 	}
 	return WriteGrid(path, g)
 }
 
-func writeLinksIn(linksDir string, links []Link) error {
+func writeLinksIn(linksDir string, links []Links.Link) error {
 	keep := map[string]bool{}
 	for _, l := range links {
 		name := linkName(l.From, l.To)

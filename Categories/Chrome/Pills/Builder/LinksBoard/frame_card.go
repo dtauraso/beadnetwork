@@ -2,9 +2,10 @@ package LinksBoard
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
-func frameCard(l *Board.Laid, r Rect, sy float32, p Pop) float32 {
+func frameCard(l *Board.Laid, r Rect, sy float32, p Fill.Pop) float32 {
 	clip := l.Clip(r)
 	l.Add(Board.Mark{Kind: Board.KBox, R: r, Clip: clip, Fill: Board.Back, Alpha: 1})
 	w := max(160, r.W-2*colGap)

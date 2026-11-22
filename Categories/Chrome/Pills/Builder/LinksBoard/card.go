@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
 const (
@@ -39,7 +40,7 @@ func headW(s string) float32 { return Board.TextW(s, 10.5, Board.Semi) }
 
 type cardWidths struct{ lw, sw, ow, aw, bw, tw, g float32 }
 
-func cardCols(d Card) cardWidths {
+func cardCols(d Fill.Card) cardWidths {
 	var c cardWidths
 	for _, r := range d.Rows {
 		c.lw = max(c.lw, Board.TextW(r.Axis, Board.Px, 7))
@@ -65,7 +66,7 @@ func cardCols(d Card) cardWidths {
 	return c
 }
 
-func cardW(d Card) float32 {
+func cardW(d Fill.Card) float32 {
 	if len(d.Rows) == 0 {
 		return 0
 	}
@@ -87,7 +88,7 @@ func cardW(d Card) float32 {
 	return w
 }
 
-func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
+func card(l *Board.Laid, clip uint8, x, y, w float32, d Fill.Card) float32 {
 	box := len(l.Marks)
 	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x, Y: y, W: w}, Clip: clip, Fill: Board.White, Edge: Board.Guide, Radius: radius6, Corner: 1, Stroke: 1, Alpha: 1})
 	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: x + 1, Y: y - 0.5, W: w - 2, H: 2}, Clip: clip, Fill: Board.White, Alpha: 1})
@@ -155,7 +156,7 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	return h
 }
 
-func row(l *Board.Laid, clip uint8, x, y, s, o, a, b, t float32, r CardRow) float32 {
+func row(l *Board.Laid, clip uint8, x, y, s, o, a, b, t float32, r Fill.CardRow) float32 {
 	h := float32(Board.SegH)
 	mid := y + h/2
 	l.Text(x, y, h, clip, r.Axis, Board.Px, Board.Ink, true, Board.Left)

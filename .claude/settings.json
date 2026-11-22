@@ -28,7 +28,7 @@
           },
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/scripts/block-open-html-hook.py"
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/scripts/hooks/block-open-html-hook.py"
           },
           {
             "type": "command",

@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 
@@ -76,7 +76,7 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.UI.Builder.TickMs = Scalar.Load(Scenes.TickMsFilePath(scenePath), clock.MsPerTick, 1)
 	md.UI.Builder.Frame = Topology.LinkFrame(spec)
 	md.UI.Builder.Root = Scenes.NodesRoot(scenePath)
-	md.UI.Builder.Step = Builder.ReadStep(Builder.PressDir(md.UI.Builder.Root))
+	md.UI.Builder.Step = StepStore.ReadStep(StepStore.PressDir(md.UI.Builder.Root))
 	md.UI.Builder.ReadNetworkOpen()
 	Dispatch.LoadOpenStep(md, scenePath)
 

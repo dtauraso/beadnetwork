@@ -5,6 +5,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
 const (
@@ -13,24 +14,7 @@ const (
 	foldW      = 14
 )
 
-type TreeRow struct {
-	Label    string
-	Depth    int
-	Kids     int
-	Add      bool
-	Open     bool
-	Here     bool
-	Shown    bool
-	Go       Act
-	Fold     Act
-	Menu     Act
-	Name     Act
-	MenuOpen bool
-	Items    []Board.Chip
-	Drop     Board.Chip
-}
-
-func treePane(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float32 {
+func treePane(l *Board.Laid, r Rect, sy float32, d Fill.Data, menus *[]placed) float32 {
 	clip := l.Clip(r)
 	l.Add(Board.Mark{Kind: Board.KBox, R: r, Clip: clip, Fill: Board.Card, Alpha: 1})
 	l.Line(Rect{X: r.X + r.W - 0.5, Y: r.Y, W: 0, H: r.H}, clip, Board.Guide, 1, false)
@@ -90,7 +74,7 @@ func treePane(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float3
 	return max(0, y+pad+sy-(r.Y+r.H))
 }
 
-func treeMost(r Rect, d Data) float32 {
+func treeMost(r Rect, d Fill.Data) float32 {
 	h := Board.RowH()
 	y := 2*pad + float32(len(d.Tree))*h
 	if d.TreeFind != nil {

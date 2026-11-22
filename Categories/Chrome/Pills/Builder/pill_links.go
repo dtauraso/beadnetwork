@@ -4,6 +4,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 const LinksLabel = "Links"
@@ -40,7 +41,7 @@ func (m Model) allLinks() []Links.Link {
 	for _, id := range m.Nodes {
 		out = append(out, m.Col(id).Links()...)
 	}
-	Links.SortLinks(out)
+	Store.SortLinks(out)
 	return out
 }
 

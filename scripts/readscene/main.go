@@ -10,7 +10,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
@@ -96,9 +96,9 @@ func main() {
 
 func readPlace(dir string) *polarindex.Place {
 	var p polarindex.Place
-	if !Links.ReadIfExists(filepath.Join(dir, Files.FileAtPhi), &p.Phi) ||
-		!Links.ReadIfExists(filepath.Join(dir, Files.FileAtTheta), &p.Theta) ||
-		!Links.ReadIfExists(filepath.Join(dir, Files.FileAtR), &p.R) {
+	if !Store.ReadIfExists(filepath.Join(dir, Files.FileAtPhi), &p.Phi) ||
+		!Store.ReadIfExists(filepath.Join(dir, Files.FileAtTheta), &p.Theta) ||
+		!Store.ReadIfExists(filepath.Join(dir, Files.FileAtR), &p.R) {
 		return nil
 	}
 	return &p
@@ -127,13 +127,13 @@ func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topo
 		nodeDir := Files.NodeDir(seqDir, id)
 		drag, base := Files.PlaceDirs(nodeDir)
 		n := Topology.Node{ID: id}
-		Links.ReadIfExists(filepath.Join(base, Files.FileType), &n.Type)
+		Store.ReadIfExists(filepath.Join(base, Files.FileType), &n.Type)
 		n.At = readPlace(base)
 		if at := readPlace(drag); at != nil {
 			n.At = at
 		}
 		spec.Nodes = append(spec.Nodes, n)
-		links, err := Links.ReadLinks(nodeDir, id)
+		links, err := Store.ReadLinks(nodeDir, id)
 		if err != nil {
 			return spec, fmt.Errorf("node %s links: %w", id, err)
 		}

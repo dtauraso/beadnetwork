@@ -3,6 +3,7 @@ package LinksBoard
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
 const (
@@ -27,7 +28,7 @@ func (k *col) rule(y float32, p Board.Paint) {
 	k.l.Line(Rect{X: k.x + 1, Y: y + 0.5, W: k.w - 2, H: 0}, k.clip, p, 1, false)
 }
 
-func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Data, menus *[]placed) float32 {
+func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Fill.Data, menus *[]placed) float32 {
 	clip := l.Clip(r)
 	l.Add(Board.Mark{Kind: Board.KBox, R: r, Clip: clip, Fill: Board.Back, Alpha: 1})
 	w := max(160, r.W-2*colGap)
@@ -61,7 +62,7 @@ func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Data, menus *[]pl
 	return max(0, y+sy-(r.Y+r.H))
 }
 
-func (k *col) header(c Column) {
+func (k *col) header(c Fill.Column) {
 	l, x, y := k.l, k.x+cpad, k.y
 	corner := uint8(2)
 	if !c.Open {
@@ -119,7 +120,7 @@ func (k *col) header(c Column) {
 	}
 }
 
-func (k *col) headRow(c Column) {
+func (k *col) headRow(c Fill.Column) {
 	l, x, y := k.l, k.x+cpad, k.y
 	switch {
 	case c.Progress != "":
@@ -151,11 +152,11 @@ const lockGap = 3
 
 func pressW() float32 { return Board.W("−", 11) + 10 }
 
-func lockW(lk Lock) float32 {
+func lockW(lk Fill.Lock) float32 {
 	return Board.W(lk.Label, 12) + 10 + lockGap + 2*pressW() + Board.W(lk.Axis, 12) + 10
 }
 
-func (k *col) lock(x, y float32, lk Lock) float32 {
+func (k *col) lock(x, y float32, lk Fill.Lock) float32 {
 	l, h := k.l, float32(btnH+2)
 	gw := Board.W(lk.Label, 12) + 10
 	fill, ink := Board.White, Board.Ink

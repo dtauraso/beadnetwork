@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -55,7 +56,7 @@ func (m *Model) setStepOpen(step int, on bool) {
 		if on {
 			v = 1
 		}
-		if err := Scalar.Write(filepath.Join(stepDir(m.lvl(), step), FileStepOpen), v); err != nil {
+		if err := Scalar.Write(filepath.Join(StepStore.StepDir(m.Lvl(), step), FileStepOpen), v); err != nil {
 			fmt.Fprintf(os.Stderr, "step_picks: step %d open: %v\n", step, err)
 		}
 	}
@@ -87,8 +88,8 @@ func (m *Model) readStepsOpen() {
 	if m.StepsOpen == nil {
 		m.StepsOpen = map[StepNode]bool{}
 	}
-	for _, n := range m.stepNums() {
-		if v := Scalar.Load(filepath.Join(stepDir(m.lvl(), n), FileStepOpen), -1, 0); v >= 0 {
+	for _, n := range m.Numbers() {
+		if v := Scalar.Load(filepath.Join(StepStore.StepDir(m.Lvl(), n), FileStepOpen), -1, 0); v >= 0 {
 			m.StepsOpen[StepNode{n, m.Level}] = v == 1
 		}
 	}
@@ -163,4 +164,37 @@ func (m *Model) ToggleCard(a Act) {
 func (m Model) StepPicked(step int, l Links.Link) bool {
 	c, ok := m.gridLink(StepEdge{step, l.From, l.To})
 	return ok && c.Picked
+}
+
+func (m Model) StepShown() int {
+	ns := m.Numbers()
+	if slices.Contains(ns, m.ShownStep) {
+		return m.ShownStep
+	}
+	if m.ShownStep > ns[len(ns)-1] {
+		return ns[len(ns)-1]
+	}
+	return ns[0]
+}
+
+func (m *Model) ShowStep(a Act, sign int) {
+	was := m.StepShown()
+	if _, ok := m.StepsOpen[StepNode{was, m.Level}]; !ok && was > 0 {
+		m.setStepOpen(was, m.StepOpen(was))
+	}
+	if sign == 0 {
+		if a.I == was && !m.StepClosed {
+			m.StepClosed = true
+			return
+		}
+		m.ShownStep, m.StepClosed = a.I, false
+		m.ShownStep = m.StepShown()
+		if m.ShownStep > 0 {
+			m.setStepOpen(m.ShownStep, true)
+		}
+		return
+	}
+	ns := m.Numbers()
+	i := slices.Index(ns, was)
+	m.ShownStep = ns[min(max(i+sign, 0), len(ns)-1)]
 }

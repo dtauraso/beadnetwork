@@ -1,37 +1,19 @@
 package Builder
 
 import (
+	"path/filepath"
 	"slices"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 type StepNode struct {
 	Step int
 	ID   string
-}
-
-func (m *Model) StepHead(step int) *Step {
-	if m.StepHeads == nil {
-		m.StepHeads = map[int]*Step{}
-	}
-	if m.StepHeads[step] == nil {
-		s := Step{}
-		if m.Root != "" {
-			s = ReadStep(stepDir(m.lvl(), step))
-		}
-		m.StepHeads[step] = &s
-	}
-	return m.StepHeads[step]
-}
-
-func (m Model) headOf(step int) Step {
-	if s := m.StepHeads[step]; s != nil {
-		return *s
-	}
-	return Step{}
 }
 
 func (m Model) stepActive(step int) []StepEdge {
@@ -115,15 +97,6 @@ func (m *Model) StepHeadEdit(a Act, sign int) []HeadEdit {
 	return m.stepHeadEdits(a.I, Links.EditHead, Links.KBoth, sign, st.Locks())
 }
 
-func (m Model) writeStepHeads() error {
-	for step, s := range m.StepHeads {
-		if err := WriteStep(stepDir(m.lvl(), step), *s); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 const (
 	OpAllPlay  = "all-play"
 	OpAllScale = "all-scale"
@@ -155,17 +128,17 @@ func (m Model) playEdits(step, press, of int) []HeadEdit {
 
 func (m Model) Playing(step int) bool { return m.Play != nil && m.Play.Step == step }
 
-func playOf(m Model, step int) LinksBoard.Lock {
+func playOf(m Model, step int) Fill.Lock {
 	glyph := "▶"
 	if m.Playing(step) {
 		glyph = "■ " + itoa(m.Play.K) + "/" + itoa(m.Play.N)
 	}
-	return LinksBoard.Lock{Label: glyph, Axis: "×" + itoa(m.headOf(step).PlayScale()), Value: itoa(m.headOf(step).PlayScale()), On: m.Playing(step),
+	return Fill.Lock{Label: glyph, Axis: "×" + itoa(m.HeadOf(step).PlayScale()), Value: itoa(m.HeadOf(step).PlayScale()), On: m.Playing(step),
 		Cycle: Act{Op: OpAllPlay, I: step}, Press: Act{Op: OpAllScale, I: step}}
 }
 
 func (m *Model) StartPlay(step int, now int64) {
-	m.Play = &Play{Step: step, N: max(1, m.PlayPresses(step)*m.headOf(step).PlayScale()), At: now + 2}
+	m.Play = &Play{Step: step, N: max(1, m.PlayPresses(step)*m.HeadOf(step).PlayScale()), At: now + 2}
 }
 
 const OpFolderPlay = "folder-play"
@@ -184,7 +157,7 @@ func (m Model) folderPlayChip() *Board.Chip {
 }
 
 func (m *Model) StartFolder() int {
-	m.Folder = &FolderRun{Steps: slices.Clone(m.stepNums())}
+	m.Folder = &FolderRun{Steps: slices.Clone(m.Numbers())}
 	return m.Folder.Steps[0]
 }
 
@@ -226,4 +199,29 @@ func (m *Model) PlayTick(now int64) ([]HeadEdit, bool) {
 	}
 	p.K++
 	return edits, true
+}
+
+const FileNetworkOpen = "network-open.bin"
+
+func (m *Model) ReadNetworkOpen() {
+	m.NetworkOpen = false
+	Store.ReadIfExists(filepath.Join(StepStore.PressDir(m.Root), FileNetworkOpen), &m.NetworkOpen)
+}
+
+func (m *Model) SetNetworkOpen(on bool) error {
+	m.NetworkOpen = on
+	return Store.WriteAtomicIfChanged(filepath.Join(StepStore.PressDir(m.Root), FileNetworkOpen), on)
+}
+
+func (m *Model) ReadNodeSteps() {
+	for _, id := range m.Nodes {
+		m.NodeStep(id)
+	}
+	if m.Root != "" {
+		m.ReadNumbers()
+		m.readStepsOpen()
+		for _, step := range m.Numbers() {
+			m.StepHead(step)
+		}
+	}
 }

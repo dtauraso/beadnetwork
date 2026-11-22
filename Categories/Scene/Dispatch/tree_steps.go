@@ -9,13 +9,14 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 func runSheetTree(ctx context.Context, md *MoveDispatch, a Sheet.Act) bool {
 	m := &md.UI.Builder
-	p := Builder.ParsePath(a.Node)
+	p := StepStore.ParsePath(a.Node)
 	switch a.Op {
 	case Builder.OpTreeFold:
 		if err := m.ToggleTreeFold(p); err != nil {
@@ -58,7 +59,7 @@ func openTop(md *MoveDispatch, scene string, p []int) {
 		p = append(p, Scenes.OpenStepPath(Scenes.TopStepDir(scene, p[0]))...)
 	}
 	if err := Scenes.WriteOpenStep(scene, p); err != nil {
-		m.Refused = fmt.Sprintf("could not open step %s: %v", Builder.PathKey(p), err)
+		m.Refused = fmt.Sprintf("could not open step %s: %v", StepStore.PathKey(p), err)
 		return
 	}
 	nodes := Scenes.NodesRoot(scene)
@@ -83,10 +84,10 @@ func LoadOpenStep(md *MoveDispatch, scene string) {
 	if len(p) == 0 {
 		return
 	}
-	if _, err := os.Stat(filepath.Join(m.Root, Builder.LevelOf(p))); err != nil {
+	if _, err := os.Stat(filepath.Join(m.Root, StepStore.LevelOf(p))); err != nil {
 		return
 	}
-	m.Level, m.ShownStep = Builder.LevelOf(p[:len(p)-1]), p[len(p)-1]
+	m.Level, m.ShownStep = StepStore.LevelOf(p[:len(p)-1]), p[len(p)-1]
 }
 
 func runTreeStepOp(ctx context.Context, md *MoveDispatch, a Sheet.Act) bool {
@@ -94,13 +95,13 @@ func runTreeStepOp(ctx context.Context, md *MoveDispatch, a Sheet.Act) bool {
 		return false
 	}
 	m := &md.UI.Builder
-	p := Builder.ParsePath(a.Node)
+	p := StepStore.ParsePath(a.Node)
 	switch {
 	case len(p) == 0:
 	case m.OpenTop > 0 && len(p) == 1 && a.Op != Builder.OpTreeInner:
 		topStepOp(md, a.Op, p[0])
 	case m.Crosses(p):
-		m.Refused = fmt.Sprintf("step %s is inside top step %d; open that one first", Builder.PathKey(p), p[0])
+		m.Refused = fmt.Sprintf("step %s is inside top step %d; open that one first", StepStore.PathKey(p), p[0])
 	case a.Op == Builder.OpTreeInner:
 		to, err := m.AddInner(p)
 		if err == nil {

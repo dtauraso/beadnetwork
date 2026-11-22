@@ -2,9 +2,10 @@ package LinksBoard
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
-func dropBody(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float32 {
+func dropBody(l *Board.Laid, r Rect, sy float32, d Fill.Data, menus *[]placed) float32 {
 	if d.Pop != nil {
 		return frameCard(l, r, sy, *d.Pop)
 	}
@@ -14,7 +15,7 @@ func dropBody(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float3
 	return network(l, r, sy, *d.Net, menus)
 }
 
-func topCard(l *Board.Laid, r Rect, sy float32, d Data, menus *[]placed) float32 {
+func topCard(l *Board.Laid, r Rect, sy float32, d Fill.Data, menus *[]placed) float32 {
 	if d.New == nil && d.Net == nil && d.Pop == nil {
 		return r.Y - sy
 	}

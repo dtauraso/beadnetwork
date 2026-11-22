@@ -10,7 +10,7 @@ cd "$REPO_ROOT"
 report="$(python3 - <<'PY'
 import os, re, subprocess, collections
 
-CEILING = 20
+CEILING = 15
 
 ALLOWED = {}
 

@@ -3,6 +3,7 @@ package LinksBoard
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 )
 
 type flow struct {
@@ -59,7 +60,7 @@ func crumbs(l *Board.Laid, f *flow, clip uint8, cs []Board.Chip, name Act) {
 	}
 }
 
-func scopeBar(l *Board.Laid, r Rect, d Data) float32 {
+func scopeBar(l *Board.Laid, r Rect, d Fill.Data) float32 {
 	clip, bg := band(l, r, Board.White)
 	f := flow{x0: r.X + pad, right: r.X + r.W - pad, x: r.X + pad, y: r.Y + pad, h: Board.RowH(), gap: Board.Gap}
 	crumbs(l, &f, clip, d.Crumbs, d.CrumbName)

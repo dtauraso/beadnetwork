@@ -27,7 +27,7 @@ func (m *Model) StartWalk() {
 }
 
 func (m *Model) WalkShow() Links.ShowStep {
-	s := Links.ShowStep{Level: m.Level, Step: m.Walk.Steps[m.Walk.I], Steps: m.stepNums()}
+	s := Links.ShowStep{Level: m.Level, Step: m.Walk.Steps[m.Walk.I], Steps: m.Numbers()}
 	if m.Walk.I == 0 {
 		s.From = m.Walk.From
 	}

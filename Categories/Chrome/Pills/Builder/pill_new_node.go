@@ -6,7 +6,7 @@ import (
 	"slices"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -69,16 +69,16 @@ func (m *Model) NewEdit(a Act, sign int, typed *float64) {
 	m.New.At, m.New.Set = at, true
 }
 
-func newNodeData(m Model) *LinksBoard.NewNode {
+func newNodeData(m Model) *Fill.NewNode {
 	center, at := m.NewCenter(), m.newAt()
-	n := &LinksBoard.NewNode{Add: Act{Op: OpNewAdd}}
+	n := &Fill.NewNode{Add: Act{Op: OpNewAdd}}
 	for _, id := range m.Nodes {
 		n.Centers = append(n.Centers, Board.Chip{Label: id, Act: Act{Op: OpNewCenter, Node: id}, Lit: id == center})
 		n.Drops = append(n.Drops, Board.Chip{Label: "✕ " + id, Act: Act{Op: OpNodeDrop, Node: id}})
 	}
-	field := func(k string, v float64, label string) LinksBoard.NetField {
-		return LinksBoard.NetField{Name: label, Field: Board.Field{Value: Num(v), Fit: "000.00", Act: Act{Op: OpNewAt, K: k}}}
+	field := func(k string, v float64, label string) Fill.NetField {
+		return Fill.NetField{Name: label, Field: Board.Field{Value: Num(v), Fit: "000.00", Act: Act{Op: OpNewAt, K: k}}}
 	}
-	n.At = []LinksBoard.NetField{field(Links.KPhi, at.Phi, "φ"), field(Links.KTheta, at.Theta, "θ"), field(Links.KR, at.R, "r")}
+	n.At = []Fill.NetField{field(Links.KPhi, at.Phi, "φ"), field(Links.KTheta, at.Theta, "θ"), field(Links.KR, at.R, "r")}
 	return n
 }

@@ -1,4 +1,4 @@
-package Links
+package Store
 
 import (
 	"bytes"
@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
 const (
@@ -27,7 +29,7 @@ type GridRow struct {
 	V          []float64
 }
 
-func rowsOf[T any](band string, rs []row[T], at func(c *Col) (T, bool), cols []Col) []GridRow {
+func rowsOf[T any](band string, rs []row[T], at func(c *Links.Col) (T, bool), cols []Links.Col) []GridRow {
 	var out []GridRow
 	for _, r := range rs {
 		gr := GridRow{Band: band, Name: r.name, V: make([]float64, len(cols))}
@@ -41,20 +43,20 @@ func rowsOf[T any](band string, rs []row[T], at func(c *Col) (T, bool), cols []C
 	return out
 }
 
-func bandRows[C any](band string, cols []Col, cell func(c *Col) (C, bool), link func(C) Link, sum func(C) Angles, extra []row[C]) []GridRow {
+func bandRows[C any](band string, cols []Links.Col, cell func(c *Links.Col) (C, bool), link func(C) Links.Link, sum func(C) Links.Angles, extra []row[C]) []GridRow {
 	present := GridRow{Band: band, Name: rowPresent, V: make([]float64, len(cols))}
 	for i := range cols {
 		_, ok := cell(&cols[i])
 		present.V[i] = b2f(ok)
 	}
 	out := []GridRow{present}
-	out = append(out, rowsOf(band, linkRows, func(c *Col) (Link, bool) { x, ok := cell(c); return link(x), ok }, cols)...)
-	out = append(out, rowsOf(band, sumRows, func(c *Col) (Angles, bool) { x, ok := cell(c); return sum(x), ok }, cols)...)
+	out = append(out, rowsOf(band, linkRows, func(c *Links.Col) (Links.Link, bool) { x, ok := cell(c); return link(x), ok }, cols)...)
+	out = append(out, rowsOf(band, sumRows, func(c *Links.Col) (Links.Angles, bool) { x, ok := cell(c); return sum(x), ok }, cols)...)
 	return append(out, rowsOf(band, extra, cell, cols)...)
 }
 
-func (g Grid) Rows() []GridRow {
-	rows := rowsOf(BandNode, nodeRows, func(c *Col) (Col, bool) { return *c, true }, g.Cols)
+func Rows(g Links.Grid) []GridRow {
+	rows := rowsOf(BandNode, nodeRows, func(c *Links.Col) (Links.Col, bool) { return *c, true }, g.Cols)
 	var ins, outs []string
 	seen := map[string]bool{}
 	for _, c := range g.Cols {
@@ -70,19 +72,19 @@ func (g Grid) Rows() []GridRow {
 		}
 	}
 	for _, from := range ins {
-		cell := func(c *Col) (InCell, bool) { return c.InFrom(from) }
-		rows = append(rows, bandRows(BandIn+from, g.Cols, cell, func(x InCell) Link { return x.Link }, func(x InCell) Angles { return x.Sum }, nil)...)
+		cell := func(c *Links.Col) (Links.InCell, bool) { return c.InFrom(from) }
+		rows = append(rows, bandRows(BandIn+from, g.Cols, cell, func(x Links.InCell) Links.Link { return x.Link }, func(x Links.InCell) Links.Angles { return x.Sum }, nil)...)
 	}
 	for _, to := range outs {
-		cell := func(c *Col) (OutCell, bool) {
+		cell := func(c *Links.Col) (Links.OutCell, bool) {
 			for _, o := range c.Out {
 				if o.Link.To == to {
 					return o, true
 				}
 			}
-			return OutCell{}, false
+			return Links.OutCell{}, false
 		}
-		rows = append(rows, bandRows(BandOut+to, g.Cols, cell, func(x OutCell) Link { return x.Link }, func(x OutCell) Angles { return x.Sum }, outRows)...)
+		rows = append(rows, bandRows(BandOut+to, g.Cols, cell, func(x Links.OutCell) Links.Link { return x.Link }, func(x Links.OutCell) Links.Angles { return x.Sum }, outRows)...)
 	}
 	return rows
 }
@@ -92,7 +94,7 @@ func putStr(b *bytes.Buffer, s string) {
 	b.WriteString(s)
 }
 
-func WriteGrid(path string, g Grid) error {
+func WriteGrid(path string, g Links.Grid) error {
 	var b bytes.Buffer
 	b.WriteString(gridMagic)
 	le := binary.LittleEndian
@@ -104,7 +106,7 @@ func WriteGrid(path string, g Grid) error {
 	for _, c := range g.Cols {
 		_ = binary.Write(&b, le, int64(c.Step))
 	}
-	rows := g.Rows()
+	rows := Rows(g)
 	_ = binary.Write(&b, le, uint32(len(rows)))
 	for _, r := range rows {
 		putStr(&b, r.Band)
@@ -150,14 +152,14 @@ func ReadGridRows(path string) (GridHead, []GridRow, error) {
 		return h, nil, err
 	}
 	if !strings.HasPrefix(string(data), gridMagic) {
-		return h, nil, fmt.Errorf("Links.ReadGridRows: %s does not start with %q, so it is not a node grid", path, gridMagic)
+		return h, nil, fmt.Errorf("Store.ReadGridRows: %s does not start with %q, so it is not a node grid", path, gridMagic)
 	}
 	r, le := bytes.NewReader(data[len(gridMagic):]), binary.LittleEndian
 	var ver, ncols, nrows uint32
 	var shown int64
 	_ = binary.Read(r, le, &ver)
 	if ver < 1 || ver > gridVersion {
-		return h, nil, fmt.Errorf("Links.ReadGridRows: %s is grid version %d, and this build reads versions 1 to %d", path, ver, gridVersion)
+		return h, nil, fmt.Errorf("Store.ReadGridRows: %s is grid version %d, and this build reads versions 1 to %d", path, ver, gridVersion)
 	}
 	h.Ver = int(ver)
 	h.ID, _ = getStr(r)
@@ -171,7 +173,7 @@ func ReadGridRows(path string) (GridHead, []GridRow, error) {
 		h.Steps = append(h.Steps, int(s))
 	}
 	if err := binary.Read(r, le, &nrows); err != nil {
-		return h, nil, fmt.Errorf("Links.ReadGridRows: %s ends inside its header: %w", path, err)
+		return h, nil, fmt.Errorf("Store.ReadGridRows: %s ends inside its header: %w", path, err)
 	}
 	rows := make([]GridRow, nrows)
 	for i := range rows {
@@ -179,18 +181,18 @@ func ReadGridRows(path string) (GridHead, []GridRow, error) {
 		rows[i].Name, _ = getStr(r)
 		rows[i].V = make([]float64, ncols)
 		if err := binary.Read(r, le, rows[i].V); err != nil {
-			return h, nil, fmt.Errorf("Links.ReadGridRows: %s ends inside row %d (%s %s): %w", path, i, rows[i].Band, rows[i].Name, err)
+			return h, nil, fmt.Errorf("Store.ReadGridRows: %s ends inside row %d (%s %s): %w", path, i, rows[i].Band, rows[i].Name, err)
 		}
 	}
 	if ver >= 2 {
 		if h.Base, err = readBase(r); err != nil {
-			return h, nil, fmt.Errorf("Links.ReadGridRows: %s ends inside its running totals: %w", path, err)
+			return h, nil, fmt.Errorf("Store.ReadGridRows: %s ends inside its running totals: %w", path, err)
 		}
 	}
 	for _, v := range append(rows, h.Base...) {
 		for _, x := range v.V {
 			if math.IsNaN(x) {
-				return h, nil, fmt.Errorf("Links.ReadGridRows: %s row %s %s holds NaN — every cell is a number the node wrote", path, v.Band, v.Name)
+				return h, nil, fmt.Errorf("Store.ReadGridRows: %s row %s %s holds NaN — every cell is a number the node wrote", path, v.Band, v.Name)
 			}
 		}
 	}

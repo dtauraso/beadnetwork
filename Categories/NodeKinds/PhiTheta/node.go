@@ -8,6 +8,7 @@ import (
 	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 type PhiTheta struct {
@@ -120,7 +121,7 @@ func (n *PhiTheta) apply() {
 		}
 	}
 	if len(c.Links) > 0 {
-		if err := Links.WriteLinks(Files.NodeDir(root, id), n.peer.Links()); err != nil {
+		if err := Store.WriteLinks(Files.NodeDir(root, id), n.peer.Links()); err != nil {
 			n.breadcrumb("links-persist", err.Error())
 		}
 	}

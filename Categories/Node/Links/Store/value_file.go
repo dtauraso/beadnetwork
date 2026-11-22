@@ -1,4 +1,4 @@
-package Links
+package Store
 
 import (
 	"encoding/binary"
