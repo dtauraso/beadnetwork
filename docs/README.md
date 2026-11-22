@@ -32,12 +32,6 @@ An untagged doc there escaped a merge — delete it.
 |---|---|
 | [pole-singularity/index.html](polar-geometry/pole-singularity/index.html) | The layout pole singularity — φ grid vs great-circle bearing. |
 
-## Process
-
-| Doc | What it covers |
-|---|---|
-| [drift-checklist.md](process/drift-checklist.md) | Drift checklist — periodic agent/model-health audit. |
-
 ## Planning
 
 `docs/planning/` is empty on `main` by rule — a plan lives on its branch and leaves with the

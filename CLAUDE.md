@@ -213,7 +213,6 @@ breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
   Put detail here when it only matters for one part of the codebase.
 - Root CLAUDE.md — cross-cutting invariants only. It is re-injected after `/compact`;
   rules are not.
-- [docs/process/drift-checklist.md](docs/process/drift-checklist.md) — the periodic agent-health audit.
 
 ## Session handoff
 
