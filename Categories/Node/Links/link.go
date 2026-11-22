@@ -104,8 +104,16 @@ func NewLink(from, to string) *Link {
 
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
+func (l *Link) Turn() Ints {
+	if !l.Picked {
+		return Ints{S: l.Delta.S}
+	}
+	return l.Delta
+}
+
 func (l *Link) Sum() Ints {
-	return Ints{Phi: l.Total.Phi + l.Delta.Phi, Theta: l.Total.Theta + l.Delta.Theta, R: l.Total.R + l.Delta.R, S: l.Delta.S}
+	d := l.Turn()
+	return Ints{Phi: l.Total.Phi + d.Phi, Theta: l.Total.Theta + d.Theta, R: l.Total.R + d.R, S: l.Delta.S}
 }
 
 func (l *Link) Dir() Angles {
@@ -146,7 +154,7 @@ func (l *Link) SetS(s int) {
 }
 
 func (l *Link) Drawn() (int, Angles) {
-	p, t, d := l.Start.per(), l.Total, l.Delta
+	p, t, d := l.Start.per(), l.Total, l.Turn()
 	f, part := float64(p), 1.0
 	if l.Playing {
 		part = l.Part
