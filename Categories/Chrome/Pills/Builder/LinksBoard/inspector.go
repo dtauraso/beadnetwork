@@ -8,7 +8,7 @@ const (
 	ipadX      = 10
 	ipadY      = 8
 	inspW      = 260
-	inspMinW   = 180
+	inspMinW   = 120
 	colNarrowW = 320
 	subH       = 15
 	headTH     = 15
@@ -29,6 +29,12 @@ type ins struct {
 }
 
 func (in *ins) w() float32 { return in.r.W - 2*ipadX }
+
+func inspMin(d Inspector) float32 {
+	in := &ins{r: Rect{W: inspW}}
+	in.grid(d.Axes)
+	return max(inspMinW, in.ctrl+ipadX+ctrlPadR)
+}
 
 func (in *ins) lines(x float32, s string, px float32, ink Paint) {
 	for _, t := range wrap(s, in.r.X+in.r.W-ipadX-x, px) {
