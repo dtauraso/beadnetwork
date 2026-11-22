@@ -17,6 +17,8 @@ type fitCard struct {
 type fitItem struct {
 	w    float32
 	draw func(x, y float32)
+	text string
+	ink  Board.Paint
 }
 
 func openFitCard(l *Board.Laid, clip uint8, x, y, w float32, title, sub string) *fitCard {
@@ -57,10 +59,37 @@ func (c *fitCard) row(label string, items []fitItem) {
 	}
 	f := flow{x0: start, right: right, x: start, y: c.cy, h: h, gap: Board.Gap}
 	for _, it := range items {
+		if it.text != "" && f.x+it.w > right {
+			c.wrapText(&f, it)
+			continue
+		}
 		ix, iy := f.at(it.w)
 		it.draw(ix, iy)
 	}
 	c.cy = f.bottom() + Board.Gap
+}
+
+func (c *fitCard) wrapText(f *flow, it fitItem) {
+	if f.x > f.x0 {
+		f.x, f.y = f.x0, f.y+f.h+f.gap
+	}
+	lines := wrap(it.text, f.right-f.x0, Board.SmallPx)
+	for i, s := range lines {
+		c.l.Text(f.x0, f.y+float32(i)*subLineH, f.h, c.clip, s, Board.SmallPx, it.ink, false, Board.Left)
+	}
+	f.y += float32(max(0, len(lines)-1)) * subLineH
+	f.x = f.right + 1
+}
+
+func (c *fitCard) text(s string, ink Board.Paint) fitItem {
+	h := Board.RowH()
+	return fitItem{w: Board.W(s, Board.SmallPx), text: s, ink: ink, draw: func(x, y float32) {
+		c.l.Text(x, y, h, c.clip, s, Board.SmallPx, ink, false, Board.Left)
+	}}
+}
+
+func (c *fitCard) bare(f Board.Field) fitItem {
+	return fitItem{w: Board.FieldW(f), draw: func(x, y float32) { c.l.Field(x, y, c.clip, f) }}
 }
 
 func (c *fitCard) close() float32 {
