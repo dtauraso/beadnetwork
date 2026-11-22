@@ -12,7 +12,7 @@ bootPhase("bases", `scene=${window.BEADNETWORK_SCENE_BASE ? "set" : "MISSING"} s
 postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
-import { startSceneBaseReads } from "../Categories/Scene/scene-base";
+import { startSceneBaseReads } from "../Categories/Scene/read/scene-base";
 import { ThreeView } from "./extension/webview/scene/ThreeView";
 import { ErrorBoundary } from "./extension/webview/log/ErrorBoundary";
 import { CrashListeners } from "./extension/webview/log/CrashListeners";

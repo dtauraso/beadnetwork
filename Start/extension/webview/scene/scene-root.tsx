@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
-import { ownerCounts } from "../../../../Categories/Scene/owner-counts";
+import { ownerCounts } from "../../../../Categories/Scene/read/owner-counts";
 import { INTERIOR_SLOTS_PER_NODE } from "../../../../Categories/Node/Interior/interior-values-gen";
 
 import { ChainBeadInstances } from "../../../../Categories/Node/BeadAnimation/ChainBeadInstances";

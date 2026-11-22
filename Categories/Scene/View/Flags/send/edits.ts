@@ -1,4 +1,4 @@
-import type { OverlayFlag } from "./flags";
+import type { OverlayFlag } from "../flags";
 
 // EDIT_MSG_START
 export type OverlayEditMsg =

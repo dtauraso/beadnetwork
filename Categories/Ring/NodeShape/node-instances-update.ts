@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import { ownerCounts } from "../../Scene/owner-counts";
+import { ownerCounts } from "../../Scene/read/owner-counts";
 import {
   nodeF32, NODE_RING_NAMES, NODE_BODY_NAMES,
 } from "../../Node/Block/read/node-leaves";
 import { type NodeValueName } from "../../Node/Block/node-values-gen";
-import { sceneValue } from "../../Scene/scene-leaves";
+import { sceneValue } from "../../Scene/read/scene-leaves";
 import { postLog } from "../../../Start/extension/webview/log/post";
 
 function nodeCenterX(row: number): number { return nodeF32(row, "bodyM12"); }

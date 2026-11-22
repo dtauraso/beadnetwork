@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { nodeLabel } from "../../Labels/node-label";
 import { polarToCart } from "../../../Vectors/polar-convert";
-import { sceneSteps, sceneRadius } from "../../../Scene/scene-frame";
-import { ownerCounts } from "../../../Scene/owner-counts";
+import { sceneSteps, sceneRadius } from "../../../Scene/read/scene-frame";
+import { ownerCounts } from "../../../Scene/read/owner-counts";
 import { nodeF32, nodeU8 } from "./node-leaves";
 import { readSelectedNodeRow } from "../../../Scene/View/Flags/overlay-flags-selection";
 

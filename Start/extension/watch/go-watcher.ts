@@ -1,10 +1,10 @@
-import { logfmt } from "./probe/logfmt";
+import { logfmt } from "../probe/logfmt";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { BuildAndRunRunner } from "./runCommand";
-import { buildBinary } from "./goBuild";
-import { shouldRestartAfterBuild, TrailingDebouncer } from "./hotRestart";
+import { BuildAndRunRunner } from "../runCommand";
+import { buildBinary } from "../goBuild";
+import { shouldRestartAfterBuild, TrailingDebouncer } from "../hotRestart";
 
 export function armGoWatcher(
   repoRoot: string | undefined,

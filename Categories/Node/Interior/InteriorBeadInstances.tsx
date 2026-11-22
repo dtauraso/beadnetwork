@@ -3,8 +3,8 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { INTERIOR_SLOTS_PER_NODE } from "./interior-values-gen";
 import { interiorBeadStyleForValue } from "../../Ring/Bead/bead-style";
-import { ownerCounts } from "../../Scene/owner-counts";
-import { interiorBytes } from "./interior-leaves";
+import { ownerCounts } from "../../Scene/read/owner-counts";
+import { interiorBytes } from "./read/interior-leaves";
 
 function presentAt(node: number, slot: number): number {
   const b = interiorBytes(node, "present");

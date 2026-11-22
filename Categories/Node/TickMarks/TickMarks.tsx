@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { ownerCounts } from "../../Scene/owner-counts";
+import { ownerCounts } from "../../Scene/read/owner-counts";
 import { nodeBytes } from "../Block/read/node-leaves";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 

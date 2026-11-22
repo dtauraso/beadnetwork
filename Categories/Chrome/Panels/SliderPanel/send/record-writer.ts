@@ -1,5 +1,5 @@
-import { IN_UPDATE_ATTRS } from "./update-attrs";
-import { IN_KIND_EDIT_UPDATE, IN_UPDATE_KINDS } from "../../../Scene/Drag/input-defs";
+import { IN_UPDATE_ATTRS } from "../update-attrs";
+import { IN_KIND_EDIT_UPDATE, IN_UPDATE_KINDS } from "../../../../Scene/Drag/input-defs";
 
 export class ByteWriter {
   private buf = new Uint8Array(64);
@@ -78,7 +78,7 @@ export function attrIndex(attr: string): number {
   const i = (IN_UPDATE_ATTRS as readonly string[]).indexOf(attr);
   if (i < 0) {
     throw new Error(
-      `attrIndex: no wire byte exists for update attribute "${attr}" — Panel/update_attrs.go does ` +
+      `attrIndex: no wire byte exists for update attribute "${attr}" — Speed/update_attrs.go does ` +
         `not carry it, so an edit naming it could never be encoded. Add it there and regenerate, in ` +
         `the same commit as the decoder that reads it.`,
     );

@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import { sceneValue } from "../scene-leaves";
+import { sceneValue } from "../../read/scene-leaves";
 import {
   SHADING_PARAM_HANDHOLD_RADIUS_RATIO, SHADING_PARAM_HANDHOLD_MIN_RADIUS,
-} from "../Handholds/shading-params";
+} from "../../Handholds/shading-params";
 
 const eye = new THREE.Vector3();
 const dir = new THREE.Vector3();
