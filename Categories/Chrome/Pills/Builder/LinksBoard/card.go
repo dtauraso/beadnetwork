@@ -77,7 +77,11 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 			g = max(g, (hs+h0-sw-aw)/2+gapX)
 		}
 
-		s := cx + col1 + gapX
+		var lw float32
+		for _, r := range d.Rows {
+			lw = max(lw, Board.TextW(r.Axis, Board.Px, 7))
+		}
+		s := cx + lw + g
 		a := s
 		if sw > 0 {
 			a = s + sw + g
