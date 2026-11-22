@@ -32,7 +32,7 @@ func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 	if !l.Picked {
 		c.Note = "Not picked in this step, so it does not turn. These are the turns it would make; click the row to pick it and change them."
 		for i := range c.Rows {
-			for _, s := range []*Board.Stepper{&c.Rows[i].Start, &c.Rows[i].A, &c.Rows[i].B} {
+			for _, s := range []*Board.Stepper{&c.Rows[i].Start, &c.Rows[i].One, &c.Rows[i].A, &c.Rows[i].B} {
 				s.Field, s.DownDim, s.UpDim = Board.Field{}, true, true
 			}
 		}
@@ -41,7 +41,7 @@ func (m Model) stepCard(step int, l Links.Link) *LinksBoard.Card {
 }
 
 func (m Model) turnCard(step int, l Links.Link) *LinksBoard.Card {
-	c := &LinksBoard.Card{Heads: [3]string{"this step turns", "one press", "ends at"}, StartHead: "starts at", Foot: "“starts at” is shared by every step of this sequence."}
+	c := &LinksBoard.Card{Heads: [3]string{"this step turns", "one press", "ends at"}, StartHead: "starts at", OneHead: "1", Foot: "“starts at” is shared by every step of this sequence."}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
 	from := l
 	if b, ok := m.Grids[l.To].Base[l.From]; ok {
@@ -50,6 +50,7 @@ func (m Model) turnCard(step int, l Links.Link) *LinksBoard.Card {
 	for _, a := range axes {
 		press := act(OpLinkPress, a.k)
 		r := LinksBoard.CardRow{Axis: a.label, Start: stepper(a.at(from), Act{Op: OpLinkStart, Node: l.From, To: l.To, K: a.k, I: startPart}, true), A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
+		r.One = stepper(itoa(a.one(from)), Act{Op: OpLinkOne, Node: l.From, To: l.To, K: a.k, I: startPart}, false)
 		r.A.Faded = a.delta(l) == 0
 		if a.k == Links.KR {
 			m.rRow(c, &r, l)

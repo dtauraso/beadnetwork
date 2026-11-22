@@ -25,6 +25,7 @@ type Head struct {
 type CardRow struct {
 	Axis    string
 	Start   Board.Stepper
+	One     Board.Stepper
 	Dial    *Board.Dial
 	Ruler   *Board.Ruler
 	A, B, C Board.Stepper
@@ -35,6 +36,7 @@ type CardRow struct {
 type Card struct {
 	Heads     [3]string
 	StartHead string
+	OneHead   string
 	Rows      []CardRow
 	Note      string
 	Scroll    Act

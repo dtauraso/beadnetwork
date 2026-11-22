@@ -37,7 +37,7 @@ func segW(s Board.Stepper) float32 { return Board.SegW(s) }
 
 func headW(s string) float32 { return Board.TextW(s, 10.5, Board.Semi) }
 
-type cardWidths struct{ lw, sw, aw, bw, tw, g float32 }
+type cardWidths struct{ lw, sw, ow, aw, bw, tw, g float32 }
 
 func cardCols(d Card) cardWidths {
 	var c cardWidths
@@ -51,6 +51,9 @@ func cardCols(d Card) cardWidths {
 		}
 		if r.Start.Steps.Op != "" {
 			c.sw = max(c.sw, segW(r.Start))
+		}
+		if r.One.Steps.Op != "" {
+			c.ow = max(c.ow, segW(r.One), headW(d.OneHead))
 		}
 	}
 	hs, h0, h1 := headW(d.StartHead), headW(d.Heads[0]), headW(d.Heads[1])
@@ -71,6 +74,9 @@ func cardW(d Card) float32 {
 	if c.sw > 0 {
 		w += c.sw + c.g
 	}
+	if c.ow > 0 {
+		w += c.ow + c.g
+	}
 	return w
 }
 
@@ -90,17 +96,22 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	}
 	if len(d.Rows) > 0 {
 		c := cardCols(d)
-		lw, sw, aw, bw, g := c.lw, c.sw, c.aw, c.bw, c.g
+		lw, sw, ow, aw, bw, g := c.lw, c.sw, c.ow, c.aw, c.bw, c.g
 		gx, gclip, thumb := cx, clip, func() {}
 		if most := cardW(d) - 2*cardPadX - cw; most > 0 && d.Scroll.Op != "" {
 			gx, gclip, thumb = sideScroll(l, clip, Rect{X: cx, Y: cy, W: cw, H: headTxtH + float32(len(d.Rows))*(Board.SegH+gapY)}, most, d, &cy)
 		}
 		clip := gclip
 		s := gx + lw + g
-		a := s
+		o := s
 		if sw > 0 {
-			a = s + sw + g
+			o = s + sw + g
 			l.Weighted(s+sw/2, cy, headTxtH, clip, d.StartHead, 10.5, Board.Mute, Board.Semi, Board.Center)
+		}
+		a := o
+		if ow > 0 {
+			a = o + ow + g
+			l.Weighted(o+ow/2, cy, headTxtH, clip, d.OneHead, 10.5, Board.Mute, Board.Semi, Board.Center)
 		}
 		b := a + aw + g
 		t := b + bw + g
@@ -109,7 +120,7 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 		l.Weighted(t, cy, headTxtH, clip, d.Heads[2], 10.5, Board.Mute, Board.Semi, Board.Left)
 		cy += headTxtH + gapY
 		for _, r := range d.Rows {
-			cy += row(l, clip, gx, cy, s, a, b, t, r) + gapY
+			cy += row(l, clip, gx, cy, s, o, a, b, t, r) + gapY
 		}
 		cy -= gapY
 		thumb()
@@ -137,12 +148,15 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	return h
 }
 
-func row(l *Board.Laid, clip uint8, x, y, s, a, b, t float32, r CardRow) float32 {
+func row(l *Board.Laid, clip uint8, x, y, s, o, a, b, t float32, r CardRow) float32 {
 	h := float32(Board.SegH)
 	mid := y + h/2
 	l.Text(x, y, h, clip, r.Axis, Board.Px, Board.Ink, true, Board.Left)
 	if r.Start.Steps.Op != "" {
 		l.Seg(s, mid-Board.SegH/2, clip, r.Start)
+	}
+	if r.One.Steps.Op != "" {
+		l.Seg(o, mid-Board.SegH/2, clip, r.One)
 	}
 	l.Seg(a, mid-Board.SegH/2, clip, r.A)
 	if r.Why != "" {
