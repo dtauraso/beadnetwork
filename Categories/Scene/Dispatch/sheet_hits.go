@@ -86,7 +86,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	if a.Op == Builder.OpLinkPickOpen {
 		a = md.UI.Builder.PickOpen(a)
 	}
-	md.UI.Builder.Refused = ""
+	md.UI.Builder.Refused = md.UI.Builder.PickLoop(a)
+	if md.UI.Builder.Refused != "" {
+		return
+	}
 	md.stopPlayFor(ctx, a)
 	if a.Op != Builder.OpToastClose {
 		md.UI.Builder.Pressed = a
