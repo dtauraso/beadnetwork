@@ -186,7 +186,6 @@ func (p *Peer) moveBy(d Vec3) []Envelope {
 
 func (p *Peer) refit(walk bool) []Envelope {
 	p.fitTotals()
-	p.faceWays()
 	if walk {
 		return p.shift()
 	}

@@ -1,7 +1,6 @@
 package Links
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Vectors"
@@ -124,29 +123,6 @@ func (l *Link) MarkWays() {
 func (s *Start) otherPair() {
 	per := s.per()
 	s.Tick = Ticks{Phi: WrapTicks(per, -s.Tick.Phi), Theta: WrapTicks(per, s.Tick.Theta+TurnTicks*per/2)}
-}
-
-func (p *Peer) faceWays() {
-	for _, from := range p.order {
-		l := p.own[from]
-		if !l.Picked || l.Way.Phi == WayNone || l.Delta.Phi == 0 {
-			continue
-		}
-		per := l.Start.per()
-		if signOf(l.Delta.Phi)*phiSense(p.refs[from], per, l.Start.Tick.Theta+l.Total.Theta*per) == l.Way.Phi {
-			continue
-		}
-		s := l.Start
-		s.Turn(KPhi, l.Total.Phi)
-		s.Turn(KTheta, l.Total.Theta)
-		s.otherPair()
-		s.Turn(KPhi, -l.Total.Phi)
-		s.Turn(KTheta, -l.Total.Theta)
-		if p.Crumb != nil {
-			p.Crumb("face-ways", fmt.Sprintf("from=%s step=%d was=%+v now=%+v total=%+v", from, p.grid.Shown, l.Start.Tick, s.Tick, l.Total))
-		}
-		p.setOrigin(from, s)
-	}
 }
 
 func (g Grid) countedWay(from string) (Link, bool) {
