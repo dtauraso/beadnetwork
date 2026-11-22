@@ -2,7 +2,7 @@
 
 Entry point for the files under `docs/`. Grouped by topic; one line each.
 
-**Reading the `.html` explainers:** `scripts/block-open-html-hook.py` blocks opening them
+**Reading the `.html` explainers:** `scripts/hooks/block-open-html-hook.py` blocks opening them
 in a browser. Read them as text, or use the editor's HTML preview. They are self-contained
 static pages (no external assets).
 
