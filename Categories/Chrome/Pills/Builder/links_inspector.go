@@ -108,4 +108,3 @@ func (m Model) fixedShort(l Links.Link) string {
 	}
 	return ""
 }
-

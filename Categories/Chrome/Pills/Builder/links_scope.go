@@ -56,9 +56,6 @@ func boardData(m Model) LinksBoard.Data {
 	d.Crumbs, d.CrumbName = m.Crumbs()
 	d.TreeScroll, d.TreeSY = Act{Op: OpTreeScroll}, m.TreeSY
 	d.TreeSplit, d.TreeW = Act{Op: OpTreeSplit}, m.TreeW
-	if d.TreeFind != nil {
-		d.PathMenu, d.PathOpen = Act{Op: OpTreePop}, m.TreePop
-	}
 	if strings.HasPrefix(m.Refused, "moved the pick") {
 		d.Undo = m.UndoPick
 	}

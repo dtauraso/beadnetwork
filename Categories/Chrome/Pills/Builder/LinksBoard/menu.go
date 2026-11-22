@@ -21,9 +21,8 @@ type Menu struct {
 }
 
 type placed struct {
-	at   Rect
-	m    Menu
-	pane bool
+	at Rect
+	m  Menu
 }
 
 func dots(l *Board.Laid, x, y, h float32, clip uint8, open bool, a Act) Rect {

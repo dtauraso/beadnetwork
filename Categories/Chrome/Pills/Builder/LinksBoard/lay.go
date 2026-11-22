@@ -9,8 +9,8 @@ type Rect = Board.Rect
 
 const (
 	pad      = 8
-	TreeMinW = 120
-	colsMinW = 240
+	TreeMinW = 80
+	colsMinW = 200
 	splitW   = 8
 	narrowW  = 520
 	stripPad = 8
@@ -40,12 +40,7 @@ func lay(box Rect, sx, sy float32, d Data) *Board.Laid {
 		refusal(l, box, st, d)
 	}
 	for i := 0; i < len(menus); i++ {
-		p := menus[i]
-		if p.pane {
-			treePop(l, box, p.at, d, &menus)
-			continue
-		}
-		drawMenu(l, box, p)
+		drawMenu(l, box, menus[i])
 	}
 	return l
 }
@@ -54,13 +49,16 @@ func steps(l *Board.Laid, box, bar, mid Rect, sy float32, narrow bool, d Data, m
 	bar.H = scopeBar(l, bar, narrow, d, menus)
 	end := mid.Y + mid.H
 	var split Rect
-	if !narrow && (len(d.Tree) > 0 || d.TreeFind != nil) {
+	tw := float32(treeW)
+	if narrow {
+		tw = mid.W * 0.35
+	}
+	if d.TreeW > 0 {
+		tw = d.TreeW
+	}
+	tw = min(max(TreeMinW, min(tw, mid.W-colsMinW)), mid.W-colsMinW)
+	if tw > 0 && (len(d.Tree) > 0 || d.TreeFind != nil) {
 		top := bar.Y + bar.H
-		tw := float32(treeW)
-		if d.TreeW > 0 {
-			tw = d.TreeW
-		}
-		tw = max(TreeMinW, min(tw, mid.W-colsMinW))
 		r := Rect{X: mid.X, Y: top, W: tw, H: end - top}
 		split = Rect{X: r.X + tw - splitW/2, Y: top, W: splitW, H: r.H}
 		most := treeMost(r, d)

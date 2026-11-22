@@ -102,8 +102,6 @@ type Data struct {
 	TreeSY     float32
 	TreeSplit  Act
 	TreeW      float32
-	PathMenu   Act
-	PathOpen   bool
 	S          Board.Field
 	Doors      []Board.Chip
 	More       Act

@@ -21,7 +21,6 @@ const (
 	OpTreeDrop    = "tree-drop"
 	OpTreeEarlier = "tree-earlier"
 	OpTreeLater   = "tree-later"
-	OpTreePop     = "tree-pop"
 	OpTreeScroll  = "tree-scroll"
 
 	menuTree   = "tree"
@@ -87,15 +86,6 @@ func (m Model) treeMenu(r StepRow) ([]Board.Chip, Board.Chip) {
 		{Label: "Move later", Act: Act{Op: OpTreeLater, Node: key}},
 	}
 	return items, Board.Chip{Label: "Delete step", Act: Act{Op: OpTreeDrop, Node: key}}
-}
-
-func (m *Model) pressPop(a Act) {
-	switch {
-	case a.Op == OpTreePop:
-		m.TreePop, m.Menu, m.TreeSY = !m.TreePop, Act{}, 0
-	case a.Op == OpTreeGo, !IsTreeStepOp(a) && a.Op != OpTreeFind && a.Op != OpTreeFold && a.Op != OpRename && (a.Op != OpMenu || a.K != menuTree):
-		m.TreePop = false
-	}
 }
 
 func (m Model) treeRows() []LinksBoard.TreeRow {
