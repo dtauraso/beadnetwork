@@ -61,7 +61,6 @@ type Model struct {
 	StepsOpen   map[StepNode]bool
 	FramePop    bool
 	FrameDraft  map[string]float64
-	Turning     Turning
 	Hot         Act
 	Menu        Act
 	Pressed     Act

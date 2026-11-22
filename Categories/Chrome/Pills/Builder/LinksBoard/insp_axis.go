@@ -1,9 +1,6 @@
 package LinksBoard
 
-import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
-)
+import "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 
 const dialGap, ctrlPadR = 12, 4
 
@@ -48,13 +45,6 @@ func (in *ins) dial(a Axis, dr Rect) {
 		a.Dial.Labels = false
 	}
 	in.l.Dial(dr, in.clip, a.Dial)
-	axis := Sheet.DialPhi
-	if a.Dial.Axis == Board.Theta {
-		axis = Sheet.DialTheta
-	}
-	if a.DialAct.Op != "" {
-		in.l.Spot(dr, in.clip, Sheet.Cell{Act: a.DialAct, Dial: Sheet.Dial{Axis: axis}}, Sheet.PartBody)
-	}
 }
 
 func (in *ins) left() float32 {

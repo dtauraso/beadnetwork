@@ -56,10 +56,9 @@ func boardInspector(m Model) LinksBoard.Inspector {
 		}
 		d := boardDial(axisDial(l, a.k))
 		d.Inc = float32(a.times(l))
-		x.Dial, x.DialAct, x.DialSize = d, press, 72
+		x.Dial, x.DialSize = d, 120
 		x.Ends = a.label + " " + a.at(l) + " → " + endsAt(l, a.k)
 		if a.k == Links.KPhi {
-			x.DialSize = 120
 			end, _ := strconv.Atoi(endsAt(l, a.k))
 			s := m.SceneS()
 			x.Lines = []string{itoa(end) + " × s" + itoa(s) + " = " + itoa(end*s) + " ticks"}
@@ -108,7 +107,7 @@ func (m Model) startInspector(e StepEdge) LinksBoard.Inspector {
 		case Links.KPhi:
 			x.Dial, x.DialSize = Board.Dial{Axis: Board.Phi, Start: float32(l.Start.Tick.Phi), Labels: true}, 92
 		case Links.KTheta:
-			x.Dial, x.DialSize = Board.Dial{Axis: Board.Theta, Start: float32(l.Start.Tick.Theta)}, 56
+			x.Dial, x.DialSize = Board.Dial{Axis: Board.Theta, Start: float32(l.Start.Tick.Theta), Labels: true}, 92
 		}
 		in.Axes = append(in.Axes, x)
 	}

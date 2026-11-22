@@ -62,19 +62,6 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		md.UI.EmitViewFrame(nil)
 		return
 	}
-	if ev.Kind == "pointermove" && md.UI.Builder.TurnTo(ev.X, ev.Y) {
-		md.UI.EmitViewFrame(nil)
-		return
-	}
-	if ev.Kind == "pointerup" {
-		if a, presses, ok := md.UI.Builder.EndTurn(); ok {
-			if presses != 0 {
-				runSheetAct(ctx, md, a, presses, nil)
-			}
-			md.UI.EmitViewFrame(nil)
-			return
-		}
-	}
 	if ev.Kind == "pointerup" && md.UI.Sheet.EndTabDrag() {
 		return
 	}
@@ -111,12 +98,6 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	}
 	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Sheet, ev.X, ev.Y, ev.DeltaX, ev.DeltaY, md.redraw) {
 		return
-	}
-	if ev.Kind == "pointerdown" {
-		if h := md.UI.PanelLayout().Sheet.Hit(ev.X, ev.Y); h.Part == Sheet.PartBody && md.UI.Builder.StartTurn(h.Cell, h.Rect, ev.X, ev.Y) {
-			md.UI.EmitViewFrame(nil)
-			return
-		}
 	}
 	if ev.Kind == "pointerdown" && panelTookPointerDown(ctx, ev, md, speedSinks) {
 		return

@@ -26,7 +26,6 @@ type CardRow struct {
 	Axis    string
 	Start   Board.Stepper
 	Dial    *Board.Dial
-	DialAct Act
 	Ruler   *Board.Ruler
 	A, B, C Board.Stepper
 	Total   string
@@ -85,7 +84,6 @@ type Axis struct {
 	Sub       string
 	Short     string
 	Dial      Board.Dial
-	DialAct   Act
 	DialSize  float32
 	Turn      Board.Stepper
 	IncTag    string
