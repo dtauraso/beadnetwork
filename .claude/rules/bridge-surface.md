@@ -76,7 +76,7 @@ wrong row — the one thing a fetch gave for free.
 
 Keep all of it in parity across `messages.ts`, the `Categories/Scene/Drag` stdin reader and `Categories/Scene/Dispatch`
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
-(guards: `Categories/Scene/Dispatch/check-edit-op-parity.sh`, `Categories/Scene/Dispatch/check-message-kind-parity.sh`).
+(guards: `Categories/Scene/Dispatch/checks/check-edit-op-parity.sh`, `Categories/Scene/Dispatch/checks/check-message-kind-parity.sh`).
 
 There is no single wire-layout string any more. Each vocabulary is declared in Go by the
 concern that uses it, and generated into TS beside it, so the TS copy cannot drift from
