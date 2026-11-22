@@ -27,7 +27,7 @@ export function pointerTargetCursor(): string {
     case KIND_NOTHING: return "default";
     case KIND_REFUSING: return "not-allowed";
     case KIND_RESIZE: return "ns-resize";
-    case KIND_SIDE_RESIZE: return "ew-resize";
+    case KIND_SIDE_RESIZE: return "col-resize";
     default: return "pointer";
   }
 }
