@@ -38,6 +38,8 @@ var linkRows = []row[Link]{
 	intRow("φ Δ", func(l *Link) *int { return &l.Delta.Phi }),
 	intRow("θ Δ", func(l *Link) *int { return &l.Delta.Theta }),
 	intRow("r Δ", func(l *Link) *int { return &l.Delta.R }),
+	intRow("φ way", func(l *Link) *int { return &l.Way.Phi }),
+	intRow("θ way", func(l *Link) *int { return &l.Way.Theta }),
 	intRow("φ nΔ", func(l *Link) *int { return &l.Increment.Phi }),
 	intRow("θ nΔ", func(l *Link) *int { return &l.Increment.Theta }),
 	intRow("r nΔ", func(l *Link) *int { return &l.Increment.R }),
