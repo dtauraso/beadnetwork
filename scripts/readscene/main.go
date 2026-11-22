@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
@@ -143,7 +143,7 @@ func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topo
 }
 
 func sequenceS(root string, k int) int {
-	return Sheet.LoadScalar(Scenes.SFilePath(Scenes.TopStepDir(root, k)), 1, 1)
+	return Scalar.Load(Scenes.SFilePath(Scenes.TopStepDir(root, k)), 1, 1)
 }
 
 func dumpSequence(out *bufio.Writer, root string, k int, constants polarindex.SceneConstants) error {

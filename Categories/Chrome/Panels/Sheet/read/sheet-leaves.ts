@@ -1,5 +1,5 @@
 import { makeLeafValues } from "./leaf-values";
-import { SHEET_VALUE_NAMES, type SheetValueName } from "./sheet-values-gen";
+import { SHEET_VALUE_NAMES, type SheetValueName } from "../sheet-values-gen";
 
 const values = makeLeafValues<SheetValueName>(
   "Categories/Chrome/Panels/Sheet/paths",

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { drawSpeedPanel, speedPanelKey } from "./SliderPanel/draw-speed-panel";
-import { drawSheets, sheetKey } from "./Sheet/draw-sheet";
+import { drawSheets, sheetKey } from "./Sheet/draw/draw-sheet";
 import { drawBoard, boardKey } from "./Board/draw-board";
 import { drawAnglePill, anglePillKey } from "../Pills/AngleDropdown/draw-angle-pill";
 import { drawNodesPill, nodesPillKey } from "../Pills/NodesDropdown/draw-nodes-pill";

@@ -1,9 +1,9 @@
-import { drawBox, canvasFont, roundRect } from "../../canvas-box";
-import * as T from "../../chrome-theme";
-import { decodeAt } from "../../leaf-text";
-import { CARET_W, drawPill } from "../../Pills/pill";
+import { drawBox, canvasFont, roundRect } from "../../../canvas-box";
+import * as T from "../../../chrome-theme";
+import { decodeAt } from "../../../leaf-text";
+import { CARET_W, drawPill } from "../../../Pills/pill";
 import { drawArrow, drawBand, drawCell, slid, type R } from "./draw-sheet-cell";
-import { sheetBytes, sheetF32Run, sheetU32Run, sheetText } from "./sheet-leaves";
+import { sheetBytes, sheetF32Run, sheetU32Run, sheetText } from "../read/sheet-leaves";
 
 const TITLE_FONT_PX = 12;
 const TITLE_INK = "#222";

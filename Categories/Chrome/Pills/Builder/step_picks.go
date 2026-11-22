@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -55,7 +55,7 @@ func (m *Model) setStepOpen(step int, on bool) {
 		if on {
 			v = 1
 		}
-		if err := Sheet.WriteScalar(filepath.Join(stepDir(m.lvl(), step), FileStepOpen), v); err != nil {
+		if err := Scalar.Write(filepath.Join(stepDir(m.lvl(), step), FileStepOpen), v); err != nil {
 			fmt.Fprintf(os.Stderr, "step_picks: step %d open: %v\n", step, err)
 		}
 	}
@@ -88,7 +88,7 @@ func (m *Model) readStepsOpen() {
 		m.StepsOpen = map[StepNode]bool{}
 	}
 	for _, n := range m.stepNums() {
-		if v := Sheet.LoadScalar(filepath.Join(stepDir(m.lvl(), n), FileStepOpen), -1, 0); v >= 0 {
+		if v := Scalar.Load(filepath.Join(stepDir(m.lvl(), n), FileStepOpen), -1, 0); v >= 0 {
 			m.StepsOpen[StepNode{n, m.Level}] = v == 1
 		}
 	}

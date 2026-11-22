@@ -9,6 +9,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
@@ -158,7 +159,7 @@ func setTickMs(ctx context.Context, md *MoveDispatch, sign int, typed *float64) 
 	}
 	m.TickMs = v
 	if root := md.Scenes.TreeRoot; root != "" {
-		if err := Sheet.WriteScalar(Scenes.TickMsFilePath(root), int32(v)); err != nil {
+		if err := Scalar.Write(Scenes.TickMsFilePath(root), int32(v)); err != nil {
 			m.Refused = fmt.Sprintf("could not write Δt: %v", err)
 		}
 	}
@@ -178,7 +179,7 @@ func setAllS(ctx context.Context, md *MoveDispatch, v int) {
 	m := &md.UI.Builder
 	m.S = v
 	if root := md.Scenes.TreeRoot; root != "" {
-		if err := Sheet.WriteScalar(Scenes.OpenSFilePath(root), int32(v)); err != nil {
+		if err := Scalar.Write(Scenes.OpenSFilePath(root), int32(v)); err != nil {
 			m.Refused = fmt.Sprintf("could not write s: %v", err)
 		}
 	}

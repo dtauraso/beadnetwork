@@ -4,7 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { buildDeleteRaw, buildKeyRaw } from "../../../../Categories/Scene/Drag/build/raw-input-build";
 import { sendRawInput } from "../vscode-api";
-import { sheetDraftOpen } from "../../../../Categories/Chrome/Panels/Sheet/draw-sheet";
+import { sheetDraftOpen } from "../../../../Categories/Chrome/Panels/Sheet/draw/draw-sheet";
 import { boardDraftOpen } from "../../../../Categories/Chrome/Panels/Board/draw-board";
 import { useInteractionControls } from "./interaction-controls";
 import type { PickFn } from "../../../../Categories/Scene/Drag/build/pick-types";
