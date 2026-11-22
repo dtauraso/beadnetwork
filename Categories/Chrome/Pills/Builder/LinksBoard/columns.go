@@ -8,7 +8,6 @@ import (
 const (
 	cpad    = 8
 	colGap  = 8
-	inspGap = 3
 	cheadH  = 28
 	toolsH  = 26
 	headH   = 28
@@ -31,11 +30,7 @@ func (k *col) rule(y float32, p Board.Paint) {
 func columns(l *Board.Laid, r Rect, sy float32, narrow bool, d Data, menus *[]placed) float32 {
 	clip := l.Clip(r)
 	l.Add(Board.Mark{Kind: Board.KBox, R: r, Clip: clip, Fill: Board.Back, Alpha: 1})
-	gapR := float32(colGap)
-	if d.InspOpen {
-		gapR = inspGap
-	}
-	w := max(160, r.W-colGap-gapR)
+	w := max(160, r.W-colGap-3)
 	y := r.Y + colGap - sy
 	if d.New != nil || d.Net != nil || d.Pop != nil {
 		return max(0, topCard(l, r, sy, d, menus)+sy-(r.Y+r.H))
