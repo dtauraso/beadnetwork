@@ -73,13 +73,12 @@
         <div class="rw"><span class="rd on"></span><span class="lb">2 → 1</span><svg><use href="#d2"/></svg><span class="sum">+2φ</span></div>
         <div class="rw top open"><span class="rd on"></span><span class="lb">2 → 3</span><svg><use href="#d0"/></svg><span class="sum">not turned</span> <span class="k" style="margin-left:6px">1</span></div>
         <div class="card">φ <span class="st"><span>−</span><span>0</span><span>＋</span></span> θ <span class="st"><span>−</span><span>0</span><span>＋</span></span></div>
-        <div class="nd lab">into node 4</div>
-        <div class="rw"><span class="rd"></span><span class="lb">2 → 4</span><svg><use href="#d0"/></svg><span class="sum">not turned</span></div>
+        <div class="rw top"><span class="rd"></span><span class="lb">2 → 4</span><svg><use href="#d0"/></svg><span class="sum">not turned</span></div>
         <div class="rw"><span class="rd"></span><span class="lb">3 → 4</span><svg><use href="#d0"/></svg><span class="sum">not turned</span></div>
       </div>
       <p class="note"><span class="k">1</span> click 2 → 3: it is picked and its card opens, ready to turn.
-      Nothing folds. A node with one edge in has no header ("2 → 3" already names node 3);
-      a node with two or more keeps a small label, not a button, above the edges a pick chooses between.</p>
+      Nothing folds and no node has a header: every row already names its node. The edges into one
+      node sit together between hairlines, so 2 → 4 and 3 → 4, the two a pick chooses between, read as a group.</p>
     </figure>
   </div>
 
@@ -95,8 +94,8 @@
   <div class="rec">
     <h2>Change, if agreed</h2>
     <ul>
-      <li><code>Builder/links_score.go</code>: <code>nodeOf</code> always sets <code>Open</code>, gives no <code>Fold</code> act, and marks a node with one edge in as having no header. START too.</li>
-      <li><code>LinksBoard/rows.go</code>: <code>node</code> draws no header for a one-edge node, and a plain label (no ▾, no click spot) for the rest.</li>
+      <li><code>Builder/links_score.go</code>: <code>nodeOf</code> always sets <code>Open</code>, gives no <code>Fold</code> act. START too.</li>
+      <li><code>LinksBoard/rows.go</code>: <code>node</code> draws no header for any node, only the hairline above its first edge.</li>
       <li><code>Builder/step_picks.go</code>: remove <code>StepFolded</code>, <code>ToggleStepFold</code>'s node half and <code>StepFolds</code>; the edge-open state and the network view's edge click stop consulting them.</li>
       <li>Row clicks unchanged: click picks and opens, the dot unpicks, look and hide as now.</li>
     </ul>
