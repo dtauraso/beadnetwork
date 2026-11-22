@@ -72,19 +72,22 @@ func (in *ins) axis(a Axis) {
 			in.dial(a, Rect{X: in.x + (in.slot-a.DialSize)/2, Y: y, W: a.DialSize, H: a.DialSize})
 			bottom = y + a.DialSize
 		}
-		x += in.slot + dialGap
 	}
+	right := in.x + in.w()
+	x = max(x, right-in.ctrl)
 	l.Weighted(x, y, headTH, in.clip, a.Label, 11, Board.Mute, Board.Semi, Board.Left)
 	y += headTH
-	l.Stepper(x+in.tag, y, in.clip, a.Turn)
+	l.Stepper(right-segW(a.Turn), y, in.clip, a.Turn)
 	y += h + 4
 	if a.Inc.Steps.Op != "" {
-		l.Text(x, y, h, in.clip, a.IncTag, Board.Px, Board.Mute, false, Board.Left)
+		w := segW(a.Inc)
 		if a.Inc.Act.Op != "" {
-			l.Field(x+in.tag, y, in.clip, a.Inc.Field)
+			w = fieldW(a.Inc.Field)
+			l.Field(right-w, y, in.clip, a.Inc.Field)
 		} else {
-			l.Stepper(x+in.tag, y, in.clip, a.Inc)
+			l.Stepper(right-w, y, in.clip, a.Inc)
 		}
+		l.Text(right-w-tagW(a), y, h, in.clip, a.IncTag, Board.Px, Board.Mute, false, Board.Left)
 		y += h + 4
 	}
 	in.y = y
