@@ -91,8 +91,10 @@ func (p *Peer) fitTotals() {
 			l := &c.In[j].Link
 			b := p.grid.Base[l.From]
 			if was, ok := shown.InFrom(l.From); ok && c.Step != shown.Step {
-				b = b.Add(was.Link.Delta)
-				if c.Counted {
+				if was.Link.Picked {
+					b = b.Add(was.Link.Delta)
+				}
+				if c.Counted && l.Picked {
 					b = b.Sub(l.Delta)
 				}
 			}

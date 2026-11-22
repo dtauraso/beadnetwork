@@ -192,10 +192,10 @@ func (p *Peer) refit(walk bool) []Envelope {
 
 func (p *Peer) count(was, now *Col) {
 	for from, b := range p.grid.Base {
-		if in, ok := was.InFrom(from); ok && !was.Counted {
+		if in, ok := was.InFrom(from); ok && in.Link.Picked && !was.Counted {
 			b = b.Add(in.Link.Delta)
 		}
-		if in, ok := now.InFrom(from); ok && now.Counted {
+		if in, ok := now.InFrom(from); ok && in.Link.Picked && now.Counted {
 			b = b.Sub(in.Link.Delta)
 		}
 		p.grid.Base[from] = b
