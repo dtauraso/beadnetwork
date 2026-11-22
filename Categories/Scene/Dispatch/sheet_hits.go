@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
@@ -64,7 +65,7 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	if ok && act.Op == Builder.OpStepName {
 		md.UI.Builder.Refused = md.UI.Builder.NameStep(act.I, t.Text)
 	} else if ok && act.Op == Builder.OpTreeName {
-		md.UI.Builder.Refused = md.UI.Builder.NamePath(Builder.ParsePath(act.Node), t.Text)
+		md.UI.Builder.Refused = md.UI.Builder.NamePath(StepStore.ParsePath(act.Node), t.Text)
 	} else if ok {
 		runSheetAct(ctx, md, act, 0, &t.V)
 	}

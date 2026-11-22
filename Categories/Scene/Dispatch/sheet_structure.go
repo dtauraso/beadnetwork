@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
@@ -110,7 +111,7 @@ func topStepOp(md *MoveDispatch, op string, k int) {
 	switch op {
 	case Builder.OpTreeAdd, Builder.OpTreeCopy:
 		var to int
-		to, err = Scenes.InsertTopStep(scene, k, map[bool]string{true: Builder.DirSteps}[op == Builder.OpTreeAdd])
+		to, err = Scenes.InsertTopStep(scene, k, map[bool]string{true: StepStore.DirSteps}[op == Builder.OpTreeAdd])
 		if err == nil && open >= to {
 			open++
 		}

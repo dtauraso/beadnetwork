@@ -43,7 +43,7 @@ func boardDial(d Sheet.Dial) Board.Dial {
 }
 
 func lockOf(m Model, step int, a axis) Fill.Lock {
-	st := m.headOf(step)
+	st := m.HeadOf(step)
 	way, on := st.At(a.k)
 	glyph := "·"
 	if *on && *way > 0 {
@@ -69,14 +69,14 @@ func (m Model) progress(n int) string {
 
 func boardCols(m Model) []Fill.Column {
 	out := []Fill.Column{m.startCol()}
-	for _, n := range m.stepNums() {
+	for _, n := range m.Numbers() {
 		out = append(out, m.stepCol(n))
 	}
 	return out
 }
 
 func (m Model) stepCol(n int) Fill.Column {
-	c := Fill.Column{Label: "step " + itoa(n), Short: itoa(n), Sub: m.StepNames[n], Open: m.StepOpen(n), Shown: n == m.StepShown(),
+	c := Fill.Column{Label: "step " + itoa(n), Short: itoa(n), Sub: m.Names[n], Open: m.StepOpen(n), Shown: n == m.StepShown(),
 		Fold: Act{Op: OpStepFold, I: n}, Progress: m.progress(n)}
 	if !c.Shown {
 		c.Show = Act{Op: OpStepShow, I: n}
@@ -84,7 +84,7 @@ func (m Model) stepCol(n int) Fill.Column {
 	if !c.Open {
 		return c
 	}
-	c.Name = Board.Field{Value: m.StepNames[n], Fit: "a step name", Act: Act{Op: OpStepName, I: n}, Words: true}
+	c.Name = Board.Field{Value: m.Names[n], Fit: "a step name", Act: Act{Op: OpStepName, I: n}, Words: true}
 	c.Menu = Act{Op: OpMenu, K: menuStep, I: n}
 	c.MenuOpen = m.Menu == c.Menu
 	c.Tools = []Board.Chip{

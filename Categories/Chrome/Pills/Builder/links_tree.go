@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 )
 
 const (
@@ -24,9 +25,9 @@ func (m Model) Rename(a Act, e *Sheet.Edit) {
 func (m Model) RenameCell(a Act) (Cell, bool) {
 	switch a.K {
 	case renameStep:
-		return Field("", m.StepNames[a.I], Act{Op: OpStepName, I: a.I}, true, false).Wording(), true
+		return Field("", m.Names[a.I], Act{Op: OpStepName, I: a.I}, true, false).Wording(), true
 	case renamePath:
-		return Field("", m.PathName(ParsePath(a.Node)), Act{Op: OpTreeName, Node: a.Node}, true, false).Wording(), true
+		return Field("", m.PathName(StepStore.ParsePath(a.Node)), Act{Op: OpTreeName, Node: a.Node}, true, false).Wording(), true
 	}
 	return Cell{}, false
 }

@@ -1,10 +1,11 @@
-package Builder
+package StepStore
 
 import (
 	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
@@ -22,18 +23,8 @@ const (
 	FileLockOnR     = "lock-on-r.bin"
 	FileLockOnBoth  = "lock-on-both.bin"
 	FilePlayScale   = "play-scale.bin"
-	FileNetworkOpen = "network-open.bin"
+	FileStepName    = "name.bin"
 )
-
-func (m *Model) ReadNetworkOpen() {
-	m.NetworkOpen = false
-	Store.ReadIfExists(filepath.Join(PressDir(m.Root), FileNetworkOpen), &m.NetworkOpen)
-}
-
-func (m *Model) SetNetworkOpen(on bool) error {
-	m.NetworkOpen = on
-	return Store.WriteAtomicIfChanged(filepath.Join(PressDir(m.Root), FileNetworkOpen), on)
-}
 
 type LockOn struct{ Phi, Theta, R bool }
 
@@ -80,13 +71,11 @@ func (s *Step) At(k string) (*int, *bool) {
 
 func PressDir(root string) string { return filepath.Join(root, DirPress) }
 
-func nodePressDir(root, id string) string { return filepath.Join(root, DirNodes, id, DirPress) }
+func NodePressDir(root, id string) string { return filepath.Join(root, DirNodes, id, DirPress) }
 
 func StepsDir(root string) string { return filepath.Join(root, DirSteps) }
 
-func (m Model) lvl() string { return filepath.Join(m.Root, m.Level) }
-
-func stepDir(root string, step int) string { return filepath.Join(StepsDir(root), strconv.Itoa(step)) }
+func StepDir(root string, step int) string { return filepath.Join(StepsDir(root), strconv.Itoa(step)) }
 
 func ReadStepNumbers(root string) []int {
 	var out []int
@@ -98,66 +87,6 @@ func ReadStepNumbers(root string) []int {
 	}
 	slices.Sort(out)
 	return out
-}
-
-func (m Model) stepNums() []int {
-	if len(m.StepNums) == 0 {
-		return []int{1}
-	}
-	return m.StepNums
-}
-
-func (m Model) StepOf(id string) Step {
-	if id == "" {
-		return m.Step
-	}
-	if s := m.Steps[id]; s != nil {
-		return *s
-	}
-	return Step{}
-}
-
-func (m *Model) NodeStep(id string) *Step {
-	if id == "" {
-		return &m.Step
-	}
-	if m.Steps == nil {
-		m.Steps = map[string]*Step{}
-	}
-	if m.Steps[id] == nil {
-		s := Step{}
-		if m.Root != "" {
-			s = ReadStep(nodePressDir(m.Root, id))
-		}
-		m.Steps[id] = &s
-	}
-	return m.Steps[id]
-}
-
-func (m *Model) ReadNodeSteps() {
-	for _, id := range m.Nodes {
-		m.NodeStep(id)
-	}
-	if m.Root != "" {
-		m.StepNums = ReadStepNumbers(m.lvl())
-		m.readStepNames()
-		m.readStepsOpen()
-		for _, step := range m.stepNums() {
-			m.StepHead(step)
-		}
-	}
-}
-
-func (m Model) WriteSteps() error {
-	if err := WriteStep(PressDir(m.Root), m.Step); err != nil {
-		return err
-	}
-	for id, s := range m.Steps {
-		if err := WriteStep(nodePressDir(m.Root, id), *s); err != nil {
-			return err
-		}
-	}
-	return m.writeStepHeads()
 }
 
 func ReadStep(dir string) Step {
@@ -185,4 +114,49 @@ func WriteStep(dir string, s Step) error {
 		}
 	}
 	return nil
+}
+
+func LabelAt(dir string, n int) string {
+	var name string
+	if Store.ReadIfExists(filepath.Join(StepDir(dir, n), FileStepName), &name) && name != "" {
+		return "step " + strconv.Itoa(n) + " · " + name
+	}
+	return "step " + strconv.Itoa(n)
+}
+
+func PathKey(p []int) string {
+	parts := make([]string, len(p))
+	for i, n := range p {
+		parts[i] = strconv.Itoa(n)
+	}
+	return strings.Join(parts, "/")
+}
+
+func ParsePath(s string) []int {
+	var p []int
+	for _, part := range strings.Split(s, "/") {
+		if n, err := strconv.Atoi(part); err == nil && n > 0 {
+			p = append(p, n)
+		}
+	}
+	return p
+}
+
+func LevelPath(level string) []int {
+	var p []int
+	parts := strings.Split(filepath.ToSlash(level), "/")
+	for i := 1; i < len(parts); i += 2 {
+		if n, err := strconv.Atoi(parts[i]); err == nil && parts[i-1] == DirSteps {
+			p = append(p, n)
+		}
+	}
+	return p
+}
+
+func LevelOf(p []int) string {
+	var parts []string
+	for _, n := range p {
+		parts = append(parts, DirSteps, strconv.Itoa(n))
+	}
+	return filepath.Join(parts...)
 }

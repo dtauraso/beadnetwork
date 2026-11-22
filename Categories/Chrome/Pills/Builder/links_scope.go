@@ -52,7 +52,7 @@ func boardData(m Model) Fill.Data {
 		Cols:   boardCols(m),
 		Status: "showing step " + itoa(m.StepShown()),
 		Toast:  m.Refused, At: m.Pressed, Dismiss: Act{Op: OpToastClose}}
-	if ns := m.stepNums(); len(ns) > 0 {
+	if ns := m.Numbers(); len(ns) > 0 {
 		d.Add = Act{Op: OpStepAdd, I: ns[len(ns)-1]}
 	}
 	m.treeData(&d)

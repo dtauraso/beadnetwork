@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
@@ -64,9 +64,9 @@ func fitS(root string) error {
 	for _, to := range ids {
 		dirs = append(dirs, [2]string{Files.NodeDir(root, to), to})
 	}
-	steps := Builder.StepsDir(root)
+	steps := StepStore.StepsDir(root)
 	for _, step := range subdirs(steps) {
-		nodes := filepath.Join(steps, step, Builder.DirNodes)
+		nodes := filepath.Join(steps, step, StepStore.DirNodes)
 		for _, to := range subdirs(nodes) {
 			dirs = append(dirs, [2]string{filepath.Join(nodes, to), to})
 		}

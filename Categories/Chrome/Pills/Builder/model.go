@@ -1,12 +1,14 @@
 package Builder
 
 import (
+	"fmt"
 	"math"
 	"slices"
 	"sort"
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
@@ -15,6 +17,9 @@ type (
 	Act   = Sheet.Act
 	Pill  = Sheet.Pill
 	Group = Sheet.Group
+
+	Step   = StepStore.Step
+	LockOn = StepStore.LockOn
 )
 
 var (
@@ -31,18 +36,15 @@ type Model struct {
 	S       int
 	Refused string
 
-	Step      Step
-	Steps     map[string]*Step
-	Root      string
-	StepNums  []int
-	StepNames map[int]string
+	StepStore.Disk
+	Step  Step
+	Steps map[string]*Step
 
 	StepFrom  []int
 	Walk      Walk
 	Play      *Play
 	Folder    *FolderRun
 	Rounds    map[string]int
-	StepHeads map[int]*Step
 	CardsOpen map[StepEdge]bool
 	CardSX    map[StepEdge]float32
 
@@ -63,7 +65,6 @@ type Model struct {
 	Menu        Act
 	Pressed     Act
 	UndoPick    Act
-	Level       string
 	Scene       string
 	OpenTop     int
 	Tree        []StepRow
@@ -143,4 +144,29 @@ func Num(v float64) string {
 		return strconv.Itoa(int(v))
 	}
 	return strconv.FormatFloat(math.Round(v*100)/100, 'f', 2, 64)
+}
+
+type NodeTiming struct {
+	H int64
+}
+
+func (m *Model) TakeTiming(t Links.Timing) {
+	if m.Timings == nil {
+		m.Timings = map[string]NodeTiming{}
+	}
+	m.Timings[t.ID] = NodeTiming{H: t.H}
+}
+
+func (m Model) Behind() int {
+	b := 0
+	for _, id := range m.Nodes {
+		if t, ok := m.Timings[id]; !ok || t.H < m.Now-1 {
+			b++
+		}
+	}
+	return b
+}
+
+func (m Model) TimeKey() string {
+	return fmt.Sprintf("%d|%d", m.Now, m.Behind())
 }
