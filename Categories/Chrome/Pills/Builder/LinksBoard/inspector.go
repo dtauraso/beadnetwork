@@ -25,6 +25,7 @@ type ins struct {
 	slot float32
 	tag  float32
 	ctrl float32
+	sum  float32
 }
 
 func (in *ins) w() float32 { return in.r.W - 2*ipadX }
@@ -46,11 +47,11 @@ func inspector(l *Board.Laid, r Rect, sy float32, d Inspector) float32 {
 		in.lines(in.x, d.Hint, 12, Board.Mute)
 		return 0
 	}
+	in.grid(d.Axes)
 	in.header(d)
 	if d.Note != "" {
 		in.lines(in.x, d.Note, 12, Board.Mute)
 	}
-	in.grid(d.Axes)
 	for _, a := range d.Axes {
 		if a.Ruler != nil {
 			in.ruler(a)
@@ -67,7 +68,11 @@ func inspector(l *Board.Laid, r Rect, sy float32, d Inspector) float32 {
 func (in *ins) header(d Inspector) {
 	l, h := in.l, Board.RowH()
 	right := in.r.X + in.r.W - ipadX
-	x := in.x + l.Text(in.x, in.y, h, in.clip, d.Title, Board.Px, Board.Ink, true, Board.Left) + 6
+	start := in.x
+	if d.Switch.Act.Op == "" {
+		start = max(in.x, min(in.left(), right-Board.W(d.Title, Board.Px)-6-Board.W(d.Sub, Board.Px)))
+	}
+	x := start + l.Text(start, in.y, h, in.clip, d.Title, Board.Px, Board.Ink, true, Board.Left) + 6
 	if x+Board.W(d.Sub, Board.Px) > right {
 		x, in.y = in.x, in.y+h
 	}

@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 )
 
-const dialGap = 12
+const dialGap, ctrlPadR = 12, 4
 
 func gridded(a Axis) bool { return a.Ruler == nil && (a.Ends == "" || a.DialSize == 0) }
 
@@ -29,6 +29,8 @@ func (in *ins) grid(axes []Axis) {
 	for _, a := range axes {
 		if gridded(a) {
 			in.slot, in.tag = max(in.slot, a.DialSize), max(in.tag, tagW(a))
+		} else if a.Ruler == nil {
+			in.sum = max(in.sum, min(a.DialSize, in.w()))
 		}
 	}
 	for _, a := range axes {
@@ -55,6 +57,18 @@ func (in *ins) dial(a Axis, dr Rect) {
 	}
 }
 
+func (in *ins) left() float32 {
+	right := in.r.X + in.r.W - ctrlPadR
+	x := right - max(in.ctrl, in.sum)
+	if in.ctrl > 0 && in.slot > 0 {
+		x -= dialGap + in.slot
+	}
+	if x >= right {
+		return in.x
+	}
+	return max(in.x, x)
+}
+
 func (in *ins) axis(a Axis) {
 	if !gridded(a) {
 		in.summary(a)
@@ -62,29 +76,30 @@ func (in *ins) axis(a Axis) {
 	}
 	l, h := in.l, Board.RowH()
 	x, y, bottom := in.x, in.y, in.y
-	switch {
-	case in.slot < 0 && a.DialSize > 0:
+	if in.slot < 0 && a.DialSize > 0 {
 		size := min(a.DialSize, in.w())
 		in.dial(a, Rect{X: in.x + (in.w()-size)/2, Y: y, W: size, H: size})
 		y += size + 6
-	case in.slot > 0:
-		if a.DialSize > 0 {
-			in.dial(a, Rect{X: in.x + (in.slot-a.DialSize)/2, Y: y, W: a.DialSize, H: a.DialSize})
-			bottom = y + a.DialSize
-		}
-		x += in.slot + dialGap
+	}
+	right := in.r.X + in.r.W - ctrlPadR
+	x = max(x, right-in.ctrl)
+	if in.slot > 0 && a.DialSize > 0 {
+		in.dial(a, Rect{X: x - dialGap - (in.slot+a.DialSize)/2, Y: y, W: a.DialSize, H: a.DialSize})
+		bottom = y + a.DialSize
 	}
 	l.Weighted(x, y, headTH, in.clip, a.Label, 11, Board.Mute, Board.Semi, Board.Left)
 	y += headTH
-	l.Stepper(x+in.tag, y, in.clip, a.Turn)
+	l.Stepper(right-segW(a.Turn), y, in.clip, a.Turn)
 	y += h + 4
 	if a.Inc.Steps.Op != "" {
-		l.Text(x, y, h, in.clip, a.IncTag, Board.Px, Board.Mute, false, Board.Left)
+		w := segW(a.Inc)
 		if a.Inc.Act.Op != "" {
-			l.Field(x+in.tag, y, in.clip, a.Inc.Field)
+			w = fieldW(a.Inc.Field)
+			l.Field(right-w, y, in.clip, a.Inc.Field)
 		} else {
-			l.Stepper(x+in.tag, y, in.clip, a.Inc)
+			l.Stepper(right-w, y, in.clip, a.Inc)
 		}
+		l.Text(right-w-tagW(a), y, h, in.clip, a.IncTag, Board.Px, Board.Mute, false, Board.Left)
 		y += h + 4
 	}
 	in.y = y
