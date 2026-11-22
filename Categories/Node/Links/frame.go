@@ -88,3 +88,66 @@ func (f Frame) cart(s int, r, phi, theta float64) Vec3 {
 	}
 	return v
 }
+
+type Ways struct{ Phi, Theta int }
+
+const (
+	WayNone = 0
+	WayCW   = 1
+	WayCCW  = -1
+)
+
+func signOf(v int) int {
+	switch {
+	case v > 0:
+		return 1
+	case v < 0:
+		return -1
+	}
+	return 0
+}
+
+func phiSense(ref Turn, per, thetaTicks int) int {
+	th := 2 * math.Pi * float64(thetaTicks) / float64(TurnTicks*per)
+	axis := ref.Rotate(Vec3{X: math.Sin(th), Z: -math.Cos(th)})
+	if v := -axis.Z; math.Abs(v) > 1e-9 {
+		return signOf(int(math.Copysign(1, v)))
+	}
+	return signOf(int(math.Copysign(1, axis.X)))
+}
+
+func (l *Link) MarkWays() {
+	l.Way = Ways{Phi: signOf(l.Delta.Phi), Theta: signOf(l.Delta.Theta)}
+}
+
+func (s *Start) otherPair() {
+	per := s.per()
+	s.Tick = Ticks{Phi: WrapTicks(per, -s.Tick.Phi), Theta: WrapTicks(per, s.Tick.Theta+TurnTicks*per/2)}
+}
+
+func (g Grid) countedWay(from string) (Link, bool) {
+	for _, c := range g.Cols {
+		if in, ok := c.InFrom(from); ok && c.Counted && in.Link.Picked && in.Link.Way.Phi != WayNone && in.Link.Delta.Phi != 0 {
+			return in.Link, true
+		}
+	}
+	return Link{}, false
+}
+
+func (p *Peer) pickPair(from string, l *Link) bool {
+	t, ok := p.grid.countedWay(from)
+	if !ok {
+		return false
+	}
+	holds := func(d Start) bool {
+		o := baseOf(d, l.Sum()).Origin
+		return signOf(t.Delta.Phi)*phiSense(p.refs[from], o.per(), o.Tick.Theta+t.Total.Theta*o.per()) == t.Way.Phi
+	}
+	other := l.Start
+	other.otherPair()
+	if holds(l.Start) || !holds(other) {
+		return false
+	}
+	l.Start = other
+	return true
+}

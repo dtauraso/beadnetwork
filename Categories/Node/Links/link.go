@@ -84,6 +84,7 @@ type Link struct {
 	Total     Ints
 	Increment Ints
 	Lock      Lock
+	Way       Ways
 	Picked    bool
 	Order     int
 	Playing   bool
