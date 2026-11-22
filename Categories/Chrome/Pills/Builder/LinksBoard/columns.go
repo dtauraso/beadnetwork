@@ -8,7 +8,7 @@ import (
 const (
 	cpad    = 8
 	colGap  = 8
-	inspGap = 16
+	inspGap = 3
 	cheadH  = 28
 	toolsH  = 26
 	headH   = 28
