@@ -56,14 +56,14 @@ func pickDot(l *Board.Laid, clip uint8, x, mid float32, lk Link) {
 	}
 }
 
-func (k *col) look(row Rect, lk Link) {
+func (k *col) look(row Rect, lk Link, label string) {
 	l, w := k.l, row.W*lookShare
 	r := Rect{X: row.X + row.W - w, Y: row.Y, W: w, H: row.H}
 	l.Line(Rect{X: r.X + 0.5, Y: r.Y, W: 0, H: r.H}, k.clip, Board.Guide, 1, false)
-	cw := Board.W("look", Board.SmallPx) + 2*chipPadX
+	cw := Board.W(label, Board.SmallPx) + 2*chipPadX
 	cr := Rect{X: k.x + k.w - cpad - cw, Y: row.Y + (lrowH-pickH)/2, W: cw, H: pickH}
 	l.Box(cr, k.clip, Board.White, Board.Edge)
-	l.Text(cr.X+cw/2, cr.Y, pickH, k.clip, "look", Board.SmallPx, Board.Mute, false, Board.Center)
+	l.Text(cr.X+cw/2, cr.Y, pickH, k.clip, label, Board.SmallPx, Board.Mute, false, Board.Center)
 	l.Spot(Rect{X: r.X - lookGap, Y: r.Y, W: lookGap, H: r.H}, k.clip, Sheet.Cell{Act: lk.Gap}, Sheet.PartBody)
 	l.Spot(r, k.clip, Sheet.Cell{Act: lk.Fold}, Sheet.PartBody)
 }
@@ -93,8 +93,10 @@ func (k *col) link(lk Link) {
 	}
 	x += l.Text(x, k.y, lrowH, k.clip, lk.Label, Board.Px, Board.Ink, false, Board.Left) + 6
 	l.Dial(Rect{X: x, Y: mid - miniPx/2, W: miniPx, H: miniPx}, k.clip, lk.Dial)
-	if lk.Hot && !lk.Open && lk.PickOpen.Op != "" {
-		k.look(row, lk)
+	if lk.PickOpen.Op != "" && lk.Open {
+		k.look(row, lk, "hide")
+	} else if lk.PickOpen.Op != "" && lk.Hot {
+		k.look(row, lk, "look")
 	} else {
 		l.Text(k.x+k.w-cpad, k.y, lrowH, k.clip, lk.Sum, 12, Board.Mute, false, Board.Right)
 	}
