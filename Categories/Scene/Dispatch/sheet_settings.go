@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	SceneB "github.com/dtauraso/beadnetwork/Categories/Scene"
@@ -66,7 +67,7 @@ func applyFrame(md *MoveDispatch, edits map[string]float64) {
 		m.Refused = fmt.Sprintf("could not write the frame: %v", err)
 		return
 	}
-	if err := Sheet.WriteScalar(Scenes.OpenSFilePath(root), int32(s)); err != nil {
+	if err := Scalar.Write(Scenes.OpenSFilePath(root), int32(s)); err != nil {
 		m.Refused = fmt.Sprintf("could not write s: %v", err)
 		return
 	}

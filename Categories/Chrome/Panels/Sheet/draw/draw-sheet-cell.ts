@@ -1,4 +1,4 @@
-import { canvasFont, drawCaret, roundRect } from "../../canvas-box";
+import { canvasFont, drawCaret, roundRect } from "../../../canvas-box";
 
 const TEXT_INK = "#222";
 const MUTED_INK = "#555";

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet/Scalar"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -79,10 +79,10 @@ func fitS(root string) error {
 		layers = append(layers, ls...)
 	}
 	sPath := Scenes.SFilePath(root)
-	was := Sheet.LoadScalar(sPath, 1, 1)
+	was := Scalar.Load(sPath, 1, 1)
 	want := max(was, dropNodeS(root, ids))
 	if want != was {
-		if err := Sheet.WriteScalar(sPath, int32(want)); err != nil {
+		if err := Scalar.Write(sPath, int32(want)); err != nil {
 			return err
 		}
 	}
