@@ -104,6 +104,7 @@ func (p *Peer) remeasure(from string, gap Vec3) {
 	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
 	p.pickPair(from, l)
 	p.setOrigin(from, baseOf(l.Start, l.Sum()).Origin)
+	p.drawn[from] = p.vecOf(l)
 	p.touched(from)
 }
 
