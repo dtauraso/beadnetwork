@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 )
 
-const dialGap = 12
+const dialGap, ctrlPadR = 12, 4
 
 func gridded(a Axis) bool { return a.Ruler == nil && (a.Ends == "" || a.DialSize == 0) }
 
@@ -73,7 +73,7 @@ func (in *ins) axis(a Axis) {
 			bottom = y + a.DialSize
 		}
 	}
-	right := in.x + in.w()
+	right := in.r.X + in.r.W - ctrlPadR
 	x = max(x, right-in.ctrl)
 	l.Weighted(x, y, headTH, in.clip, a.Label, 11, Board.Mute, Board.Semi, Board.Left)
 	y += headTH
