@@ -249,7 +249,7 @@ is the only context they get. It must:
 **No `recover()` in the network.** Swallowing an assertion converts a loud, located failure
 into a silent wrong answer.
 
-Guard: `Categories/Node/check-panic-message.sh` (site tag + substance + no `recover()`). It enforces
+Guard: `Categories/Node/checks/check-panic-message.sh` (site tag + substance + no `recover()`). It enforces
 the shape, not the content — (3) is the part only a human can write, and the part that pays.
 
 ## Allowed vocabulary

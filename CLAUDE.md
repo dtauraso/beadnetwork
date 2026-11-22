@@ -181,8 +181,8 @@ fire instead of fall silent. Nothing here is a guarantee; the only real check is
 noticing behavior.
 
 Prefer, in order: an assertion that fires in the running system with a site tag
-(`Categories/Node/check-panic-message.sh`); a guard whose failure state is loud and
-whose allowlist is empty (`Categories/Node/check-no-network-locks.sh`); a `.probe`
+(`Categories/Node/checks/check-panic-message.sh`); a guard whose failure state is loud and
+whose allowlist is empty (`Categories/Node/checks/check-no-network-locks.sh`); a `.probe`
 breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
 
 ## Workflow
