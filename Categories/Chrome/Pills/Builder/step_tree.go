@@ -129,9 +129,6 @@ func (m *Model) ToggleTreeFold(p []int) error {
 }
 
 func (m *Model) TreeWheel(pl Sheet.Layout, x, y, dy float64) bool {
-	if !m.TreePop {
-		return false
-	}
 	for _, p := range pl.Pills {
 		l, ok := p.Board.(*Board.Laid)
 		if !ok {
