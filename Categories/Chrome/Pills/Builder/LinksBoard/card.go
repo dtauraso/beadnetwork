@@ -33,13 +33,7 @@ func wrap(s string, w, px float32) []string {
 	return out
 }
 
-func segW(s Board.Stepper) float32 {
-	v := s.Plain
-	if s.Act.Op != "" {
-		v = s.Value
-	}
-	return 34 + max(28, Board.W(v, Board.BtnPx)+10)
-}
+func segW(s Board.Stepper) float32 { return Board.SegW(s) }
 
 func headW(s string) float32 { return Board.TextW(s, 10.5, Board.Semi) }
 

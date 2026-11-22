@@ -11,8 +11,9 @@ import (
 
 func stepper(value string, a Act, typed bool) Board.Stepper {
 	s := Board.Stepper{Steps: a, Plain: value}
+	s.Fit = "-000"
 	if typed {
-		s.Field = Board.Field{Value: value, Fit: "-00", Act: a}
+		s.Field = Board.Field{Value: value, Fit: s.Fit, Act: a}
 	}
 	return s
 }
