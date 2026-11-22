@@ -91,7 +91,12 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	if len(d.Rows) > 0 {
 		c := cardCols(d)
 		lw, sw, aw, bw, g := c.lw, c.sw, c.aw, c.bw, c.g
-		s := cx + lw + g
+		gx, gclip, thumb := cx, clip, func() {}
+		if most := cardW(d) - 2*cardPadX - cw; most > 0 && d.Scroll.Op != "" {
+			gx, gclip, thumb = sideScroll(l, clip, Rect{X: cx, Y: cy, W: cw, H: headTxtH + float32(len(d.Rows))*(Board.SegH+gapY)}, most, d, &cy)
+		}
+		clip := gclip
+		s := gx + lw + g
 		a := s
 		if sw > 0 {
 			a = s + sw + g
@@ -104,9 +109,10 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 		l.Weighted(t, cy, headTxtH, clip, d.Heads[2], 10.5, Board.Mute, Board.Semi, Board.Left)
 		cy += headTxtH + gapY
 		for _, r := range d.Rows {
-			cy += row(l, clip, cx, cy, s, a, b, t, r) + gapY
+			cy += row(l, clip, gx, cy, s, a, b, t, r) + gapY
 		}
 		cy -= gapY
+		thumb()
 	}
 	if d.Fixed != "" {
 		cy += gapY

@@ -43,6 +43,7 @@ type Model struct {
 	Rounds    map[string]int
 	StepHeads map[int]*Step
 	CardsOpen map[StepEdge]bool
+	CardSX    map[StepEdge]float32
 
 	ShownStep   int
 	StepClosed  bool

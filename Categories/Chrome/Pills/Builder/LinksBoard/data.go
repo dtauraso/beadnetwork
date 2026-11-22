@@ -37,6 +37,8 @@ type Card struct {
 	StartHead string
 	Rows      []CardRow
 	Note      string
+	Scroll    Act
+	SX        float32
 	Fixed     string
 	Foot      string
 }

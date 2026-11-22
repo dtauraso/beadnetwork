@@ -116,15 +116,18 @@ func (l *Laid) Most() (float32, float32) { return l.MostX, l.MostY }
 
 func (l *Laid) Hit(x, y float64) (Sheet.Hit, bool) {
 	for i := len(l.Spots) - 1; i >= 0; i-- {
-		s := l.Spots[i]
-		if int(s.Clip) < len(l.Clips) && !Panel.HitRect(l.Clips[s.Clip], x, y) {
-			continue
-		}
-		if Panel.HitRect(s.R, x, y) {
+		if s := l.Spots[i]; l.In(s, x, y) {
 			return Sheet.Hit{Part: s.Part, Cell: s.Cell, Rect: s.R}, true
 		}
 	}
 	return Sheet.Hit{}, false
+}
+
+func (l *Laid) In(s Spot, x, y float64) bool {
+	if int(s.Clip) < len(l.Clips) && !Panel.HitRect(l.Clips[s.Clip], x, y) {
+		return false
+	}
+	return Panel.HitRect(s.R, x, y)
 }
 
 func Clamp(v, most float32) float32 { return max(0, min(v, most)) }
