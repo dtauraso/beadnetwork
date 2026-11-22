@@ -13,6 +13,7 @@ import { SceneRoot, LabelProjector } from "./scene-root";
 import { ProceduralEnvProvider } from "./scene-env";
 import { SceneGuides } from "../../../../Categories/Scene/Guides/SceneGuides";
 import { PaneSizeSync } from "./pane-size-sync";
+import { RedrawOnChange } from "./redraw";
 
 function consumedByDraft(key: string): boolean {
   return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace" || key === "Delete" || key === "ArrowLeft" || key === "ArrowRight" || key === "Home" || key === "End";
@@ -74,8 +75,9 @@ export function ThreeView() {
           camera={{ fov: 50, near: 0.1, far: 20000, position: [0, 0, 500] }}
           gl={{ antialias: true }}
           style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
-          frameloop="always"
+          frameloop="demand"
         >
+          <RedrawOnChange />
           <PaneSizeSync />
           <Scene
             onPickRequest={pickRequest}
