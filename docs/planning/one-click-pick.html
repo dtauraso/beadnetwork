@@ -169,11 +169,12 @@
       <figcaption>Hovered, unpicked row</figcaption>
       <div class="panel">
         <div class="row off" style="background:var(--on);padding-right:0"><span class="radio"></span> 4 → 1 <span class="dial"></span>
-          <span style="margin-left:auto;width:12px;align-self:stretch;background:var(--panel)"></span>
-          <span style="width:30%;align-self:stretch;display:grid;place-items:center end;padding-right:12px;background:var(--hair);border-left:1px solid var(--guide)"><span class="chip look">look</span></span></div>
+          <span style="margin-left:auto;width:30%;align-self:stretch;display:grid;place-items:center end;padding-right:12px;border-left:1px solid var(--guide)"><span class="chip look">look</span></span></div>
       </div>
-      <div style="display:flex;font-size:11px;color:var(--mute);margin-top:4px">
-        <span style="flex:1">pick &amp; open</span><span style="width:12px"></span><span style="width:30%;text-align:center">look</span></div>
+      <div style="display:flex;gap:0;font-size:11px;color:var(--mute);margin-top:6px;height:22px">
+        <span style="flex:1;border:1px dashed var(--accent);display:grid;place-items:center">click zone: pick &amp; open</span>
+        <span style="width:12px"></span>
+        <span style="width:30%;border:1px dashed var(--mute);display:grid;place-items:center">click zone: look</span></div>
     </figure>
   </div>
   <p class="note">Looking at an unpicked link is the least common thing done on a row, so it shows
@@ -182,7 +183,7 @@
   steppers there stay dimmed, and the picked switch in its header picks from there. A picked
   row never shows it, because clicking that row already only opens it.</p>
   <p class="note"><b>No near misses.</b> <i>look</i> is not just the chip. While hovered, the row
-  splits in two: the right 30% is all <i>look</i>, tinted so its edge shows before the click. A
+  splits in two: the right 30% is all <i>look</i>, its edge marked by a faint hairline. A
   12px strip between the two halves does nothing, so a click that lands just short of <i>look</i>
   is dropped instead of picking the link.</p>
 
