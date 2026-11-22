@@ -67,6 +67,10 @@ func (f Frame) GridAt(p Vec3) Place {
 
 func (f Frame) GridNear(p Vec3, was Place) Place {
 	j := f.GridAt(p)
+	if n := p.Length(); n >= 1e-9 && math.Hypot(p.X, p.Z) < 1e-9*n {
+		j.Theta = was.Theta
+		return j
+	}
 	tt := float64(f.Ttheta)
 	gap := func(a float64) float64 {
 		d := math.Mod(math.Mod(a-was.Theta, tt)+tt, tt)
