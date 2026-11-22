@@ -24,10 +24,9 @@
   figure { margin: 0; }
   figcaption { font-size: 12px; color: var(--mute); margin-bottom: 6px; font-weight: 600;
     text-transform: uppercase; letter-spacing: .04em; }
-  .panel { background: var(--panel); border: 1px solid var(--edge); border-radius: 6px; overflow: hidden; }
+  .panel { background: var(--panel); border: 1px solid var(--guide); border-radius: 6px; overflow: hidden; }
   .node { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px;
     color: var(--mute); border-top: 1px solid var(--hair); font-size: 13px; }
-  .node b { font-weight: 600; }
   .row { position: relative; display: flex; align-items: center; gap: 8px; height: 34px;
     padding: 0 12px 0 28px; font-size: 14px; }
   .row.open { background: var(--on); box-shadow: inset 2px 0 var(--accent); }
@@ -36,14 +35,12 @@
   .chip { border: 1px solid var(--edge); border-radius: 5px; padding: 0 6px; font-size: 12px;
     height: 20px; line-height: 18px; background: var(--panel); }
   .chip.on { background: var(--on); border-color: var(--accent); }
-  .chip.instead { color: var(--accent); border-color: var(--accent); }
+  .chip.look { color: var(--mute); }
   .dial { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--edge);
     border-top-color: var(--phi); border-right-color: var(--theta); }
   .row.off .dial { border-top-color: var(--edge); border-right-color: var(--edge); }
-  .panel { border-color: var(--guide); }
   .radio { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--edge); flex: none; }
   .radio.on { border-color: var(--accent); background: radial-gradient(var(--accent) 0 3.5px, transparent 4px); }
-  .to { color: var(--mute); font-size: 12px; width: 34px; flex: none; }
   .click { position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--warn);
     color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
   .click.g { background: var(--good); }
@@ -53,8 +50,7 @@
   th, td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--hair); vertical-align: top; }
   th { color: var(--mute); font-weight: 600; border-top: none; }
   td.n { font-variant-numeric: tabular-nums; text-align: center; width: 80px; }
-  .rec { border: 2px solid var(--accent); border-radius: 8px; padding: 14px 16px; background: var(--panel); }
-  .rec h2 { margin-top: 0; }
+  .rec { border: 2px solid var(--accent); border-radius: 8px; padding: 0 16px 14px; background: var(--panel); }
   ul { padding-left: 20px; margin: 6px 0; }
   svg text { fill: var(--ink); font: 12px -apple-system, sans-serif; }
   svg .m { fill: var(--mute); }
@@ -164,15 +160,37 @@
     <tr><td>Turn an unpicked link (pick it, open it)</td><td class="n">2</td><td class="n">1</td></tr>
     <tr><td>Switch which link into a node turns</td><td class="n">2</td><td class="n">1</td></tr>
     <tr><td>Look at a picked link</td><td class="n">1</td><td class="n">1</td></tr>
-    <tr><td>Look at an unpicked link without picking it</td><td class="n">1</td><td class="n">— (see risk)</td></tr>
+    <tr><td>Look at an unpicked link without picking it</td><td class="n">1</td><td class="n">1 (look)</td></tr>
     <tr><td>Unpick a link</td><td class="n">1</td><td class="n">1 (dot)</td></tr>
   </table>
 
+  <h2>Quick look (rare, so it only shows on hover)</h2>
+  <div class="pair">
+    <figure>
+      <figcaption>Not hovered: nothing extra</figcaption>
+      <div class="panel">
+        <div class="row off"><span class="radio"></span> 4 → 1 <span class="dial"></span><span class="sum">not turned</span></div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>Hovered, unpicked row</figcaption>
+      <div class="panel">
+        <div class="row off" style="background:var(--on);opacity:1"><span class="radio"></span> 4 → 1 <span class="dial"></span>
+          <span class="sum"><span class="chip look">look</span></span></div>
+      </div>
+    </figure>
+  </div>
+  <p class="note">Looking at an unpicked link is the least common thing done on a row, so it gets
+  the least prominent spot: a small <i>look</i> chip at the right end, drawn only while the
+  pointer is over an <b>unpicked</b> row. It takes the place of “not turned”, which says nothing
+  for an unpicked link anyway. Clicking it opens the inspector with the pick unchanged; the
+  steppers there stay dimmed and the picked switch in its header is the way to pick from there.
+  A picked row never shows it: clicking that row already only opens it.</p>
+
   <h2>Risk</h2>
   <ul>
-    <li>Opening an unpicked link just to read its numbers would now pick it. Hovering a row
-      already lights its edge in the scene, and an unpicked link has no turn of its own to read,
-      so little is lost. Undo on the toast covers the rest.</li>
+    <li>A click on an unpicked row aimed at <i>look</i> but landing beside it picks the link.
+      The “moved the pick” toast’s Undo takes it back in one click.</li>
     <li>START rows stay as they are: they are not picked per step, so their click only opens.</li>
   </ul>
 
@@ -184,6 +202,9 @@
         only on the picked row.</li>
       <li><code>Builder</code>: that act sends the existing pick edit when the link is not picked,
         then opens its card, the same as the row click does now.</li>
+      <li><code>LinksBoard/rows.go</code>: on a hovered unpicked row (<code>lk.Hot</code>), draw a
+        <i>look</i> chip in place of the sum; its spot carries the existing open act
+        (<code>lk.Fold</code>), so it opens without picking.</li>
       <li><code>links_score.go</code>: drop “· k of n picked” from the node header.</li>
     </ul>
   </div>
