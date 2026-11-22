@@ -60,8 +60,9 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 	if len(d.Rows) > 0 {
 		var aw, bw float32
 		for _, r := range d.Rows {
-			aw, bw = max(aw, segW(r.A), headW(d.Heads[0])), max(bw, segW(r.B), headW(d.Heads[1]))
+			aw, bw = max(aw, segW(r.A)), max(bw, segW(r.B), headW(d.Heads[1]))
 		}
+		aw = max(aw, headW(d.Heads[0])+headW(d.Heads[1])-bw)
 		var tw, sw float32
 		for _, r := range d.Rows {
 			if r.Why == "" {
@@ -82,9 +83,9 @@ func card(l *Board.Laid, clip uint8, x, y, w float32, d Card) float32 {
 			l.Weighted(s, cy, headTxtH, clip, d.StartHead, 10.5, Board.Mute, Board.Semi, Board.Left)
 		}
 		t := b + bw + gapX
-		for i, s := range [3]float32{a, b, t} {
-			l.Weighted(s, cy, headTxtH, clip, d.Heads[i], 10.5, Board.Mute, Board.Semi, Board.Left)
-		}
+		l.Weighted(a, cy, headTxtH, clip, d.Heads[0], 10.5, Board.Mute, Board.Semi, Board.Left)
+		l.Weighted(b+bw, cy, headTxtH, clip, d.Heads[1], 10.5, Board.Mute, Board.Semi, Board.Right)
+		l.Weighted(t, cy, headTxtH, clip, d.Heads[2], 10.5, Board.Mute, Board.Semi, Board.Left)
 		cy += headTxtH + gapY
 		for _, r := range d.Rows {
 			cy += row(l, clip, cx, cy, s, a, b, t, r) + gapY
