@@ -53,6 +53,11 @@ var All = []Scene{
 		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors"},
 		RemovedOverlays: []string{"nodePoles", "scenePoles", "allPoleSpheres"},
 		FixedOverlays:   []string{"nodeBody", "nodeRing"}},
+
+	{Name: "alpha", Dir: "topology-alpha", CoplanarEdges: true, UpAxis: false, ClockDivisor: 8, Editable: true, NodesDraggable: false, Kinds: []string{"PhiTheta"},
+		OverlaysDock: true, HiddenOverlays: []string{"edgeVectors"},
+		RemovedOverlays: []string{"nodePoles", "scenePoles", "allPoleSpheres"},
+		FixedOverlays:   []string{"nodeBody", "nodeRing"}},
 }
 
 var Unlisted = Scene{ClockDivisor: 1, SpeedSlider: true, AnglesPill: true, NodePalette: true}
