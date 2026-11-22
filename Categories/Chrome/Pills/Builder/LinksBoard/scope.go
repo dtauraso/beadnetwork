@@ -59,43 +59,9 @@ func crumbs(l *Board.Laid, f *flow, clip uint8, cs []Board.Chip, name Act) {
 	}
 }
 
-func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float32 {
+func scopeBar(l *Board.Laid, r Rect, d Data) float32 {
 	clip, bg := band(l, r, Board.White)
-	h := Board.RowH()
-	f := flow{x0: r.X + pad, right: r.X + r.W - pad, x: r.X + pad, y: r.Y + pad, h: h, gap: Board.Gap}
-	if narrow && d.More.Op != "" {
-		f.right -= Board.W("⋯", Board.BtnPx) + 12 + Board.Gap
-	}
+	f := flow{x0: r.X + pad, right: r.X + r.W - pad, x: r.X + pad, y: r.Y + pad, h: Board.RowH(), gap: Board.Gap}
 	crumbs(l, &f, clip, d.Crumbs, d.CrumbName)
-	if d.S.Act.Op != "" && !narrow {
-		s := d.S
-		s.Label = "s"
-		x, y := f.at(Board.FieldW(s) + 2)
-		l.Field(x+2, y, clip, s)
-	}
-	doors := d.Doors
-	if narrow && d.More.Op != "" {
-		at := dots(l, r.X+r.W-pad, r.Y+pad, h, clip, d.MoreOpen, d.More)
-		if d.MoreOpen {
-			m := Menu{Items: doors}
-			if d.S.Act.Op != "" {
-				m.Find, m.FindLabel = &d.S, "s · ticks per 1/12 turn"
-			}
-			*menus = append(*menus, placed{at: at, m: m})
-		}
-		return closeBand(l, r, clip, bg, f)
-	}
-	var dw float32
-	for _, c := range doors {
-		dw += chipW(c) + Board.Gap
-	}
-	if dw > 0 {
-		dw -= Board.Gap
-		_, y := f.at(dw)
-		x := f.right - dw
-		for _, c := range doors {
-			x += l.Chip(x, y, clip, c) + Board.Gap
-		}
-	}
 	return closeBand(l, r, clip, bg, f)
 }
