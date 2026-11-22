@@ -23,7 +23,6 @@ const (
 )
 
 func (m *Model) PressMenu(a Act) {
-	m.pressPop(a)
 	if a.Op != OpMenu {
 		if a.Op != OpTreeFind && a.Op != OpFrame {
 			m.Menu = Act{}

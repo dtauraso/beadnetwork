@@ -66,14 +66,6 @@ func scopeBar(l *Board.Laid, r Rect, narrow bool, d Data, menus *[]placed) float
 	if narrow && d.More.Op != "" {
 		f.right -= Board.W("⋯", Board.BtnPx) + 12 + Board.Gap
 	}
-	if narrow && d.PathMenu.Op != "" {
-		c := Board.Chip{Label: "steps ▾", Act: d.PathMenu, Lit: d.PathOpen}
-		x, y := f.at(chipW(c))
-		l.Chip(x, y, clip, c)
-		if d.PathOpen {
-			*menus = append(*menus, placed{at: Rect{X: x, Y: y, W: chipW(c), H: h}, pane: true})
-		}
-	}
 	crumbs(l, &f, clip, d.Crumbs, d.CrumbName)
 	if d.S.Act.Op != "" && !narrow {
 		s := d.S

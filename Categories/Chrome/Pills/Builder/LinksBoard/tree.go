@@ -102,31 +102,6 @@ func treeMost(r Rect, d Data) float32 {
 	return max(0, y-r.H)
 }
 
-func treePop(l *Board.Laid, box, at Rect, d Data, menus *[]placed) {
-	h := Board.RowH()
-	n := len(d.Tree)
-	if d.TreeFind != nil {
-		n++
-	}
-	if len(d.Tree) == 0 {
-		n++
-	}
-	r := Rect{X: at.X, Y: at.Y + at.H + 2, W: min(treeW+60, box.W-2*pad), H: float32(n)*h + 4 + 2*pad}
-	r.X = max(box.X+pad, min(r.X, box.X+box.W-pad-r.W))
-	full := r.H
-	r.H = min(r.H, box.Y+box.H-pad-r.Y)
-	most := max(0, full-r.H)
-	clip := l.Clip(Rect{X: r.X - 4, Y: r.Y - 4, W: r.W + 8, H: r.H + 8})
-	l.Add(Board.Mark{Kind: Board.KBox, R: Rect{X: r.X, Y: r.Y + 2, W: r.W, H: r.H}, Clip: clip, Fill: Board.Edge, Radius: 6, Alpha: 0.4})
-	l.Block(r, clip)
-	if d.TreeScroll.Op != "" {
-		a := d.TreeScroll
-		a.I = int(most)
-		l.Spot(r, clip, Sheet.Cell{Act: a}, Sheet.PartInside)
-	}
-	treePane(l, r, min(d.TreeSY, most), d, menus)
-}
-
 func fitText(s string, w float32, bold bool) string {
 	wt := map[bool]uint8{true: 7, false: 4}[bold]
 	if Board.TextW(s, Board.Px, wt) <= w {

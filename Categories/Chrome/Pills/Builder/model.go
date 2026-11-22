@@ -50,7 +50,6 @@ type Model struct {
 	NewOpen     bool
 	New         NewNode
 	StartOpen   bool
-	TreePop     bool
 	TreeSY      float32
 	TreeW       float32
 	splitX0     float32
