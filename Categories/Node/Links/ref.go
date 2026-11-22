@@ -105,10 +105,11 @@ func (p *Peer) remeasure(from string, gap Vec3) {
 	}
 	was := l.Start
 	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
+	flipped := p.pickPair(from, l)
 	p.setOrigin(from, baseOf(l.Start, l.Sum()).Origin)
 	if p.Crumb != nil {
-		p.Crumb("remeasure", fmt.Sprintf("from=%s step=%d picked=%v pos=%+v place=%+v placed=%v given=%+v gap=%+v ref=%+v was=%+v now=%+v sum=%+v origin=%+v",
-			from, p.grid.Shown, l.Picked, p.Pos(), at, placed, given, gap, p.refs[from], was.Tick, l.Start.Tick, l.Sum(), p.grid.Base[from].Origin.Tick))
+		p.Crumb("remeasure", fmt.Sprintf("from=%s step=%d picked=%v flipped=%v pos=%+v place=%+v placed=%v given=%+v gap=%+v ref=%+v was=%+v now=%+v sum=%+v origin=%+v",
+			from, p.grid.Shown, l.Picked, flipped, p.Pos(), at, placed, given, gap, p.refs[from], was.Tick, l.Start.Tick, l.Sum(), p.grid.Base[from].Origin.Tick))
 	}
 	p.touched(from)
 }

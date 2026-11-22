@@ -107,26 +107,48 @@ func signOf(v int) int {
 	return 0
 }
 
-func (l *Link) phiAway() int {
-	per := l.Start.per()
-	if WrapTicks(per, l.Start.Tick.Phi+l.Total.Phi*per) >= TurnTicks*per/2 {
+func awayAt(s Start, phiTicks int) int {
+	per := s.per()
+	if WrapTicks(per, phiTicks) >= TurnTicks*per/2 {
 		return -1
 	}
 	return 1
 }
 
 func (l *Link) MarkWays() {
-	l.Way = Ways{Phi: signOf(l.Delta.Phi) * l.phiAway(), Theta: signOf(l.Delta.Theta)}
+	away := awayAt(l.Start, l.Start.Tick.Phi+l.Total.Phi*l.Start.per())
+	l.Way = Ways{Phi: signOf(l.Delta.Phi) * away, Theta: signOf(l.Delta.Theta)}
 }
 
-func (l *Link) FaceWays() bool {
-	if l.Way.Phi == WayNone || l.Delta.Phi == 0 || signOf(l.Delta.Phi)*l.phiAway() == l.Way.Phi {
+func (s *Start) otherPair() {
+	per := s.per()
+	s.Tick = Ticks{Phi: WrapTicks(per, -s.Tick.Phi), Theta: WrapTicks(per, s.Tick.Theta+TurnTicks*per/2)}
+}
+
+func (g Grid) countedWay(from string) (Link, bool) {
+	for _, c := range g.Cols {
+		if in, ok := c.InFrom(from); ok && c.Counted && in.Link.Picked && in.Link.Way.Phi != WayNone && in.Link.Delta.Phi != 0 {
+			return in.Link, true
+		}
+	}
+	return Link{}, false
+}
+
+func (p *Peer) pickPair(from string, l *Link) bool {
+	t, ok := p.grid.countedWay(from)
+	if !ok {
 		return false
 	}
-	per := l.Start.per()
-	l.Start.Tick = Ticks{
-		Phi:   WrapTicks(per, -l.Start.Tick.Phi-2*l.Total.Phi*per),
-		Theta: WrapTicks(per, l.Start.Tick.Theta+TurnTicks*per/2),
+	holds := func(d Start) bool {
+		o := baseOf(d, l.Sum()).Origin
+		sign := signOf(t.Delta.Phi)
+		return sign*awayAt(o, o.Tick.Phi) == t.Way.Phi && sign*awayAt(o, o.Tick.Phi+t.Delta.Phi*o.per()-sign) == t.Way.Phi
 	}
+	other := l.Start
+	other.otherPair()
+	if holds(l.Start) || !holds(other) {
+		return false
+	}
+	l.Start = other
 	return true
 }
