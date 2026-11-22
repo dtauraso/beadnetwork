@@ -92,7 +92,7 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			md.UI.EmitViewFrame(nil)
 		}
 	}
-	if ev.Kind == "wheel" && md.UI.Builder.TreeWheel(md.UI.PanelLayout().Sheet, ev.X, ev.Y, ev.DeltaY) {
+	if ev.Kind == "wheel" && (md.UI.Builder.CardWheel(md.UI.PanelLayout().Sheet, ev.X, ev.Y, ev.DeltaX, ev.DeltaY) || md.UI.Builder.TreeWheel(md.UI.PanelLayout().Sheet, ev.X, ev.Y, ev.DeltaY)) {
 		md.UI.EmitViewFrame(nil)
 		return
 	}

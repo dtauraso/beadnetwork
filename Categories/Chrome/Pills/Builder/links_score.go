@@ -133,6 +133,7 @@ func (m Model) linkOf(step int, l Links.Link) LinksBoard.Link {
 	lk.Pick = Act{Op: OpStepPick, Node: l.From, To: l.To, I: step}
 	if lk.Open {
 		lk.Card = m.stepCard(step, sl)
+		m.scrollCard(lk.Card, e)
 	}
 	if !sl.Picked {
 		lk.Dial.Turn = 0
@@ -178,6 +179,7 @@ func (m Model) startLink(id string, l Links.Link) LinksBoard.Link {
 	}
 	if lk.Open {
 		lk.Card = m.startBoardCard(id, l)
+		m.scrollCard(lk.Card, e)
 	}
 	return lk
 }
