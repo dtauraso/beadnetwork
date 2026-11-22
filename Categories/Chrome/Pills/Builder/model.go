@@ -53,6 +53,9 @@ type Model struct {
 	StartOpen   bool
 	TreePop     bool
 	TreeSY      float32
+	TreeW       float32
+	splitX0     float32
+	Splitting   bool
 	InspOpen    bool
 	StepsOpen   map[StepNode]bool
 	FramePop    bool

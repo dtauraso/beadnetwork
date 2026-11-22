@@ -40,6 +40,8 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 		} else if h.Cell.Act.Op == Sheet.OpDockTab {
 			sh.SelectTab(h.Cell.Act.I)
 			sh.StartTabDrag(h.Cell.Act.Node)
+		} else if h.Cell.Act.Op == Builder.OpTreeSplit {
+			md.UI.Builder.StartSplit(h.Cell.Act.I)
 		} else if h.Cell.Act.Op == Builder.OpRename {
 			md.UI.Builder.Rename(h.Cell.Act, &sh.Edit)
 		} else if h.Cell.Typed {

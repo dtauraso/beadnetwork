@@ -6,6 +6,7 @@ import { pointerF32, pointerU8, pointerText } from "./pointer-target-leaves";
 const KIND_NOTHING = 0;
 const KIND_REFUSING = 2;
 const KIND_RESIZE = 3;
+const KIND_SIDE_RESIZE = 4;
 
 const TIP_PAD_X = 6;
 const TIP_HEIGHT = 18;
@@ -26,6 +27,7 @@ export function pointerTargetCursor(): string {
     case KIND_NOTHING: return "default";
     case KIND_REFUSING: return "not-allowed";
     case KIND_RESIZE: return "ns-resize";
+    case KIND_SIDE_RESIZE: return "ew-resize";
     default: return "pointer";
   }
 }

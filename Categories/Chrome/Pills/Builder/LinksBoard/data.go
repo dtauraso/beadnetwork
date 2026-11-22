@@ -130,6 +130,8 @@ type Data struct {
 	CrumbName  Act
 	TreeScroll Act
 	TreeSY     float32
+	TreeSplit  Act
+	TreeW      float32
 	PathMenu   Act
 	PathOpen   bool
 	S          Board.Field

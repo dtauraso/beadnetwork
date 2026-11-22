@@ -55,6 +55,7 @@ func boardData(m Model) LinksBoard.Data {
 	m.treeData(&d)
 	d.Crumbs, d.CrumbName = m.Crumbs()
 	d.TreeScroll, d.TreeSY = Act{Op: OpTreeScroll}, m.TreeSY
+	d.TreeSplit, d.TreeW = Act{Op: OpTreeSplit}, m.TreeW
 	if d.TreeFind != nil {
 		d.PathMenu, d.PathOpen = Act{Op: OpTreePop}, m.TreePop
 	}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
@@ -126,6 +127,24 @@ func (m *Model) ToggleTreeFold(p []int) error {
 	}
 	m.ReadTree()
 	return nil
+}
+
+const OpTreeSplit = "tree-split"
+
+func (m *Model) StartSplit(left int) { m.Splitting, m.splitX0 = true, float32(left) }
+
+func (m *Model) SplitTo(x float64) bool {
+	if !m.Splitting {
+		return false
+	}
+	m.TreeW = max(LinksBoard.TreeMinW, float32(x)-m.splitX0)
+	return true
+}
+
+func (m *Model) EndSplit() bool {
+	was := m.Splitting
+	m.Splitting = false
+	return was
 }
 
 func (m *Model) TreeWheel(pl Sheet.Layout, x, y, dy float64) bool {
