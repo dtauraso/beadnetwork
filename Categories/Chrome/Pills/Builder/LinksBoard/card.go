@@ -74,8 +74,15 @@ func cardW(d Card) float32 {
 	if c.sw > 0 {
 		w += c.sw + c.g
 	}
+	rest := c.bw + c.g + c.tw
 	if c.ow > 0 {
 		w += c.ow + c.g
+		rest += c.ow + c.g
+	}
+	for _, r := range d.Rows {
+		if r.Why != "" {
+			w = max(w, w-rest+Board.W(r.Why, 11))
+		}
 	}
 	return w
 }
