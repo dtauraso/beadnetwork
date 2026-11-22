@@ -55,6 +55,14 @@ func (in *ins) dial(a Axis, dr Rect) {
 	}
 }
 
+func (in *ins) left() float32 {
+	x := in.r.X + in.r.W - ctrlPadR - in.ctrl
+	if in.slot > 0 {
+		x -= dialGap + in.slot
+	}
+	return max(in.x, x)
+}
+
 func (in *ins) axis(a Axis) {
 	if !gridded(a) {
 		in.summary(a)
