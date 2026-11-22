@@ -25,6 +25,7 @@ type ins struct {
 	slot float32
 	tag  float32
 	ctrl float32
+	sum  float32
 }
 
 func (in *ins) w() float32 { return in.r.W - 2*ipadX }

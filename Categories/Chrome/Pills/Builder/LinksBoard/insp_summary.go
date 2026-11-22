@@ -9,7 +9,8 @@ func (in *ins) summary(a Axis) {
 	l := in.l
 	size := min(a.DialSize, in.w())
 	a.Dial.Labels = size >= 70
-	dr := Rect{X: in.x + (in.w()-size)/2, Y: in.y, W: size, H: size}
+	x := in.left()
+	dr := Rect{X: x + (in.sum-size)/2, Y: in.y, W: size, H: size}
 	l.Dial(dr, in.clip, a.Dial)
 	if a.DialAct.Op != "" {
 		axis := Sheet.DialPhi
@@ -19,10 +20,10 @@ func (in *ins) summary(a Axis) {
 		l.Spot(dr, in.clip, Sheet.Cell{Act: a.DialAct, Dial: Sheet.Dial{Axis: axis}}, Sheet.PartBody)
 	}
 	in.y += size + 10
-	l.Text(in.x, in.y, Board.RowH(), in.clip, a.Ends, Board.Px, Board.Ink, true, Board.Left)
+	l.Text(x, in.y, Board.RowH(), in.clip, a.Ends, Board.Px, Board.Ink, true, Board.Left)
 	in.y += Board.RowH()
 	for _, s := range a.Lines {
-		in.lines(in.x, s, 11, Board.Mute)
+		in.lines(x, s, 11, Board.Mute)
 	}
 	in.y += 10
 }

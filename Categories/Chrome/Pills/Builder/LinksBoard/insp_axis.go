@@ -29,6 +29,8 @@ func (in *ins) grid(axes []Axis) {
 	for _, a := range axes {
 		if gridded(a) {
 			in.slot, in.tag = max(in.slot, a.DialSize), max(in.tag, tagW(a))
+		} else if a.Ruler == nil {
+			in.sum = max(in.sum, min(a.DialSize, in.w()))
 		}
 	}
 	for _, a := range axes {
@@ -56,9 +58,13 @@ func (in *ins) dial(a Axis, dr Rect) {
 }
 
 func (in *ins) left() float32 {
-	x := in.r.X + in.r.W - ctrlPadR - in.ctrl
-	if in.slot > 0 {
+	right := in.r.X + in.r.W - ctrlPadR
+	x := right - max(in.ctrl, in.sum)
+	if in.ctrl > 0 && in.slot > 0 {
 		x -= dialGap + in.slot
+	}
+	if x >= right {
+		return in.x
 	}
 	return max(in.x, x)
 }
