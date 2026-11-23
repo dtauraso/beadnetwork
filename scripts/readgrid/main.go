@@ -57,9 +57,7 @@ func dump(path string) error {
 			fmt.Fprintln(w, "["+band+"]")
 		}
 		cells := []string{r.Name}
-		for _, v := range r.V {
-			cells = append(cells, num(v))
-		}
+		cells = append(cells, row(r)...)
 		fmt.Fprintln(w, strings.Join(cells, "\t"))
 	}
 	band = ""
@@ -68,7 +66,18 @@ func dump(path string) error {
 			band = r.Band
 			fmt.Fprintln(w, "[sequence "+band+"]")
 		}
-		fmt.Fprintln(w, r.Name+"\t"+num(r.V[0]))
+		fmt.Fprintln(w, r.Name+"\t"+row(r)[0])
 	}
 	return w.Flush()
+}
+
+func row(r Store.GridRow) []string {
+	var out []string
+	for _, v := range r.I {
+		out = append(out, strconv.FormatInt(v, 10))
+	}
+	for _, v := range r.V {
+		out = append(out, num(v))
+	}
+	return out
 }

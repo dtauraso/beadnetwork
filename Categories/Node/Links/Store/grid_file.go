@@ -16,7 +16,7 @@ import (
 const (
 	FileGrid          = "grid.bin"
 	gridMagic         = "GRID"
-	gridVersion       = 4
+	gridVersion       = 5
 	gapOriginsVersion = 4
 	BandNode          = "node"
 	BandIn            = "in "
@@ -26,16 +26,18 @@ const (
 
 type GridRow struct {
 	Band, Name string
+	Int        bool
 	V          []float64
+	I          []int64
 }
 
 func rowsOf[T any](band string, rs []row[T], at func(c *Links.Col) (T, bool), cols []Links.Col) []GridRow {
 	var out []GridRow
 	for _, r := range rs {
-		gr := GridRow{Band: band, Name: r.name, V: make([]float64, len(cols))}
+		gr := newRow(band, r.name, r.isInt, len(cols))
 		for i := range cols {
 			if t, ok := at(&cols[i]); ok {
-				gr.V[i] = r.get(t)
+				gr.set(i, r.cell(t))
 			}
 		}
 		out = append(out, gr)
@@ -44,10 +46,10 @@ func rowsOf[T any](band string, rs []row[T], at func(c *Links.Col) (T, bool), co
 }
 
 func bandRows[C any](band string, cols []Links.Col, cell func(c *Links.Col) (C, bool), link func(C) Links.Link, sum func(C) Links.Angles, extra []row[C]) []GridRow {
-	present := GridRow{Band: band, Name: rowPresent, V: make([]float64, len(cols))}
+	present := newRow(band, rowPresent, true, len(cols))
 	for i := range cols {
 		_, ok := cell(&cols[i])
-		present.V[i] = b2f(ok)
+		present.I[i] = b2i(ok)
 	}
 	out := []GridRow{present}
 	out = append(out, rowsOf(band, linkRows, func(c *Links.Col) (Links.Link, bool) { x, ok := cell(c); return link(x), ok }, cols)...)
@@ -109,9 +111,7 @@ func WriteGrid(path string, g Links.Grid) error {
 	rows := Rows(g)
 	_ = binary.Write(&b, le, uint32(len(rows)))
 	for _, r := range rows {
-		putStr(&b, r.Band)
-		putStr(&b, r.Name)
-		_ = binary.Write(&b, le, r.V)
+		putRow(&b, r)
 	}
 	writeBase(&b, g.Base)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
@@ -177,15 +177,12 @@ func ReadGridRows(path string) (GridHead, []GridRow, error) {
 	}
 	rows := make([]GridRow, nrows)
 	for i := range rows {
-		rows[i].Band, _ = getStr(r)
-		rows[i].Name, _ = getStr(r)
-		rows[i].V = make([]float64, ncols)
-		if err := binary.Read(r, le, rows[i].V); err != nil {
+		if rows[i], err = getRow(r, ver, int(ncols)); err != nil {
 			return h, nil, fmt.Errorf("Store.ReadGridRows: %s ends inside row %d (%s %s): %w", path, i, rows[i].Band, rows[i].Name, err)
 		}
 	}
 	if ver >= 2 {
-		if h.Base, err = readBase(r); err != nil {
+		if h.Base, err = readBase(r, ver); err != nil {
 			return h, nil, fmt.Errorf("Store.ReadGridRows: %s ends inside its running totals: %w", path, err)
 		}
 	}
