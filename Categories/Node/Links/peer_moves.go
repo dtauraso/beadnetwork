@@ -99,9 +99,8 @@ func (p *Peer) turnedBy(from string, d Vec3) []Envelope {
 }
 
 func (p *Peer) step(d Vec3) Vec3 {
-	was, wasAt := p.Pos(), *p.At
+	was := p.Pos()
 	*p.At = p.Frame.GridNear(was.Add(d), *p.At)
-	p.note("place %s step=%d by=%+.4f at %+.4f → %+.4f", p.ID, p.grid.Shown, d, wasAt, *p.At)
 	return p.Pos().Sub(was)
 }
 
@@ -157,8 +156,6 @@ func (p *Peer) shift() []Envelope {
 	var d Vec3
 	for _, from := range p.order {
 		v := p.vecOf(p.own[from])
-		l := p.own[from]
-		p.note("shift %s→%s step=%d picked=%v tick=%v total=%+v delta=%+v part=%.3f vec=%+.4f was=%+.4f", from, p.ID, p.grid.Shown, l.Picked, l.Start.Tick, l.Total, l.Delta, l.Part, v, p.drawn[from])
 		if old, ok := p.drawn[from]; ok && p.own[from].Picked {
 			d = d.Add(v.Sub(old))
 		}
@@ -204,7 +201,6 @@ func (p *Peer) count(was, now *Col) {
 		if in, ok := now.InFrom(from); ok && now.Counted {
 			b = b.Sub(in.Link.Delta)
 		}
-		p.note("count %s→%s step %d→%d counted %v,%v total %+v → %+v", from, p.ID, was.Step, now.Step, was.Counted, now.Counted, p.grid.Base[from].Total, b.Total)
 		p.grid.Base[from] = b
 	}
 	was.Counted, now.Counted = true, false

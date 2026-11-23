@@ -81,9 +81,6 @@ func (n *PhiTheta) take(ctx context.Context, msg any) bool {
 	}
 	out := n.peer.Handle(msg)
 	n.send(out)
-	for _, note := range n.peer.TakeNotes() {
-		n.breadcrumb("theta", note)
-	}
 	picked := ""
 	for _, l := range n.peer.Links() {
 		if l.Picked {

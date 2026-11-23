@@ -143,14 +143,12 @@ func (g Grid) thetaPressed(from string) bool {
 	return false
 }
 
-func (p *Peer) keepTheta(from string, l *Link) bool {
+func (p *Peer) keepTheta(from string, l *Link) {
 	if p.grid.thetaPressed(from) {
-		return false
+		return
 	}
 	d := float64(l.Start.Tick.Theta)/float64(TurnTicks*l.Start.per()) - l.knownTheta
-	if d -= math.Round(d); math.Abs(d) < 0.25 {
-		return false
+	if d -= math.Round(d); math.Abs(d) >= 0.25 {
+		l.Start.otherPair()
 	}
-	l.Start.otherPair()
-	return true
 }

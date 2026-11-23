@@ -101,16 +101,12 @@ func (p *Peer) remeasure(from string, gap Vec3) {
 	if at, ok := p.places[from]; ok {
 		gap = p.Pos().Sub(at)
 	}
-	before, dir, origin := l.Start.Tick, l.Dir(), p.grid.Base[from].Origin.Tick
 	if !l.known {
-		l.known, l.knownTheta = true, float64(before.Theta)/float64(TurnTicks*l.Start.per())
+		l.known, l.knownTheta = true, float64(l.Start.Tick.Theta)/float64(TurnTicks*l.Start.per())
 	}
 	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
-	cut := l.Start.Tick
-	swapped := p.keepTheta(from, l)
+	p.keepTheta(from, l)
 	p.setOrigin(from, BaseOf(l.Start, l.Sum()).Origin)
-	p.note("remeasure %s→%s step=%d gap=%+.4f dir=%+.4f tick %v → cut %v → %v swapped=%v knownθ=%.4f sum=%+v origin %v → %v",
-		from, p.ID, p.grid.Shown, gap, dir, before, cut, l.Start.Tick, swapped, l.knownTheta, l.Sum(), origin, p.grid.Base[from].Origin.Tick)
 	p.drawn[from] = p.vecOf(l)
 	p.touched(from)
 }
