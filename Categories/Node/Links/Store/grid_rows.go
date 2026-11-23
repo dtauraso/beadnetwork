@@ -3,17 +3,30 @@ package Store
 import "github.com/dtauraso/beadnetwork/Categories/Node/Links"
 
 type row[T any] struct {
-	name string
-	get  func(t T) float64
-	set  func(t *T, v float64)
+	name  string
+	isInt bool
+	getI  func(t T) int64
+	setI  func(t *T, v int64)
+	getF  func(t T) float64
+	setF  func(t *T, v float64)
 }
 
 func intRow[T any](name string, at func(t *T) *int) row[T] {
-	return row[T]{name, func(t T) float64 { return float64(*at(&t)) }, func(t *T, v float64) { *at(t) = int(v) }}
+	return row[T]{name: name, isInt: true,
+		getI: func(t T) int64 { return int64(*at(&t)) },
+		setI: func(t *T, v int64) { *at(t) = int(v) }}
+}
+
+func boolRow[T any](name string, at func(t *T) *bool) row[T] {
+	return row[T]{name: name, isInt: true,
+		getI: func(t T) int64 { return b2i(*at(&t)) },
+		setI: func(t *T, v int64) { *at(t) = v != 0 }}
 }
 
 func floatRow[T any](name string, at func(t *T) *float64) row[T] {
-	return row[T]{name, func(t T) float64 { return *at(&t) }, func(t *T, v float64) { *at(t) = v }}
+	return row[T]{name: name,
+		getF: func(t T) float64 { return *at(&t) },
+		setF: func(t *T, v float64) { *at(t) = v }}
 }
 
 func vecRows[T any](prefix string, at func(t *T) *Links.Vec3) []row[T] {
@@ -24,7 +37,7 @@ func vecRows[T any](prefix string, at func(t *T) *Links.Vec3) []row[T] {
 	}
 }
 
-func b2f(b bool) float64 {
+func b2i(b bool) int64 {
 	if b {
 		return 1
 	}
@@ -51,7 +64,7 @@ var linkRows = []row[Links.Link]{
 	intRow("φ lock", func(l *Links.Link) *int { return &l.Lock.Phi }),
 	intRow("θ lock", func(l *Links.Link) *int { return &l.Lock.Theta }),
 	intRow("r lock", func(l *Links.Link) *int { return &l.Lock.R }),
-	{"picked", func(l Links.Link) float64 { return b2f(l.Picked) }, func(l *Links.Link, v float64) { l.Picked = v != 0 }},
+	boolRow("picked", func(l *Links.Link) *bool { return &l.Picked }),
 }
 
 const (
@@ -81,7 +94,7 @@ var sumRows = []row[Links.Angles]{
 }
 
 var nodeRows = append([]row[Links.Col]{
-	{"counted", func(c Links.Col) float64 { return b2f(c.Counted) }, func(c *Links.Col, v float64) { c.Counted = v != 0 }},
+	boolRow("counted", func(c *Links.Col) *bool { return &c.Counted }),
 	intRow("ref Δφ", func(c *Links.Col) *int { return &c.Ref.Phi }),
 	intRow("ref Δθ", func(c *Links.Col) *int { return &c.Ref.Theta }),
 	intRow("ref s", func(c *Links.Col) *int { return &c.Ref.S }),

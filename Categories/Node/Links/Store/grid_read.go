@@ -18,24 +18,22 @@ func writeBase(b *bytes.Buffer, base map[string]Links.Base) {
 	_ = binary.Write(b, le, uint32(len(base)*len(baseRows)))
 	for _, from := range slices.Sorted(maps.Keys(base)) {
 		for _, r := range baseRows {
-			putStr(b, BandIn+from)
-			putStr(b, r.name)
-			_ = binary.Write(b, le, r.get(base[from]))
+			g := newRow(BandIn+from, r.name, r.isInt, 1)
+			g.set(0, r.cell(base[from]))
+			putRow(b, g)
 		}
 	}
 }
 
-func readBase(r io.Reader) ([]GridRow, error) {
+func readBase(r io.Reader, ver uint32) ([]GridRow, error) {
 	var n uint32
 	if err := binary.Read(r, binary.LittleEndian, &n); err != nil {
 		return nil, err
 	}
 	out := make([]GridRow, n)
 	for i := range out {
-		out[i].Band, _ = getStr(r)
-		out[i].Name, _ = getStr(r)
-		out[i].V = make([]float64, 1)
-		if err := binary.Read(r, binary.LittleEndian, out[i].V); err != nil {
+		var err error
+		if out[i], err = getRow(r, ver, 1); err != nil {
 			return nil, err
 		}
 	}
@@ -60,7 +58,7 @@ func ReadGrid(path string) (Links.Grid, bool, error) {
 		b := g.Base[from]
 		for _, br := range baseRows {
 			if br.name == r.Name {
-				br.set(&b, r.V[0])
+				br.put(&b, r.Cell(0))
 			}
 		}
 		g.Base[from] = b
@@ -71,32 +69,32 @@ func ReadGrid(path string) (Links.Grid, bool, error) {
 		b.Origin.Tick = Links.Ticks{Phi: Links.LegacyTicks(old[0], 100), Theta: Links.LegacyTicks(old[1], 100)}
 		g.Base[from] = b
 	}
-	byBand := map[string]map[string][]float64{}
+	byBand := map[string]map[string]GridRow{}
 	var bands []string
 	for _, r := range rows {
 		if byBand[r.Band] == nil {
-			byBand[r.Band] = map[string][]float64{}
+			byBand[r.Band] = map[string]GridRow{}
 			bands = append(bands, r.Band)
 		}
-		byBand[r.Band][r.Name] = r.V
+		byBand[r.Band][r.Name] = r
 	}
 	setRows(byBand[BandNode], nodeRows, func(i int) *Links.Col { return &g.Cols[i] }, len(g.Cols))
 	for _, band := range bands {
 		vs := byBand[band]
 		for i := range g.Cols {
-			if p := vs[rowPresent]; p == nil || p[i] == 0 {
+			if at(vs, rowPresent, i).Zero() {
 				continue
 			}
 			var l Links.Link
 			var sum Links.Angles
 			for _, r := range linkRows {
-				r.set(&l, at(vs, r.name, i))
+				r.put(&l, at(vs, r.name, i))
 			}
-			if vs[RowPhiTick] == nil {
-				l.Start.Tick = Links.Ticks{Phi: Links.LegacyTicks(at(vs, rowPhiOld, i), l.Start.S), Theta: Links.LegacyTicks(at(vs, rowThetaOld, i), l.Start.S)}
+			if _, ok := vs[RowPhiTick]; !ok {
+				l.Start.Tick = Links.Ticks{Phi: Links.LegacyTicks(at(vs, rowPhiOld, i).F, l.Start.S), Theta: Links.LegacyTicks(at(vs, rowThetaOld, i).F, l.Start.S)}
 			}
 			for _, r := range sumRows {
-				r.set(&sum, at(vs, r.name, i))
+				r.put(&sum, at(vs, r.name, i))
 			}
 			c := &g.Cols[i]
 			switch {
@@ -107,7 +105,7 @@ func ReadGrid(path string) (Links.Grid, bool, error) {
 				l.From, l.To = h.ID, strings.TrimPrefix(band, BandOut)
 				o := Links.OutCell{Link: l, Sum: sum}
 				for _, r := range outRows {
-					r.set(&o, at(vs, r.name, i))
+					r.put(&o, at(vs, r.name, i))
 				}
 				c.Out = append(c.Out, o)
 			}
@@ -156,17 +154,12 @@ func legacyBase(rows []GridRow) map[string][2]float64 {
 	return old
 }
 
-func at(vs map[string][]float64, name string, i int) float64 {
-	if v := vs[name]; i < len(v) {
-		return v[i]
-	}
-	return 0
-}
+func at(vs map[string]GridRow, name string, i int) Cell { return vs[name].Cell(i) }
 
-func setRows[T any](vs map[string][]float64, rs []row[T], t func(i int) *T, n int) {
+func setRows[T any](vs map[string]GridRow, rs []row[T], t func(i int) *T, n int) {
 	for i := range n {
 		for _, r := range rs {
-			r.set(t(i), at(vs, r.name, i))
+			r.put(t(i), at(vs, r.name, i))
 		}
 	}
 }
