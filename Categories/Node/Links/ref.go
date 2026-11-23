@@ -101,8 +101,11 @@ func (p *Peer) remeasure(from string, gap Vec3) {
 	if at, ok := p.places[from]; ok {
 		gap = p.Pos().Sub(at)
 	}
+	if !l.known {
+		l.known, l.knownTheta = true, float64(l.Start.Tick.Theta)/float64(TurnTicks*l.Start.per())
+	}
 	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
-	p.pickPair(from, l)
+	p.keepTheta(from, l)
 	p.setOrigin(from, BaseOf(l.Start, l.Sum()).Origin)
 	p.drawn[from] = p.vecOf(l)
 	p.touched(from)

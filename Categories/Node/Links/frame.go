@@ -125,15 +125,6 @@ func signOf(v int) int {
 	return 0
 }
 
-func phiSense(ref Turn, per, thetaTicks int) int {
-	th := 2 * math.Pi * float64(thetaTicks) / float64(TurnTicks*per)
-	axis := ref.Rotate(Vec3{X: math.Sin(th), Z: -math.Cos(th)})
-	if v := -axis.Z; math.Abs(v) > 1e-9 {
-		return signOf(int(math.Copysign(1, v)))
-	}
-	return signOf(int(math.Copysign(1, axis.X)))
-}
-
 func (l *Link) MarkWays() {
 	l.Way = Ways{Phi: signOf(l.Delta.Phi), Theta: signOf(l.Delta.Theta)}
 }
@@ -141,15 +132,6 @@ func (l *Link) MarkWays() {
 func (s *Start) otherPair() {
 	per := s.per()
 	s.Tick = Ticks{Phi: WrapTicks(per, -s.Tick.Phi), Theta: WrapTicks(per, s.Tick.Theta+TurnTicks*per/2)}
-}
-
-func (g Grid) countedWay(from string) (Link, bool) {
-	for _, c := range g.Cols {
-		if in, ok := c.InFrom(from); ok && c.Counted && in.Link.Picked && in.Link.Way.Phi != WayNone && in.Link.Delta.Phi != 0 {
-			return in.Link, true
-		}
-	}
-	return Link{}, false
 }
 
 func (g Grid) thetaPressed(from string) bool {
@@ -161,20 +143,12 @@ func (g Grid) thetaPressed(from string) bool {
 	return false
 }
 
-func (p *Peer) pickPair(from string, l *Link) bool {
-	t, ok := p.grid.countedWay(from)
-	if !ok || !p.grid.thetaPressed(from) {
-		return false
+func (p *Peer) keepTheta(from string, l *Link) {
+	if p.grid.thetaPressed(from) {
+		return
 	}
-	holds := func(d Start) bool {
-		o := BaseOf(d, l.Sum()).Origin
-		return signOf(t.Delta.Phi)*phiSense(p.refs[from], o.per(), o.Tick.Theta+t.Total.Theta*o.per()) == t.Way.Phi
+	d := float64(l.Start.Tick.Theta)/float64(TurnTicks*l.Start.per()) - l.knownTheta
+	if d -= math.Round(d); math.Abs(d) >= 0.25 {
+		l.Start.otherPair()
 	}
-	other := l.Start
-	other.otherPair()
-	if holds(l.Start) || !holds(other) {
-		return false
-	}
-	l.Start = other
-	return true
 }
