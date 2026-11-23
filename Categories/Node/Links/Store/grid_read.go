@@ -93,9 +93,6 @@ func ReadGrid(path string) (Links.Grid, bool, error) {
 			if _, ok := vs[RowPhiTick]; !ok {
 				l.Start.Tick = Links.Ticks{Phi: Links.LegacyTicks(at(vs, rowPhiOld, i).F, l.Start.S), Theta: Links.LegacyTicks(at(vs, rowThetaOld, i).F, l.Start.S)}
 			}
-			if _, ok := vs[RowWayTheta]; !ok {
-				l.Way.Phi = Links.WayNone
-			}
 			for _, r := range sumRows {
 				r.put(&sum, at(vs, r.name, i))
 			}
