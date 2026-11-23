@@ -89,6 +89,9 @@ type Link struct {
 	Order     int
 	Playing   bool
 	Part      float64
+
+	known      bool
+	knownTheta float64
 }
 
 const NewLinkOrder = 1 << 20
