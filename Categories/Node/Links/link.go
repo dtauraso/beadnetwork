@@ -85,6 +85,7 @@ type Link struct {
 	Increment Ints
 	Lock      Lock
 	Way       Ways
+	WayTheta  int
 	Picked    bool
 	Order     int
 	Playing   bool

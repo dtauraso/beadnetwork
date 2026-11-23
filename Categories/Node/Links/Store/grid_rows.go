@@ -55,6 +55,7 @@ var linkRows = []row[Links.Link]{
 	intRow("r Δ", func(l *Links.Link) *int { return &l.Delta.R }),
 	intRow("φ way", func(l *Links.Link) *int { return &l.Way.Phi }),
 	intRow("θ way", func(l *Links.Link) *int { return &l.Way.Theta }),
+	intRow(RowWayTheta, func(l *Links.Link) *int { return &l.WayTheta }),
 	intRow("φ nΔ", func(l *Links.Link) *int { return &l.Increment.Phi }),
 	intRow("θ nΔ", func(l *Links.Link) *int { return &l.Increment.Theta }),
 	intRow("r nΔ", func(l *Links.Link) *int { return &l.Increment.R }),
@@ -72,6 +73,7 @@ const (
 	RowThetaTick = "θ start tick"
 	rowPhiOld    = "φ start"
 	rowThetaOld  = "θ start"
+	RowWayTheta  = "φ way θ"
 )
 
 var baseRows = []row[Links.Base]{
