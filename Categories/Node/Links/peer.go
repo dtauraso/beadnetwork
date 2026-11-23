@@ -6,6 +6,16 @@ import (
 	"slices"
 )
 
+func (p *Peer) note(format string, args ...any) {
+	p.Notes = append(p.Notes, fmt.Sprintf(format, args...))
+}
+
+func (p *Peer) TakeNotes() []string {
+	n := p.Notes
+	p.Notes = nil
+	return n
+}
+
 type Changes struct {
 	Place   bool
 	S       bool
@@ -39,6 +49,7 @@ type Peer struct {
 	places    map[string]Vec3
 
 	Changed Changes
+	Notes   []string
 }
 
 type Seed struct {

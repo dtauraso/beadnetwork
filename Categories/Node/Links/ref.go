@@ -101,9 +101,13 @@ func (p *Peer) remeasure(from string, gap Vec3) {
 	if at, ok := p.places[from]; ok {
 		gap = p.Pos().Sub(at)
 	}
+	before, dir, origin := l.Start.Tick, l.Dir(), p.grid.Base[from].Origin.Tick
 	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
-	p.pickPair(from, l)
+	cut := l.Start.Tick
+	swapped := p.pickPair(from, l)
 	p.setOrigin(from, BaseOf(l.Start, l.Sum()).Origin)
+	p.note("remeasure %s→%s step=%d gap=%+.4f dir=%+.4f tick %v → cut %v → %v swapped=%v way=%+v wayθ=%d sum=%+v origin %v → %v",
+		from, p.ID, p.grid.Shown, gap, dir, before, cut, l.Start.Tick, swapped, l.Way, l.WayTheta, l.Sum(), origin, p.grid.Base[from].Origin.Tick)
 	p.drawn[from] = p.vecOf(l)
 	p.touched(from)
 }

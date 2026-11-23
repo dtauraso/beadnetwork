@@ -171,6 +171,7 @@ func (p *Peer) showStep(m ShowStep) []Envelope {
 	was := p.grid.ShownCol()
 	at, ref := *p.At, *p.Ref
 	walk := m.From == nil && m.Step != was.Step
+	p.note("showStep %s step %d→%d walk=%v fresh=%v at=%+.4f", p.ID, was.Step, m.Step, walk, fresh, at)
 	if m.Steps != nil {
 		p.remap(m.Steps, m.From)
 		p.bind()
