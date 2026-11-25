@@ -172,6 +172,14 @@ func loadNodeBase(nodesDir, nodeID string) (Node, error) {
 		return Node{}, fmt.Errorf("loadTree: node %q data: %w", nodeID, err)
 	}
 	sn.Data = nd
+	at, ref, ok, err := Store.ShownPlace(nodeDir)
+	if err != nil {
+		return Node{}, fmt.Errorf("loadTree: node %q grid: %w", nodeID, err)
+	}
+	if ok {
+		sn.At, sn.RefPhi, sn.RefTheta, sn.RefS = &at, ref.Phi, ref.Theta, ref.S
+		return sn, nil
+	}
 	drag, _ := Files.PlaceDirs(nodeDir)
 	if at := readOptPlace(drag); at != nil {
 		sn.At = at
@@ -179,7 +187,6 @@ func loadNodeBase(nodesDir, nodeID string) (Node, error) {
 	readLeaf(filepath.Join(drag, Files.FileRefPhi), &sn.RefPhi)
 	readLeaf(filepath.Join(drag, Files.FileRefTheta), &sn.RefTheta)
 	readLeaf(filepath.Join(drag, Files.FileRefS), &sn.RefS)
-
 	return sn, nil
 }
 

@@ -132,6 +132,11 @@ func loadSequence(root string, k int, constants polarindex.SceneConstants) (Topo
 		if at := readPlace(drag); at != nil {
 			n.At = at
 		}
+		if at, _, ok, err := Store.ShownPlace(nodeDir); err != nil {
+			return spec, fmt.Errorf("node %s grid: %w", id, err)
+		} else if ok {
+			n.At = &at
+		}
 		spec.Nodes = append(spec.Nodes, n)
 		links, err := Store.ReadLinks(nodeDir, id)
 		if err != nil {

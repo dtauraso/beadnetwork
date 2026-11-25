@@ -36,6 +36,9 @@ func (n *PhiTheta) loadGrid(level string) {
 				panic(fmt.Sprintf("PhiTheta.loadGrid: node %s could not build its grid from the step link files at level %q: %v", id, level, err))
 			}
 		}
+		if err := Store.RemoveDragCopies(Files.NodeDir(filepath.Join(root, level), id)); err != nil {
+			n.breadcrumb("drag-copies", err.Error())
+		}
 		g.Level = level
 	}
 	n.peer.SetGrid(g, n.gridGeom())

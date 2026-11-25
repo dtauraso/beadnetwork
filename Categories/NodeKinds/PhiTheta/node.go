@@ -6,9 +6,7 @@ import (
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Files"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 )
 
 type PhiTheta struct {
@@ -93,37 +91,11 @@ func (n *PhiTheta) take(ctx context.Context, msg any) bool {
 
 func (n *PhiTheta) apply() {
 	c := n.peer.TakeChanges()
-	root, id := n.geom.PersistRoot(), n.peer.ID
-	if root == "" {
-		c = Links.Changes{Place: c.Place, S: c.S, Refused: c.Refused}
-		if c.Place {
-			n.geom.KindPosts().PostPlace(*n.peer.At)
-		}
-		if c.S {
-			n.postTicks()
-		}
-		n.publishWith(c.Refused)
-		return
-	}
 	if c.Place {
-		if err := Files.WritePlace(root, id, *n.peer.At); err != nil {
-			n.breadcrumb("place-persist", err.Error())
-		}
 		n.geom.KindPosts().PostPlace(*n.peer.At)
-		n.breadcrumb("sat", fmt.Sprintf("at=%+v", *n.peer.At))
 	}
 	if c.S {
 		n.postTicks()
-	}
-	if c.Ref {
-		if err := Files.WriteNodeRef(root, id, n.peer.Ref.Phi, n.peer.Ref.Theta, n.peer.Ref.S); err != nil {
-			n.breadcrumb("ref-persist", err.Error())
-		}
-	}
-	if len(c.Links) > 0 {
-		if err := Store.WriteLinks(Files.NodeDir(root, id), n.peer.Links()); err != nil {
-			n.breadcrumb("links-persist", err.Error())
-		}
 	}
 	n.publishWith(c.Refused)
 }

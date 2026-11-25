@@ -45,15 +45,13 @@ func DragLinksDir(nodeDir string) string { return filepath.Join(nodeDir, DirDrag
 func linkName(from, to string) string { return from + "To" + to }
 
 func ReadLinks(nodeDir, to string) ([]Links.Link, error) {
-	dir := DragLinksDir(nodeDir)
-	if _, err := os.Stat(dir); err == nil { // path-resolution-ok: a node's edits replace its grid's links only once it has made one
-		return readLinksIn(dir, to)
+	if g, ok, err := ReadGrid(GridPath(nodeDir)); err != nil || ok {
+		return g.ShownCol().Links(), err
 	}
-	g, ok, err := ReadGrid(filepath.Join(nodeDir, FileGrid))
-	if err != nil || !ok {
-		return readLinksIn(BaseLinksDir(nodeDir), to)
+	if _, err := os.Stat(DragLinksDir(nodeDir)); err == nil { // path-resolution-ok: a scene from before grid.bin keeps its edits under drag/links
+		return readLinksIn(DragLinksDir(nodeDir), to)
 	}
-	return g.ShownCol().Links(), nil
+	return readLinksIn(BaseLinksDir(nodeDir), to)
 }
 
 func ReadBaseLinks(nodeDir, to string) ([]Links.Link, error) {
