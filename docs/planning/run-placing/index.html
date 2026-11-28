@@ -1,0 +1,30 @@
+<!-- branch: task/run-placing -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: The UI: A run</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: The UI: A run</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 2: the UI</h2>
+<h3>A run</h3>
+<figure><svg viewBox="0 0 600 556" role="img" aria-label="One settle round, time running down: step 1.1 ends; dispatch runs Settle, round 5, and sends a StepAll with sign 0 to each node; each node runs stepAll, shifting and taking round 5; node 1 has no picked link in, so it is placed and sends Put to node 2; node 2 is placed from the Put and sends Put to node 3, which is placed; each node reports round 5; when all have, WalkSettled starts step 1.2."><text class="title" x="10" y="22" text-anchor="start">One settle round (picked: 1→2, 2→3)</text><text class="title" x="110" y="52" text-anchor="middle">dispatch</text><line class="tick" x1="110" y1="62" x2="110" y2="516"/><text class="title" x="250" y="52" text-anchor="middle">node 1</text><line class="tick" x1="250" y1="62" x2="250" y2="516"/><text class="title" x="390" y="52" text-anchor="middle">node 2</text><line class="tick" x1="390" y1="62" x2="390" y2="516"/><text class="title" x="530" y="52" text-anchor="middle">node 3</text><line class="tick" x1="530" y1="62" x2="530" y2="516"/><text class="small" x="14" y="62" text-anchor="middle">time</text><line class="arrow" x1="14" y1="70" x2="14" y2="516"/><rect class="ui-box" x="50.0" y="62" width="120" height="26" rx="5"/><text class="small" x="110.0" y="79.0" text-anchor="middle">step 1.1 ends</text><rect class="ui-box" x="50.0" y="94" width="120" height="26" rx="5"/><text class="small" x="110.0" y="111.0" text-anchor="middle">Settle: round 5</text><line class="arrow-ui" x1="110" y1="142" x2="246" y2="142"/><text class="small" x="118" y="136" text-anchor="start">StepAll 0, round 5</text><line class="arrow-ui" x1="110" y1="164" x2="386" y2="164"/><text class="small" x="118" y="158" text-anchor="start">StepAll 0, round 5</text><line class="arrow-ui" x1="110" y1="186" x2="526" y2="186"/><text class="small" x="118" y="180" text-anchor="start">StepAll 0, round 5</text><rect class="ui-box" x="183.0" y="200" width="134" height="26" rx="5"/><text class="small" x="250.0" y="217.0" text-anchor="middle">stepAll: shift, round 5</text><rect class="ui-box" x="323.0" y="200" width="134" height="26" rx="5"/><text class="small" x="390.0" y="217.0" text-anchor="middle">stepAll: shift, round 5</text><rect class="ui-box" x="463.0" y="200" width="134" height="26" rx="5"/><text class="small" x="530.0" y="217.0" text-anchor="middle">stepAll: shift, round 5</text><rect class="plain-box" x="183.0" y="240" width="134" height="26" rx="5"/><text class="small" x="250.0" y="257.0" text-anchor="middle">no picked link in</text><rect class="plain-box" x="323.0" y="240" width="134" height="26" rx="5"/><text class="small" x="390.0" y="257.0" text-anchor="middle">waits for Put</text><rect class="plain-box" x="463.0" y="240" width="134" height="26" rx="5"/><text class="small" x="530.0" y="257.0" text-anchor="middle">waits for Put</text><rect class="link-box" x="183.0" y="274" width="134" height="26" rx="5"/><text class="small" x="250.0" y="291.0" text-anchor="middle">placed</text><line class="arrow-link" x1="250" y1="320" x2="386" y2="320"/><text class="small" x="318.0" y="314" text-anchor="middle">Put, round 5</text><rect class="link-box" x="323.0" y="330" width="134" height="26" rx="5"/><text class="small" x="390.0" y="347.0" text-anchor="middle">placed from the Put</text><line class="arrow-link" x1="390" y1="376" x2="526" y2="376"/><text class="small" x="458.0" y="370" text-anchor="middle">Put, round 5</text><rect class="link-box" x="463.0" y="386" width="134" height="26" rx="5"/><text class="small" x="530.0" y="403.0" text-anchor="middle">placed from the Put</text><line class="arrow" x1="250" y1="432" x2="114" y2="432"/><text class="small" x="122" y="426" text-anchor="start">report: round 5</text><line class="arrow" x1="390" y1="454" x2="114" y2="454"/><text class="small" x="122" y="448" text-anchor="start">report: round 5</text><line class="arrow" x1="530" y1="476" x2="114" y2="476"/><text class="small" x="122" y="470" text-anchor="start">report: round 5</text><rect class="ui-box" x="25.0" y="490" width="170" height="26" rx="5"/><text class="small" x="110.0" y="507.0" text-anchor="middle">WalkSettled: step 1.2 starts</text><text class="small" x="300" y="544" text-anchor="middle">stepAll, sign 0: no amount changes; the node moves by its picked links' change and remeasures the rest (shift)</text></svg><figcaption>Orange: dispatch and the <code>StepAll</code> it sends. Blue: placing, down the picked links.</figcaption></figure>
+</main>
+</body>
+</html>
