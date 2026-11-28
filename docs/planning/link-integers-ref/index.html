@@ -1,0 +1,57 @@
+<!-- branch: task/link-integers-ref -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: A link: Data structure 1: a link</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: A link: Data structure 1: a link</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 1: a link</h2>
+
+<p>How a link is drawn: Frame turns its integers into a vector, then the sender's ref turns that vector. This part is kept as the code does it today (<code>Frame.Vec</code>, <code>Frame.LinkVec</code>, <code>Turn.Rotate</code>).</p>
+<figure>
+<svg viewBox="0 0 520 580" role="img" aria-label="START plus delta sum goes through Frame to a vector, which the sender's ref turns, and is drawn from the sender">
+  <rect class="link-box" x="20" y="10" width="340" height="64" rx="8"/><text class="title" x="36" y="34" style="fill: var(--link)">link a→b</text><text class="mono" x="36" y="60">START + Δ sum = (φ, θ, r)</text>
+  <path class="arrow" d="M190,74 L190,110"/><text class="small" x="202" y="96">Frame.Vec</text>
+  <rect class="screen-box" x="20" y="110" width="340" height="130" rx="8"/><text class="title" x="36" y="134" style="fill: var(--screen)">Frame: integers → vector</text>
+  <text class="small" x="36" y="156">angle = ticks × 2π / (12·s), the scene's one s</text><text class="small" x="36" y="176">length = r × ρ</text>
+  <text class="small" x="36" y="196">x = r sin φ cos θ,  z = r sin φ sin θ</text><text class="small" x="36" y="216">y = r cos φ</text>
+  <path class="arrow" d="M190,240 L190,280"/><text class="small" x="202" y="264">a vector in the link's own frame</text>
+  <rect class="plain-box" x="20" y="280" width="340" height="196" rx="8"/><text class="title" x="36" y="304">turned by the sender's ref: ref.Rotate</text>
+  <text class="small" x="36" y="326">ref φ, ref θ: the ref's ticks × 2π/12, as angles</text>
+  <text class="small" x="36" y="350">1. about y by ref θ  (y₁ = y):</text><text class="mono" x="52" y="370">x₁ = x cos ref θ − z sin ref θ</text><text class="mono" x="52" y="388">z₁ = x sin ref θ + z cos ref θ</text>
+  <text class="small" x="36" y="412">2. about z by ref φ  (z₂ = z₁):</text><text class="mono" x="52" y="432">x₂ = x₁ cos ref φ + y₁ sin ref φ</text><text class="mono" x="52" y="450">y₂ = y₁ cos ref φ − x₁ sin ref φ</text>
+  <text class="small" x="36" y="468">Frame.LinkVec = ref.Rotate(Frame.Vec(…))</text>
+  <rect class="plain-box" x="380" y="345" width="130" height="66" rx="6"/><text x="392" y="367">node a</text><text class="small" x="392" y="387">holds its ref,</text><text class="small" x="392" y="403">sends it: RefSet</text>
+  <path class="arrow" d="M380,378 L360,378"/>
+  <path class="arrow" d="M190,476 L190,516"/><text class="small" x="202" y="500">the vector (x₂, y₂, z₂) from a toward b</text>
+  <rect class="screen-box" x="20" y="516" width="340" height="50" rx="8"/><text x="36" y="546">drawn on screen, starting at node a</text>
+</svg>
+<figcaption>The link holds integers only. The sender's ref is not part of the link: node a holds it and sends it to the nodes it links to.</figcaption>
+</figure>
+<table>
+  <tr><th>Field</th><th>Changed by</th></tr>
+  <tr><td><span class="k-link">START</span></td><td>remeasure; a 1r press moves its 1/s part</td></tr>
+  <tr><td><span class="k-link">Δ sum</span></td><td>the UI: an amount changed is added, an amount deleted is taken out</td></tr><tr><td><span class="k-link">nΔ</span></td><td>the nΔ stepper</td></tr><tr><td><span class="k-link">direction set</span></td><td>no press today; read from the link's folder</td></tr><tr><td><span class="k-link">Way</span></td><td>a press: the sign of the Δ sum on φ and θ</td></tr>
+</table>
+
+
+</main>
+</body>
+</html>
