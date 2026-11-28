@@ -1,0 +1,35 @@
+<!-- branch: task/run-events -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: The UI: A run</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: The UI: A run</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 2: the UI</h2>
+
+<h3>A run</h3>
+<p>A run plays the leaf steps in order, each with all the edges picked for it and their amounts (φ, θ, r). The run holds one number, the counter, which names the leaf step it is playing: 1 is step 1.1, 2 is step 1.2, 3 is step 2.1. Before the first, the run sets every link's Δ sum to 0 and leaves START as it is, so each link is drawn at its START until a step moves it. Then it plays the leaf step the counter names, over ×N ticks, sends a settle round (below), and adds 1 to the counter once every node has reported it. A run counts through every leaf step in order, then stops. During a run nothing can be edited. A step has no ▶ of its own: ▶ run is the one play button.</p>
+<figure>
+<svg viewBox="0 0 600 360" role="img" aria-label="A run, row by row, time running down. Before: each link holds whatever was sent so far, and steps can be edited. Run starts: every link's Δ sum set to 0, and from here until the run stops no step can be edited. Line 1, counter 1: step 1.1 is sent, 1→2 becomes (2,0,0) and 2→3 becomes (0,1,0). Line 2: step 1.2 is sent, 1→2 becomes (2,0,1). Line 3: step 2.1 is sent, 1→2 becomes (3,0,1). Stop: links keep (3,0,1) and (0,1,0), and steps can be edited again."><text class="small" x="18" y="20">when</text><text class="small" x="96" y="20">counter</text><text class="small" x="160" y="20">step sent</text><text class="small" x="286" y="20">link 1→2 Δ sum</text><text class="small" x="406" y="20">link 2→3 Δ sum</text><text class="small" x="526" y="20">editing</text><path class="arrow-ui" d="M8,40 L8,350"/><rect class="plain-box" x="14" y="30" width="502" height="48" rx="5"/><text x="26" y="59">before</text><text class="mono" x="110" y="59">—</text><text class="small" x="166" y="59" style="fill: var(--muted)">none</text><text class="small" x="290" y="51">anything</text><text class="mono" x="290" y="67">sent so far</text><text class="small" x="410" y="51">anything</text><text class="mono" x="410" y="67">sent so far</text><rect class="plain-box" x="14" y="84" width="502" height="48" rx="5"/><text x="26" y="113">run starts</text><text class="mono" x="110" y="113">—</text><text class="small" x="166" y="113" style="fill: var(--muted)">none</text><rect class="link-box" x="282" y="90" width="112" height="36" rx="4"/><text class="small" x="290" y="105">set to 0</text><text class="mono" x="290" y="121">= (0, 0, 0)</text><rect class="link-box" x="402" y="90" width="112" height="36" rx="4"/><text class="small" x="410" y="105">set to 0</text><text class="mono" x="410" y="121">= (0, 0, 0)</text><rect class="plain-box" x="14" y="138" width="502" height="48" rx="5"/><text x="26" y="167">step 1.1</text><text class="mono" x="110" y="167">1</text><rect class="ui-box" x="156" y="144" width="118" height="36" rx="4"/><text class="small" x="166" y="167">step 1.1</text><rect class="link-box" x="282" y="144" width="112" height="36" rx="4"/><text class="small" x="290" y="159">+ (2, 0, 0)</text><text class="mono" x="290" y="175">= (2, 0, 0)</text><rect class="link-box" x="402" y="144" width="112" height="36" rx="4"/><text class="small" x="410" y="159">+ (0, 1, 0)</text><text class="mono" x="410" y="175">= (0, 1, 0)</text><rect class="plain-box" x="14" y="192" width="502" height="48" rx="5"/><text x="26" y="221">step 1.2</text><text class="mono" x="110" y="221">2</text><rect class="ui-box" x="156" y="198" width="118" height="36" rx="4"/><text class="small" x="166" y="221">step 1.2</text><rect class="link-box" x="282" y="198" width="112" height="36" rx="4"/><text class="small" x="290" y="213">+ (0, 0, 1)</text><text class="mono" x="290" y="229">= (2, 0, 1)</text><text class="mono" x="410" y="221" style="fill: var(--muted)">(0, 1, 0)</text><rect class="plain-box" x="14" y="246" width="502" height="48" rx="5"/><text x="26" y="275">step 2.1</text><text class="mono" x="110" y="275">3</text><rect class="ui-box" x="156" y="252" width="118" height="36" rx="4"/><text class="small" x="166" y="275">step 2.1</text><rect class="link-box" x="282" y="252" width="112" height="36" rx="4"/><text class="small" x="290" y="267">+ (1, 0, 0)</text><text class="mono" x="290" y="283">= (3, 0, 1)</text><text class="mono" x="410" y="275" style="fill: var(--muted)">(0, 1, 0)</text><rect class="plain-box" x="14" y="300" width="502" height="48" rx="5"/><text x="26" y="329">stop</text><text class="mono" x="110" y="329">—</text><text class="small" x="166" y="329" style="fill: var(--muted)">none</text><text class="mono" x="290" y="329" style="fill: var(--muted)">(3, 0, 1)</text><text class="mono" x="410" y="329" style="fill: var(--muted)">(0, 1, 0)</text><text class="small" x="526" y="59">allowed</text><rect x="522" y="84" width="72" height="210" rx="5" fill="none" style="stroke: var(--ui)" stroke-width="2" class="dash"/><text class="small" x="530" y="182" style="fill: var(--ui)">blocked</text><text class="small" x="530" y="198" style="fill: var(--ui)">until</text><text class="small" x="530" y="214" style="fill: var(--ui)">stop</text><text class="small" x="526" y="329">allowed</text></svg>
+<figcaption>Time runs down, one row per event. Boxed: the step sent and each link value that changes in that row. Editing is the only thing blocked during a run.</figcaption>
+</figure>
+</main>
+</body>
+</html>
