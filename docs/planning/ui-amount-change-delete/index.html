@@ -1,0 +1,44 @@
+<!-- branch: task/ui-amount-change-delete -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: The UI: Data structure 2: the UI</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: The UI: Data structure 2: the UI</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 2: the UI</h2>
+
+<figure>
+<svg viewBox="0 0 520 744" role="img" aria-label="The UI holds a tree of steps; each leaf step holds its amounts and a dial per amount; step 2.1 sends its amount to the link">
+  <rect class="ui-box" x="10" y="10" width="500" height="626" rx="8"/><text class="title" x="26" y="36" style="fill: var(--ui)">UI</text><text class="small" x="62" y="36">holds a tree of steps; creates, reads, updates, deletes steps and their amounts</text>
+  <rect class="plain-box" x="26" y="52" width="468" height="204" rx="6"/><text class="title" x="42" y="76">step 1</text><text class="small" x="42" y="94">parent: holds steps, no amounts</text>
+  <rect class="plain-box" x="42" y="104" width="436" height="80" rx="6"/><text class="title" x="58" y="124">step 1.1: its amounts</text><text class="mono" x="58" y="150">1→2</text><text class="mono" x="136" y="150">φ +2</text><text class="mono" x="216" y="150">θ 0</text><text class="mono" x="296" y="150">r 0</text><text class="mono" x="58" y="174">2→3</text><text class="mono" x="136" y="174">φ 0</text><text class="mono" x="216" y="174">θ +1</text><text class="mono" x="296" y="174">r 0</text>
+  <rect class="plain-box" x="42" y="192" width="436" height="56" rx="6"/><text class="title" x="58" y="212">step 1.2: its amounts</text><text class="mono" x="58" y="238">1→2</text><text class="mono" x="136" y="238">φ 0</text><text class="mono" x="216" y="238">θ 0</text><text class="mono" x="296" y="238">r +1</text>
+  <rect class="plain-box" x="26" y="264" width="468" height="356" rx="6"/><text class="title" x="42" y="288">step 2</text><text class="small" x="42" y="306">parent: holds steps, no amounts</text>
+  <rect class="plain-box" x="42" y="318" width="436" height="294" rx="6"/><text class="title" x="58" y="340">step 2.1: its amounts</text><text class="mono" x="58" y="366">1→2</text><text class="mono" x="136" y="366" style="fill: var(--ui)">φ +1</text><text class="mono" x="216" y="366">θ 0</text><text class="mono" x="296" y="366">r 0</text><text x="58" y="398">step 2.1's φ dial for 1→2 (θ has its own)</text>
+  <g transform="translate(260,504)"><circle class="dial" r="62"/><g id="ticks"></g><line x1="0" y1="0" x2="0" y2="-62" style="stroke: var(--muted); stroke-width: 1"/><text class="small" text-anchor="middle" y="-70">0</text>
+    <path d="M0,-44 A44,44 0 0 1 22,-38.1" style="fill:none; stroke: var(--ui); stroke-width: 3"/><line x1="0" y1="0" x2="31" y2="-53.7" style="stroke: var(--ui); stroke-width: 2.5"/><text class="small" x="72" y="-40" style="fill: var(--ui)">+1: step 2.1's change</text><text class="small" text-anchor="middle" y="90">1→2 φ: 0 → +1</text></g>
+  <path class="arrow-ui" d="M260,612 L260,684"/><text class="small" x="272" y="660" style="fill: var(--ui)">step 2.1 sends +1</text>
+  <rect class="link-box" x="150" y="684" width="220" height="40" rx="6"/><text x="166" y="709">link 1→2: Δ sum += 1</text>
+</svg>
+<figcaption>Changing an amount sends it to the link, which adds it. Deleting an amount sends that to the link, which takes it out.</figcaption>
+</figure>
+</main>
+</body>
+</html>
