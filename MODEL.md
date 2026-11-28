@@ -142,7 +142,6 @@ and the per-scene fork of node behaviour it documents (coplanar rings), plus the
 navigation-pole distinction. `scene.Scene`'s other per-scene fields (`UpAxis`, `ClockDivisor`,
 `Editable`, `Kinds`) are not written up anywhere — read `Categories/Scene/Scenes/scenes.go`.
 **Exception:** the φ, θ card nodes (`PhiTheta`) have no beads, so the bead sections do not apply, and they hold no machine clock: the kind goroutine blocks on its inbox or the next human-tick boundary and publishes once per human tick (`clock.HumanTick`), and its geometry goroutine is put on the same human tick at build, so the speed slider never reaches either ([docs/model/entities.md](docs/model/entities.md)).
-Each such node holds all its data in one grid, `<level>/nodes/<id>/grid.bin` (`Categories/Node/Links/grid*.go`): one column per step with its place, ref, links in and out, their sums and edge ends. The node is that file's only writer; the tabs read the grids it reports. The live network is the shown step's column, and each step starts where the step before it ended.
 
 ## Drift rule
 
