@@ -1,0 +1,45 @@
+<!-- branch: task/whole-picture -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The whole picture: what changes in main</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: links and the UI: The whole picture</h1>
+<nav class="tabs"><a href="index.html">The diagram</a><a href="changes.html" aria-current="page">What changes in main</a></nav>
+
+<h2>What changes in main</h2>
+<p>One row per box or arrow in the diagram: what main does today, and what has to change for main to match it. A row whose last column says “nothing” already matches.</p>
+
+<table>
+<tr><th colspan="3">2. The UI</th></tr>
+<tr><th>Diagram</th><th>Main today</th><th>Change</th></tr>
+<tr><td>Holds a tree of steps; creates, reads, updates, deletes steps</td><td>The step tree on disk (<code>StepStore/tree.go</code>), with add, copy, drop, earlier/later, name and split in the tree pane (<code>tree_pane.go</code>, <code>step_tree.go</code>)</td><td>Nothing</td></tr>
+<tr><td>A parent step holds steps, no amounts</td><td>A parent's folder holds <code>nodes/&lt;id&gt;/grid.bin</code> for every node, with one column per child step holding that child's Δ (<code>PhiTheta/grid.go</code> <code>writeGrid</code>, at <code>&lt;level&gt;/nodes/&lt;id&gt;</code>). The amounts of steps 1.1 and 1.2 sit in step 1's folder.</td><td>A parent's folder holds only its steps. Its grid files go.</td></tr>
+<tr><td>A leaf step holds its amounts</td><td>A step's amount is a cell in a column of each receiving node's grid (<code>Col.In</code>, <code>Links/grid.go</code>). The step's own folder holds its name, its lock files and <code>play-scale.bin</code> (<code>StepStore/step.go</code>).</td><td>The leaf step's folder holds its amounts.</td></tr>
+<tr><td>The UI creates, reads, updates, deletes the amounts</td><td>The Links pill keeps a copy of every node's grid (<code>Model.Grids</code>, <code>model.go</code>) and reads amounts from it (<code>gridLink</code>, <code>step_links.go</code>). A press or typed number is a <code>StepEdit</code> applied by the link to its column (<code>grid_edit.go</code>). Nothing deletes an amount.</td><td>The UI owns the amounts: it reads them from its leaf steps and writes them there. <code>Model.Grids</code> and <code>gridLink</code> go. Deleting an amount is added.</td></tr>
+<tr><td>A leaf step's amounts are sent</td><td>The UI sends <code>StepEdit</code> ops on a column, and <code>ShowStep</code> to make a node switch to another column or load another level's grid (<code>grid_peer.go</code> <code>showStep</code>, <code>PhiTheta</code> <code>showLevel</code>).</td><td>The UI sends the amount itself. <code>ShowStep</code> and the level switch go.</td></tr>
+<tr><td>A dial per amount, from 0</td><td>One dial per link (<code>dialOf</code>, <code>links_score.go</code>): φ unless only θ moved, starting at START + Total and turning by Δ.</td><td>One dial for each amount, starting from 0.</td></tr>
+<tr><td>Arrow: an amount changed or deleted, or a run's step</td><td>A run walks the steps by sending <code>ShowStep</code> (<code>Walk</code>, <code>step_links.go</code>) and plays each column with its own ×N (<code>Play</code>, <code>FolderRun</code>, <code>step_heads.go</code>).</td><td>A run sends each step's amounts to the links. The walk over columns goes.</td></tr>
+
+<tr><th colspan="3">1. A link</th></tr>
+<tr><th>Diagram</th><th>Main today</th><th>Change</th></tr>
+<tr><td>START φ, θ ticks, r</td><td><code>Link.Start</code> (<code>link.go</code>), plus a second START per sender in the grid's <code>Base.Origin</code> (<code>grid.go</code>), copied into each column by <code>fitTotals</code></td><td>One START per link. <code>Base</code>, <code>fitTotals</code> and <code>setOrigin</code> go.</td></tr>
+<tr><td>Δ sum φ, θ ticks, r: the amounts the UI sent, added</td><td>Three totals: <code>Delta</code> (this column), <code>Total</code> (the columns before it) and <code>Base.Total</code> (earlier levels); <code>Sum()</code> = Total + Delta</td><td>One Δ sum: each amount the UI sends is added to it, and a deleted amount is taken out.</td></tr>
+<tr><td>The link, once</td><td>A link is copied into every column of every level's grid (<code>Col.In</code>, <code>Grid.Cols</code>); <code>bind</code>, <code>fitLinks</code>, <code>Snap</code>, <code>compute</code> copy between the node and its columns (<code>grid_peer.go</code>)</td><td>One link per connection, held by its node. Columns, <code>Grid</code>, <code>Col</code> and the copying go.</td></tr>
+<tr><td>Drawn at START + Δ sum, turned by the sender's ref</td><td><code>LinkVec</code> = ref.Rotate(START + Total + Delta) (<code>ref.go</code>, <code>Link.Drawn</code>)</td><td>Drawn from START + the one Δ sum. The ref turn stays.</td></tr>
+<tr><td>Remeasure updates START</td><td><code>remeasure</code> updates <code>Link.Start</code>, then writes the result into the grid's <code>Base.Origin</code> too (<code>ref.go</code>, <code>setOrigin</code>)</td><td>Remeasure updates the link's START only.</td></tr>
+
+<tr><th colspan="3">Frame → screen</th></tr>
+<tr><th>Diagram</th><th>Main today</th><th>Change</th></tr>
+<tr><td>Integers → vector, then turned by the ref: kept as it is today</td><td><code>Frame.Vec</code>, <code>Cart</code>, <code>RefTurn</code> (<code>frame.go</code>, <code>ref.go</code>)</td><td>Nothing</td></tr>
+</table>
+
+</main>
+</body>
+</html>
