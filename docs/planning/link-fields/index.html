@@ -1,0 +1,40 @@
+<!-- branch: task/link-fields -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: A link: Data structure 1: a link</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: A link: Data structure 1: a link</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+
+
+<h2>Data structure 1: a link</h2>
+<p>A link is a tracking head: where that connection is right now. It holds START (whole ticks plus 1/s parts, at the link's s) and Δ sum, and nΔ, how far one press moves an amount on each axis (as <code>Link.Increment</code> does today, set with the nΔ stepper), and a direction set, which way a both press moves each axis (today's <code>Lock</code>), and Way, the sign its Δ sum had at the last press, which tells remeasure which (φ, θ) pair to keep. Nothing about steps.</p>
+<figure>
+<svg viewBox="0 0 520 420" role="img" aria-label="A link holds START and a delta sum; an amount changed in the UI is added to the sum, an amount deleted is taken out of it; remeasure updates START">
+  <rect class="ui-box" x="140" y="10" width="240" height="56" rx="6"/><text x="154" y="34">amount from the UI</text><text class="small" x="154" y="52">(φ, θ, r)</text>
+  <path class="arrow-ui" d="M260,66 L260,120"/><text class="small" x="272" y="90">changed: Δ sum += amount</text><text class="small" x="272" y="108">deleted: Δ sum −= amount</text>
+  <rect class="link-box" x="100" y="120" width="320" height="170" rx="8"/><text class="title" x="116" y="146" style="fill: var(--link)">link  a→b</text><text class="mono" x="260" y="146">nΔ = (φ, θ, r)</text><text class="mono" x="116" y="178">START  = (φ, θ, r)</text><text class="mono" x="116" y="204">Δ sum  = (φ, θ, r)</text><line class="tick" x1="116" x2="404" y1="222" y2="222"/><text class="mono" x="116" y="246">drawn  = START + Δ sum</text><text class="small" x="116" y="272">turned by the sender's ref, via Frame</text>
+  <path class="arrow-link" d="M260,350 L260,290"/><text class="small" x="272" y="314">updates START:</text><text class="small" x="272" y="332">START := measured − Δ sum</text><rect class="plain-box" x="140" y="350" width="240" height="56" rx="6"/><text x="154" y="383">remeasure</text>
+</svg>
+<figcaption>No step number, no stored per-step copy, no counted flag. The Δ sum is the running total.</figcaption>
+</figure>
+</main>
+</body>
+</html>
