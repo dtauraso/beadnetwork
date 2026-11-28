@@ -1,0 +1,31 @@
+<!-- branch: task/run-settle-wait -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: The UI: A run</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: The UI: A run</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 2: the UI</h2>
+<h3>A run</h3>
+
+<p>Between one leaf step and the next, the run sends a settle round: a <code>StepAll</code> with sign 0 to every node, which places each node down the picked links and changes no amount. The next leaf step starts once every node has reported that round, and no tick is sent while a round is out (<code>PlayTick</code> checks <code>Walking</code>).</p><figure><svg viewBox="0 0 600 156" role="img" aria-label="Time running right: step 1.1 plays its ticks, then a settle round lasting until the slowest node reports, then step 1.2 plays its ticks."><text class="title" x="10" y="22" text-anchor="start">Between step 1.1 and step 1.2</text><rect class="ui-box" x="40" y="44" width="220" height="30" rx="5"/><text class="small" x="150.0" y="63.0" text-anchor="middle">step 1.1: ×N ticks</text><line class="tick" x1="91.0" y1="68" x2="91.0" y2="74"/><line class="tick" x1="146.0" y1="68" x2="146.0" y2="74"/><line class="tick" x1="201.0" y1="68" x2="201.0" y2="74"/><line class="tick" x1="256.0" y1="68" x2="256.0" y2="74"/><rect class="link-box" x="262" y="44" width="110" height="30" rx="5"/><text class="small" x="317.0" y="63.0" text-anchor="middle">settle round</text><rect class="ui-box" x="374" y="44" width="216" height="30" rx="5"/><text class="small" x="482.0" y="63.0" text-anchor="middle">step 1.2: ×N ticks</text><line class="tick" x1="424.0" y1="68" x2="424.0" y2="74"/><line class="tick" x1="478.0" y1="68" x2="478.0" y2="74"/><line class="tick" x1="532.0" y1="68" x2="532.0" y2="74"/><line class="tick" x1="586.0" y1="68" x2="586.0" y2="74"/><line class="tick" x1="262" y1="86" x2="372" y2="86"/><text class="small" x="317" y="102" text-anchor="middle">as long as the</text><text class="small" x="317" y="116" text-anchor="middle">slowest node</text><text class="small" x="40" y="146" text-anchor="start">time</text><line class="arrow" x1="76" y1="142" x2="594" y2="142"/></svg><figcaption>Time runs right. Step 1.2 starts only once every node has reported the settle round, so a slow node delays the run.</figcaption></figure>
+</main>
+</body>
+</html>
