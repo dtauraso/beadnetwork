@@ -1,0 +1,31 @@
+<!-- branch: task/link-ticks-way -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: A link: Data structure 1: a link</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: A link: Data structure 1: a link</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 1: a link</h2>
+
+<p>Remeasure is kept as the code does it today (<code>Peer.remeasure</code>, <code>Measure</code>, <code>keepTheta</code>).</p>
+<figure><svg viewBox="0 0 600 380" role="img" aria-label="Remeasure, kept as today. 1: what is measured is node b's place minus node a's place, turned back by a's ref into the link's own frame. 2: Measure turns that vector into angles; one direction has two pairs, (φ, θ) and (−φ, θ + 6·s), and Way θ, if set, keeps the pair START has; if not, the pair nearer the link's last direction is kept. Then START := measured − Δ sum. 3: a picked link is not remeasured; node b moves instead. A link not picked is remeasured."><text class="title" x="10" y="20">1. what is measured</text><circle cx="90" cy="60" r="10" class="plain-box"/><text class="small" x="90" y="92" text-anchor="middle">node a: its place, its ref</text><circle cx="330" cy="60" r="10" class="plain-box"/><text class="small" x="330" y="92" text-anchor="middle">node b: its place</text><path class="arrow-link" d="M102,60 L316,60"/><text class="mono" x="195" y="50" text-anchor="middle">b's place − a's place</text><path class="arrow-link" d="M195,100 L195,128"/><text class="small" x="205" y="118">turned back by a's ref (ref.Unrotate)</text><rect class="plain-box" x="70" y="132" width="250" height="34" rx="8"/><text class="small" x="195" y="154" text-anchor="middle">a vector in the link's own frame</text><text class="title" x="10" y="196">2. which angles</text><path class="arrow-link" d="M195,166 L195,214"/><text class="small" x="205" y="198">Measure</text><rect class="plain-box" x="20" y="218" width="165" height="56" rx="8"/><text class="mono" x="102" y="240" text-anchor="middle">(φ, θ)</text><text class="small" x="102" y="262" text-anchor="middle">one direction</text><rect class="plain-box" x="205" y="218" width="165" height="56" rx="8"/><text class="mono" x="287" y="240" text-anchor="middle">(−φ, θ + 6·s)</text><text class="small" x="287" y="262" text-anchor="middle">the same direction</text><text class="small" x="195" y="246" text-anchor="middle">or</text><text class="small" x="195" y="292" text-anchor="middle">which is kept: Way decides →</text><rect class="link-box" x="350" y="276" width="236" height="94" rx="8"/><text class="mono" x="362" y="298">Way θ</text><text class="small" x="412" y="298">set by a press</text><text class="small" x="362" y="322">set: keep the pair it has</text><text class="small" x="362" y="342">not set: the pair nearer</text><text class="small" x="362" y="360">the link's last direction</text><path class="arrow-link" d="M170,298 L170,326"/><rect class="link-box" x="20" y="330" width="300" height="40" rx="8"/><text class="mono" x="36" y="355">START := measured − Δ sum</text><text class="title" x="410" y="20">3. a picked link</text><rect class="link-box" x="410" y="40" width="180" height="80" rx="8"/><text class="small" x="422" y="62">link a→b, picked</text><text class="small" x="422" y="84">not remeasured:</text><text class="small" x="422" y="106">node b moves instead</text><rect class="plain-box" x="410" y="150" width="180" height="80" rx="8"/><text class="small" x="422" y="172">a link not picked</text><text class="small" x="422" y="194">is remeasured: steps</text><text class="small" x="422" y="216">1 and 2, then START</text></svg><figcaption>Kept as today. 6·s ticks is half a turn. A press sent to a link sets its Way to the sign of its Δ sum on φ and θ (<code>MarkWays</code>); typing an amount does not. Remeasure reads Way θ (<code>keepTheta</code>).</figcaption></figure>
+</main>
+</body>
+</html>
