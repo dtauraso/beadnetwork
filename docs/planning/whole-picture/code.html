@@ -1,0 +1,173 @@
+<!-- branch: task/whole-picture -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The whole picture: what the code does</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: links and the UI: The whole picture</h1>
+<nav class="tabs"><a href="index.html">The diagram</a><a href="changes.html">What changes in main</a><a href="code.html" aria-current="page">What the code does</a></nav>
+
+<p class="lede">Drawn from the code on <code>task/whole-picture</code>: where things are kept, what is sent when a step is shown, what a node does with what it is sent, and what a run sends. Orange is the UI, blue is a link, green is what is drawn.</p>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+
+<h2>1. Where it is kept</h2>
+<figure>
+<svg viewBox="0 0 760 400" role="img" aria-label="A top step folder holds nodes, each with one node.bin of links, and a step tree; a parent step holds only steps; a leaf step holds amounts, one folder per link">
+  <rect class="plain-box" x="10" y="10" width="740" height="380" rx="8"/>
+  <text class="title" x="26" y="36">&lt;scene&gt;/steps/8/</text><text class="small" x="170" y="36">a top step</text>
+
+  <rect class="link-box" x="26" y="56" width="300" height="318" rx="6"/>
+  <text class="title" x="40" y="80" style="fill: var(--link)">nodes/&lt;id&gt;/node.bin</text>
+  <text class="small" x="40" y="98">one per node; the node writes it</text>
+  <text class="mono" x="40" y="128">Ref, At, Pos, Label</text>
+  <text class="mono" x="40" y="150">Out: the links it sends</text>
+  <text class="mono" x="40" y="172">In: one link per sender</text>
+  <rect class="plain-box" x="40" y="186" width="272" height="128" rx="5"/>
+  <text class="mono" x="54" y="208">From</text>
+  <text class="mono" x="54" y="230">Start      φ, θ ticks, r</text>
+  <text class="mono" x="54" y="252">Delta      the Δ sum</text>
+  <text class="mono" x="54" y="274">Increment, Lock</text>
+  <text class="mono" x="54" y="296">Picked</text>
+  <text class="small" x="40" y="340">Link.Start, Link.Delta: Links/link.go</text>
+  <text class="small" x="40" y="358">written by Store.WriteNode: node_file.go</text>
+
+  <rect class="ui-box" x="346" y="56" width="388" height="318" rx="6"/>
+  <text class="title" x="360" y="80" style="fill: var(--ui)">steps/: the step tree</text>
+  <text class="small" x="360" y="98">the UI reads and writes it: StepStore/tree.go</text>
+
+  <rect class="plain-box" x="360" y="112" width="360" height="104" rx="5"/>
+  <text class="title" x="374" y="134">steps/1/</text><text class="small" x="440" y="134">parent: name, steps/, no amounts/</text>
+  <rect class="plain-box" x="374" y="146" width="332" height="56" rx="5"/>
+  <text class="title" x="388" y="168">steps/1/steps/1/</text><text class="small" x="510" y="168">leaf</text>
+  <text class="mono" x="388" y="190">amounts/…</text>
+
+  <rect class="plain-box" x="360" y="228" width="360" height="132" rx="5"/>
+  <text class="title" x="374" y="250">steps/2/</text><text class="small" x="440" y="250">leaf: holds amounts/</text>
+  <rect class="plain-box" x="374" y="262" width="332" height="84" rx="5"/>
+  <text class="mono" x="388" y="284">amounts/2To1/  amounts/2To3/</text>
+  <text class="mono" x="388" y="306">  from.bin to.bin</text>
+  <text class="mono" x="388" y="324">  phi.bin theta.bin r.bin</text>
+  <text class="mono" x="388" y="342">  inc-*.bin picked.bin</text>
+</svg>
+<figcaption>A link is kept once, in the receiving node's <code>node.bin</code>, with one START and one Δ sum. An amount is kept only in a leaf step's <code>amounts/&lt;from&gt;To&lt;to&gt;/</code> (<code>StepStore/amounts.go</code>). A step with inner steps has no <code>amounts/</code>. The <code>steps/8</code> shape here is the one in <code>topology-phi-theta</code> after the migration.</figcaption>
+</figure>
+
+<h2>2. Showing a step</h2>
+<figure>
+<svg viewBox="0 0 760 560" role="img" aria-label="An amount edit writes the leaf step's amount file, then ShowStep re-reads the tree, works out each link's target sum, and sends each changed node unpick, pick, amount and unpick messages, then a StepAll to every node">
+  <rect class="ui-box" x="20" y="14" width="160" height="40" rx="6"/><text class="title" x="100" y="39" text-anchor="middle" style="fill: var(--ui)">Builder (UI)</text>
+  <rect class="plain-box" x="210" y="14" width="160" height="40" rx="6"/><text class="title" x="290" y="39" text-anchor="middle">amounts/ on disk</text>
+  <rect class="plain-box" x="400" y="14" width="160" height="40" rx="6"/><text class="title" x="480" y="39" text-anchor="middle">MoveDispatch</text>
+  <rect class="link-box" x="590" y="14" width="150" height="40" rx="6"/><text class="title" x="665" y="39" text-anchor="middle" style="fill: var(--link)">node's Peer</text>
+  <line class="tick dash" x1="100" y1="54" x2="100" y2="546"/><line class="tick dash" x1="290" y1="54" x2="290" y2="546"/>
+  <line class="tick dash" x1="480" y1="54" x2="480" y2="546"/><line class="tick dash" x1="665" y1="54" x2="665" y2="546"/>
+
+  <path class="arrow" d="M478,90 L104,90"/><text class="small" x="290" y="82" text-anchor="middle">a press or typed number on an amount: AmountEdit</text>
+  <path class="arrow-ui" d="M102,124 L286,124"/><text class="small" x="194" y="116" text-anchor="middle" style="fill: var(--ui)">setAmount writes</text>
+  <path class="arrow" d="M478,158 L104,158"/><text class="small" x="290" y="150" text-anchor="middle">ShowStep: SaveOpen, ReadTree, Sync</text>
+
+  <rect class="ui-box" x="30" y="174" width="420" height="96" rx="5"/>
+  <text class="small" x="44" y="196">for each link: target = Σ D of its picked amounts</text>
+  <text class="small" x="44" y="214">over the leaves before the shown step, the shown step,</text>
+  <text class="small" x="44" y="232">and the leaves under it (upTo, sumOver)</text>
+  <text class="mono" x="44" y="256">d = target − Sent[link];  Sent[link] = target</text>
+
+  <path class="arrow-ui" d="M102,296 L476,296"/><text class="small" x="290" y="288" text-anchor="middle" style="fill: var(--ui)">envelopes, only for nodes where d ≠ 0 or the pick changed</text>
+  <path class="arrow-link" d="M482,330 L661,330"/><text class="mono" x="572" y="322" text-anchor="middle">Unpick every link</text>
+  <path class="arrow-link" d="M482,368 L661,368"/><text class="mono" x="572" y="360" text-anchor="middle">PickReq</text>
+  <path class="arrow-link" d="M482,398 L661,398"/><text class="mono" x="572" y="390" text-anchor="middle">Amount{d}</text>
+  <path class="arrow-link" d="M482,428 L661,428"/><text class="mono" x="572" y="420" text-anchor="middle">Unpick</text>
+  <rect class="plain-box dash" x="490" y="342" width="164" height="98" rx="4" style="fill:none"/><text class="small" x="496" y="454">per changed link</text>
+  <path class="arrow-link" d="M482,486 L661,486"/><text class="mono" x="572" y="478" text-anchor="middle">PickReq the shown pick</text>
+  <path class="arrow" d="M482,530 L661,530"/><text class="mono" x="572" y="522" text-anchor="middle">Settle: StepAll{Round}</text>
+</svg>
+<figcaption>Every step change goes through <code>MoveDispatch.ShowStep</code> (<code>move_dispatch.go</code>) and <code>Model.sends</code> (<code>step_amounts.go</code>). The UI never tells a link its whole sum, only the difference from what it sent last. <code>Amount{d}</code> lands between a pick and an unpick, so the node adds it to the link's Δ sum and moves itself. <code>Settle</code> then sends <code>StepAll</code> to every node, not only the changed ones.</figcaption>
+</figure>
+
+<h2>3. What a node does with it</h2>
+<figure>
+<svg viewBox="0 0 760 430" role="img" aria-label="On Amount d the node adds d to the link's delta sum; if the link is not picked START drops by d so the drawn vector stays, if it is picked the node moves by how much the drawn vector changed and tells its neighbours; remeasure sets START from the gap then takes the delta sum out">
+  <rect class="link-box" x="20" y="14" width="250" height="52" rx="6"/>
+  <text class="mono" x="34" y="36">Amount{From, D, Play}</text><text class="small" x="34" y="56">Peer.amount: Links/amount.go</text>
+  <path class="arrow-link" d="M145,66 L145,96"/>
+  <rect class="plain-box" x="20" y="96" width="250" height="36" rx="5"/><text class="mono" x="34" y="119">Delta += D</text>
+  <path class="arrow" d="M145,132 L145,160"/>
+  <rect class="plain-box" x="70" y="160" width="150" height="36" rx="18"/><text x="145" y="183" text-anchor="middle">picked?</text>
+
+  <path class="arrow" d="M70,178 L40,178 L40,236"/><text class="small" x="34" y="214" text-anchor="end">no</text>
+  <rect class="plain-box" x="20" y="236" width="180" height="78" rx="5"/>
+  <text class="mono" x="34" y="258">Start −= D</text>
+  <text class="small" x="34" y="280">START + Δ is the same,</text><text class="small" x="34" y="298">so nothing moves</text>
+
+  <path class="arrow" d="M220,178 L330,178"/><text class="small" x="274" y="170" text-anchor="middle">yes</text>
+  <rect class="plain-box" x="330" y="150" width="200" height="98" rx="5"/>
+  <text class="mono" x="344" y="172">shift → moveBy</text>
+  <text class="small" x="344" y="194">the node moves by how much</text><text class="small" x="344" y="212">its picked link's drawn vector</text><text class="small" x="344" y="230">changed (Play: Moving = D)</text>
+  <path class="arrow" d="M430,248 L430,286"/>
+  <rect class="plain-box" x="330" y="286" width="200" height="60" rx="5"/>
+  <text class="small" x="344" y="308">its other, unpicked links</text><text class="small" x="344" y="326">are remeasured</text>
+  <path class="arrow-link" d="M530,198 L600,198"/><text class="mono" x="610" y="194">Moved</text><text class="small" x="610" y="212">to every neighbour</text>
+  <text class="small" x="610" y="234">picked from it: moves too</text><text class="small" x="610" y="252">else: remeasures</text>
+
+  <rect class="link-box" x="330" y="366" width="410" height="52" rx="6"/>
+  <text class="mono" x="344" y="388">remeasure: Start = the gap now;  Start −= Delta</text>
+  <text class="small" x="344" y="408">Peer.remeasure, Links/ref.go: only START changes; the Δ sum stays</text>
+  <path class="arrow" d="M430,346 L430,366"/>
+
+  <rect class="screen-box" x="20" y="342" width="290" height="76" rx="6"/>
+  <text class="title" x="34" y="364" style="fill: var(--screen)">drawn</text>
+  <text class="mono" x="34" y="386">ref.Rotate(Frame.Vec(</text><text class="mono" x="34" y="404">  Start + Δ − Moving·(1−Part)))</text>
+</svg>
+<figcaption>A link's Δ sum always grows by the amount sent. Whether the node moves depends only on whether the link is picked. When it isn't, START absorbs the amount and the link is drawn where it was. <code>Link.Drawn</code> (<code>link.go</code>) and <code>Frame.LinkVec</code> (<code>ref.go</code>) draw START + Δ, turned by the sender's ref. During a run, <code>Moving</code> and <code>Part</code> slide that drawing from the old sum to the new one.</figcaption>
+</figure>
+
+<h2>4. A run</h2>
+<figure>
+<svg viewBox="0 0 760 330" role="img" aria-label="Play on a parent step runs its leaves one after another; play on a leaf first brings every link to the sum before that step, then sends the step's amounts with Play set, then sends a PlayPart on each human tick until press N">
+  <rect class="ui-box" x="20" y="20" width="170" height="44" rx="6"/><text class="mono" x="105" y="47" text-anchor="middle">StartPlay(step)</text>
+  <path class="arrow-ui" d="M190,42 L240,42"/>
+  <rect class="plain-box" x="240" y="24" width="120" height="36" rx="18"/><text x="300" y="47" text-anchor="middle">parent?</text>
+  <path class="arrow-ui" d="M300,24 L300,4 L560,4 L560,20"/><text class="small" x="430" y="16" text-anchor="middle" style="fill: var(--ui)">yes: runFolder, its leaves in tree order</text>
+  <rect class="ui-box" x="470" y="20" width="270" height="44" rx="6"/><text class="small" x="484" y="38">each leaf in turn: NextFolderStep</text><text class="small" x="484" y="56">once the last one's Play ends</text>
+  <path class="arrow-ui" d="M300,60 L300,100"/><text class="small" x="310" y="86" style="fill: var(--ui)">no: startRun</text>
+
+  <rect class="plain-box" x="20" y="100" width="230" height="78" rx="5"/>
+  <text class="title" x="34" y="122">1. before</text><text class="small" x="34" y="142">sends, as in §2, to the sum over</text><text class="small" x="34" y="160">the leaves before this step</text>
+  <path class="arrow" d="M250,139 L280,139"/>
+  <rect class="plain-box" x="280" y="100" width="210" height="78" rx="5"/>
+  <text class="title" x="294" y="122">2. the step</text><text class="mono" x="294" y="144">Amount{D, Play}</text><text class="small" x="294" y="164">per active link; Sent += D</text>
+  <path class="arrow" d="M490,139 L520,139"/>
+  <rect class="plain-box" x="520" y="100" width="220" height="78" rx="5"/>
+  <text class="title" x="534" y="122">3. Play</text><text class="mono" x="534" y="144">N = presses × scale</text><text class="small" x="534" y="164">K = 0, starts in 2 ticks</text>
+
+  <line class="tick" x1="40" y1="250" x2="720" y2="250"/>
+  <text class="small" x="40" y="240">human tick</text>
+  <g>
+    <line class="tick" x1="120" y1="244" x2="120" y2="256"/><line class="tick" x1="240" y1="244" x2="240" y2="256"/><line class="tick" x1="360" y1="244" x2="360" y2="256"/><line class="tick" x1="600" y1="244" x2="600" y2="256"/>
+  </g>
+  <text class="mono" x="120" y="276" text-anchor="middle">PlayPart{0,N}</text><text class="mono" x="240" y="276" text-anchor="middle">{1,N}</text><text class="mono" x="360" y="276" text-anchor="middle">{2,N}</text><text class="small" x="480" y="276" text-anchor="middle">…</text><text class="mono" x="600" y="276" text-anchor="middle">{N,N}: done</text>
+  <text class="small" x="40" y="306">each tick: playTick → PlayTick → PlayPart to each active link's node; the node sets Part = K/N and redraws</text>
+  <path class="arrow" d="M630,178 L630,228 L600,244"/>
+</svg>
+<figcaption>A run (<code>step_heads.go</code> <code>startRun</code>, <code>step_folder.go</code>) sends the same amounts a step change would. The only difference is timing: the step's amounts go out with <code>Play</code> set, so the node animates the move over N human ticks instead of jumping. Stopping sends the last <code>PlayPart{N,N}</code>, which lands every link at its full sum.</figcaption>
+</figure>
+
+</main>
+</body>
+</html>
