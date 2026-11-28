@@ -1,0 +1,29 @@
+<!-- branch: task/one-r-press -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: The UI: The 1r press</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: The UI: The 1r press</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 2: the UI</h2>
+<h3>The 1r press</h3><p>START keeps parts finer than a tick, as today: on each axis, a count of 1/s of a tick (<code>Start.One</code>), where s is the link's own (<code>Start.S</code>, set from its node). A 1r press moves that count by one; at s it carries into the tick (<code>StepOne</code>). So START is changed by remeasure and by a 1r press. A 1r press on a leaf step's head reaches every edge picked in that step (below).</p><figure><svg viewBox="0 0 600 180" role="img" aria-label="A 1r press on link 1→2 with s = 4: START φ moves a quarter tick; from three quarters, a press carries into the next tick."><text class="title" x="10" y="22" text-anchor="start">link 1→2, s = 4: START φ, one 1r press each row</text><rect class="ui-box" x="10" y="54" width="70" height="32" rx="5"/><text class="mono" x="45.0" y="74.0" text-anchor="middle">1r +</text><text class="small" x="96" y="75" text-anchor="start">One φ 1 → 2</text><line class="tick" x1="230" y1="70" x2="550" y2="70"/><line class="tick" x1="230" y1="60" x2="230" y2="80"/><line class="tick" x1="270" y1="65" x2="270" y2="75"/><line class="tick" x1="310" y1="65" x2="310" y2="75"/><line class="tick" x1="350" y1="65" x2="350" y2="75"/><line class="tick" x1="390" y1="60" x2="390" y2="80"/><line class="tick" x1="430" y1="65" x2="430" y2="75"/><line class="tick" x1="470" y1="65" x2="470" y2="75"/><line class="tick" x1="510" y1="65" x2="510" y2="75"/><line class="tick" x1="550" y1="60" x2="550" y2="80"/><text class="small" x="230" y="96" text-anchor="middle">k</text><text class="small" x="390" y="96" text-anchor="middle">k+1</text><text class="small" x="550" y="96" text-anchor="middle">k+2</text><circle cx="270" cy="70" r="4" style="fill:var(--muted)"/><circle cx="310" cy="70" r="5" style="fill:var(--link)"/><path class="arrow-ui" d="M274,64 Q290.0,38 306,64"/><text class="small" x="290.0" y="42" text-anchor="middle">+1/4</text><rect class="ui-box" x="10" y="124" width="70" height="32" rx="5"/><text class="mono" x="45.0" y="144.0" text-anchor="middle">1r +</text><text class="small" x="96" y="145" text-anchor="start">One φ 3 → 0, tick +1</text><line class="tick" x1="230" y1="140" x2="550" y2="140"/><line class="tick" x1="230" y1="130" x2="230" y2="150"/><line class="tick" x1="270" y1="135" x2="270" y2="145"/><line class="tick" x1="310" y1="135" x2="310" y2="145"/><line class="tick" x1="350" y1="135" x2="350" y2="145"/><line class="tick" x1="390" y1="130" x2="390" y2="150"/><line class="tick" x1="430" y1="135" x2="430" y2="145"/><line class="tick" x1="470" y1="135" x2="470" y2="145"/><line class="tick" x1="510" y1="135" x2="510" y2="145"/><line class="tick" x1="550" y1="130" x2="550" y2="150"/><text class="small" x="230" y="166" text-anchor="middle">k</text><text class="small" x="390" y="166" text-anchor="middle">k+1</text><text class="small" x="550" y="166" text-anchor="middle">k+2</text><circle cx="350" cy="140" r="4" style="fill:var(--muted)"/><circle cx="390" cy="140" r="5" style="fill:var(--link)"/><path class="arrow-ui" d="M354,134 Q370.0,108 386,134"/><text class="small" x="370.0" y="112" text-anchor="middle">carry</text></svg><figcaption>Big ticks: whole ticks. Small ticks: 1/s parts. Grey dot: START φ before the press; blue dot: after.</figcaption></figure>
+</main>
+</body>
+</html>
