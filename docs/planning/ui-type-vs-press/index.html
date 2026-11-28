@@ -1,0 +1,31 @@
+<!-- branch: task/ui-type-vs-press -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: The UI: Data structure 2: the UI</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: The UI: Data structure 2: the UI</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 2: the UI</h2>
+
+<p>Deleting a step removes the step from the UI. It sends nothing, so no link changes: a link takes messages from any step and keeps what it was sent. Deleting an amount is a change to an amount, and is sent.</p>
+<p>Copying a step sends nothing either: the copy is a new step holding the same amounts, and a copy is not a change to an amount, as today (<code>OpStepCopy</code> clones the column and adds nothing). Its amounts reach the links when a run plays it; any later edit to it is sent.</p><figure><svg viewBox="0 0 600 180" role="img" aria-label="Two ways to the same step 1.2 with φ +2, link 1→2 Δ sum 2 before. Adding step 1.2 and typing +2 sends +2, Δ sum 4. Copying step 1.1 sends nothing, Δ sum stays 2."><text class="title" x="10" y="22" text-anchor="start">Two ways to the same step 1.2 φ +2 (link 1→2 Δ sum was 2)</text><text class="small" x="20" y="52" text-anchor="start">what you do</text><text class="small" x="250" y="52" text-anchor="start">what is sent</text><text class="small" x="440" y="52" text-anchor="start">link 1→2</text><rect class="ui-box" x="10" y="64" width="200" height="28" rx="5"/><text class="small" x="110.0" y="82.0" text-anchor="middle">add step 1.2, type +2</text><line class="arrow-ui" x1="212" y1="78" x2="426" y2="78"/><text class="small" x="318" y="72" text-anchor="middle">sends +2</text><rect class="link-box" x="430" y="64" width="160" height="28" rx="5"/><text class="mono" x="510.0" y="82.0" text-anchor="middle">Δ sum 2 → 4</text><text class="small" x="20" y="108" text-anchor="start">typing is a change to an amount</text><rect class="ui-box" x="10" y="122" width="200" height="28" rx="5"/><text class="small" x="110.0" y="140.0" text-anchor="middle">copy step 1.1</text><line class="tick dash" x1="212" y1="136" x2="426" y2="136"/><text class="small" x="318" y="130" text-anchor="middle">sends nothing</text><rect class="plain-box" x="430" y="122" width="160" height="28" rx="5"/><text class="mono" x="510.0" y="140.0" text-anchor="middle">Δ sum 2 → 2</text><text class="small" x="20" y="166" text-anchor="start">a copy is not a change</text></svg><figcaption>The step tree ends the same both ways; the link differs, because only typing is a change to an amount.</figcaption></figure>
+</main>
+</body>
+</html>
