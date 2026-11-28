@@ -1,0 +1,29 @@
+<!-- branch: task/both-press -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: The UI: The both press</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: The UI: The both press</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 2: the UI</h2>
+<h3>The both press</h3><p>A both ± press moves φ, θ and r together, each by its link's nΔ. Each axis goes the way its <b>direction set</b> says (↑ or ↓): the link's first, then the step's, and + if neither is set. both − goes the other way on every axis. Each amount it changes is sent, like any change. A press on a leaf step's head reaches every edge picked in that step (below).</p><figure><svg viewBox="0 0 600 212" role="img" aria-label="A both + press on edge 1→2 of step 2.1: φ goes up by the link's direction set, θ down by the link's, r up since neither is set; each amount is sent and added to link 1→2's Δ sum."><text class="title" x="10" y="22" text-anchor="start">step 2.1, edge 1→2: one both + press</text><rect class="ui-box" x="10" y="104" width="90" height="32" rx="5"/><text class="mono" x="55.0" y="124.0" text-anchor="middle">both +</text><line class="arrow-ui" x1="102" y1="120" x2="150" y2="76"/><rect class="plain-box" x="152" y="60" width="150" height="32" rx="5"/><text class="mono" x="164" y="81" text-anchor="start">φ ↑</text><text class="small" x="206" y="81" text-anchor="start">the link's</text><line class="arrow-ui" x1="304" y1="76" x2="334" y2="76"/><rect class="ui-box" x="336" y="60" width="70" height="32" rx="5"/><text class="mono" x="371.0" y="80.0" text-anchor="middle">φ +1</text><line class="arrow-ui" x1="408" y1="76" x2="440" y2="76"/><rect class="link-box" x="442" y="60" width="148" height="32" rx="5"/><text class="mono" x="516.0" y="80.0" text-anchor="middle">Δ sum φ +1</text><line class="arrow-ui" x1="102" y1="120" x2="150" y2="124"/><rect class="plain-box" x="152" y="108" width="150" height="32" rx="5"/><text class="mono" x="164" y="129" text-anchor="start">θ ↓</text><text class="small" x="206" y="129" text-anchor="start">the link's</text><line class="arrow-ui" x1="304" y1="124" x2="334" y2="124"/><rect class="ui-box" x="336" y="108" width="70" height="32" rx="5"/><text class="mono" x="371.0" y="128.0" text-anchor="middle">θ −1</text><line class="arrow-ui" x1="408" y1="124" x2="440" y2="124"/><rect class="link-box" x="442" y="108" width="148" height="32" rx="5"/><text class="mono" x="516.0" y="128.0" text-anchor="middle">Δ sum θ −1</text><line class="arrow-ui" x1="102" y1="120" x2="150" y2="172"/><rect class="plain-box" x="152" y="156" width="150" height="32" rx="5"/><text class="mono" x="164" y="177" text-anchor="start">r ·</text><text class="small" x="206" y="177" text-anchor="start">neither, so +</text><line class="arrow-ui" x1="304" y1="172" x2="334" y2="172"/><rect class="ui-box" x="336" y="156" width="70" height="32" rx="5"/><text class="mono" x="371.0" y="176.0" text-anchor="middle">r +1</text><line class="arrow-ui" x1="408" y1="172" x2="440" y2="172"/><rect class="link-box" x="442" y="156" width="148" height="32" rx="5"/><text class="mono" x="516.0" y="176.0" text-anchor="middle">Δ sum r +1</text><text class="small" x="152" y="50" text-anchor="start">direction set</text><text class="small" x="336" y="50" text-anchor="start">amount</text><text class="small" x="442" y="50" text-anchor="start">link 1→2, nΔ 1</text></svg><figcaption>Today the step's direction set is set with the arrows on the Δφ, Δθ headers in the Links pill (<code>LockAll</code>); a link's is read from <code>lock-phi.bin</code>, <code>lock-theta.bin</code> in its folder, and no press sets it. In the code both are named lock; their files become <code>direction-set-*.bin</code>.</figcaption></figure>
+</main>
+</body>
+</html>
