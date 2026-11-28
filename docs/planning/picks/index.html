@@ -1,0 +1,30 @@
+<!-- branch: task/picks -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: The UI: Picks</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: The UI: Picks</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 2: the UI</h2>
+
+<h3>Picks</h3><p>Each leaf step holds its picks. The step shown, or the leaf step a run is playing, sends its picks to the links. A link holds the pick it was sent until its remeasure is done, then the pick resets.</p><figure><svg viewBox="0 0 600 150" role="img" aria-label="Picks: step 1.1 picks 1→2 and step 2.1 picks 2→3; step 1.1 is sent, so link 1→2 is picked; when its remeasure is done, link 1→2 is no longer picked."><rect class="ui-box" x="10" y="30" width="250" height="96" rx="5"/><text class="small" x="20" y="48" text-anchor="start">UI</text><text class="mono" x="20" y="76" text-anchor="start">step 1.1</text><rect class="ui-box" x="100" y="62" width="62" height="22" rx="5"/><text class="mono" x="131.0" y="77.0" text-anchor="middle">1→2 ✓</text><rect class="plain-box" x="176" y="62" width="62" height="22" rx="5"/><text class="mono" x="207.0" y="77.0" text-anchor="middle">2→3</text><text class="mono" x="20" y="110" text-anchor="start">step 2.1</text><rect class="plain-box" x="100" y="96" width="62" height="22" rx="5"/><text class="mono" x="131.0" y="111.0" text-anchor="middle">1→2</text><rect class="ui-box" x="176" y="96" width="62" height="22" rx="5"/><text class="mono" x="207.0" y="111.0" text-anchor="middle">2→3 ✓</text><line class="arrow-ui" x1="262" y1="74" x2="316" y2="74"/><text class="small" x="289" y="62" text-anchor="middle">sends</text><rect class="link-box" x="320" y="62" width="120" height="24" rx="5"/><text class="mono" x="328" y="79" text-anchor="start">1→2</text><text class="mono" x="424" y="79" text-anchor="start">✓</text><rect class="plain-box" x="320" y="96" width="120" height="24" rx="5"/><text class="mono" x="328" y="113" text-anchor="start">2→3</text><line class="arrow-link" x1="442" y1="74" x2="466" y2="74"/><rect class="plain-box" x="468" y="58" width="76" height="32" rx="5"/><text class="small" x="506.0" y="78.0" text-anchor="middle">remeasure</text><line class="arrow" x1="506" y1="92" x2="506" y2="112"/><rect class="plain-box" x="450" y="114" width="120" height="24" rx="5"/><text class="mono" x="458" y="131" text-anchor="start">1→2</text></svg><figcaption>Step 1.1 is sent: link 1→2 is picked, and once its remeasure is done it is not. ✓: picked.</figcaption></figure>
+</main>
+</body>
+</html>
