@@ -1,0 +1,30 @@
+<!-- branch: task/run-message-order -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: The UI: A run</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: The UI: A run</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+<h2>Data structure 2: the UI</h2>
+<h3>A run</h3>
+<figure><svg viewBox="0 0 600 224" role="img" aria-label="Time running down: node 1 is at round 6 and sends Put round 6 to node 2, which is still at round 5, so node 2 holds it; when StepAll round 6 reaches node 2 it takes the round and then uses the held Put."><text class="title" x="10" y="22" text-anchor="start">A Put can arrive before its round's StepAll</text><text class="title" x="180" y="52" text-anchor="middle">node 1</text><line class="tick" x1="180" y1="62" x2="180" y2="212"/><text class="title" x="450" y="52" text-anchor="middle">node 2</text><line class="tick" x1="450" y1="62" x2="450" y2="212"/><text class="small" x="26" y="62" text-anchor="middle">time</text><line class="arrow" x1="26" y1="70" x2="26" y2="212"/><rect class="link-box" x="105.0" y="66" width="150" height="26" rx="5"/><text class="small" x="180.0" y="83.0" text-anchor="middle">at round 6</text><rect class="plain-box" x="375.0" y="66" width="150" height="26" rx="5"/><text class="small" x="450.0" y="83.0" text-anchor="middle">still at round 5</text><line class="arrow-link" x1="180" y1="120" x2="446" y2="120"/><text class="small" x="313.0" y="114" text-anchor="middle">Put, round 6</text><rect class="plain-box" x="355.0" y="128" width="190" height="26" rx="5"/><text class="small" x="450.0" y="145.0" text-anchor="middle">6 is past 5: held, not used</text><line class="arrow-ui" x1="56" y1="176" x2="446" y2="176"/><text class="small" x="315" y="170" text-anchor="middle">StepAll 0, round 6 (from dispatch)</text><rect class="link-box" x="355.0" y="186" width="190" height="26" rx="5"/><text class="small" x="450.0" y="203.0" text-anchor="middle">at round 6: uses the held Put</text></svg><figcaption>Time runs down. Messages between nodes and from dispatch are not ordered with each other, so a node holds a <code>Put</code> from a round it has not reached, and handles it after that round's StepAll.</figcaption></figure>
+</main>
+</body>
+</html>
