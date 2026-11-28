@@ -1,0 +1,52 @@
+<!-- branch: task/whole-picture -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two structures: links and the UI: The whole picture</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<h1>Two structures: links and the UI: The whole picture</h1>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill: var(--fg)"/></marker>
+    <marker id="head-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--link)"/></marker>
+    <marker id="head-ui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ui)"/></marker>
+  </defs>
+</svg>
+
+
+<h2>The whole picture</h2>
+<figure>
+<svg viewBox="0 0 520 820" role="img" aria-label="The UI holds a tree of steps and sends amounts to the links; the links are drawn by Frame; remeasure updates a link's start">
+  <rect class="ui-box" x="10" y="10" width="340" height="410" rx="8"/><text class="title" x="26" y="36" style="fill: var(--ui)">2. The UI</text><text class="small" x="26" y="56">holds a tree of steps; creates, reads, updates,</text><text class="small" x="26" y="72">deletes steps and their amounts</text>
+  <rect class="plain-box" x="26" y="86" width="308" height="168" rx="5"/><text class="title" x="38" y="108">step 1</text><text class="small" x="38" y="126">parent: holds steps, no amounts</text>
+  <rect class="plain-box" x="42" y="138" width="276" height="50" rx="5"/><text class="title" x="54" y="158">step 1.1</text><text class="small" x="54" y="178">its amounts, sent; a dial per amount, from 0</text>
+  <rect class="plain-box" x="42" y="196" width="276" height="50" rx="5"/><text class="title" x="54" y="216">step 1.2</text><text class="small" x="54" y="236">its amounts, sent; a dial per amount, from 0</text>
+  <rect class="plain-box" x="26" y="266" width="308" height="112" rx="5"/><text class="title" x="38" y="288">step 2</text><text class="small" x="38" y="306">parent: holds steps, no amounts</text>
+  <rect class="plain-box" x="42" y="318" width="276" height="50" rx="5"/><text class="title" x="54" y="338">step 2.1</text><text class="small" x="54" y="358">its amounts, sent; a dial per amount, from 0</text>
+  <text class="small" x="38" y="402">… more steps, nested as deep as needed</text>
+  <path class="arrow-ui" d="M300,368 L300,480"/><text class="small" x="312" y="438" style="fill: var(--ui)">an amount changed or</text><text class="small" x="312" y="454" style="fill: var(--ui)">deleted, or a run's step</text>
+  <rect class="link-box" x="10" y="480" width="340" height="200" rx="8"/><text class="title" x="26" y="506" style="fill: var(--link)">1. A link</text>
+  <rect class="plain-box" x="26" y="522" width="308" height="56" rx="5"/><text x="38" y="544">START</text><text class="small" x="38" y="564">φ, θ ticks, r</text>
+  <rect class="plain-box" x="26" y="588" width="308" height="56" rx="5"/><text x="38" y="610">Δ sum</text><text class="small" x="38" y="630">φ, θ ticks, r: the amounts the UI sent, added</text>
+  <text class="small" x="26" y="666">drawn at START + Δ sum, turned by the sender's ref</text>
+  <rect class="plain-box" x="372" y="522" width="140" height="56" rx="5"/><text x="384" y="544">remeasure</text><text class="small" x="384" y="564">updates START</text>
+  <path class="arrow-link" d="M372,550 L334,550"/>
+  <path class="arrow" d="M180,680 L180,720"/>
+  <rect class="screen-box" x="10" y="720" width="340" height="84" rx="8"/><text class="title" x="26" y="746" style="fill: var(--screen)">Frame → screen</text>
+  <text class="small" x="26" y="768">integers → vector, then turned by the ref</text><text class="small" x="26" y="786">kept as it is today</text>
+</svg>
+<figcaption>Two structures. The UI owns a tree of steps, a leaf step owns its amounts and sends them; a link owns where it is. Remeasure updates START.</figcaption>
+</figure>
+</main>
+</body>
+</html>
