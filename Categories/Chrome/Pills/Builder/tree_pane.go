@@ -73,7 +73,15 @@ func (m *Model) AddInner(p []int) ([]int, error) {
 	if err := Store.WriteAtomic(filepath.Join(dir, StepStore.FileTreeOpen), true); err != nil {
 		return nil, err
 	}
-	return append(slices.Clone(p), n), os.MkdirAll(StepStore.StepDir(dir, n), 0o755)
+	if err := os.MkdirAll(StepStore.StepDir(dir, n), 0o755); err != nil {
+		return nil, err
+	}
+	if n == 1 {
+		if err := StepStore.MoveAmounts(dir, StepStore.StepDir(dir, n)); err != nil {
+			return nil, err
+		}
+	}
+	return append(slices.Clone(p), n), nil
 }
 
 func (m Model) treeMenu(r StepRow) ([]Board.Chip, Board.Chip) {

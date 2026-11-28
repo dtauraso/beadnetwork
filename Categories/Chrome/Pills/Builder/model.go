@@ -32,15 +32,16 @@ var (
 
 type Model struct {
 	Nodes   []string
-	Grids   map[string]Links.Grid
+	Reports map[string]Links.Node
 	Frame   Links.Frame
 	S       int
 	Refused string
 
 	StepStore.Disk
 
-	StepFrom  []int
-	Walk      Walk
+	Amts      map[string]map[Edge]Amount
+	Leaves    [][]int
+	Sent      map[Edge]Links.Ints
 	Play      *Play
 	Folder    *FolderRun
 	Rounds    map[string]int
@@ -78,9 +79,9 @@ func (m Model) On() bool { return len(m.Nodes) > 0 }
 
 func (m Model) ManyIn() []string {
 	var out []string
-	for id := range m.Grids {
+	for id := range m.Reports {
 		from := map[string]bool{}
-		for _, l := range m.Col(id).Links() {
+		for _, l := range m.Node(id).Links() {
 			from[l.From] = true
 		}
 		if len(from) > 1 {
@@ -97,10 +98,25 @@ func (m Model) FixedR(l Links.Link) bool {
 }
 
 func (m *Model) Take(r Links.Report) {
-	if m.Grids == nil {
-		m.Grids = map[string]Links.Grid{}
+	if m.Reports == nil {
+		m.Reports = map[string]Links.Node{}
 	}
-	m.Grids[r.ID] = r.Grid
+	m.Reports[r.ID] = r.Node
+	if m.Sent == nil {
+		m.Sent = map[Edge]Links.Ints{}
+	}
+	for e := range m.Sent {
+		if _, ok := r.Node.InFrom(e.From); e.To == r.ID && !ok {
+			delete(m.Sent, e)
+		}
+	}
+	for _, in := range r.Node.In {
+		e := Edge{From: in.Link.From, To: r.ID}
+		if _, ok := m.Sent[e]; !ok {
+			d := in.Link.Delta
+			m.Sent[e] = Links.Ints{Phi: d.Phi, Theta: d.Theta, R: d.R}
+		}
+	}
 	if m.Rounds == nil {
 		m.Rounds = map[string]int{}
 	}
@@ -110,21 +126,19 @@ func (m *Model) Take(r Links.Report) {
 	}
 }
 
-func (m Model) Col(id string) Links.Col { return m.Grids[id].ShownCol() }
-
-func (m Model) StepCol(step int, id string) (Links.Col, bool) { return m.Grids[id].Col(step) }
+func (m Model) Node(id string) Links.Node { return m.Reports[id] }
 
 func (m Model) SumOf(l Links.Link) Links.Angles {
-	in, _ := m.Col(l.To).InFrom(l.From)
+	in, _ := m.Node(l.To).InFrom(l.From)
 	return in.Sum
 }
 
 func (m Model) Link(from, to string) (Links.Link, bool) {
-	in, ok := m.Col(to).InFrom(from)
+	in, ok := m.Node(to).InFrom(from)
 	return in.Link, ok
 }
 
-func (m Model) RefOf(id string) Links.Turn { return Links.RefTurn(m.Col(id).Ref) }
+func (m Model) RefOf(id string) Links.Turn { return Links.RefTurn(m.Node(id).Ref) }
 
 func (m Model) SceneS() int { return max(1, m.S) }
 

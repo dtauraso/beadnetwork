@@ -75,7 +75,7 @@ func (m Model) EdgeStates() []EdgeState {
 	var out []EdgeState
 	for _, l := range m.allLinks() {
 		e := StepEdge{step, l.From, l.To}
-		sl, ok := m.gridLink(e)
+		sl, ok := m.stepLink(e)
 		if !ok {
 			continue
 		}
@@ -120,14 +120,14 @@ func (m Model) PickLoop(a Act) string {
 	if a.Op != OpStepPick {
 		return ""
 	}
-	if l, ok := m.gridLink(StepEdge{a.I, a.Node, a.To}); !ok || l.Picked {
+	if l, ok := m.stepLink(StepEdge{a.I, a.Node, a.To}); !ok || l.Picked {
 		return ""
 	}
 	path := []string{a.To, a.Node}
 	for cur := a.Node; len(path) <= len(m.Nodes)+1; {
 		next := ""
 		for _, l := range m.linksTo(cur) {
-			if sl, ok := m.gridLink(StepEdge{a.I, l.From, cur}); ok && sl.Picked {
+			if sl, ok := m.stepLink(StepEdge{a.I, l.From, cur}); ok && sl.Picked {
 				next = l.From
 			}
 		}
@@ -162,7 +162,7 @@ func (m *Model) ToggleCard(a Act) {
 }
 
 func (m Model) StepPicked(step int, l Links.Link) bool {
-	c, ok := m.gridLink(StepEdge{step, l.From, l.To})
+	c, ok := m.stepLink(StepEdge{step, l.From, l.To})
 	return ok && c.Picked
 }
 

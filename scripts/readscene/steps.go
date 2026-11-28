@@ -49,10 +49,10 @@ func run(seed Links.Seed, ids []string, presses []jsonButton) (Links.Seed, []str
 	for _, id := range ids {
 		peers[id] = Links.NewPeer(id, seed)
 	}
-	for round, b := range presses {
+	for round := range presses {
 		var queue []queued
 		for _, id := range ids {
-			queue = append(queue, queued{id, Links.StepAll{Round: round + 1, K: b.K, Sign: b.Sign}})
+			queue = append(queue, queued{id, Links.StepAll{Round: round + 1}})
 		}
 		for len(queue) > 0 {
 			q := queue[0]

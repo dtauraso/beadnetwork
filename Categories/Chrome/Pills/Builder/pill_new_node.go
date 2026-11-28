@@ -42,7 +42,7 @@ func (m Model) newAt() Links.Angles {
 }
 
 func (m Model) NewPlace() Links.Place {
-	col := m.Col(m.NewCenter())
+	col := m.Node(m.NewCenter())
 	v := Links.RefTurn(col.Ref).Rotate(m.Frame.Vec(1, m.newAt()))
 	return m.Frame.GridAt(m.Frame.At(col.At).Add(v))
 }

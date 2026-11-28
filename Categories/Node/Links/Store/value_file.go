@@ -1,8 +1,10 @@
 package Store
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"path/filepath"
@@ -117,6 +119,35 @@ func writeBytesAtomic(path string, out []byte) error {
 	}
 	tmp := path + atomicWriteTmpSuffix
 	if err := os.WriteFile(tmp, out, 0644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
+func putStr(b *bytes.Buffer, s string) {
+	_ = binary.Write(b, binary.LittleEndian, uint16(len(s)))
+	b.WriteString(s)
+}
+
+func getStr(r io.Reader) (string, error) {
+	var n uint16
+	if err := binary.Read(r, binary.LittleEndian, &n); err != nil {
+		return "", err
+	}
+	b := make([]byte, n)
+	_, err := io.ReadFull(r, b)
+	return string(b), err
+}
+
+func writeIfChanged(path string, b []byte) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	if was, err := os.ReadFile(path); err == nil && bytes.Equal(was, b) {
+		return nil
+	}
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, b, 0o644); err != nil {
 		return err
 	}
 	return os.Rename(tmp, path)

@@ -84,7 +84,7 @@ func (m *Model) NotePick(a Act) {
 		return
 	}
 	for _, l := range m.linksTo(a.To) {
-		if sl, ok := m.gridLink(StepEdge{a.I, l.From, a.To}); ok && sl.Picked && l.From != a.Node {
+		if sl, ok := m.stepLink(StepEdge{a.I, l.From, a.To}); ok && sl.Picked && l.From != a.Node {
 			m.UndoPick = Act{Op: OpStepPick, Node: l.From, To: a.To, I: a.I}
 		}
 	}
@@ -114,7 +114,7 @@ func (m *Model) SelectEdge(a, b string) bool {
 
 func (m Model) edgeIn(step int, a, b string) (StepEdge, bool) {
 	for _, e := range []StepEdge{{step, a, b}, {step, b, a}} {
-		if _, ok := m.gridLink(e); ok {
+		if _, ok := m.stepLink(e); ok {
 			return e, true
 		}
 	}

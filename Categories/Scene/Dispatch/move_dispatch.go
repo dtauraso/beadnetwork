@@ -94,46 +94,22 @@ func (md *MoveDispatch) persistStep() {
 }
 
 func (md *MoveDispatch) ShowStep(ctx context.Context) {
-	if err := md.UI.Builder.SaveOpen(); err != nil {
-		View.LogPersistErr("show_step_open", md.UI.Builder.Scene, err)
+	m := &md.UI.Builder
+	if err := m.SaveOpen(); err != nil {
+		View.LogPersistErr("sync_open", m.Scene, err)
 	}
-	md.UI.Builder.ReadTree()
-	md.UI.Builder.StartWalk()
-	md.walkNext(ctx)
+	m.ReadTree()
+	md.send(ctx, m.Sync())
 }
 
-func (md *MoveDispatch) walkNext(ctx context.Context) {
-	m := &md.UI.Builder
-	if !m.Walking() {
-		for _, e := range m.Walk.Then {
-			md.sendLink(ctx, e.To, e.Msg)
-		}
-		m.Walk.Then = nil
+func (md *MoveDispatch) send(ctx context.Context, es []Links.Envelope) {
+	if len(es) == 0 {
 		return
 	}
-	s := m.WalkShow()
-	for _, id := range m.Nodes {
-		md.sendLink(ctx, id, s)
+	for _, e := range es {
+		md.sendLink(ctx, e.To, e.Msg)
 	}
 	md.Settle(ctx)
-	m.Walk.Round = m.Step.Round
-}
-
-func (md *MoveDispatch) sendAfterWalk(ctx context.Context, to string, msg any) {
-	m := &md.UI.Builder
-	if m.Walking() {
-		m.Walk.Then = append(m.Walk.Then, Links.Envelope{To: to, Msg: msg})
-		return
-	}
-	md.sendLink(ctx, to, msg)
-}
-
-func (md *MoveDispatch) showFor(ctx context.Context, step int) {
-	m := &md.UI.Builder
-	if step != m.StepShown() || m.StepClosed {
-		m.ShownStep, m.StepClosed = step, false
-		md.ShowStep(ctx)
-	}
 }
 
 func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int, typed *float64) {
@@ -146,14 +122,16 @@ func (md *MoveDispatch) runStepHead(ctx context.Context, a Sheet.Act, sign int, 
 	if md.runPlay(ctx, a) {
 		return
 	}
-	edits := m.StepHeadEdit(a, sign)
+	refused, starts, err := m.StepHeadEdit(a, sign)
+	if err != nil {
+		View.LogPersistErr("sheet_step_amount", m.Root, err)
+	}
 	md.persistStep()
-	if len(edits) > 0 {
-		md.showFor(ctx, a.I)
+	if refused != "" {
+		m.Refused = refused
 	}
-	for _, e := range edits {
-		md.sendAfterWalk(ctx, e.To, e.Edit)
-	}
+	md.ShowStep(ctx)
+	md.send(ctx, starts)
 }
 
 func DrainLinkReports(md *MoveDispatch) {
@@ -164,10 +142,6 @@ func DrainLinkReports(md *MoveDispatch) {
 	rs := md.Links.TakeReports()
 	for _, r := range rs {
 		m.Take(r)
-	}
-	if m.Walking() && m.WalkSettled() {
-		m.Walk.I++
-		md.walkNext(context.TODO())
 	}
 	before := m.TimeKey()
 	for _, t := range md.Links.TakeTimings() {
@@ -183,9 +157,7 @@ func DrainLinkReports(md *MoveDispatch) {
 func (md *MoveDispatch) runFolderPlay(ctx context.Context) {
 	m := &md.UI.Builder
 	if !md.stopPlay(ctx) {
-		n := m.StartFolder()
-		md.showFor(ctx, n)
-		m.StartPlay(n, clock.HumanTick(m.TickMs))
+		md.send(ctx, m.StartFolder(clock.HumanTick(m.TickMs)))
 	}
 }
 
@@ -195,35 +167,27 @@ func (md *MoveDispatch) runPlay(ctx context.Context, a Sheet.Act) bool {
 	}
 	m := &md.UI.Builder
 	if !md.stopPlay(ctx) {
-		md.showFor(ctx, a.I)
-		m.StartPlay(a.I, clock.HumanTick(m.TickMs))
+		md.send(ctx, m.StartPlay(a.I, clock.HumanTick(m.TickMs)))
 	}
 	return true
 }
 
 func (md *MoveDispatch) playTick(ctx context.Context) bool {
 	m := &md.UI.Builder
-	if n, ok := m.NextFolderStep(); ok {
-		md.showFor(ctx, n)
-		m.StartPlay(n, clock.HumanTick(m.TickMs))
+	if es, ok := m.NextFolderStep(m.Now); ok {
+		md.send(ctx, es)
 		return true
 	}
 	edits, ok := m.PlayTick(m.Now)
 	if !ok {
 		return false
 	}
-	md.sendPlay(ctx, edits)
+	md.send(ctx, edits)
 	return true
-}
-
-func (md *MoveDispatch) sendPlay(ctx context.Context, edits []Builder.HeadEdit) {
-	for _, e := range edits {
-		md.sendAfterWalk(ctx, e.To, e.Edit)
-	}
 }
 
 func (md *MoveDispatch) stopPlay(ctx context.Context) bool {
 	end, was := md.UI.Builder.StopPlay()
-	md.sendPlay(ctx, end)
+	md.send(ctx, end)
 	return was
 }

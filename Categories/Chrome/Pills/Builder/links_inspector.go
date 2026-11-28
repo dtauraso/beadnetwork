@@ -17,16 +17,6 @@ func stepper(value string, a Act, typed bool) Board.Stepper {
 	return s
 }
 
-func totalOf(l Links.Link, k string) int {
-	switch k {
-	case Links.KPhi:
-		return l.Total.Phi
-	case Links.KTheta:
-		return l.Total.Theta
-	}
-	return l.Total.R
-}
-
 func (m Model) stepCard(step int, l Links.Link) *Fill.Card {
 	c := m.turnCard(step, l)
 	if !l.Picked {
@@ -43,16 +33,13 @@ func (m Model) stepCard(step int, l Links.Link) *Fill.Card {
 func (m Model) turnCard(step int, l Links.Link) *Fill.Card {
 	c := &Fill.Card{Heads: [3]string{"this step turns", "one press", "ends at"}, StartHead: "starts at", Foot: "“starts at” is shared by every step of this sequence."}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: step} }
-	from := l
-	if b, ok := m.Grids[l.To].Base[l.From]; ok {
-		from.Start = b.Origin
-	}
+	through := m.Through(step, Edge{From: l.From, To: l.To})
 	for _, a := range axes {
 		press := act(OpLinkPress, a.k)
-		r := Fill.CardRow{Axis: a.label, Start: stepper(a.at(from), Act{Op: OpLinkStart, Node: l.From, To: l.To, K: a.k, I: startPart}, true), A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(totalOf(l, a.k))}
+		r := Fill.CardRow{Axis: a.label, Start: stepper(a.at(l), Act{Op: OpLinkStart, Node: l.From, To: l.To, K: a.k, I: startPart}, true), A: stepper(signed(a.delta(l)), press, false), B: stepper(itoa(a.times(l)), act(OpIncrement, a.k), true), Total: itoa(*through.At(a.k))}
 		r.A.Faded = a.delta(l) == 0
 		if a.k == Links.KR {
-			m.rRow(c, &r, l)
+			m.rRow(c, &r, l, through)
 		} else {
 			d := boardDial(axisDial(l, a.k))
 			d.Inc = float32(a.times(l))
@@ -63,8 +50,8 @@ func (m Model) turnCard(step int, l Links.Link) *Fill.Card {
 	return c
 }
 
-func (m Model) rRow(c *Fill.Card, r *Fill.CardRow, l Links.Link) {
-	start, end := l.Start.R, l.Start.R+float64(l.Sum().R)
+func (m Model) rRow(c *Fill.Card, r *Fill.CardRow, l Links.Link, through Links.Ints) {
+	start, end := l.Start.R+float64(through.R-l.Delta.R), l.Start.R+float64(through.R)
 	fixed := m.FixedR(l)
 	r.Ruler = &Board.Ruler{Start: float32(start), Delta: float32(end - start), Most: float32(max(start, end) * 1.25), Fixed: fixed}
 	atZero := end < 1e-9
@@ -77,13 +64,11 @@ func (m Model) rRow(c *Fill.Card, r *Fill.CardRow, l Links.Link) {
 }
 
 func (m Model) startBoardCard(id string, l Links.Link) *Fill.Card {
-	b := m.Grids[id].Base[l.From]
-	l.Start = b.Origin
 	c := &Fill.Card{Heads: [3]string{"start", "1", l.From + "'s reference"}, OneHead: "one press"}
 	act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k, I: startPart} }
 	shown := m.StepShown()
-	sl, hasStep := m.gridLink(StepEdge{shown, l.From, l.To})
-	ref := m.Col(l.From).Ref
+	sl, hasStep := m.stepLink(StepEdge{shown, l.From, l.To})
+	ref := m.Node(l.From).Ref
 	turn := func(k string, v int) Board.Stepper {
 		return stepper(itoa(v), Act{Op: OpNodeRef, Node: l.From, K: k}, true)
 	}

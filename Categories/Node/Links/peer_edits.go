@@ -2,12 +2,6 @@ package Links
 
 import "fmt"
 
-func (p *Peer) playPress(l *Link, m StepEdit) {
-	of := max(1, m.Of)
-	l.Playing = m.Press < of
-	l.Part = float64(min(m.Press, of)) / float64(of)
-}
-
 func (p *Peer) pickReq(m PickReq) []Envelope {
 	l, ok := p.own[m.From]
 	if !ok {
@@ -73,10 +67,6 @@ func (p *Peer) connect(m Connect) []Envelope {
 	l.SetS(p.S)
 	l.Start.Cut(Measure(p.Frame, l.Dir(), p.Frame.At(m.At), p.Pos()))
 	p.own[m.From] = l
-	if c := p.grid.at(p.grid.Shown); c != nil {
-		c.In = append(c.In, InCell{Link: *l})
-		p.bind()
-	}
 	p.drawn[m.From] = p.vecOf(l)
 	p.order = append(p.order, m.From)
 	p.touched(m.From)

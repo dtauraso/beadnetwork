@@ -28,6 +28,14 @@ func OldSequences(scenePath string) error {
 
 func TopStepsDir(scenePath string) string { return filepath.Join(scenePath, DirTopSteps) }
 
+func StepRoots(scenePath string) []string {
+	out := []string{scenePath}
+	for _, k := range TopSteps(scenePath) {
+		out = append(out, TopStepDir(scenePath, k))
+	}
+	return out
+}
+
 func TopStepDir(scenePath string, k int) string {
 	return filepath.Join(TopStepsDir(scenePath), strconv.Itoa(k))
 }

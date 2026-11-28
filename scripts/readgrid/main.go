@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -12,9 +13,9 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: readgrid <grid.bin> [more.bin ...]")
+		fmt.Fprintln(os.Stderr, "usage: readgrid <node.bin|grid.bin> [more.bin ...]")
 		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, "Prints a node's grid.bin as a table: one column per step.")
+		fmt.Fprintln(os.Stderr, "Prints a node.bin (one column) or an old grid.bin (one column per step) as a table.")
 		os.Exit(2)
 	}
 	status := 0
@@ -39,7 +40,15 @@ func copysign(v float64) float64 {
 }
 
 func dump(path string) error {
-	h, rows, err := Store.ReadGridRows(path)
+	var h Store.GridHead
+	var rows []Store.GridRow
+	var err error
+	if filepath.Base(path) == Store.FileNode {
+		h.Steps = []int{0}
+		h.ID, rows, err = Store.ReadNodeRows(path)
+	} else {
+		h, rows, err = Store.ReadGridRows(path)
+	}
 	if err != nil {
 		return err
 	}

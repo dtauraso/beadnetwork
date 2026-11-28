@@ -193,27 +193,3 @@ func (d Disk) MoveDir(ns []int, from, to int) (string, error) {
 	}
 	return "", nil
 }
-
-func ShiftedFrom(ns []int, n int, add, dup, drop bool) []int {
-	var from []int
-	for _, k := range ns {
-		switch {
-		case k < n || (k == n && !drop):
-			from = append(from, k)
-		case k > n && drop:
-			from = append(from, k)
-		}
-		if k == n && add {
-			from = append(from, 0)
-		}
-		if k == n && dup {
-			from = append(from, n)
-		}
-	}
-	return from
-}
-
-func MovedFrom(ns []int, from, to int) []int {
-	order := slices.DeleteFunc(slices.Clone(ns), func(k int) bool { return k == from })
-	return slices.Insert(order, slices.Index(ns, to), from)
-}

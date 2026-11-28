@@ -9,7 +9,7 @@ const InboxDepth = 1024
 
 type Report struct {
 	ID      string
-	Grid    Grid
+	Node    Node
 	Round   int
 	Refused string
 }

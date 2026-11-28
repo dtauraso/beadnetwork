@@ -8,16 +8,22 @@ type Envelope struct {
 }
 
 type StepAll struct {
-	Round   int
-	H       int64
-	K       string
-	Sign    int
-	From    string
-	LockAll Lock
-	FixedR  []string
+	Round int
+	H     int64
 }
 
 const KBoth = "both"
+
+type Amount struct {
+	From string
+	D    Ints
+	Play bool
+}
+
+type PlayPart struct {
+	From      string
+	Press, Of int
+}
 
 type PickReq struct{ From string }
 
@@ -53,6 +59,5 @@ type Moved struct {
 	At         Vec3
 	KeepPicked bool
 	Measure    bool
-	Jump       bool
 	Round      int
 }

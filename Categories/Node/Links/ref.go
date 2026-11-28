@@ -86,14 +86,6 @@ func (p *Peer) refSet(m RefSet) []Envelope {
 	return p.turnedBy(m.From, p.vecOf(l).Sub(p.Frame.LinkVec(*l, was)))
 }
 
-func (p *Peer) announce(by Vec3) []Envelope {
-	var out []Envelope
-	for _, id := range p.neighbours() {
-		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, By: by, At: p.Pos(), Jump: true, Round: p.round}})
-	}
-	return out
-}
-
 func (p *Peer) gapOf(l *Link, ref Turn) Vec3 { return p.Frame.LinkVec(*l, ref) }
 
 func (p *Peer) remeasure(from string, gap Vec3) {
@@ -105,8 +97,9 @@ func (p *Peer) remeasure(from string, gap Vec3) {
 		l.known, l.knownTheta = true, float64(l.Start.Tick.Theta)/float64(TurnTicks*l.Start.per())
 	}
 	l.Remeasure(p.Frame, p.refs[from], Vec3{}, gap)
-	p.keepTheta(from, l)
-	p.setOrigin(from, BaseOf(l.Start, l.Sum()).Origin)
+	p.keepTheta(l)
+	l.Start.Less(l.Delta)
+	l.Moving, l.Part = Ints{}, 0
 	p.drawn[from] = p.vecOf(l)
 	p.touched(from)
 }

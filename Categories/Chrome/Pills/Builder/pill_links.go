@@ -19,6 +19,19 @@ const (
 )
 
 const (
+	OpFrame  = "frame"
+	OpTickMs = "tick-ms"
+
+	FrameRho    = "rho"
+	FrameTphi   = "tphi"
+	FrameTtheta = "ttheta"
+	FrameCr     = "cr"
+	FrameS      = "s"
+)
+
+func frameAct(k string) Act { return Act{Op: OpFrame, K: k} }
+
+const (
 	menuStep = "step"
 )
 
@@ -39,7 +52,7 @@ func (m *Model) PressMenu(a Act) {
 func (m Model) allLinks() []Links.Link {
 	var out []Links.Link
 	for _, id := range m.Nodes {
-		out = append(out, m.Col(id).Links()...)
+		out = append(out, m.Node(id).Links()...)
 	}
 	Store.SortLinks(out)
 	return out

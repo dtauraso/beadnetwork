@@ -81,13 +81,12 @@ type Link struct {
 	From, To  string
 	Start     Start
 	Delta     Ints
-	Total     Ints
+	Moving    Ints
 	Increment Ints
 	Lock      Lock
 	Way       Ways
 	Picked    bool
 	Order     int
-	Playing   bool
 	Part      float64
 
 	known      bool
@@ -108,9 +107,21 @@ func NewLink(from, to string) *Link {
 
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
-func (l *Link) Sum() Ints {
-	return Ints{Phi: l.Total.Phi + l.Delta.Phi, Theta: l.Total.Theta + l.Delta.Theta, R: l.Total.R + l.Delta.R, S: l.Delta.S}
+func (l *Link) Sum() Ints { return l.Delta }
+
+func (s *Start) Less(d Ints) {
+	s.Turn(KPhi, -d.Phi)
+	s.Turn(KTheta, -d.Theta)
+	s.R -= float64(d.R)
 }
+
+func (a Ints) Add(b Ints) Ints {
+	return Ints{Phi: a.Phi + b.Phi, Theta: a.Theta + b.Theta, R: a.R + b.R, S: a.S}
+}
+
+func (a Ints) Sub(b Ints) Ints { return a.Add(Ints{Phi: -b.Phi, Theta: -b.Theta, R: -b.R}) }
+
+func (a Ints) Zero() bool { return a.Phi == 0 && a.Theta == 0 && a.R == 0 }
 
 func (l *Link) Dir() Angles {
 	at, d := l.Start.Angles(), l.Sum()
@@ -150,22 +161,10 @@ func (l *Link) SetS(s int) {
 }
 
 func (l *Link) Drawn() (int, Angles) {
-	p, t, d := l.Start.per(), l.Total, l.Delta
-	f, part := float64(p), 1.0
-	if l.Playing {
-		part = l.Part
-	}
-	at := func(t, d int) float64 { return float64(t) + float64(d)*part }
-	return p, Angles{Phi: float64(l.Start.Tick.Phi) + at(t.Phi, d.Phi)*f, Theta: float64(l.Start.Tick.Theta) + at(t.Theta, d.Theta)*f, R: l.Start.R + at(t.R, d.R)}
-}
-
-func (l *Link) Presses() int {
-	n := 0
-	for _, k := range []string{KPhi, KTheta, KR} {
-		d, inc := *l.Delta.At(k), max(1, *l.Increment.At(k))
-		n = max(n, (max(d, -d)+inc-1)/inc)
-	}
-	return n
+	p, d, mv := l.Start.per(), l.Delta, l.Moving
+	f := float64(p)
+	at := func(d, mv int) float64 { return float64(d-mv) + float64(mv)*l.Part }
+	return p, Angles{Phi: float64(l.Start.Tick.Phi) + at(d.Phi, mv.Phi)*f, Theta: float64(l.Start.Tick.Theta) + at(d.Theta, mv.Theta)*f, R: l.Start.R + at(d.R, mv.R)}
 }
 
 func (a *Ints) At(k string) *int {
@@ -178,7 +177,7 @@ func (a *Ints) At(k string) *int {
 	return &a.Phi
 }
 
-func (k *Lock) at(name string) *int {
+func (k *Lock) At(name string) *int {
 	if name == KR {
 		return &k.R
 	}
@@ -186,10 +185,6 @@ func (k *Lock) at(name string) *int {
 		return &k.Theta
 	}
 	return &k.Phi
-}
-
-func (l *Link) Step(k string, sign int) {
-	*l.Delta.At(k) += sign * *l.Increment.At(k)
 }
 
 func Measure(f Frame, was Angles, p, t Vec3) Angles {

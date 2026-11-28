@@ -2,6 +2,9 @@ package Startup
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links/Store"
 
 	Ports "github.com/dtauraso/beadnetwork/Categories/Node/Ports"
 
@@ -28,6 +31,9 @@ type Scene struct {
 func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error) {
 	if err := Scenes.OldSequences(scenePath); err != nil {
 		return Scene{}, err
+	}
+	if old := Store.OldGrids(Scenes.StepRoots(scenePath)); len(old) > 0 {
+		return Scene{}, fmt.Errorf("%s still keeps %d nodes' links in %s, which holds a column per step; run `go run ./scripts/migrate-grids %s` to move them to %s and each leaf step's amounts/", scenePath, len(old), Store.FileGrid, scenePath, Store.FileNode)
 	}
 	if err := FitTopStepsS(scenePath); err != nil {
 		return Scene{}, err

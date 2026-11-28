@@ -119,7 +119,6 @@ func (m *Model) StepDirOp(a Act) (string, error) {
 		return m.MoveStep(n, ns[i])
 	}
 	var err error
-	m.StepFrom = StepStore.ShiftedFrom(ns, n, a.Op == OpStepAdd, a.Op == OpStepCopy, a.Op == OpStepDrop)
 	switch a.Op {
 	case OpStepAdd:
 		if err = m.ShiftSteps(ns, n, 1); err == nil {
@@ -169,7 +168,7 @@ func (m *Model) MoveStep(from, to int) (string, error) {
 	if refused, err := m.MoveDir(ns, from, to); refused != "" || err != nil {
 		return refused, err
 	}
-	m.ShownStep, m.StepClosed, m.StepFrom = to, false, StepStore.MovedFrom(ns, from, to)
+	m.ShownStep, m.StepClosed = to, false
 	return "", m.rereadSteps()
 }
 
@@ -188,6 +187,10 @@ func (m *Model) DropLevel(p []int) (bool, error) {
 		}
 		m.Level, m.ShownStep, m.StepClosed = "", 1, false
 	} else if err := m.TreeGo(up); err != nil {
+		return true, err
+	}
+	only := StepStore.ReadStepNumbers(m.pathDir(up))[0]
+	if err := StepStore.MoveAmounts(StepStore.StepDir(m.pathDir(up), only), m.pathDir(up)); err != nil {
 		return true, err
 	}
 	if err := os.RemoveAll(StepStore.StepsDir(m.pathDir(up))); err != nil {

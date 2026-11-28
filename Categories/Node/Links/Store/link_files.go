@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
 	"sort"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -45,8 +44,11 @@ func DragLinksDir(nodeDir string) string { return filepath.Join(nodeDir, DirDrag
 func linkName(from, to string) string { return from + "To" + to }
 
 func ReadLinks(nodeDir, to string) ([]Links.Link, error) {
-	if g, ok, err := ReadGrid(GridPath(nodeDir)); err != nil || ok {
-		return g.ShownCol().Links(), err
+	if n, ok, err := ReadNode(NodePath(nodeDir)); err != nil || ok {
+		return n.Links(), err
+	}
+	if g, ok, err := ReadOldGrid(GridPath(nodeDir)); err != nil || ok {
+		return g.ShownCol().node(to).Links(), err
 	}
 	if _, err := os.Stat(DragLinksDir(nodeDir)); err == nil { // path-resolution-ok: a scene from before grid.bin keeps its edits under drag/links
 		return readLinksIn(DragLinksDir(nodeDir), to)
@@ -150,16 +152,7 @@ func RemoveLinksTo(nodeDir, from, to string) error {
 			return err
 		}
 	}
-	path := filepath.Join(nodeDir, FileGrid)
-	g, ok, err := ReadGrid(path)
-	if err != nil || !ok {
-		return err
-	}
-	for i := range g.Cols {
-		c := &g.Cols[i]
-		c.In = slices.DeleteFunc(c.In, func(in Links.InCell) bool { return in.Link.From == from })
-	}
-	return WriteGrid(path, g)
+	return removeFromNode(nodeDir, from)
 }
 
 func writeLinksIn(linksDir string, links []Links.Link) error {

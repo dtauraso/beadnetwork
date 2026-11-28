@@ -31,10 +31,10 @@ type Peer struct {
 	placed    bool
 	heard     map[string]int
 	held      []any
-	grid      Grid
-	geom      GridGeom
-	sent      map[sentKey]OutLink
-	fresh     bool
+	geom      NodeGeom
+	sent      map[string]OutLink
+	outs      map[string]OutCell
+	node      Node
 	drawn     map[string]Vec3
 	places    map[string]Vec3
 
@@ -55,6 +55,7 @@ func NewPeer(id string, seed Seed) *Peer {
 	p := &Peer{ID: id, S: ShownS(seed.S), At: &at, Ref: &ref, Frame: seed.Frame, placed: true,
 		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, heard: map[string]int{}, drawn: map[string]Vec3{}}
 	p.refs, p.places = map[string]Turn{}, map[string]Vec3{}
+	p.sent, p.outs = map[string]OutLink{}, map[string]OutCell{}
 	p.Ref.S = p.S
 	for n, at := range seed.Places {
 		if n != id {
@@ -80,6 +81,7 @@ func NewPeer(id string, seed Seed) *Peer {
 		}
 	}
 	p.Changed.Links = map[string]bool{}
+	p.rebase()
 	return p
 }
 
@@ -94,12 +96,8 @@ func (p *Peer) Links() []Link {
 func (p *Peer) Pos() Vec3 { return p.Frame.At(*p.At) }
 
 func (p *Peer) outVec(to string) Vec3 {
-	if c := p.grid.at(p.grid.Shown); c != nil {
-		for _, o := range c.Out {
-			if o.Link.To == to {
-				return p.Frame.LinkVec(o.Link, RefTurn(*p.Ref))
-			}
-		}
+	if o, ok := p.outs[to]; ok {
+		return p.Frame.LinkVec(o.Link, RefTurn(*p.Ref))
 	}
 	return Vec3{}
 }
@@ -160,14 +158,14 @@ func (p *Peer) neighbours() []string {
 
 func (p *Peer) Handle(msg any) []Envelope {
 	switch m := msg.(type) {
-	case StepEdit:
-		return p.stepEdit(m)
-	case ShowStep:
-		return p.showStep(m)
+	case Amount:
+		return p.amount(m)
+	case PlayPart:
+		return p.playPart(m)
+	case StartEdit:
+		return p.startEdit(m)
 	case OutLink:
 		p.outLink(m)
-	case WantOut:
-		p.wantOut(m)
 	case StepAll:
 		return p.stepAll(m)
 	case Put:

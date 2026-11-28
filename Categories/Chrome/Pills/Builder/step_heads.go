@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Board"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/LinksBoard/Fill"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder/StepStore"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -16,40 +15,28 @@ type StepNode struct {
 	ID   string
 }
 
-func (m Model) stepActive(step int) []StepEdge {
+func (m Model) activeAt(p []int) []StepEdge {
 	var out []StepEdge
 	for _, l := range m.allLinks() {
-		e := StepEdge{step, l.From, l.To}
-		if m.StepPicked(step, l) {
-			out = append(out, e)
+		if m.amountAt(p, Edge{From: l.From, To: l.To}).Picked {
+			out = append(out, StepEdge{p[len(p)-1], l.From, l.To})
 		}
 	}
 	return out
+}
+
+func (m Model) stepActive(step int) []StepEdge {
+	if m.StepIsParent(step) {
+		return nil
+	}
+	return m.activeAt(m.stepPath(step))
 }
 
 func IsStepHead(a Act) bool {
 	return a.I > 0 && (a.Op == OpAllLocks || a.Op == OpAllBoth || a.Op == OpAllLock || a.Op == OpAllLockCycle || a.Op == OpAllInc || a.Op == OpAllOne || a.Op == OpAllScale || a.Op == OpAllPlay)
 }
 
-type HeadEdit struct {
-	To   string
-	Edit Links.StepEdit
-}
-
-func (m *Model) stepHeadEdits(step int, op, k string, sign int, locks Links.Lock) []HeadEdit {
-	if sign == 0 {
-		return nil
-	}
-	var out []HeadEdit
-	many := m.ManyIn()
-	for _, e := range m.stepActive(step) {
-		fixed := slices.Contains(many, e.To) || slices.Contains(many, e.From)
-		out = append(out, HeadEdit{To: e.To, Edit: Links.StepEdit{Step: step, From: e.From, Op: op, K: k, Sign: sign, Locks: locks, FixedR: fixed}})
-	}
-	return out
-}
-
-func (m *Model) StepHeadEdit(a Act, sign int) []HeadEdit {
+func (m *Model) StepHeadEdit(a Act, sign int) (string, []Links.Envelope, error) {
 	st := m.StepHead(a.I)
 	switch a.Op {
 	case OpAllLockCycle:
@@ -63,17 +50,15 @@ func (m *Model) StepHeadEdit(a Act, sign int) []HeadEdit {
 			*on, *way = false, 1
 		}
 		st.Both = st.Both && !*on
-		return nil
+		return "", nil, nil
 	case OpAllLocks:
 		st.ToggleBoth()
-		return nil
+		return "", nil, nil
 	case OpAllScale:
 		st.Scale = max(1, st.PlayScale()+sign)
-		return nil
-	case OpAllInc:
-		return m.stepHeadEdits(a.I, Links.EditHeadInc, a.K, sign, Links.Lock{})
-	case OpAllOne:
-		return m.stepHeadEdits(a.I, Links.EditHeadOne, a.K, sign, Links.Lock{})
+		return "", nil, nil
+	case OpAllInc, OpAllOne:
+		return m.headEdit(a.I, a.Op, a.K, sign, Links.Lock{})
 	case OpAllLock:
 		way, on := st.At(a.K)
 		switch {
@@ -82,19 +67,19 @@ func (m *Model) StepHeadEdit(a Act, sign int) []HeadEdit {
 			st.Both = st.Both && !*on
 		case *on:
 			*way = sign
-			return m.stepHeadEdits(a.I, Links.EditHead, a.K, sign, st.Locks())
+			return m.headEdit(a.I, OpAllLock, a.K, sign, st.Locks())
 		default:
-			return m.stepHeadEdits(a.I, Links.EditHead, a.K, sign, st.Locks())
+			return m.headEdit(a.I, OpAllLock, a.K, sign, st.Locks())
 		}
 		if *way == 0 {
 			*way = 1
 		}
-		return nil
+		return "", nil, nil
 	}
 	if sign == 0 {
 		sign = a.Sign
 	}
-	return m.stepHeadEdits(a.I, Links.EditHead, Links.KBoth, sign, st.Locks())
+	return m.headEdit(a.I, OpAllBoth, Links.KBoth, sign, st.Locks())
 }
 
 const (
@@ -103,30 +88,32 @@ const (
 )
 
 type Play struct {
-	Step int
+	Path []int
 	K, N int
 	At   int64
 }
 
-func (m Model) PlayPresses(step int) int {
-	presses := 0
-	for _, e := range m.stepActive(step) {
-		if l, ok := m.gridLink(e); ok {
-			presses = max(presses, l.Presses())
-		}
+func (m Model) presses(p []int) int {
+	n := 0
+	for _, e := range m.activeAt(p) {
+		n = max(n, m.amountAt(p, Edge{From: e.From, To: e.To}).Presses())
 	}
-	return presses
+	return n
 }
 
-func (m Model) playEdits(step, press, of int) []HeadEdit {
-	var out []HeadEdit
-	for _, e := range m.stepActive(step) {
-		out = append(out, HeadEdit{To: e.To, Edit: Links.StepEdit{Step: step, From: e.From, Op: Links.EditPlay, Press: press, Of: of}})
+func (m Model) PlayPresses(step int) int { return m.presses(m.stepPath(step)) }
+
+func (m Model) playParts(p []int, press, of int) []Links.Envelope {
+	var out []Links.Envelope
+	for _, e := range m.activeAt(p) {
+		out = append(out, Links.Envelope{To: e.To, Msg: Links.PlayPart{From: e.From, Press: press, Of: of}})
 	}
 	return out
 }
 
-func (m Model) Playing(step int) bool { return m.Play != nil && m.Play.Step == step }
+func (m Model) Playing(step int) bool {
+	return m.Play != nil && slices.Equal(m.Play.Path, m.stepPath(step))
+}
 
 func playOf(m Model, step int) Fill.Lock {
 	glyph := "▶"
@@ -137,68 +124,39 @@ func playOf(m Model, step int) Fill.Lock {
 		Cycle: Act{Op: OpAllPlay, I: step}, Press: Act{Op: OpAllScale, I: step}}
 }
 
-func (m *Model) StartPlay(step int, now int64) {
-	m.Play = &Play{Step: step, N: max(1, m.PlayPresses(step)*m.HeadOf(step).PlayScale()), At: now + 2}
+func (m Model) scaleAt(p []int) int {
+	level := StepStore.LevelOf(p[:len(p)-1])
+	if level == m.Level {
+		return m.HeadOf(p[len(p)-1]).PlayScale()
+	}
+	return StepStore.ReadStep(m.stepDir(p)).PlayScale()
 }
 
-const OpFolderPlay = "folder-play"
-
-type FolderRun struct {
-	Steps []int
-	I     int
+func (m *Model) startRun(p []int, now int64) []Links.Envelope {
+	before := m.upTo(p, false)
+	before = slices.DeleteFunc(before, func(l []int) bool { return slices.Equal(l, p) })
+	out := m.sends(func(e Edge) (Links.Ints, bool) { return m.sumOver(before, e), m.amountAt(p, e).Picked })
+	for _, e := range m.activeAt(p) {
+		edge := Edge{From: e.From, To: e.To}
+		d := m.amountAt(p, edge).D
+		if d.Zero() {
+			continue
+		}
+		out = append(out, Links.Envelope{To: e.To, Msg: Links.Amount{From: e.From, D: d, Play: true}})
+		m.Sent[edge] = m.Sent[edge].Add(d)
+	}
+	if level := StepStore.LevelOf(p[:len(p)-1]); level == m.Level {
+		m.ShownStep, m.StepClosed = p[len(p)-1], false
+	}
+	m.Play = &Play{Path: slices.Clone(p), N: max(1, m.presses(p)*m.scaleAt(p)), At: now + 2}
+	return out
 }
 
-func (m Model) folderPlayChip() *Board.Chip {
-	c := Board.Chip{Label: "▶", Act: Act{Op: OpFolderPlay}}
-	if f := m.Folder; f != nil {
-		c.Label, c.Lit = "■ step "+itoa(f.I+1)+"/"+itoa(len(f.Steps)), true
+func (m *Model) StartPlay(step int, now int64) []Links.Envelope {
+	if m.StepIsParent(step) {
+		return m.runFolder(m.leavesUnder(m.stepPath(step)), now)
 	}
-	return &c
-}
-
-func (m *Model) StartFolder() int {
-	m.Folder = &FolderRun{Steps: slices.Clone(m.Numbers())}
-	return m.Folder.Steps[0]
-}
-
-func (m *Model) NextFolderStep() (int, bool) {
-	f := m.Folder
-	if f == nil || m.Play != nil {
-		return 0, false
-	}
-	if f.I++; f.I >= len(f.Steps) {
-		m.Folder = nil
-		return 0, false
-	}
-	return f.Steps[f.I], true
-}
-
-func (m *Model) StopPlay() (end []HeadEdit, was bool) {
-	folder := m.Folder != nil
-	m.Folder = nil
-	p := m.Play
-	if p == nil {
-		return nil, folder
-	}
-	m.Play = nil
-	if p.K > 0 {
-		end = m.playEdits(p.Step, p.N, p.N)
-	}
-	return end, true
-}
-
-func (m *Model) PlayTick(now int64) ([]HeadEdit, bool) {
-	p := m.Play
-	if p == nil || now < p.At || m.Walking() {
-		return nil, false
-	}
-	p.At = now + 1
-	edits := m.playEdits(p.Step, p.K, p.N)
-	if p.K >= p.N {
-		m.Play = nil
-	}
-	p.K++
-	return edits, true
+	return m.startRun(m.stepPath(step), now)
 }
 
 const FileNetworkOpen = "network-open.bin"
@@ -224,4 +182,5 @@ func (m *Model) ReadNodeSteps() {
 			m.StepHead(step)
 		}
 	}
+	m.ReadAmounts()
 }

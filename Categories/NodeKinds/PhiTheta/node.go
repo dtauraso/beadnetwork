@@ -37,7 +37,7 @@ func (n *PhiTheta) breadcrumb(label, value string) {
 
 func (n *PhiTheta) Update(ctx context.Context) {
 	n.ctx = ctx
-	n.loadGrid("")
+	n.peer.SetGeom(n.nodeGeom())
 	n.postTicks()
 	n.publish()
 
@@ -74,9 +74,6 @@ func (n *PhiTheta) take(ctx context.Context, msg any) bool {
 	if s, ok := msg.(Links.StepAll); ok {
 		n.showAt = s.H + 2
 	}
-	if s, ok := msg.(Links.ShowStep); ok {
-		n.showLevel(s)
-	}
 	out := n.peer.Handle(msg)
 	n.send(out)
 	picked := ""
@@ -104,9 +101,9 @@ func (n *PhiTheta) publish() { n.publishWith("") }
 
 func (n *PhiTheta) publishWith(refused string) {
 	n.send(n.peer.Snap())
-	n.writeGrid()
+	n.writeNode()
 	n.postVectors()
-	n.mesh.Report(Links.Report{ID: n.peer.ID, Grid: n.peer.Grid(), Round: n.peer.Round(), Refused: refused})
+	n.mesh.Report(Links.Report{ID: n.peer.ID, Node: n.peer.Node(), Round: n.peer.Round(), Refused: refused})
 }
 
 func (a BuildArgs) Geom() *NodeCat.NodeGeometry {

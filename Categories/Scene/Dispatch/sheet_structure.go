@@ -28,7 +28,7 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 			setFrame(md, a.K, *typed)
 		}
 	case Builder.OpNodeRef:
-		ref := m.Col(a.Node).Ref
+		ref := m.Node(a.Node).Ref
 		v := sign + map[string]int{Links.KPhi: ref.Phi, Links.KTheta: ref.Theta}[a.K]
 		if typed != nil {
 			if !whole(*typed) {
@@ -39,8 +39,7 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		}
 		md.sendLink(ctx, a.Node, Links.SetRef{K: a.K, V: v})
 	case Builder.OpConnect:
-		g, ok := m.Grids[a.Node]
-		r := g.ShownCol()
+		r, ok := m.Reports[a.Node]
 		if !ok {
 			md.UI.Builder.Refused = fmt.Sprintf("%s→%s: %s has not reported its place yet, so there is nothing to measure the link from", a.Node, a.To, a.Node)
 			return true

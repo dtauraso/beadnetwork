@@ -3,6 +3,7 @@ package Dispatch
 import (
 	"fmt"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Scene"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node"
@@ -146,6 +147,10 @@ func removeLink(md *MoveDispatch, from, to string) {
 		m.Refused = fmt.Sprintf("could not remove %s→%s: %v", from, to, err)
 		return
 	}
+	if err := m.RemoveEdges(func(e Builder.Edge) bool { return e.From == from && e.To == to }); err != nil {
+		m.Refused = fmt.Sprintf("could not remove the amounts of %s→%s: %v", from, to, err)
+		return
+	}
 	md.persistStep()
 	if err := writeCounts(md.Scenes.TreeRoot, largestNodeID(root), countEdgeFiles(root)); err != nil {
 		m.Refused = fmt.Sprintf("could not update the counts: %v", err)
@@ -168,6 +173,10 @@ func removeLinkNode(md *MoveDispatch, id string) {
 			m.Refused = fmt.Sprintf("could not remove %s→%s: %v", id, other, err)
 			return
 		}
+	}
+	if err := m.RemoveEdges(func(e Builder.Edge) bool { return e.From == id || e.To == id }); err != nil {
+		m.Refused = fmt.Sprintf("could not remove the amounts of %s's links: %v", id, err)
+		return
 	}
 	if err := Files.RemoveNodeDir(root, id); err != nil {
 		m.Refused = fmt.Sprintf("could not remove node %s: %v", id, err)

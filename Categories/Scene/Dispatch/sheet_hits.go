@@ -95,11 +95,22 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	if a.Op != Builder.OpToastClose {
 		md.UI.Builder.Pressed = a
 	}
-	if Builder.IsStepEdit(a) {
-		if !Builder.IsStartEdit(a) {
-			md.showFor(ctx, a.I)
+	if Builder.IsStartEdit(a) {
+		e := md.UI.Builder.StartEdit(a, sign, typed)
+		md.send(ctx, []Links.Envelope{e})
+		return
+	}
+	if Builder.IsAmountEdit(a) {
+		m := &md.UI.Builder
+		refused, err := m.AmountEdit(a, sign, typed)
+		if err != nil {
+			View.LogPersistErr("sheet_step_amount", m.Root, err)
 		}
-		md.sendAfterWalk(ctx, a.To, Builder.StepEditOf(a, sign, typed))
+		if refused != "" {
+			m.Refused = refused
+		}
+		md.persistStep()
+		md.ShowStep(ctx)
 		return
 	}
 	if Builder.IsStepHead(a) {
@@ -128,11 +139,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpStepFold:
 		md.UI.Builder.ToggleStepFold(a.I)
 	case Builder.OpStepShow:
-		was := md.UI.Builder.StepShown()
 		md.UI.Builder.ShowStep(a, sign)
-		if md.UI.Builder.StepShown() != was {
-			md.ShowStep(ctx)
-		}
+		md.ShowStep(ctx)
 	case Builder.OpToastClose:
 		md.UI.Builder.Refused = ""
 	case Builder.OpNetFold:
@@ -148,13 +156,11 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	}
 }
 
-func (md *MoveDispatch) Settle(ctx context.Context) { md.stepFrom(ctx, "", Links.KBoth, 0) }
-
-func (md *MoveDispatch) stepFrom(ctx context.Context, from, k string, sign int) {
+func (md *MoveDispatch) Settle(ctx context.Context) {
 	m := &md.UI.Builder
 	m.Step.Round++
 	h := clock.HumanTick(m.TickMs)
 	for _, id := range m.Nodes {
-		md.sendLink(ctx, id, Links.StepAll{Round: m.Step.Round, H: h, K: k, Sign: sign, From: from, LockAll: m.StepOf(from).Locks(), FixedR: m.ManyIn()})
+		md.sendLink(ctx, id, Links.StepAll{Round: m.Step.Round, H: h})
 	}
 }

@@ -126,7 +126,12 @@ func signOf(v int) int {
 }
 
 func (l *Link) MarkWays() {
-	l.Way = Ways{Phi: signOf(l.Delta.Phi), Theta: signOf(l.Delta.Theta)}
+	if s := signOf(l.Delta.Phi); s != WayNone {
+		l.Way.Phi = s
+	}
+	if s := signOf(l.Delta.Theta); s != WayNone {
+		l.Way.Theta = s
+	}
 }
 
 func (s *Start) otherPair() {
@@ -134,17 +139,8 @@ func (s *Start) otherPair() {
 	s.Tick = Ticks{Phi: WrapTicks(per, -s.Tick.Phi), Theta: WrapTicks(per, s.Tick.Theta+TurnTicks*per/2)}
 }
 
-func (g Grid) thetaPressed(from string) bool {
-	for _, c := range g.Cols {
-		if in, ok := c.InFrom(from); ok && in.Link.Way.Theta != WayNone {
-			return true
-		}
-	}
-	return false
-}
-
-func (p *Peer) keepTheta(from string, l *Link) {
-	if p.grid.thetaPressed(from) {
+func (p *Peer) keepTheta(l *Link) {
+	if l.Way.Theta != WayNone {
 		return
 	}
 	d := float64(l.Start.Tick.Theta)/float64(TurnTicks*l.Start.per()) - l.knownTheta

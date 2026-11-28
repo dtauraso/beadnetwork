@@ -27,11 +27,10 @@ func dialOf(l Links.Link) Sheet.Dial {
 }
 
 func axisDial(l Links.Link, k string) Sheet.Dial {
-	at := l.Start.Angles()
 	if k == Links.KTheta {
-		return Sheet.Dial{Axis: Sheet.DialTheta, Start: float32(at.Theta) + float32(l.Total.Theta), Turn: float32(l.Delta.Theta)}
+		return Sheet.Dial{Axis: Sheet.DialTheta, Turn: float32(l.Delta.Theta)}
 	}
-	return Sheet.Dial{Axis: Sheet.DialPhi, Start: float32(at.Phi) + float32(l.Total.Phi), Turn: float32(l.Delta.Phi)}
+	return Sheet.Dial{Axis: Sheet.DialPhi, Turn: float32(l.Delta.Phi)}
 }
 
 func boardDial(d Sheet.Dial) Board.Dial {
@@ -54,19 +53,6 @@ func lockOf(m Model, step int, a axis) Fill.Lock {
 	return Fill.Lock{Axis: a.label, Label: a.label + " " + glyph, On: *on, Cycle: Act{Op: OpAllLockCycle, K: a.k, I: step}, Press: Act{Op: OpAllLock, K: a.k, I: step}}
 }
 
-func (m Model) progress(n int) string {
-	if !m.Walking() || m.Walk.Steps[m.Walk.I] != n {
-		return ""
-	}
-	placed := 0
-	for _, id := range m.Nodes {
-		if m.Rounds[id] >= m.Walk.Round {
-			placed++
-		}
-	}
-	return "moving… " + itoa(placed) + " of " + itoa(len(m.Nodes)) + " placed"
-}
-
 func boardCols(m Model) []Fill.Column {
 	out := []Fill.Column{m.startCol()}
 	for _, n := range m.Numbers() {
@@ -77,7 +63,7 @@ func boardCols(m Model) []Fill.Column {
 
 func (m Model) stepCol(n int) Fill.Column {
 	c := Fill.Column{Label: "step " + itoa(n), Short: itoa(n), Sub: m.Names[n], Open: m.StepOpen(n), Shown: n == m.StepShown(),
-		Fold: Act{Op: OpStepFold, I: n}, Progress: m.progress(n)}
+		Fold: Act{Op: OpStepFold, I: n}}
 	if !c.Shown {
 		c.Show = Act{Op: OpStepShow, I: n}
 	}
@@ -100,6 +86,9 @@ func (m Model) stepCol(n int) Fill.Column {
 		hd.Locks = append(hd.Locks, lockOf(m, n, a))
 	}
 	c.Head = hd
+	if m.StepIsParent(n) {
+		return c
+	}
 	for _, id := range m.Nodes {
 		if links := m.linksTo(id); len(links) > 0 {
 			c.Nodes = append(c.Nodes, m.nodeOf(n, id, links))
@@ -124,7 +113,7 @@ func (m Model) hot(l Links.Link) bool { return m.Hot.Node == l.From && m.Hot.To 
 
 func (m Model) linkOf(step int, l Links.Link) Fill.Link {
 	e := StepEdge{step, l.From, l.To}
-	sl, ok := m.gridLink(e)
+	sl, ok := m.stepLink(e)
 	lk := Fill.Link{Label: l.From + " → " + l.To, Picked: ok && sl.Picked, Open: m.CardOpen(e), Fold: Act{Op: OpCardFold, Node: l.From, To: l.To, I: step},
 		Dial: boardDial(dialOf(sl)), Sum: notTurned, Hot: m.hot(l)}
 	if !ok {
@@ -169,12 +158,12 @@ func (m Model) startCol() Fill.Column {
 
 func (m Model) startLink(id string, l Links.Link) Fill.Link {
 	e := StepEdge{startPart, l.From, l.To}
-	o := m.Grids[id].Base[l.From].Origin
+	o := l.Start
 	lk := Fill.Link{Label: l.From + " → " + l.To, Open: m.CardOpen(e), Fold: Act{Op: OpCardFold, Node: l.From, To: l.To, I: startPart},
 		Dial: Board.Dial{Axis: Board.Phi, Start: float32(o.Tick.Phi)}, Sum: "φ" + itoa(o.Tick.Phi) + " θ" + itoa(o.Tick.Theta) + " r" + tenths(o.R),
 		Hot: m.hot(l)}
 	shown := m.StepShown()
-	if sl, ok := m.gridLink(StepEdge{shown, l.From, l.To}); ok {
+	if sl, ok := m.stepLink(StepEdge{shown, l.From, l.To}); ok {
 		lk.Picked, lk.Pick = sl.Picked, Act{Op: OpStepPick, Node: l.From, To: l.To, I: shown}
 	}
 	if lk.Open {

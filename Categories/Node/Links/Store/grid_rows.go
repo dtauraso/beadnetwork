@@ -74,17 +74,17 @@ const (
 	rowThetaOld  = "θ start"
 )
 
-var baseRows = []row[Links.Base]{
-	intRow(RowPhiTick, func(b *Links.Base) *int { return &b.Origin.Tick.Phi }),
-	intRow(RowThetaTick, func(b *Links.Base) *int { return &b.Origin.Tick.Theta }),
-	intRow("s", func(b *Links.Base) *int { return &b.Origin.S }),
-	floatRow("r start", func(b *Links.Base) *float64 { return &b.Origin.R }),
-	intRow("φ 1", func(b *Links.Base) *int { return &b.Origin.One.Phi }),
-	intRow("θ 1", func(b *Links.Base) *int { return &b.Origin.One.Theta }),
-	intRow("r 1", func(b *Links.Base) *int { return &b.Origin.One.R }),
-	intRow("φ Δ total", func(b *Links.Base) *int { return &b.Total.Phi }),
-	intRow("θ Δ total", func(b *Links.Base) *int { return &b.Total.Theta }),
-	intRow("r Δ total", func(b *Links.Base) *int { return &b.Total.R }),
+var baseRows = []row[OldBase]{
+	intRow(RowPhiTick, func(b *OldBase) *int { return &b.Origin.Tick.Phi }),
+	intRow(RowThetaTick, func(b *OldBase) *int { return &b.Origin.Tick.Theta }),
+	intRow("s", func(b *OldBase) *int { return &b.Origin.S }),
+	floatRow("r start", func(b *OldBase) *float64 { return &b.Origin.R }),
+	intRow("φ 1", func(b *OldBase) *int { return &b.Origin.One.Phi }),
+	intRow("θ 1", func(b *OldBase) *int { return &b.Origin.One.Theta }),
+	intRow("r 1", func(b *OldBase) *int { return &b.Origin.One.R }),
+	intRow("φ Δ total", func(b *OldBase) *int { return &b.Total.Phi }),
+	intRow("θ Δ total", func(b *OldBase) *int { return &b.Total.Theta }),
+	intRow("r Δ total", func(b *OldBase) *int { return &b.Total.R }),
 }
 
 var sumRows = []row[Links.Angles]{
@@ -93,15 +93,15 @@ var sumRows = []row[Links.Angles]{
 	floatRow("r sum", func(s *Links.Angles) *float64 { return &s.R }),
 }
 
-var nodeRows = append([]row[Links.Col]{
-	boolRow("counted", func(c *Links.Col) *bool { return &c.Counted }),
-	intRow("ref Δφ", func(c *Links.Col) *int { return &c.Ref.Phi }),
-	intRow("ref Δθ", func(c *Links.Col) *int { return &c.Ref.Theta }),
-	intRow("ref s", func(c *Links.Col) *int { return &c.Ref.S }),
-	floatRow("place r", func(c *Links.Col) *float64 { return &c.At.R }),
-	floatRow("place φ", func(c *Links.Col) *float64 { return &c.At.Phi }),
-	floatRow("place θ", func(c *Links.Col) *float64 { return &c.At.Theta }),
-}, append(vecRows("place", func(c *Links.Col) *Links.Vec3 { return &c.Pos }), vecRows("label anchor", func(c *Links.Col) *Links.Vec3 { return &c.Label })...)...)
+var nodeRows = append([]row[Col]{
+	boolRow("counted", func(c *Col) *bool { return &c.Counted }),
+	intRow("ref Δφ", func(c *Col) *int { return &c.Ref.Phi }),
+	intRow("ref Δθ", func(c *Col) *int { return &c.Ref.Theta }),
+	intRow("ref s", func(c *Col) *int { return &c.Ref.S }),
+	floatRow("place r", func(c *Col) *float64 { return &c.At.R }),
+	floatRow("place φ", func(c *Col) *float64 { return &c.At.Phi }),
+	floatRow("place θ", func(c *Col) *float64 { return &c.At.Theta }),
+}, append(vecRows("place", func(c *Col) *Links.Vec3 { return &c.Pos }), vecRows("label anchor", func(c *Col) *Links.Vec3 { return &c.Label })...)...)
 
 var outRows = append(vecRows("edge start", func(o *Links.OutCell) *Links.Vec3 { return &o.Start }),
 	append(vecRows("edge end", func(o *Links.OutCell) *Links.Vec3 { return &o.End }),
